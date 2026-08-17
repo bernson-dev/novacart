@@ -36,19 +36,19 @@
             <thead><tr><td width="35%"><b>{{ text_extension }}</b></td><td width="25%"><b>{{ text_current }}</b></td><td width="25%"><b>{{ text_required }}</b></td><td width="15%" class="text-center"><b>{{ text_status }}</b></td></tr></thead>
             <tbody>
               {% set extensions = [
-                ['db', text_db, db],
-                ['gd', text_gd, gd],
-                ['curl', text_curl, curl],
-                ['openssl', text_openssl, openssl],
-                ['zlib', text_zlib, zlib],
-                ['zip', text_zip, zip],
-                ['dom', text_dom, dom],
-                ['hash', text_hash, hash],
-                ['xmlwriter', text_xmlwriter, xmlwriter],
-                ['json', text_json, json]
+                [text_db, db],
+                [text_gd, gd],
+                [text_curl, curl],
+                [text_openssl, openssl],
+                [text_zlib, zlib],
+                [text_zip, zip],
+                [text_dom, dom],
+                [text_hash, hash],
+                [text_xmlwriter, xmlwriter],
+                [text_json, json]
               ] %}
-              {% for key, label, enabled in extensions %}
-              <tr><td>{{ label }}</td><td>{% if enabled %}{{ text_on }}{% else %}{{ text_off }}{% endif %}</td><td>{{ text_on }}</td><td class="text-center">{% if enabled %}<span class="text-success"><i class="fa fa-check-circle"></i></span>{% else %}<span class="text-danger"><i class="fa fa-minus-circle"></i></span>{% endif %}</td></tr>
+              {% for extension in extensions %}
+              <tr><td>{{ extension[0] }}</td><td>{% if extension[1] %}{{ text_on }}{% else %}{{ text_off }}{% endif %}</td><td>{{ text_on }}</td><td class="text-center">{% if extension[1] %}<span class="text-success"><i class="fa fa-check-circle"></i></span>{% else %}<span class="text-danger"><i class="fa fa-minus-circle"></i></span>{% endif %}</td></tr>
               {% endfor %}
               {% if not iconv %}
               <tr><td>{{ text_mbstring }}</td><td>{% if mbstring %}{{ text_on }}{% else %}{{ text_off }}{% endif %}</td><td>{{ text_on }}</td><td class="text-center">{% if mbstring %}<span class="text-success"><i class="fa fa-check-circle"></i></span>{% else %}<span class="text-danger"><i class="fa fa-minus-circle"></i></span>{% endif %}</td></tr>
@@ -82,8 +82,8 @@
                 [modification, error_modification],
                 [session_dir, error_session_dir]
               ] %}
-              {% for path, error in directories %}
-              <tr><td>{{ path }}/</td><td>{% if not error %}<span class="text-success">{{ text_writable }}</span>{% else %}<span class="text-danger">{{ error }}</span>{% endif %}</td></tr>
+              {% for directory in directories %}
+              <tr><td>{{ directory[0] }}/</td><td>{% if not directory[1] %}<span class="text-success">{{ text_writable }}</span>{% else %}<span class="text-danger">{{ directory[1] }}</span>{% endif %}</td></tr>
               {% endfor %}
             </tbody>
           </table>
