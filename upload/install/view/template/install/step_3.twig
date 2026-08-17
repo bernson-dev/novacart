@@ -115,15 +115,6 @@
                             {% if error_sql_dump %}<div class="text-danger">{{ error_sql_dump }}</div>{% endif %}
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="col-sm-3 control-label" for="input-repair-schema">{{ entry_repair_schema }}</label>
-                        <div class="col-sm-9">
-                            <div class="checkbox">
-                                <label><input type="checkbox" name="repair_schema" value="1" id="input-repair-schema"{% if repair_schema %} checked="checked"{% endif %}/> {{ text_repair_schema }}</label>
-                            </div>
-                            <p class="help-block">{{ help_repair_schema }}</p>
-                        </div>
-                    </div>
                 </fieldset>
 
                 <div class="buttons">
