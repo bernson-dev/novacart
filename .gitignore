@@ -5,3 +5,4 @@ upload/storage/logs/*
 upload/storage/cache/*
 upload/storage/session/*
 upload/system/storage/logs/*
+!upload/system/storage/logs/index.html
