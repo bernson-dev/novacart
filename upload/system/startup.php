@@ -48,13 +48,47 @@ $isHttps = (
 	|| (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower((string)$_SERVER['HTTP_X_FORWARDED_SSL']) === 'on')
 );
 
-/*if ($isHttps) {
-	$_SERVER['HTTPS'] = 'on';
-} else {
-	unset($_SERVER['HTTPS']);
-}*/
-
 $_SERVER['HTTPS'] = $isHttps ? 'on' : '';
+
+// Deferred install cleanup
+if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
+	$cleanupMarker = DIR_STORAGE . 'install_cleanup.flag';
+
+	if (is_file($cleanupMarker)) {
+		$installDir = dirname(rtrim(str_replace('\\', '/', DIR_SYSTEM), '/')) . '/install';
+
+		if (is_dir($installDir) && !is_link($installDir)) {
+			$iterator = new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator($installDir, FilesystemIterator::SKIP_DOTS),
+				RecursiveIteratorIterator::CHILD_FIRST
+			);
+
+			$cleanupOk = true;
+
+			foreach ($iterator as $item) {
+				$path = $item->getPathname();
+
+				if ($item->isLink() || $item->isFile()) {
+					if (!@unlink($path) && file_exists($path)) {
+						$cleanupOk = false;
+						break;
+					}
+				} elseif ($item->isDir()) {
+					if (!@rmdir($path) && is_dir($path)) {
+						$cleanupOk = false;
+						break;
+					}
+				}
+			}
+
+			if ($cleanupOk && (!is_dir($installDir) || @rmdir($installDir))) {
+				@unlink($cleanupMarker);
+			}
+		} else {
+			@unlink($cleanupMarker);
+		}
+	}
+}
 
 // Modification Override
 function modification(string $filename): string {
