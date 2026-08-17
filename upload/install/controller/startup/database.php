@@ -20,7 +20,8 @@ class ControllerStartupDatabase extends Controller {
 			'DB_HOSTNAME',
 			'DB_USERNAME',
 			'DB_PASSWORD',
-			'DB_DATABASE'
+			'DB_DATABASE',
+			'DB_PREFIX'
 		);
 
 		foreach ($required as $name) {
@@ -29,19 +30,25 @@ class ControllerStartupDatabase extends Controller {
 			}
 		}
 
-		$port = isset($db_config['DB_PORT']) && $db_config['DB_PORT'] !== ''
-			? $db_config['DB_PORT']
-			: ini_get('mysqli.default_port');
+		if (!isset($db_config['DB_PORT']) || $db_config['DB_PORT'] === '') {
+			$db_config['DB_PORT'] = ini_get('mysqli.default_port');
+		}
+
+		foreach ($db_config as $name => $value) {
+			if (strpos($name, 'DB_') === 0 && !defined($name)) {
+				define($name, $value);
+			}
+		}
 
 		$this->registry->set(
 			'db',
 			new DB(
-				$db_config['DB_DRIVER'],
-				html_entity_decode($db_config['DB_HOSTNAME'], ENT_QUOTES, 'UTF-8'),
-				html_entity_decode($db_config['DB_USERNAME'], ENT_QUOTES, 'UTF-8'),
-				html_entity_decode($db_config['DB_PASSWORD'], ENT_QUOTES, 'UTF-8'),
-				html_entity_decode($db_config['DB_DATABASE'], ENT_QUOTES, 'UTF-8'),
-				$port
+				DB_DRIVER,
+				html_entity_decode(DB_HOSTNAME, ENT_QUOTES, 'UTF-8'),
+				html_entity_decode(DB_USERNAME, ENT_QUOTES, 'UTF-8'),
+				html_entity_decode(DB_PASSWORD, ENT_QUOTES, 'UTF-8'),
+				html_entity_decode(DB_DATABASE, ENT_QUOTES, 'UTF-8'),
+				DB_PORT
 			)
 		);
 	}
