@@ -52,15 +52,23 @@ class ControllerInstallStep5 extends Controller {
 			return $this->jsonResponse($json);
 		}
 
-		$result = $this->deleteDirectory($install_path);
+		$marker = DIR_STORAGE . 'install_cleanup.flag';
+		$payload = json_encode(array(
+			'created' => time(),
+			'path' => $install_path
+		));
 
-		if ($result === true) {
-			unset($this->session->data['install_cleanup_token']);
-			unset($this->session->data['install']);
-			$json['success'] = $this->language->get('text_success_install_deleted');
-		} else {
-			$json['error'] = $this->language->get($result);
+		$result = @file_put_contents($marker, $payload, LOCK_EX);
+
+		if ($result === false || $result !== strlen($payload)) {
+			$json['error'] = $this->language->get('text_error_install_delete');
+			return $this->jsonResponse($json);
 		}
+
+		unset($this->session->data['install_cleanup_token']);
+		unset($this->session->data['install']);
+
+		$json['success'] = $this->language->get('text_success_install_deleted');
 
 		return $this->jsonResponse($json);
 	}
@@ -68,43 +76,5 @@ class ControllerInstallStep5 extends Controller {
 	private function jsonResponse($json) {
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
-	}
-
-	private function deleteDirectory($dir) {
-		if (!is_dir($dir) || is_link($dir)) {
-			return 'text_error_dir_not_found';
-		}
-
-		$objects = scandir($dir);
-		if ($objects === false) {
-			return 'text_error_dir_delete';
-		}
-
-		foreach ($objects as $object) {
-			if ($object === '.' || $object === '..') {
-				continue;
-			}
-
-			$path = $dir . DIRECTORY_SEPARATOR . $object;
-
-			if (is_link($path) || is_file($path)) {
-				if (!@unlink($path) && file_exists($path)) {
-					return 'text_error_file_delete';
-				}
-			} elseif (is_dir($path)) {
-				$result = $this->deleteDirectory($path);
-				if ($result !== true) {
-					return $result;
-				}
-			} else {
-				return 'text_error_file_delete';
-			}
-		}
-
-		if (!@rmdir($dir) && is_dir($dir)) {
-			return 'text_error_dir_delete';
-		}
-
-		return true;
 	}
 }
