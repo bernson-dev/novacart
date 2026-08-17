@@ -57,35 +57,39 @@ if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
 	if (is_file($cleanupMarker)) {
 		$installDir = dirname(rtrim(str_replace('\\', '/', DIR_SYSTEM), '/')) . '/install';
 
-		if (is_dir($installDir) && !is_link($installDir)) {
-			$iterator = new RecursiveIteratorIterator(
-				new RecursiveDirectoryIterator($installDir, FilesystemIterator::SKIP_DOTS),
-				RecursiveIteratorIterator::CHILD_FIRST
-			);
+		try {
+			if (is_dir($installDir) && !is_link($installDir)) {
+				$iterator = new RecursiveIteratorIterator(
+					new RecursiveDirectoryIterator($installDir, FilesystemIterator::SKIP_DOTS),
+					RecursiveIteratorIterator::CHILD_FIRST
+				);
 
-			$cleanupOk = true;
+				$cleanupOk = true;
 
-			foreach ($iterator as $item) {
-				$path = $item->getPathname();
+				foreach ($iterator as $item) {
+					$path = $item->getPathname();
 
-				if ($item->isLink() || $item->isFile()) {
-					if (!@unlink($path) && file_exists($path)) {
-						$cleanupOk = false;
-						break;
-					}
-				} elseif ($item->isDir()) {
-					if (!@rmdir($path) && is_dir($path)) {
-						$cleanupOk = false;
-						break;
+					if ($item->isLink() || $item->isFile()) {
+						if (!@unlink($path) && file_exists($path)) {
+							$cleanupOk = false;
+							break;
+						}
+					} elseif ($item->isDir()) {
+						if (!@rmdir($path) && is_dir($path)) {
+							$cleanupOk = false;
+							break;
+						}
 					}
 				}
-			}
 
-			if ($cleanupOk && (!is_dir($installDir) || @rmdir($installDir))) {
+				if ($cleanupOk && (!is_dir($installDir) || @rmdir($installDir))) {
+					@unlink($cleanupMarker);
+				}
+			} else {
 				@unlink($cleanupMarker);
 			}
-		} else {
-			@unlink($cleanupMarker);
+		} catch (Throwable $e) {
+			// Keep the marker so cleanup is retried on the next request.
 		}
 	}
 }
