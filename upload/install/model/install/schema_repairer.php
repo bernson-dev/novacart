@@ -1,325 +1,348 @@
 <?php
 
 class SchemaRepairer {
+	/**
+	 * Восстанавливает отсутствующие таблицы, колонки и индексы по эталонной схеме.
+	 * Для существующих колонок синхронизирует тип, NULL, DEFAULT и AUTO_INCREMENT.
+	 * Существующие данные не удаляет.
+	 *
+	 * @param DB     $db
+	 * @param string $prefix
+	 * @return void
+	 * @throws Exception
+	 */
+	public function repairSchemaFromFile($db, $prefix) {
+		$schema_file = DIR_APPLICATION . 'model/install/opencart_schema.sql';
 
-    /**
-     * Быстрое восстановление структуры БД по эталонному SQL-файлу.
-     *
-     * Создаёт отсутствующие таблицы, колонки, индексы и ОБНОВЛЯЕТ типы/длину существующих полей.
-     * Существующие данные не удаляет.
-     *
-     * @param DB     $db
-     * @param string $prefix
-     * @return void
-     * @throws Exception
-     */
-    public function repairSchemaFromFile($db, $prefix) {
-        $schema_file = DIR_APPLICATION . 'model/install/opencart_schema.sql';
+		if (!is_file($schema_file)) {
+			throw new \Exception('Could not load schema file: ' . $schema_file);
+		}
 
-        if (!file_exists($schema_file)) {
-            throw new \Exception('Could not load schema file: ' . $schema_file);
-        }
+		$sql = file_get_contents($schema_file);
 
-        $sql = file_get_contents($schema_file);
+		if ($sql === false || trim($sql) === '') {
+			throw new \Exception('Schema file is empty: ' . $schema_file);
+		}
 
-        if ($sql === false || trim($sql) === '') {
-            throw new \Exception('Schema file is empty: ' . $schema_file);
-        }
+		$sql = $this->cleanSqlComments($sql);
+		$schema_tables = $this->parseCreateTables($sql);
 
-        // Очищаем SQL от комментариев для надежности парсинга
-        $sql = $this->cleanSqlComments($sql);
+		if (!$schema_tables) {
+			throw new \Exception('No CREATE TABLE statements found in schema file: ' . $schema_file);
+		}
 
-        $schema_tables = $this->parseCreateTables($sql);
+		$existing_tables = $this->getExistingTables($db);
 
-        if (!$schema_tables) {
-            throw new \Exception('No CREATE TABLE statements found in schema file: ' . $schema_file);
-        }
+		foreach ($schema_tables as $table_name => $table_data) {
+			$target_table = $prefix . $table_name;
 
-        $existing_tables = $this->getExistingTables($db);
+			if (!isset($existing_tables[$target_table])) {
+				$create_sql = str_replace('`oc_', '`' . $prefix, $table_data['create']);
+				$db->query($create_sql);
+				$existing_tables[$target_table] = true;
+				continue;
+			}
 
-        foreach ($schema_tables as $table_name => $table_data) {
-            $target_table = $prefix . $table_name;
+			$existing_columns = $this->getExistingColumns($db, $target_table);
+			$existing_indexes = $this->getExistingIndexes($db, $target_table);
 
-            // Если таблицы вообще нет — создаем целиком
-            if (!isset($existing_tables[$target_table])) {
-                $create_sql = str_replace('`oc_', '`' . $prefix, $table_data['create']);
-                $db->query($create_sql);
-                $existing_tables[$target_table] = true;
-                continue;
-            }
+			$this->repairTableBatch($db, $target_table, $table_data, $existing_columns, $existing_indexes);
+		}
+	}
 
-            // Таблица существует — проверяем поля и индексы
-            $existing_columns = $this->getExistingColumns($db, $target_table);
-            $existing_indexes = $this->getExistingIndexes($db, $target_table);
+	private function cleanSqlComments($sql) {
+		$sql = preg_replace('!/\*.*?\*/!s', '', $sql);
+		$sql = preg_replace('/^\s*--.*$/m', '', $sql);
+		$sql = preg_replace('/^\s*#.*$/m', '', $sql);
 
-            // Ремонтируем/обновляем колонки и индексы ОДНИМ пакетным запросом на таблицу
-            $this->repairTableBatch($db, $target_table, $table_data, $existing_columns, $existing_indexes);
-        }
-    }
+		return $sql;
+	}
 
-    /**
-     * Удаляет однострочные и многострочные комментарии из SQL.
-     *
-     * @param string $sql
-     * @return string
-     */
-    private function cleanSqlComments($sql) {
-        // Удаляем многострочные комментарии /* ... */
-        $sql = preg_replace('!/\*.*?\*/!s', '', $sql);
-        // Удаляем однострочные комментарии -- ...
-        $sql = preg_replace('/^--.*$/m', '', $sql);
-        return $sql;
-    }
+	private function parseCreateTables($sql) {
+		$tables = array();
 
-    /**
-     * Парсинг CREATE TABLE из SQL-файла.
-     *
-     * @param string $sql
-     * @return array
-     */
-    private function parseCreateTables($sql) {
-        $tables = array();
+		if (!preg_match_all('/CREATE\s+TABLE\s+`oc_([^`]+)`\s*\((.*?)\)\s*ENGINE\s*=\s*([^\s;]+)(.*?)\s*;/is', $sql, $matches, PREG_SET_ORDER)) {
+			return $tables;
+		}
 
-        if (!preg_match_all('/CREATE\s+TABLE\s+`oc_([^`]+)`\s*\((.*?)\)\s*ENGINE\s*=\s*([^\s;]+)(.*?)\s*;/is', $sql, $matches, PREG_SET_ORDER)) {
-            return $tables;
-        }
+		foreach ($matches as $match) {
+			$table_name = $match[1];
+			$body = trim($match[2]);
+			$engine = trim($match[3]);
+			$options = trim($match[4]);
 
-        foreach ($matches as $match) {
-            $table_name = $match[1];
-            $body = trim($match[2]);
-            $engine = trim($match[3]);
-            $options = trim($match[4]);
+			$create_sql = 'CREATE TABLE `oc_' . $table_name . "` (\n" . $body . "\n) ENGINE=" . $engine;
+			if ($options !== '') {
+				$create_sql .= ' ' . $options;
+			}
+			$create_sql .= ';';
 
-            $create_sql = 'CREATE TABLE `oc_' . $table_name . "` (\n" . $body . "\n) ENGINE=" . $engine;
-            if ($options !== '') {
-                $create_sql .= ' ' . $options;
-            }
-            $create_sql .= ';';
+			$lines = $this->splitCreateTableBody($body);
+			$columns = array();
+			$indexes = array();
+			$previous_column = '';
 
-            $lines = $this->splitCreateTableBody($body);
+			foreach ($lines as $line) {
+				$line = rtrim(trim($line), ',');
 
-            $columns = array();
-            $indexes = array();
-            $previous_column = '';
+				if ($line === '') {
+					continue;
+				}
 
-            foreach ($lines as $line) {
-                $line = trim($line);
-                $line = rtrim($line, ',');
+				if (preg_match('/^`([^`]+)`\s+(.+)$/s', $line, $column_match)) {
+					$column_name = $column_match[1];
+					$columns[$column_name] = array(
+						'name' => $column_name,
+						'definition' => $column_match[2],
+						'sql' => $line,
+						'after' => $previous_column
+					);
+					$previous_column = $column_name;
+					continue;
+				}
 
-                if ($line === '') {
-                    continue;
-                }
+				$index = $this->parseIndexDefinition($line);
+				if ($index) {
+					$indexes[$index['name']] = $index;
+				}
+			}
 
-                if (preg_match('/^`([^`]+)`\s+(.+)$/s', $line, $column_match)) {
-                    $column_name = $column_match[1];
+			$tables[$table_name] = array(
+				'create' => $create_sql,
+				'columns' => $columns,
+				'indexes' => $indexes
+			);
+		}
 
-                    $columns[$column_name] = array(
-                        'name' => $column_name,
-                        'definition' => $column_match[2], // Полная спецификация (тип, NULL, default и т.д.)
-                        'sql'  => $line,
-                        'after' => $previous_column
-                    );
+		return $tables;
+	}
 
-                    $previous_column = $column_name;
-                    continue;
-                }
+	private function splitCreateTableBody($body) {
+		$items = array();
+		$current = '';
+		$level = 0;
+		$length = strlen($body);
+		$in_quote = false;
+		$quote_char = '';
 
-                $index = $this->parseIndexDefinition($line);
-                if ($index) {
-                    $indexes[$index['name']] = $index;
-                }
-            }
+		for ($i = 0; $i < $length; $i++) {
+			$char = $body[$i];
 
-            $tables[$table_name] = array(
-                'create'  => $create_sql,
-                'columns' => $columns,
-                'indexes' => $indexes
-            );
-        }
+			if (($char === "'" || $char === '"') && ($i === 0 || $body[$i - 1] !== '\\')) {
+				if (!$in_quote) {
+					$in_quote = true;
+					$quote_char = $char;
+				} elseif ($quote_char === $char) {
+					$in_quote = false;
+					$quote_char = '';
+				}
+			}
 
-        return $tables;
-    }
+			if (!$in_quote) {
+				if ($char === '(') {
+					$level++;
+				} elseif ($char === ')') {
+					$level--;
+				}
 
-    /**
-     * Разделение тела CREATE TABLE с учетом вложенных скобок и кавычек.
-     *
-     * @param string $body
-     * @return array
-     */
-    private function splitCreateTableBody($body) {
-        $items = array();
-        $current = '';
-        $level = 0;
-        $length = strlen($body);
-        $in_quote = false;
-        $quote_char = '';
+				if ($char === ',' && $level === 0) {
+					$items[] = trim($current);
+					$current = '';
+					continue;
+				}
+			}
 
-        for ($i = 0; $i < $length; $i++) {
-            $char = $body[$i];
+			$current .= $char;
+		}
 
-            if (($char === "'" || $char === '"') && ($i === 0 || $body[$i - 1] !== '\\')) {
-                if (!$in_quote) {
-                    $in_quote = true;
-                    $quote_char = $char;
-                } elseif ($quote_char === $char) {
-                    $in_quote = false;
-                    $quote_char = '';
-                }
-            }
+		$current = trim($current);
+		if ($current !== '') {
+			$items[] = $current;
+		}
 
-            if (!$in_quote) {
-                if ($char === '(') {
-                    $level++;
-                } elseif ($char === ')') {
-                    $level--;
-                }
+		return $items;
+	}
 
-                if ($char === ',' && $level === 0) {
-                    $items[] = trim($current);
-                    $current = '';
-                    continue;
-                }
-            }
+	private function parseIndexDefinition($line) {
+		$line = trim(rtrim($line, ','));
 
-            $current .= $char;
-        }
+		if (preg_match('/^PRIMARY\s+KEY\s+(.+)$/is', $line, $match)) {
+			return array('name' => 'PRIMARY', 'sql' => 'PRIMARY KEY ' . trim($match[1]));
+		}
 
-        $current = trim($current);
-        if ($current !== '') {
-            $items[] = $current;
-        }
+		if (preg_match('/^(UNIQUE|FULLTEXT)?\s*KEY\s+`([^`]+)`\s+(.+)$/is', $line, $match)) {
+			$type = strtoupper($match[1]);
+			$name = $match[2];
+			$index_prefix = $type ? $type . ' KEY' : 'KEY';
 
-        return $items;
-    }
+			return array('name' => $name, 'sql' => $index_prefix . ' `' . $name . '` ' . trim($match[3]));
+		}
 
-    /**
-     * Парсинг индексов.
-     *
-     * @param string $line
-     * @return array|false
-     */
-    private function parseIndexDefinition($line) {
-        $line = trim(rtrim($line, ','));
+		return false;
+	}
 
-        if (preg_match('/^PRIMARY\s+KEY\s+(.+)$/is', $line, $match)) {
-            return array('name' => 'PRIMARY', 'sql' => 'PRIMARY KEY ' . trim($match[1]));
-        }
+	private function getExistingTables($db) {
+		$tables = array();
+		$query = $db->query("SHOW FULL TABLES");
 
-        if (preg_match('/^(UNIQUE|FULLTEXT)?\s*KEY\s+`([^`]+)`\s+(.+)$/is', $line, $match)) {
-            $type = strtoupper($match[1]);
-            $name = $match[2];
-            $prefix = $type ? $type . ' KEY' : 'KEY';
-            return array('name' => $name, 'sql' => $prefix . ' `' . $name . '` ' . trim($match[3]));
-        }
+		foreach ($query->rows as $row) {
+			$table = reset($row);
+			if ($table !== false && $table !== null) {
+				$tables[$table] = true;
+			}
+		}
 
-        return false;
-    }
+		return $tables;
+	}
 
-    /**
-     * Получение существующих таблиц.
-     */
-    private function getExistingTables($db) {
-        $tables = array();
-        $query = $db->query("SHOW FULL TABLES");
+	private function getExistingColumns($db, $table) {
+		$columns = array();
+		$query = $db->query("SHOW COLUMNS FROM `" . $table . "`");
 
-        foreach ($query->rows as $row) {
-            $table = reset($row);
-            if ($table !== false && $table !== null) {
-                $tables[$table] = true;
-            }
-        }
+		foreach ($query->rows as $row) {
+			$columns[$row['Field']] = array(
+				'Type' => strtolower($row['Type']),
+				'Null' => strtolower($row['Null']),
+				'Default' => $row['Default'],
+				'Extra' => strtolower($row['Extra'])
+			);
+		}
 
-        return $tables;
-    }
+		return $columns;
+	}
 
-    /**
-     * Получение детальной структуры колонок (тип, NULL, default и т.д.).
-     */
-    private function getExistingColumns($db, $table) {
-        $columns = array();
-        $query = $db->query("SHOW COLUMNS FROM `" . $table . "`");
+	private function getExistingIndexes($db, $table) {
+		$indexes = array();
+		$query = $db->query("SHOW INDEX FROM `" . $table . "`");
 
-        foreach ($query->rows as $row) {
-            // Собираем типы в нижнем регистре для корректного сравнения
-            $columns[$row['Field']] = array(
-                'Type'    => strtolower($row['Type']),
-                'Null'    => strtolower($row['Null']),
-                'Default' => $row['Default'],
-                'Extra'   => strtolower($row['Extra'])
-            );
-        }
+		foreach ($query->rows as $row) {
+			$indexes[$row['Key_name']] = true;
+		}
 
-        return $columns;
-    }
+		return $indexes;
+	}
 
-    /**
-     * Получение существующих индексов.
-     */
-    private function getExistingIndexes($db, $table) {
-        $indexes = array();
-        $query = $db->query("SHOW INDEX FROM `" . $table . "`");
+	private function isColumnDefinitionChanged($schema_def, $existing_col) {
+		$schema = $this->parseColumnDefinition($schema_def);
 
-        foreach ($query->rows as $row) {
-            $indexes[$row['Key_name']] = true;
-        }
+		if ($schema['type'] !== $this->normalizeSql($existing_col['Type'])) {
+			return true;
+		}
 
-        return $indexes;
-    }
+		$existing_nullable = ($existing_col['Null'] === 'yes');
+		if ($schema['nullable'] !== $existing_nullable) {
+			return true;
+		}
 
-    /**
-     * Всплывающая проверка на различие типов/длины колонок.
-     */
-    private function isColumnDefinitionChanged($schema_def, $existing_col) {
-        $def = strtolower($schema_def);
-        $type = $existing_col['Type'];
+		if ($schema['has_default']) {
+			if (!$this->defaultsEqual($schema['default'], $existing_col['Default'])) {
+				return true;
+			}
+		} elseif ($existing_col['Default'] !== null) {
+			return true;
+		}
 
-        // Сравниваем тип данных с длиной (например "varchar(255)")
-        if (strpos($def, $type) === false) {
-            return true;
-        }
+		$existing_auto_increment = (strpos($existing_col['Extra'], 'auto_increment') !== false);
+		if ($schema['auto_increment'] !== $existing_auto_increment) {
+			return true;
+		}
 
-        // Проверяем NULL / NOT NULL
-        if (strpos($def, 'not null') !== false && $existing_col['Null'] === 'yes') {
-            return true;
-        }
+		return false;
+	}
 
-        return false;
-    }
+	private function parseColumnDefinition($definition) {
+		$definition = trim($definition);
+		$normalized = $this->normalizeSql($definition);
 
-    /**
-     * Пакетный ремонт таблицы (колонки + индексы в одном ALTER TABLE).
-     */
-    private function repairTableBatch($db, $table, $table_data, $existing_columns, $existing_indexes) {
-        $alter_clauses = array();
+		$stop = preg_split('/\s+(?:not\s+null|null|default|auto_increment|comment|collate|character\s+set|on\s+update)\b/i', $definition, 2);
+		$type = $this->normalizeSql($stop[0]);
 
-        // 1. Проверяем колонки
-        foreach ($table_data['columns'] as $column_name => $column) {
-            if (!isset($existing_columns[$column_name])) {
-                // Добавление новой колонки
-                $clause = "ADD " . $column['sql'];
-                if ($column['after'] !== '' && isset($existing_columns[$column['after']])) {
-                    $clause .= " AFTER `" . $column['after'] . "`";
-                } else {
-                    $clause .= " FIRST";
-                }
-                $alter_clauses[] = $clause;
-            } elseif ($this->isColumnDefinitionChanged($column['definition'], $existing_columns[$column_name])) {
-                // Изменение существующей колонки (тип, длина, null)
-                $alter_clauses[] = "MODIFY " . $column['sql'];
-            }
-        }
+		$nullable = (stripos($normalized, ' not null') === false);
+		$auto_increment = (stripos($normalized, ' auto_increment') !== false);
+		$has_default = false;
+		$default = null;
 
-        // 2. Проверяем индексы
-        foreach ($table_data['indexes'] as $index_name => $index) {
-            if (!isset($existing_indexes[$index_name])) {
-                $alter_clauses[] = "ADD " . $index['sql'];
-            }
-        }
+		if (preg_match('/\bDEFAULT\s+(NULL|CURRENT_TIMESTAMP(?:\(\))?|[-+]?[0-9]+(?:\.[0-9]+)?|\'(?:\\.|[^\'])*\'|"(?:\\.|[^"])*")/i', $definition, $match)) {
+			$has_default = true;
+			$default = $this->normalizeDefault($match[1]);
+		}
 
-        // Если есть изменения — выполняем ВСЕ ОДНИМ ЗАПРОСОМ
-        if (!empty($alter_clauses)) {
-            $sql = "ALTER TABLE `" . $table . "` " . implode(', ', $alter_clauses);
-            $db->query($sql);
-        }
-    }
+		return array(
+			'type' => $type,
+			'nullable' => $nullable,
+			'has_default' => $has_default,
+			'default' => $default,
+			'auto_increment' => $auto_increment
+		);
+	}
+
+	private function normalizeSql($value) {
+		$value = strtolower(trim((string)$value));
+		$value = preg_replace('/\s+/', ' ', $value);
+		$value = preg_replace('/\s*,\s*/', ',', $value);
+
+		return $value;
+	}
+
+	private function normalizeDefault($value) {
+		$value = trim($value);
+
+		if (strcasecmp($value, 'NULL') === 0) {
+			return null;
+		}
+
+		if ((substr($value, 0, 1) === "'" && substr($value, -1) === "'") || (substr($value, 0, 1) === '"' && substr($value, -1) === '"')) {
+			$value = substr($value, 1, -1);
+			$value = stripcslashes($value);
+		}
+
+		if (strcasecmp($value, 'CURRENT_TIMESTAMP()') === 0) {
+			return 'CURRENT_TIMESTAMP';
+		}
+
+		return $value;
+	}
+
+	private function defaultsEqual($schema_default, $existing_default) {
+		if ($schema_default === null || $existing_default === null) {
+			return $schema_default === $existing_default;
+		}
+
+		$schema_default = $this->normalizeDefault((string)$schema_default);
+		$existing_default = $this->normalizeDefault((string)$existing_default);
+
+		return strcasecmp((string)$schema_default, (string)$existing_default) === 0;
+	}
+
+	private function repairTableBatch($db, $table, $table_data, $existing_columns, $existing_indexes) {
+		$alter_clauses = array();
+		$known_columns = $existing_columns;
+
+		foreach ($table_data['columns'] as $column_name => $column) {
+			if (!isset($known_columns[$column_name])) {
+				$clause = 'ADD ' . $column['sql'];
+
+				if ($column['after'] !== '' && isset($known_columns[$column['after']])) {
+					$clause .= ' AFTER `' . $column['after'] . '`';
+				} else {
+					$clause .= ' FIRST';
+				}
+
+				$alter_clauses[] = $clause;
+				$known_columns[$column_name] = array();
+			} elseif (isset($existing_columns[$column_name]) && $this->isColumnDefinitionChanged($column['definition'], $existing_columns[$column_name])) {
+				$alter_clauses[] = 'MODIFY ' . $column['sql'];
+			}
+		}
+
+		foreach ($table_data['indexes'] as $index_name => $index) {
+			if (!isset($existing_indexes[$index_name])) {
+				$alter_clauses[] = 'ADD ' . $index['sql'];
+			}
+		}
+
+		if ($alter_clauses) {
+			$db->query('ALTER TABLE `' . $table . '` ' . implode(', ', $alter_clauses));
+		}
+	}
 }
