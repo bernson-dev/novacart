@@ -19,35 +19,17 @@
     </header>
     <div class="row">
         <div class="col-sm-9">
+            {% if deletion_errors %}
+            <div class="alert alert-danger">
+                <ul class="list-unstyled">
+                    {% for error in deletion_errors %}
+                    <li><i class="fa fa-exclamation-circle"></i> {{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
             <form action="{{ action }}" method="post" enctype="multipart/form-data">
                 <div class="terms">{{ text_terms }}</div>
-                {% if deletion_log is not empty %}
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h4 class="panel-title">
-                            <a data-toggle="collapse" href="#deletionLog">{{ text_collapse }}</a>
-                        </h4>
-                    </div>
-                    <div id="deletionLog" class="panel-collapse collapse">
-                        <div class="panel-body">
-                            <div class="scroll-box">
-                                <ul>
-                                    {% for folder, logs in deletion_log %}
-                                    <li>
-                                        <strong>{{ folder }}</strong>:
-                                        <ul>
-                                            {% for message in logs %}
-                                            <li>{{ message }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
                 <div class="buttons">
                     <div class="pull-right">
                         <input type="submit" value="{{ button_continue }}" class="btn btn-primary" />
