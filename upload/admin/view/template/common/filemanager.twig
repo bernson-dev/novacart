@@ -1,0 +1,731 @@
+<div id="filemanager" class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">{{ heading_title }}</h4>
+            <ol class="breadcrumb" id="breadcrumb"></ol>
+        </div>
+        <div class="modal-body">
+            <div class="row">
+                <div class="col-sm-5">
+                    <a href="{{ parent }}" data-toggle="tooltip" title="{{ button_parent }}" id="button-parent" class="btn btn-default">
+                        <i class="fa fa-level-up"></i></a>
+                    <a href="{{ refresh }}" data-toggle="tooltip" title="{{ button_refresh }}" id="button-refresh" class="btn btn-default">
+                        <i class="fa fa-refresh"></i></a>
+                    <button type="button" data-toggle="tooltip" title="{{ button_upload }}" id="button-upload" class="btn btn-primary">
+                        <i class="fa fa-upload"></i></button>
+                    <button type="button" data-toggle="tooltip" title="{{ button_folder }}" id="button-folder" class="btn btn-default">
+                        <i class="fa fa-folder"></i></button>
+                    <label class="btn btn-default" data-toggle="tooltip" title="{{ text_select_all }}">
+                        <input type="checkbox" id="select-all" style="display: none;" />
+                        <i class="fa fa-square-o"></i>
+                    </label>
+                    <!-- Всегда выводим кнопку, но она изначально скрыта -->
+                    <button type="button" data-toggle="tooltip" title="{{ text_insert_selected }}" id="button-insert-selected" class="btn btn-success" disabled style="display: none;">
+                        <i class="fa fa-plus"></i>
+                    </button>
+
+                    <button type="button" data-toggle="tooltip" title="{{ button_delete }}" id="button-delete" class="btn btn-danger">
+                        <i class="fa fa-trash-o"></i></button>
+                </div>
+                <div class="col-sm-7">
+                    <div class="input-group">
+                        <input type="text" name="search" value="{{ filter_name }}" placeholder="{{ entry_search }}" class="form-control">
+                        <span class="input-group-btn">
+                            <button type="button" data-toggle="tooltip" title="{{ button_search }}" id="button-search" class="btn btn-primary">
+                                <i class="fa fa-search"></i></button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <hr />
+
+            {% for image in images|batch(4) %}
+            <div class="row">
+                {% for image in image %}
+                <div class="col-sm-3 col-xs-6 text-center">
+                    {% if image.type == 'directory' %}
+                    <div class="text-center">
+                        <a href="{{ image.href }}" class="directory" style="vertical-align: middle;">
+                            <i class="fa fa-folder fa-5x"></i></a></div>
+                    <label>
+                        <input type="checkbox" name="path[]" value="{{ image.path }}" />
+                        {{ image.name }}</label>
+                    {% endif %}
+                    {% if image.type == 'image' %}
+                    <a href="{{ image.href }}" class="thumbnail fm-thumb"><img src="{{ image.thumb }}" alt="{{ image.name }}" title="{{ image.name }}" /></a>
+                    <label>
+                        <input type="checkbox" name="path[]" value="{{ image.path }}" />
+                        {{ image.name }}</label>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <br/>
+            {% endfor %}
+        </div>
+        <div class="modal-footer">{{ pagination }}</div>
+    </div>
+</div>
+
+<style>
+    /* Стиль для контейнера и тостов */
+    .fm-toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1060;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .fm-toast-item {
+        position: relative;
+        width: 300px;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        color: #fff;
+        display: none;
+        cursor: pointer;
+    }
+    .fm-toast-item.info {
+        background-color: #5bc0de;
+    }
+    .fm-toast-item.success {
+        background-color: #5cb85c;
+    }
+    .fm-toast-item.danger {
+        background-color: #d9534f;
+    }
+    .fm-toast-item.warning {
+        background-color: #f0ad4e;
+    }
+
+    .fm-toast-timer-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        background-color: rgba(255, 255, 255, 0.5);
+        animation: timer-countdown 5s linear forwards;
+    }
+
+    #filemanager .thumbnail.fm-thumb {
+        width: 110px;
+        height: 110px;
+        padding: 4px;
+        margin: 0 auto 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    @keyframes timer-countdown {
+        from {
+            width: 100%;
+        }
+        to {
+            width: 0%;
+        }
+    }
+</style>
+
+<script type="text/javascript">
+    // --- Локализация для JS  ---
+    var lang = {
+        error_directory: "{{ error_directory|escape('js') }}",
+        error_no_selection: "{{ error_no_selection|escape('js') }}",
+        error_no_valid_images: "{{ error_no_valid_images|escape('js') }}",
+        error_folder: "{{ error_folder|escape('js') }}",
+        error_folder_invalid_chars: "{{ error_folder_invalid_chars|escape('js') }}",
+        error_upload: "{{ error_upload|escape('js') }}",
+        text_confirm: "{{ text_confirm|escape('js') }}",
+        text_images_inserted: "{{ text_images_inserted|escape('js') }}",
+        text_insert_failed: "{{ text_insert_failed|escape('js') }}"
+    };
+
+    (function($) {
+        'use strict';
+
+        $(function() {
+            const $filemanager = $('#filemanager');
+            const EVENT_NS = '.filemgr';
+            
+
+            // Создаем контейнер для тостов, если его еще нет
+            if ($('.fm-toast-container').length === 0) {
+                $('body').append('<div class="fm-toast-container"></div>');
+            }
+
+            // --- Вспомогательные функции ---
+
+            function showToast(message, type = 'info')
+            {
+                if (!message)
+                    return;
+                const $container = $('.fm-toast-container');
+                const $toast = $('<div/>', {'class': `fm-toast-item ${type}`, 'html': message});
+                const $timerBar = $('<div/>', {'class': 'fm-toast-timer-bar'});
+                $toast.append($timerBar);
+                $container.prepend($toast);
+                $toast.fadeIn(300);
+
+                const timeoutId = setTimeout(() => {
+                    $toast.fadeOut(300, () => $(this).remove());
+                }, 5000);
+
+                $toast.on('click', function() {
+                    clearTimeout(timeoutId);
+                    $(this).fadeOut(300, () => $(this).remove());
+                });
+            }
+
+            function getCurrentDirectory()
+            {
+                const refreshUrl = $('#button-refresh').attr('href');
+                const directoryParam = refreshUrl.match(/directory=([^&]*)/);
+                return directoryParam ? decodeURIComponent(directoryParam[1]) : '';
+            }
+
+            // --- Формирование URL  ---
+            function buildUrl(route, params = {})
+            {
+                let url = 'index.php?route=' + route + '&user_token={{ user_token }}';
+                const baseParams = {
+                    directory: getCurrentDirectory(),
+                    {% if thumb %}thumb: '{{ thumb|escape('js') }}',{% endif %}
+                    {% if target %}target: '{{ target|escape('js') }}',{% endif %}
+                    {% if ckeditor %}ckeditor: '{{ ckeditor|escape('js') }}'{% endif %}
+                };
+                Object.assign(baseParams, params);
+                const search = new URLSearchParams(baseParams).toString();
+                return url + '&' + search;
+            }
+
+            function updateSelectAllCheckbox()
+            {
+                const $paths = $filemanager.find('input[name^="path"]');
+                const totalCheckboxes = $paths.length;
+                const checkedCheckboxes = $paths.filter(':checked').length;
+                const $selectAll = $('#select-all');
+                const $selectAllIcon = $selectAll.closest('label').find('i');
+
+                if (totalCheckboxes === 0 || checkedCheckboxes === 0) {
+                    $selectAll.prop('indeterminate', false).prop('checked', false);
+                    $selectAllIcon.attr('class', 'fa fa-square-o');
+                } else if (checkedCheckboxes < totalCheckboxes) {
+                    $selectAll.prop('indeterminate', true).prop('checked', false);
+                    $selectAllIcon.attr('class', 'fa fa-minus-square-o');
+                } else {
+                    $selectAll.prop('indeterminate', false).prop('checked', true);
+                    $selectAllIcon.attr('class', 'fa fa-check-square-o');
+                }
+            }
+
+            // --- BREADCRUMBS ---
+            function refreshBreadcrumbs()
+            {
+                const $breadcrumb = $('#breadcrumb');
+                $breadcrumb.empty();
+
+                const headingText = $filemanager.find('.modal-title').text().trim();
+                const pathStartIndex = headingText.indexOf(' - ');
+                let fullPath = '';
+
+                if (pathStartIndex !== -1) {
+                    fullPath = headingText.substring(pathStartIndex + 3).trim();
+                } else {
+                    fullPath = 'catalog/';
+                }
+
+                const parts = fullPath.split('/').filter(p => p.length > 0);
+                const isRoot = fullPath.trim() === 'catalog' || fullPath.trim() === 'catalog/';
+
+                const baseUrl = 'index.php?route=common/filemanager&user_token={{ user_token }}';
+                let params = '';
+                {% if thumb %}
+                params += '&thumb=' + '{{ thumb|escape('js') }}';
+                {% endif %}
+                {% if target %}
+                params += '&target=' + '{{ target|escape('js') }}';
+                {% endif %}
+                {% if ckeditor %}
+                params += '&ckeditor=' + '{{ ckeditor|escape('js') }}';
+                {% endif %}
+
+                // Добавляем корневую ссылку
+                const homeUrl = baseUrl + '&directory=' + encodeURIComponent('') + params;
+                const homeLink = $('<li><a href="' + homeUrl + '"><i class="fa fa-home"></i></a></li>');
+                $breadcrumb.append(homeLink);
+
+                function capitalizeFirstLetter(string)
+                {
+                    if (typeof string !== 'string' || string.length === 0)
+                        return '';
+                    return string.charAt(0).toUpperCase() + string.slice(1);
+                }
+
+                // Если не корень — строим путь
+                if (!isRoot) {
+                    let currentPath = '';
+                    $.each(parts, function(i, part) {
+                        if (currentPath !== '')
+                            currentPath += '/';
+                        currentPath += part;
+
+                        const $li = $('<li></li>');
+                        const partUrl = baseUrl + '&directory=' + encodeURIComponent(currentPath) + params;
+                        const displayPart = capitalizeFirstLetter(part);
+
+                        if (i < parts.length - 1) {
+                            $li.html(`<a href="${partUrl}">${displayPart}</a>`);
+                        } else {
+                            $li.html(`<span>${displayPart}</span>`).addClass('active');
+                        }
+                        $breadcrumb.append($li);
+                    });
+                }
+            }
+
+            // --- ПОПОВЕР  ---
+            function initializeFileManager()
+            {
+                // Управление видимостью кнопки "Вставить выбранные"
+                const $filemanager = $('#filemanager');
+                const multiInsertEnabled = $filemanager.closest('#modal-image').data('multiInsertEnabled');
+
+                const $insertButton = $('#button-insert-selected');
+
+                if (multiInsertEnabled) {
+                    $insertButton.show(); // Показываем кнопку
+                    updateInsertButtonState(); // Сразу проверяем состояние
+                } else {
+                    $insertButton.hide(); // Скрываем, если не нужна
+                }
+                
+                const $folderButton = $('#button-folder');
+                if ($folderButton.data('bs.popover')) {
+                    $folderButton.popover('dispose');
+                }
+
+                // используем escape('js') внутри JS
+                const folderPlaceholder = "{{ entry_folder|escape('js') }}";
+                const createButtonText = "{{ button_folder|escape('js') }}";
+
+                $folderButton.popover({
+                    html: true,
+                    sanitize: false,
+                    placement: 'bottom',
+                    trigger: 'manual',
+                    title: folderPlaceholder,
+                    content: function() {
+                        return '<div class="input-group">' +
+                        '<input id="fm-create-folder" type="text" name="folder" value="" placeholder="' + folderPlaceholder + '" class="form-control">' +
+                        '<span class="input-group-btn">' +
+                        '<button type="button" title="' + createButtonText + '" id="button-create" class="btn btn-primary">' +
+                        '<i class="fa fa-plus-circle"></i>' +
+                        '</button>' +
+                        '</span>' +
+                        '</div>';
+                    }
+                });
+
+                $folderButton.off('click' + EVENT_NS).on('click' + EVENT_NS, function(e) {
+                    e.preventDefault();
+                    $(this).popover('toggle');
+                });
+
+                $folderButton.off('shown.bs.popover' + EVENT_NS).on('shown.bs.popover' + EVENT_NS, function() {
+                    $('#fm-create-folder').focus();
+                });
+
+                $filemanager.find('[data-toggle="tooltip"]').tooltip();
+                updateSelectAllCheckbox();
+                refreshBreadcrumbs();
+
+            }
+
+            function ajaxLoadContent(url, afterLoadCallback)
+            {
+                $.ajax({
+                    url: url,
+                    dataType: 'html',
+                    beforeSend: function() {
+                        $filemanager.find('.modal-body').html('<div class="text-center"><i class="fa fa-spinner fa-spin fa-5x"></i></div>');
+                    },
+                    success: function(html) {
+                        try {
+                            const $html = $(html);
+                            $filemanager.find('.modal-body').html($html.find('.modal-body').html());
+                            $filemanager.find('.modal-footer').html($html.find('.modal-footer').html());
+                            $filemanager.find('.modal-title').text($html.find('.modal-title').text());
+                            initializeFileManager(); // Пересоздаём все обработчики
+                            if (typeof afterLoadCallback === 'function') {
+                                afterLoadCallback();
+                            }
+                        } catch (err) {
+                            console.error('Error parsing ajaxLoadContent response', err);
+                            showToast('{{ error_upload }}', 'danger');
+                        }
+                    },
+                    error: function(xhr, ajaxOptions, thrownError) {
+                        console.error(xhr, thrownError);
+                        showToast(thrownError + "\n" + xhr.statusText + "\n" + (xhr.responseText || ''), 'danger');
+                    }
+                });
+            }
+
+            // --- ОСНОВНЫЕ СОБЫТИЯ ---
+            $filemanager.on('click' + EVENT_NS, '.pagination a, a.directory, #button-parent, #button-refresh, #breadcrumb a', function(e) {
+                e.preventDefault();
+                ajaxLoadContent($(this).attr('href'));
+            });
+
+            function updateInsertButtonState()
+            {
+                const selectedCount = $filemanager.find('input[name^="path"]:checked').length;
+                $('#button-insert-selected').prop('disabled', selectedCount < 2);
+            }
+
+            $filemanager.on('change' + EVENT_NS, 'input[name^="path"]', function() {
+                updateSelectAllCheckbox();
+                updateInsertButtonState();
+            });
+
+            $filemanager.on('click' + EVENT_NS, 'label[data-toggle="tooltip"]', function(e) {
+                e.preventDefault();
+                const $selectAll = $(this).find('#select-all');
+                const isChecked = $selectAll.is(':checked');
+                $filemanager.find('input[name^="path"]').prop('checked', !isChecked);
+                updateSelectAllCheckbox();
+                updateInsertButtonState();
+            });
+
+            $filemanager.on('click' + EVENT_NS, '#button-upload', function() {
+                const $form = $('<form/>', { enctype: 'multipart/form-data', id: 'form-upload', style: 'display:none;' })
+                .append($('<input/>', { type: 'file', name: 'file[]', multiple: 'multiple' }));
+                $('body').prepend($form);
+                const $input = $form.find('input[type=file]');
+                $input.on('change' + EVENT_NS, function() {
+                    if (!this.files || this.files.length === 0) {
+                        $form.remove();
+                        return;
+                    }
+                    const formData = new FormData($form[0]);
+                    const url = 'index.php?route=common/filemanager/upload&user_token={{ user_token }}&directory=' + getCurrentDirectory();
+                    $.ajax({
+                        url: url,
+                        type: 'post',
+                        dataType: 'json',
+                        data: formData,
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        beforeSend: function() {
+                            $('#button-upload i').removeClass('fa-upload').addClass('fa-circle-o-notch fa-spin');
+                            $('#button-upload').prop('disabled', true);
+                        },
+                        complete: function() {
+                            $('#button-upload i').removeClass('fa-circle-o-notch fa-spin').addClass('fa-upload');
+                            $('#button-upload').prop('disabled', false);
+                        },
+                        success: function(json) {
+                            if (json['error']) {
+                                showToast(json['error'], 'danger');
+                            }
+                            if (json['success']) {
+                                showToast(json['success'], 'success');
+                                ajaxLoadContent($('#button-refresh').attr('href'));
+                            }
+                        },
+                        error: function(xhr, ajaxOptions, thrownError) {
+                            console.error(xhr, thrownError);
+                            showToast(thrownError + "\n" + xhr.statusText + "\n" + (xhr.responseText || ''), 'danger');
+                        }
+                    });
+                    $form.remove();
+                });
+                $input.trigger('click');
+            });
+
+            $filemanager.on('click' + EVENT_NS, '#button-create', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const $input = $('input[name="folder"]');
+                const folderName = $input.val();
+                if (!folderName.trim()) {
+                    showToast('{{ error_folder }}', 'danger');
+                    $input.focus();
+                    return;
+                }
+                if (/[\\:*?"<>|]/.test(folderName)) {
+                    showToast('{{ error_folder_invalid_chars }}', 'danger');
+                    $input.focus();
+                    return;
+                }
+                $.ajax({
+                    url: 'index.php?route=common/filemanager/folder&user_token={{ user_token }}&directory=' + getCurrentDirectory(),
+                    type: 'post',
+                    dataType: 'json',
+                    data: { folder: folderName },
+                    beforeSend: function() {
+                        $('#button-create').prop('disabled', true);
+                    },
+                    complete: function() {
+                        $('#button-create').prop('disabled', false);
+                    },
+                    success: function(json) {
+                        if (json['error']) {
+                            showToast(json['error'], 'danger');
+                        }
+                        if (json['success']) {
+                            showToast(json['success'], 'success');
+                            $('#button-folder').popover('hide');
+                            const currentDirectory = getCurrentDirectory();
+                            const newDirectory = currentDirectory ? currentDirectory + '/' + folderName : folderName;
+                            let url = 'index.php?route=common/filemanager&user_token={{ user_token }}&directory=' + newDirectory;
+                            {% if thumb %}
+                            url += '&thumb=' + '{{ thumb|escape('js') }}';
+                            {% endif %}
+                            {% if target %}
+                            url += '&target=' + '{{ target|escape('js') }}';
+                            {% endif %}
+                            {% if ckeditor %}
+                            url += '&ckeditor=' + '{{ ckeditor|escape('js') }}';
+                            {% endif %}
+                            ajaxLoadContent(url);
+                        }
+                    },
+                    error: function(xhr, ajaxOptions, thrownError) {
+                        console.error(xhr, thrownError);
+                        showToast(thrownError + "\n" + xhr.statusText + "\n" + (xhr.responseText || ''), 'danger');
+                    }
+                });
+            });
+
+            $filemanager.on('keydown' + EVENT_NS, 'input[name="folder"]', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $('#button-create').trigger('click');
+                }
+            });
+
+            $filemanager.on('click' + EVENT_NS, '#button-delete', function(e) {
+                e.preventDefault();
+                const checkedItems = $filemanager.find('input[name^="path"]:checked');
+                if (checkedItems.length === 0) {
+                    showToast('{{ error_directory }}', 'danger');
+                    return;
+                }
+                if (confirm('{{ text_confirm }}')) {
+                    const paths = checkedItems.map(function() { return $(this).val(); }).get();
+                    $.ajax({
+                        url: 'index.php?route=common/filemanager/delete&user_token={{ user_token }}',
+                        type: 'post',
+                        dataType: 'json',
+                        data: { 'path': paths },
+                        beforeSend: function() {
+                            $('#button-delete').prop('disabled', true);
+                        },
+                        complete: function() {
+                            $('#button-delete').prop('disabled', false);
+                        },
+                        success: function(json) {
+                            if (json['error']) {
+                                showToast(json['error'], 'danger');
+                            }
+                            if (json['success']) {
+                                showToast(json['success'], 'success');
+                                ajaxLoadContent($('#button-refresh').attr('href'));
+                            }
+                        },
+                        error: function(xhr, ajaxOptions, thrownError) {
+                            console.error(xhr, thrownError);
+                            showToast(thrownError + "\n" + xhr.statusText + "\n" + (xhr.responseText || ''), 'danger');
+                        }
+                    });
+                }
+            });
+
+            let searchTimeout;
+            $filemanager.on('keyup' + EVENT_NS, 'input[name="search"]', function(e) {
+                clearTimeout(searchTimeout);
+                const $this = $(this);
+                const filter_name = $this.val();
+                if (e.which === 13) {
+                    performSearch(filter_name);
+                    return;
+                }
+                searchTimeout = setTimeout(function() {
+                    performSearch(filter_name);
+                }, 500);
+            });
+
+            $filemanager.on('click' + EVENT_NS, '#button-search', function() {
+                const filter_name = $filemanager.find('input[name="search"]').val();
+                performSearch(filter_name);
+            });
+
+            function performSearch(filter_name)
+            {
+                let url = 'index.php?route=common/filemanager&user_token={{ user_token }}&directory=' + getCurrentDirectory();
+                if (filter_name) {
+                    url += '&filter_name=' + encodeURIComponent(filter_name);
+                }
+                {% if thumb %}
+                url += '&thumb=' + '{{ thumb|escape('js') }}';
+                {% endif %}
+                {% if target %}
+                url += '&target=' + '{{ target|escape('js') }}';
+                {% endif %}
+                {% if ckeditor %}
+                url += '&ckeditor=' + '{{ ckeditor|escape('js') }}';
+                {% endif %}
+                ajaxLoadContent(url, function() {
+                    const searchInput = $filemanager.find('input[name="search"]');
+                    searchInput.val(filter_name);
+                    const input = searchInput[0];
+                    if (input && input.setSelectionRange) {
+                        input.focus();
+                        input.setSelectionRange(input.value.length, input.value.length);
+                    }
+                });
+            }
+
+            // Проверяем наличие параметра "filetype" в URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const isTinyMce = urlParams.has('filetype');
+
+            // Если это вызов из TinyMCE, не запускаем обработчик
+            if (!isTinyMce) {
+                $filemanager.on('click' + EVENT_NS, 'a.thumbnail', function(e) {
+                    e.preventDefault();
+                    const $this = $(this);
+                    const thumbUrl = $this.find('img').attr('src');
+                    const fullUrl = $this.attr('href');
+
+                    function getRelativeUrl(url)
+                    {
+                        if (!url)
+                            return '';
+                        try {
+                            const urlObj = new URL(url, window.location.origin);
+                            return urlObj.pathname;
+                        } catch (error) {
+                            return url;
+                        }
+                    }
+
+                    const relativeUrl = getRelativeUrl(fullUrl);
+                    const $parent = $this.parent();
+                    const fileValue = $parent.find('input').val();
+
+                    {% if target %}
+                    const targetElement = $('#{{ target|escape('js') }}');
+                    if (targetElement.length) {
+                        targetElement.val(fileValue || fullUrl);
+                    }
+                    {% if thumb %}
+                    const thumbElement = $('#{{ thumb|escape('js') }}');
+                    if (thumbElement.length && thumbElement.find('img').length) {
+                        thumbElement.find('img').attr('src', thumbUrl);
+                    }
+                    {% endif %}
+                    {% else %}
+                    {% if ckeditor %}
+                    const dialog = CKEDITOR.dialog.getCurrent();
+                    if (dialog) {
+                        const targetParts = '{{ ckeditor }}'.split(':');
+                        if (targetParts.length === 2) {
+                            dialog.setValueOf(targetParts[0], targetParts[1], relativeUrl);
+                        }
+                    }
+                    {% endif %}
+
+                    {% endif %}
+                    $('#modal-image').modal('hide');
+                });
+            }
+            
+            $filemanager.on('hidden.bs.modal' + EVENT_NS, function() {
+                const $folderButton = $('#button-folder');
+                if ($folderButton.data('bs.popover')) {
+                    $folderButton.popover('dispose');
+                }
+                $filemanager.find('[data-toggle="tooltip"]').tooltip('dispose');
+            });
+
+            $(document).on('click' + EVENT_NS, function(e) {
+                const $target = $(e.target);
+                const $btn = $('#button-folder');
+                const popoverContainer = $btn.data('bs.popover') ? $btn.data('bs.popover').tip() : null;
+                if (popoverContainer && !$target.closest(popoverContainer).length && !$target.closest($btn).length) {
+                    $btn.popover('hide');
+                }
+            });
+            
+
+            $(document).on('keydown' + EVENT_NS, function (e) {
+                if (e.key === 'Escape' && $('#modal-image').is(':visible')) {
+                    $('#modal-image').modal('hide');
+                }
+            });
+
+    // --- ВСТАВКА ИЗОБРАЖЕНИЙ ---
+    $filemanager.on('click' + EVENT_NS, '#button-insert-selected', function(e) {
+        e.preventDefault();
+
+        const checkedItems = $filemanager.find('input[name^="path"]:checked');
+        if (checkedItems.length === 0) {
+            showToast(lang.error_no_selection, 'danger');
+            return;
+        }
+
+        const imagesData = [];
+
+        checkedItems.each(function() {
+            const $input = $(this);
+            const imagePath = $input.val();
+            if (!imagePath)
+                return;
+
+            const $thumbnail = $input.closest('.col-sm-3').find('a.thumbnail');
+            const $img = $thumbnail.find('img');
+            if ($img.length === 0)
+                return;
+
+            imagesData.push({
+                thumbUrl: $img.attr('src'),
+                fullUrl: imagePath,
+                fileName: imagePath.split('/').pop()
+            });
+        });
+
+        if (imagesData.length === 0) {
+            showToast(lang.error_no_valid_images, 'danger');
+            return;
+        }
+
+        try {
+            if (window.parent && typeof window.parent.insertSelectedImages === 'function') {
+                window.parent.insertSelectedImages(imagesData);
+            } else {
+                console.warn('insertSelectedImages is not defined in parent window');
+                showToast(lang.text_insert_failed, 'warning');
+            }
+        } catch (e) {
+            console.warn('Failed to call insertSelectedImages:', e);
+            showToast(lang.text_insert_failed, 'warning');
+        }
+
+        $('#modal-image').modal('hide');
+        showToast(lang.text_images_inserted, 'success');
+    });
+
+            // Инициализация при старте
+            initializeFileManager();
+        });
+    })(jQuery);
+</script>

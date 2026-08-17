@@ -1,0 +1,7 @@
+upload/config.php
+upload/admin/config.php
+.env
+upload/storage/logs/*
+upload/storage/cache/*
+upload/storage/session/*
+upload/system/storage/logs/*

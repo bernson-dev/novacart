@@ -1,0 +1,21 @@
+{
+    "name": "ocstore/ocstore",
+    "description": "ocStore dependencies with PHP 7.3 support",
+    "type": "project",
+    "require": {
+        "php": ">=7.3 <8.0",
+        "scssphp/scssphp": "^1.13",
+        "twig/twig": "3.11.3"
+    },
+    "config": {
+        "platform": {
+            "php": "7.3.33"
+        },
+        "sort-packages": true,
+        "audit": {
+            "block-insecure": false
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

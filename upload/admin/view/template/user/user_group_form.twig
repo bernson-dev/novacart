@@ -1,0 +1,977 @@
+{{ header }}
+{{ column_left }}
+
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <div class="pull-right">
+                <button type="submit" form="form-user-group" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary">
+                    <i class="fa fa-save"></i>
+                </button>
+                <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default">
+                    <i class="fa fa-reply"></i>
+                </a>
+            </div>
+
+            <h1>{{ heading_title }}</h1>
+
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        {% if error_warning %}
+        <div class="alert alert-danger alert-dismissible">
+            <i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {% endif %}
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <i class="fa fa-pencil"></i> {{ text_form }}
+                </h3>
+            </div>
+
+            <div class="panel-body">
+                <form id="form-user-group" action="{{ action }}" method="post" enctype="multipart/form-data" class="form-horizontal">
+
+                    <div class="form-group required">
+                        <label for="input-name" class="col-sm-2 control-label">{{ entry_name }}</label>
+                        <div class="col-sm-10">
+                            <input type="text" id="input-name" name="name" value="{{ name }}" placeholder="{{ entry_name }}" class="form-control" />
+                            {% if error_name %}
+                            <div class="text-danger">{{ error_name }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% set routes = [] %}
+
+                    {% for permission in permissions %}
+                    {% if permission not in routes %}
+                    {% set routes = routes|merge([permission]) %}
+                    {% endif %}
+                    {% endfor %}
+
+                    {% for item in hiden %}
+                    {% if item not in routes %}
+                    {% set routes = routes|merge([item]) %}
+                    {% endif %}
+                    {% endfor %}
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">{{ entry_permission }}</label>
+
+                        <div class="col-sm-10">
+                            <div class="permission-matrix-toolbar">
+                                <div class="permission-matrix-search">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <i class="fa fa-search"></i>
+                                        </span>
+
+                                        <input type="text"
+                                        id="permission-search"
+                                        class="form-control"
+                                        placeholder="{{ text_permission_search_placeholder }}">
+
+                                        <span class="input-group-btn">
+                                            <button type="button" id="permission-search-clear" class="btn btn-default" title="{{ button_permission_search_clear }}">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="permission-matrix-presets">
+                                    <button type="button" class="btn btn-success btn-sm" data-preset="full" data-toggle="tooltip" title="{{ help_modify }}">
+                                        <i class="fa fa-check"></i> {{ text_permission_full_access }}
+                                    </button>
+
+                                    <button type="button" class="btn btn-info btn-sm" data-preset="readonly" data-toggle="tooltip" title="{{ help_access }}">
+                                        <i class="fa fa-eye"></i> {{ text_permission_readonly }}
+                                    </button>
+
+                                    <button type="button" class="btn btn-danger btn-sm" data-preset="none" data-toggle="tooltip" title="{{ help_no_rights }}">
+                                        <i class="fa fa-ban"></i> {{ text_permission_no_rights }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="permission-matrix-counters">
+                                <div class="permission-counter-box" data-counter-type="access">
+                                    <span class="permission-counter-label">{{ entry_access }}</span>
+                                    <strong><span id="access-counter">0 / 0</span></strong>
+                                </div>
+
+                                <div class="permission-counter-box" data-counter-type="modify">
+                                    <span class="permission-counter-label">{{ entry_modify }}</span>
+                                    <strong><span id="modify-counter">0 / 0</span></strong>
+                                </div>
+
+                                <div class="permission-counter-box" data-counter-type="hiden">
+                                    <span class="permission-counter-label">{{ entry_hide }}</span>
+                                    <strong><span id="hiden-counter">0 / 0</span></strong>
+                                </div>
+                            </div>
+
+                            <div class="permission-logic-help alert alert-info">
+                                <i class="fa fa-info-circle"></i>
+                                {{ help_permission_modify_access_logic }}
+                            </div>
+
+                            <div class="permission-filter-panel">
+                                <div class="btn-group permission-filter-buttons" data-toggle="buttons">
+                                    <label class="btn btn-default btn-sm active" data-filter-state="all">
+                                        <input type="radio" name="permission_filter" autocomplete="off" checked="checked">
+                                        {{ text_permission_filter_all }}
+                                    </label>
+
+                                    <label class="btn btn-default btn-sm" data-filter-state="no_access">
+                                        <input type="radio" name="permission_filter" autocomplete="off">
+                                        {{ text_permission_filter_no_access }}
+                                    </label>
+
+                                    <label class="btn btn-default btn-sm" data-filter-state="no_modify">
+                                        <input type="radio" name="permission_filter" autocomplete="off">
+                                        {{ text_permission_filter_no_modify }}
+                                    </label>
+
+                                    <label class="btn btn-default btn-sm" data-filter-state="hidden">
+                                        <input type="radio" name="permission_filter" autocomplete="off">
+                                        {{ text_permission_filter_hidden }}
+                                    </label>
+
+                                    <label class="btn btn-default btn-sm" data-filter-state="inconsistent">
+                                        <input type="radio" name="permission_filter" autocomplete="off">
+                                        {{ text_permission_filter_inconsistent }}
+                                    </label>
+                                </div>
+
+                                <button type="button" id="permission-reset-filters" class="btn btn-default btn-sm">
+                                    <i class="fa fa-refresh"></i> {{ button_permission_reset_filters }}
+                                </button>
+                            </div>
+
+                            <div class="permission-matrix-wrap">
+                                <table id="permission-matrix" class="table table-bordered table-hover permission-matrix">
+                                    <thead>
+                                        <tr>
+                                            <th class="permission-route-col">{{ column_permission_route }}</th>
+                                            <th class="permission-check-col">
+                                                <span data-toggle="tooltip" title="{{ help_access }}">{{ entry_access }}</span>
+                                            </th>
+                                            <th class="permission-check-col">
+                                                <span data-toggle="tooltip" title="{{ help_modify }}">{{ entry_modify }}</span>
+                                            </th>
+                                            <th class="permission-check-col">
+                                                <span data-toggle="tooltip" title="{{ help_hide }}">{{ entry_hide }}</span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {% set current_group = '' %}
+
+                                        {% for route in routes|sort %}
+                                        {% set group = route|split('/')|first %}
+                                        {% set group_key = group|lower %}
+
+                                        {% if group != current_group %}
+                                        {% set current_group = group %}
+
+                                        <tr class="permission-section-row" data-group="{{ group_key }}">
+                                            <td>
+                                                <span class="permission-section-title">
+                                                    <i class="fa fa-folder-open-o"></i>
+                                                    {{ group }}/*
+                                                </span>
+                                            </td>
+
+                                            <td class="text-center">
+                                                <label class="permission-section-toggle">
+                                                    <input type="checkbox" class="js-section-toggle" data-group="{{ group_key }}" data-type="access">
+                                                    <span>{{ text_select_all }}</span>
+                                                </label>
+                                            </td>
+
+                                            <td class="text-center">
+                                                <label class="permission-section-toggle">
+                                                    <input type="checkbox" class="js-section-toggle" data-group="{{ group_key }}" data-type="modify">
+                                                    <span>{{ text_select_all }}</span>
+                                                </label>
+                                            </td>
+
+                                            <td class="text-center">
+                                                <label class="permission-section-toggle">
+                                                    <input type="checkbox" class="js-section-toggle" data-group="{{ group_key }}" data-type="hiden">
+                                                    <span>{{ text_select_all }}</span>
+                                                </label>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+
+                                        <tr class="permission-route-row" data-group="{{ group_key }}" data-search="{{ route|lower }}">
+                                            <td class="permission-route-name">{{ route }}</td>
+
+                                            {# Access #}
+                                            <td class="text-center">
+                                                {% if route in permissions %}
+                                                <label class="permission-check-label">
+                                                    <input type="checkbox"
+                                                    class="js-permission-check"
+                                                    data-type="access"
+                                                    data-route="{{ route }}"
+                                                    name="permission[access][]"
+                                                    value="{{ route }}"
+                                                    {% if route in access %}checked="checked"{% endif %}>
+                                                </label>
+                                                {% else %}
+                                                <span class="text-muted">—</span>
+                                                {% endif %}
+                                            </td>
+
+                                            {# Modify #}
+                                            <td class="text-center">
+                                                {% if route in permissions %}
+                                                <label class="permission-check-label">
+                                                    <input type="checkbox"
+                                                    class="js-permission-check"
+                                                    data-type="modify"
+                                                    data-route="{{ route }}"
+                                                    name="permission[modify][]"
+                                                    value="{{ route }}"
+                                                    {% if route in modify %}checked="checked"{% endif %}>
+                                                </label>
+                                                {% else %}
+                                                <span class="text-muted">—</span>
+                                                {% endif %}
+                                            </td>
+
+                                            {# Hiden #}
+                                            <td class="text-center">
+                                                {% if route in hiden %}
+                                                <label class="permission-check-label">
+                                                    <input type="checkbox"
+                                                    class="js-permission-check"
+                                                    data-type="hiden"
+                                                    data-route="{{ route }}"
+                                                    name="permission[hiden][]"
+                                                    value="{{ route }}"
+                                                    {% if route in ishide %}checked="checked"{% endif %}>
+                                                </label>
+                                                {% else %}
+                                                <span class="text-muted">—</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div id="permission-empty" class="permission-empty">
+                                {{ text_permission_empty }}
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .permission-matrix-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .permission-matrix-search {
+            flex: 1 1 320px;
+            max-width: 520px;
+        }
+
+        .permission-matrix-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .permission-matrix-counters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .permission-counter-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            border: 1px solid #d9edf7;
+            border-radius: 4px;
+            background: #f5fbff;
+            line-height: 1.3;
+        }
+
+        .permission-counter-box strong {
+            font-size: 13px;
+        }
+
+        .permission-counter-box.is-danger {
+            color: #d9534f;
+            border-color: #ebccd1;
+            background: #fdf7f7;
+        }
+
+        .permission-warning-icon {
+            margin-left: 6px;
+            color: #d9534f;
+            display: none;
+        }
+
+        .permission-warning-icon.is-visible {
+            display: inline-block;
+        }
+
+        .permission-filter-panel {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .permission-filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .permission-filter-buttons.btn-group > .btn {
+            float: none;
+            margin-left: 0;
+            border-radius: 3px;
+        }
+
+        .permission-matrix-wrap {
+            max-height: calc(100vh - 350px);
+            min-height: 360px;
+            overflow: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        .permission-matrix {
+            margin-bottom: 0;
+        }
+
+        .permission-matrix > thead > tr > th {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .permission-route-col {
+            min-width: 320px;
+        }
+
+        .permission-check-col {
+            width: 150px;
+            min-width: 130px;
+            text-align: center;
+        }
+
+        .permission-section-row > td {
+            position: sticky;
+            top: 38px;
+            z-index: 4;
+            background: #eef5fb;
+            border-top: 1px solid #c9ddeb !important;
+            border-bottom: 1px solid #c9ddeb !important;
+            font-weight: 600;
+            vertical-align: middle !important;
+        }
+
+        .permission-section-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .permission-section-title .fa {
+            color: #5bc0de;
+        }
+
+        .permission-section-toggle {
+            margin: 0;
+            font-weight: normal;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .permission-check-label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .permission-route-name {
+            font-family: Consolas, Monaco, monospace;
+            word-break: break-all;
+        }
+
+        .permission-route-row.is-row-inconsistent > td {
+            background: #fcf8e3;
+        }
+
+        .permission-route-row.is-critical-warning > td {
+            background: rgba(217, 83, 79, 0.12);
+        }
+
+        .permission-route-row.is-hidden-by-filter,
+        .permission-section-row.is-hidden-by-filter {
+            display: none;
+        }
+
+        .permission-empty {
+            display: none;
+            padding: 18px;
+            text-align: center;
+            color: #777;
+            border: 1px solid #ddd;
+            border-top: 0;
+            background: #fff;
+        }
+
+        @media (max-width: 767px) {
+            .permission-matrix-toolbar {
+                display: block;
+            }
+
+            .permission-matrix-search {
+                max-width: none;
+                margin-bottom: 10px;
+            }
+
+            .permission-matrix-presets {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .permission-matrix-presets .btn {
+                width: 100%;
+                text-align: left;
+            }
+
+            .permission-matrix-counters {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .permission-counter-box {
+                justify-content: space-between;
+            }
+
+            .permission-filter-panel {
+                display: block;
+            }
+
+            .permission-filter-buttons {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 6px;
+                margin-bottom: 8px;
+            }
+
+            .permission-filter-buttons.btn-group > .btn,
+            #permission-reset-filters {
+                width: 100%;
+                text-align: left;
+            }
+
+            .permission-logic-help {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+
+            .permission-matrix-wrap {
+                max-height: 65vh;
+                min-height: 320px;
+                overflow: auto;
+                -webkit-overflow-scrolling: touch;
+                border: 1px solid #ddd;
+                background: #fff;
+            }
+
+            .permission-matrix {
+                min-width: 760px;
+                margin-bottom: 0;
+            }
+
+            .permission-matrix > thead > tr > th {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background: #f5f5f5;
+            }
+
+            .permission-section-row > td {
+                position: sticky;
+                top: 38px;
+                z-index: 9;
+                background: #eef5fb;
+            }
+
+            .permission-route-col,
+            .permission-route-name {
+                min-width: 280px;
+            }
+
+            .permission-check-col {
+                width: 110px;
+                min-width: 110px;
+            }
+        }
+    </style>
+
+    <script type="text/javascript">
+        (function($) {
+            'use strict';
+
+            var sections = ['access', 'modify', 'hiden'];
+
+            var $form = $('#form-user-group');
+            var $matrix = $('#permission-matrix');
+            var $rows = $matrix.find('.permission-route-row');
+            var $sectionRows = $matrix.find('.permission-section-row');
+            var $search = $('#permission-search');
+            var $empty = $('#permission-empty');
+
+            var currentFilter = 'all';
+            var initialFormState = '';
+            var isSubmitting = false;
+
+            var actionUrl = String($form.attr('action') || '');
+            var isAdminGroup = actionUrl.indexOf('user_group_id=1') !== -1;
+
+            var criticalRoutes = ['user/user_permission', 'user/user'];
+            var criticalMessageTemplate = '{{ text_permission_critical_missing|e('js') }}';
+
+            function escapeSelectorValue(value) {
+                return String(value)
+                .replace(/\\/g, '\\\\')
+                .replace(/"/g, '\\"');
+            }
+
+            function getFormState() {
+                return $form.serialize();
+            }
+
+            function hasUnsavedChanges() {
+                return !isSubmitting && initialFormState !== '' && getFormState() !== initialFormState;
+            }
+
+            function refreshInitialFormState() {
+                initialFormState = getFormState();
+            }
+
+            function getTypeBoxes(type) {
+                return $matrix.find('.js-permission-check[data-type="' + type + '"]');
+            }
+
+            function getRouteText($row) {
+                return $.trim($row.find('.permission-route-name').text());
+            }
+
+            function getRouteBox(route, type) {
+                return $matrix.find('.js-permission-check[data-type="' + type + '"][value="' + escapeSelectorValue(route) + '"]');
+            }
+
+            function getVisibleGroupRows(group) {
+                return $matrix
+                .find('.permission-route-row[data-group="' + group + '"]')
+                .not('.is-hidden-by-filter');
+            }
+
+            function isRouteChecked(route, type) {
+                var $box = getRouteBox(route, type);
+
+                return $box.length && $box.is(':checked');
+            }
+
+            function updateCounters() {
+                sections.forEach(function(section) {
+                    var $boxes = getTypeBoxes(section);
+                    var total = $boxes.length;
+                    var checked = $boxes.filter(':checked').length;
+
+                    $('#' + section + '-counter').text(checked + ' / ' + total);
+                });
+            }
+
+            function updateSectionToggles() {
+                $sectionRows.each(function() {
+                    var $sectionRow = $(this);
+                    var group = String($sectionRow.data('group') || '');
+                    var $visibleRows = getVisibleGroupRows(group);
+
+                    sections.forEach(function(section) {
+                        var $toggle = $sectionRow.find('.js-section-toggle[data-type="' + section + '"]');
+                        var $boxes = $visibleRows.find('.js-permission-check[data-type="' + section + '"]');
+
+                        if (!$boxes.length) {
+                            $toggle.prop({
+                                checked: false,
+                                indeterminate: false,
+                                disabled: true
+                            });
+
+                            return;
+                        }
+
+                        var checked = $boxes.filter(':checked').length;
+
+                        $toggle.prop('disabled', false);
+                        $toggle.prop('checked', checked === $boxes.length);
+                        $toggle.prop('indeterminate', checked > 0 && checked < $boxes.length);
+                    });
+                });
+            }
+
+            function enforceModifyAccess($changedBox) {
+                var type = String($changedBox.data('type') || '');
+                var route = String($changedBox.val() || '');
+
+                if (!route) {
+                    return;
+                }
+
+                if (type === 'modify' && $changedBox.is(':checked')) {
+                    getRouteBox(route, 'access').prop('checked', true);
+                }
+
+                if (type === 'access' && !$changedBox.is(':checked')) {
+                    getRouteBox(route, 'modify').prop('checked', false);
+                }
+            }
+
+            function enforceModifyAccessForAll() {
+                getTypeBoxes('modify').filter(':checked').each(function() {
+                    var route = String($(this).val() || '');
+
+                    if (route) {
+                        getRouteBox(route, 'access').prop('checked', true);
+                    }
+                });
+            }
+
+            function ensureWarningIcon(section) {
+                var $counterBox = $('.permission-counter-box[data-counter-type="' + section + '"]');
+                var id = section + '-warn';
+                var $icon = $('#' + id);
+
+                if (!$icon.length) {
+                    $icon = $('<i/>', {
+                        id: id,
+                        'class': 'fa fa-exclamation-triangle permission-warning-icon',
+                        'aria-hidden': 'true'
+                    });
+
+                    $counterBox.append($icon);
+                }
+
+                return $icon;
+            }
+
+            function getCriticalMessage(missing) {
+                return criticalMessageTemplate.replace('%s', missing.join(', '));
+            }
+
+            function updateCriticalUI() {
+                if (!isAdminGroup) {
+                    return;
+                }
+
+                ['access', 'modify'].forEach(function(section) {
+                    var missing = [];
+
+                    criticalRoutes.forEach(function(route) {
+                        var $checkbox = getRouteBox(route, section);
+
+                        if ($checkbox.length && !$checkbox.is(':checked')) {
+                            missing.push(route);
+                        }
+                    });
+
+                    var $counterBox = $('.permission-counter-box[data-counter-type="' + section + '"]');
+                    var $icon = ensureWarningIcon(section);
+
+                    if (missing.length) {
+                        $counterBox.addClass('is-danger');
+
+                        $icon
+                        .addClass('is-visible')
+                        .attr('title', getCriticalMessage(missing));
+                    } else {
+                        $counterBox.removeClass('is-danger');
+
+                        $icon
+                        .removeClass('is-visible')
+                        .attr('title', '');
+                    }
+                });
+
+                $rows.removeClass('is-critical-warning');
+
+                criticalRoutes.forEach(function(route) {
+                    var $row = $rows.filter(function() {
+                        return getRouteText($(this)) === route;
+                    });
+
+                    var accessMissing = getRouteBox(route, 'access').length && !isRouteChecked(route, 'access');
+                    var modifyMissing = getRouteBox(route, 'modify').length && !isRouteChecked(route, 'modify');
+
+                    if (accessMissing || modifyMissing) {
+                        $row.addClass('is-critical-warning');
+                    }
+                });
+            }
+
+            function updateRowStates() {
+                $rows.each(function() {
+                    var $row = $(this);
+                    var route = getRouteText($row);
+
+                    var access = isRouteChecked(route, 'access');
+                    var modify = isRouteChecked(route, 'modify');
+
+                    $row.toggleClass('is-row-inconsistent', modify && !access);
+                });
+            }
+
+            function rowMatchesFilter($row) {
+                var route = getRouteText($row);
+
+                var accessExists = getRouteBox(route, 'access').length > 0;
+                var modifyExists = getRouteBox(route, 'modify').length > 0;
+                var hidenExists = getRouteBox(route, 'hiden').length > 0;
+
+                var access = isRouteChecked(route, 'access');
+                var modify = isRouteChecked(route, 'modify');
+                var hiden = isRouteChecked(route, 'hiden');
+
+                if (currentFilter === 'no_access') {
+                    return accessExists && !access;
+                }
+
+                if (currentFilter === 'no_modify') {
+                    return modifyExists && !modify;
+                }
+
+                if (currentFilter === 'hidden') {
+                    return hidenExists && hiden;
+                }
+
+                if (currentFilter === 'inconsistent') {
+                    return accessExists && modifyExists && modify && !access;
+                }
+
+                return true;
+            }
+
+            function updateSearchAndFilterVisibility() {
+                var query = $.trim($search.val()).toLowerCase();
+                var visibleCount = 0;
+
+                $rows.each(function() {
+                    var $row = $(this);
+                    var searchText = String($row.data('search') || '');
+                    var matchesSearch = !query || searchText.indexOf(query) !== -1;
+                    var matchesFilter = rowMatchesFilter($row);
+
+                    if (matchesSearch && matchesFilter) {
+                        $row.removeClass('is-hidden-by-filter');
+                        visibleCount++;
+                    } else {
+                        $row.addClass('is-hidden-by-filter');
+                    }
+                });
+
+                $sectionRows.each(function() {
+                    var $section = $(this);
+                    var group = String($section.data('group') || '');
+
+                    var hasVisibleRows = $rows
+                    .filter('[data-group="' + group + '"]')
+                    .not('.is-hidden-by-filter')
+                    .length > 0;
+
+                    $section.toggleClass('is-hidden-by-filter', !hasVisibleRows);
+                });
+
+                $empty.toggle(visibleCount === 0);
+            }
+
+            function updateAll() {
+                enforceModifyAccessForAll();
+                updateCounters();
+                updateSectionToggles();
+                updateCriticalUI();
+                updateRowStates();
+                updateSearchAndFilterVisibility();
+            }
+
+            $form.on('submit', function() {
+                isSubmitting = true;
+                return true;
+            });
+
+            window.addEventListener('beforeunload', function(e) {
+                if (!hasUnsavedChanges()) {
+                    return;
+                }
+
+                e.preventDefault();
+                e.returnValue = '';
+            });
+
+            $matrix.on('change', '.js-permission-check', function() {
+                enforceModifyAccess($(this));
+                updateCounters();
+                updateSectionToggles();
+                updateCriticalUI();
+                updateRowStates();
+                updateSearchAndFilterVisibility();
+            });
+
+            $matrix.on('change', '.js-section-toggle', function() {
+                var $toggle = $(this);
+                var group = String($toggle.data('group') || '');
+                var section = String($toggle.data('type') || '');
+                var checked = $toggle.is(':checked');
+
+                var $visibleRows = getVisibleGroupRows(group);
+
+                if (section === 'access') {
+                    $visibleRows
+                    .find('.js-permission-check[data-type="access"]')
+                    .prop('checked', checked);
+
+            /*
+            * Если снимаем просмотр у видимых строк группы,
+            * нужно также снять редактирование только у этих же видимых строк.
+            */
+                    if (!checked) {
+                        $visibleRows
+                        .find('.js-permission-check[data-type="modify"]')
+                        .prop('checked', false);
+                    }
+                } else if (section === 'modify') {
+                    $visibleRows
+                    .find('.js-permission-check[data-type="modify"]')
+                    .prop('checked', checked);
+
+            /*
+            * Если включаем редактирование у видимых строк группы,
+            * просмотр должен включиться только у этих же видимых строк.
+            */
+                    if (checked) {
+                        $visibleRows
+                        .find('.js-permission-check[data-type="access"]')
+                        .prop('checked', true);
+                    }
+                } else {
+                    $visibleRows
+                    .find('.js-permission-check[data-type="' + section + '"]')
+                    .prop('checked', checked);
+                }
+
+                updateCounters();
+                updateSectionToggles();
+                updateCriticalUI();
+                updateRowStates();
+                updateSearchAndFilterVisibility();
+            });
+
+            $('[data-preset]').on('click', function() {
+                var preset = String($(this).data('preset') || '');
+
+                if (preset === 'full') {
+                    getTypeBoxes('access').prop('checked', true);
+                    getTypeBoxes('modify').prop('checked', true);
+                    getTypeBoxes('hiden').prop('checked', false);
+                }
+
+                if (preset === 'readonly') {
+                    getTypeBoxes('access').prop('checked', true);
+                    getTypeBoxes('modify').prop('checked', false);
+                    getTypeBoxes('hiden').prop('checked', false);
+                }
+
+                if (preset === 'none') {
+                    getTypeBoxes('access').prop('checked', false);
+                    getTypeBoxes('modify').prop('checked', false);
+                    //getTypeBoxes('hiden').prop('checked', true);
+                }
+
+                updateAll();
+            });
+
+            $('.permission-filter-buttons [data-filter-state]').on('click', function() {
+                currentFilter = String($(this).data('filter-state') || 'all');
+
+                $('.permission-filter-buttons [data-filter-state]').removeClass('active');
+                $(this).addClass('active');
+
+                updateSearchAndFilterVisibility();
+            });
+
+            $search.on('input', function() {
+                updateSearchAndFilterVisibility();
+            });
+
+            $('#permission-search-clear').on('click', function() {
+                $search.val('');
+                updateSearchAndFilterVisibility();
+                $search.focus();
+            });
+
+            $('#permission-reset-filters').on('click', function() {
+                currentFilter = 'all';
+
+                $search.val('');
+
+                $('.permission-filter-buttons [data-filter-state]').removeClass('active');
+                $('.permission-filter-buttons [data-filter-state="all"]').addClass('active');
+
+                updateSearchAndFilterVisibility();
+            });
+
+            $(function() {
+                updateAll();
+                refreshInitialFormState();
+            });
+        })(jQuery);
+    </script>
+</div>
+
+{{ footer }}

@@ -1,0 +1,340 @@
+{{ header }}
+{{ column_left }}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <h1>{{ heading_title }}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <i class="fa fa-puzzle-piece"></i> {{ text_list }}</h3>
+            </div>
+
+            <div class="panel-body">
+                <fieldset class="col-md-4 col-md-push-8 col-sm-12">
+                    <legend>{{ text_type }}</legend>
+                    <div>
+                        <div class="input-group">
+                            {% if not type %}
+                            {% set type = 'module' %}
+                            {% endif %}
+                            {% set catsize = categories | length %}
+                            <select name="type" size="{{ catsize }}" class="form-control">
+                                {% for category in categories %}
+                                {% if type == category.code %}
+                                <option value="{{ category.href }}" selected="selected">{{ category.text }}</option>
+                                {% else %}
+                                <option value="{{ category.href }}">{{ category.text }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+
+                            <span class="input-group-addon">
+                                <i class="fa fa-filter"></i>
+                            </span>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="col-md-8 col-md-pull-4 col-sm-12">
+                    <div id="extension-filter" class="well well-sm" style="margin-bottom: 15px;">
+                        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 15px;">
+
+                            <!-- Поле поиска - растягивается на всё доступное пространство -->
+                            <div style="flex: 1 1 0%; min-width: 300px;">
+                                <label class="control-label" for="input-extension-filter">{{ entry_filter_extension }}</label>
+                                <div class="input-group">
+                                    <input type="text" id="input-extension-filter" value="" placeholder="{{ entry_filter_extension_placeholder }}" class="form-control" autocomplete="off" />
+                                    <span class="input-group-addon">
+                                        <i class="fa fa-search"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Чекбокс -->
+                            <div style="flex: 0 0 auto; padding-bottom: 7px;">
+                                <div class="checkbox" style="margin: 0;">
+                                    <label style="white-space: nowrap; margin-bottom: 0;">
+                                        <input type="checkbox" id="input-extension-installed" value="1" />
+                                        {{ text_only_installed }}
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Счётчик и кнопка сброса -->
+                            <div style="flex: 0 0 auto; padding-bottom: 7px; display: flex; align-items: center; gap: 8px;">
+                                <span id="extension-filter-count" class="label label-default" style="vertical-align: middle;">0 / 0</span>
+                                <button type="button" id="extension-filter-reset" class="btn btn-default btn-xs" style="vertical-align: middle;" title="{{ button_reset|default('Reset') }}">
+                                    <i class="fa fa-undo"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div id="extension"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if categories %}
+    <script type="text/javascript">
+        (function($) {
+            'use strict';
+
+            var extensionFilter = {
+                textCount: '{{ text_extension_count|escape('js') }}',
+                textEmpty: '{{ text_no_extensions_found|escape('js') }}',
+                textConfirm: '{{ text_confirm|escape('js') }}',
+
+                init: function() {
+                    this.$container = $('#extension');
+                    this.$filter = $('#input-extension-filter');
+                    this.$installed = $('#input-extension-installed');
+                    this.$count = $('#extension-filter-count');
+                    this.$resetBtn = $('#extension-filter-reset');
+                    this.$typeSelect = $('select[name="type"]');
+                    // Кэшируем иконку только внутри блока выбора типа, чтобы не задеть другие иконки на странице
+                    this.$typeFilterIcon = this.$typeSelect.closest('.input-group').find('.input-group-addon .fa');
+
+                    if (!this.$container.length || !this.$typeSelect.length)
+                        return;
+
+                    this.bind();
+                },
+
+                bind: function() {
+                    var self = this;
+
+                    // Фильтр по тексту
+                    self.$filter.on('keyup input', function() {
+                        self.apply();
+                    });
+
+                    // Фильтр "Только установленные"
+                    self.$installed.on('change', function() {
+                        self.apply();
+                    });
+
+                    // Кнопка сброса
+                    self.$resetBtn.on('click', function(e) {
+                        e.preventDefault();
+                        self.reset();
+                    });
+
+                    // Смена категории расширений
+                    self.$typeSelect.on('change', function() {
+                        var $select = $(this);
+                        var url = $select.val();
+                        if (!url)
+                            return;
+
+                        $.ajax({
+                            url: url,
+                            dataType: 'html',
+                            beforeSend: function() {
+                                self.$typeFilterIcon.addClass('fa-circle-o-notch fa-spin').removeClass('fa-filter');
+                                $select.prop('disabled', true);
+                            },
+                            complete: function() {
+                                self.$typeFilterIcon.addClass('fa-filter').removeClass('fa-circle-o-notch fa-spin');
+                                $select.prop('disabled', false);
+                            },
+                            success: function(html) {
+                                self.$container.html(html);
+                                extensionFilter.apply();
+                            },
+                            error: function(xhr, ajaxOptions, thrownError) {
+                                alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                            }
+                        });
+                    });
+
+                    // Делегирование событий для кнопок внутри загруженного контента
+                    this.$container.on('click', '.btn-success', function(e) {
+                        e.preventDefault();
+                        self.installExtension(this);
+                    });
+
+                    this.$container.on('click', '.btn-danger, .btn-warning', function(e) {
+                        e.preventDefault();
+                        if (confirm(self.textConfirm)) {
+                            self.uninstallExtension(this);
+                        }
+                    });
+
+                    // Первичная загрузка
+                    if (self.$typeSelect.val()) {
+                        self.$typeSelect.trigger('change');
+                    }
+                },
+
+                installExtension: function(element) {
+                    var self = this;
+                    var $btn = $(element);
+
+                    $.ajax({
+                        url: $btn.attr('href'),
+                        dataType: 'html',
+                        beforeSend: function() {
+                            $btn.button('loading');
+                        },
+                        complete: function() {
+                            $btn.button('reset');
+                        },
+                        success: function(html) {
+                            // Парсим HTML до вставки, чтобы найти новые элементы
+                            var $newContent = $(html);
+                            self.$container.html($newContent);
+                            extensionFilter.apply();
+
+                            // Ищем только во вставленном контенте
+                            var $newModule = $newContent.find('#module-table .newly-installed, .newly-installed');
+                            if ($newModule.length && $newModule.is(':visible')) {
+                                $('html, body').animate({
+                                    scrollTop: $newModule.offset().top - 20
+                                }, 500);
+                                $newModule.addClass('highlight');
+                                // Автоматически убираем подсветку через 2 секунды
+                                setTimeout(function() {
+                                    $newModule.removeClass('highlight');
+                                }, 2000);
+                            }
+                        },
+                        error: function(xhr, ajaxOptions, thrownError) {
+                            alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                        }
+                    });
+                },
+
+                uninstallExtension: function(element) {
+                    var self = this;
+                    var $btn = $(element);
+
+                    $.ajax({
+                        url: $btn.attr('href'),
+                        dataType: 'html',
+                        beforeSend: function() {
+                            $btn.button('loading');
+                        },
+                        complete: function() {
+                            $btn.button('reset');
+                        },
+                        success: function(html) {
+                            self.$container.html(html);
+                            extensionFilter.apply();
+                        },
+                        error: function(xhr, ajaxOptions, thrownError) {
+                            alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                        }
+                    });
+                },
+
+                getItems: function() {
+                    var $rows = this.$container.find('tbody > tr');
+                    if ($rows.length)
+                        return $rows;
+
+                    var $items = this.$container.find('.extension-item, .list-group-item, .panel, .well').filter(function() {
+                        return !$(this).closest('#extension-filter').length;
+                    });
+                    if ($items.length)
+                        return $items;
+
+                    return this.$container.children().filter(function() {
+                        return !$(this).is('script, style');
+                    });
+                },
+
+                getItemText: function($item) {
+                    var title = $.trim($item.find('td:first, .panel-title, .media-heading, h3, h4, strong').first().text());
+                    if (title)
+                        return title.toLowerCase();
+
+                    return $.trim($item.clone().find('script, style, .btn, button').remove().end().text()).toLowerCase();
+                },
+
+                isInstalled: function($item) {
+                    return $item.find('.btn-danger, .btn-warning, a[href*="uninstall"], a[href*="edit"]').length > 0;
+                },
+
+                setCount: function(visible, total) {
+                    var text = this.textCount;
+                    var matches = text.match(/%s/g);
+                    if (matches && matches.length >= 2) {
+                        text = text.replace('%s', visible).replace('%s', total);
+                    } else if (matches && matches.length === 1) {
+                        text = text.replace('%s', visible + ' / ' + total);
+                    } else {
+                        text = visible + ' / ' + total;
+                    }
+                    this.$count.text(text);
+                },
+
+                removeEmptyMessage: function() {
+                    this.$container.find('.extension-filter-empty').remove();
+                },
+
+                showEmptyMessage: function() {
+                    this.removeEmptyMessage();
+                    this.$container.append(
+                    '<div class="alert alert-info extension-filter-empty">' +
+                    '<i class="fa fa-info-circle"></i> ' + this.textEmpty +
+                    '</div>'
+                    );
+                },
+
+                apply: function() {
+                    var self = this;
+                    var query = $.trim(self.$filter.val()).toLowerCase();
+                    var onlyInstalled = self.$installed.prop('checked');
+                    var $items = self.getItems();
+                    var total = $items.length;
+                    var visible = 0;
+
+                    self.removeEmptyMessage();
+
+                    $items.each(function() {
+                        var $item = $(this);
+                        var itemText = self.getItemText($item);
+                        var matchName = !query || itemText.indexOf(query) !== -1;
+                        var matchInstalled = !onlyInstalled || self.isInstalled($item);
+                        var matched = matchName && matchInstalled;
+
+                        $item.toggle(matched);
+                        if (matched)
+                            visible++;
+                    });
+
+                    self.setCount(visible, total);
+
+                    if (total > 0 && visible === 0) {
+                        self.showEmptyMessage();
+                    }
+                },
+
+                reset: function() {
+                    this.$filter.val('');
+                    this.$installed.prop('checked', false);
+                    this.apply();
+                }
+            };
+
+            $(document).ready(function() {
+                extensionFilter.init();
+            });
+        })(jQuery);
+    </script>
+    {% endif %}
+</div>
+{{ footer }}

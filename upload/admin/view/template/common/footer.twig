@@ -1,0 +1,55 @@
+<footer id="footer">
+    {{ text_footer }}
+    {% if text_version or extra_version %}
+        <br />{{ text_version }}{{ extra_version }}
+    {% endif %}
+
+    {% if show_https_indicator %}
+        {% if is_https %}
+            <span class="text-success"> | 🔒 Secure (HTTPS)</span>
+        {% else %}
+            <span class="text-danger"> | 🔓 Not Secure (HTTP)</span>
+        {% endif %}
+    {% endif %}
+
+    {% if server_time %}
+        <span id="server-time"></span>
+    {% endif %}
+
+    {% if display_errors %}
+        <br /><span class="text-danger">{{ display_errors }}</span>
+    {% endif %}
+</footer>
+</div>
+
+{% if server_time %}
+<script>
+// Вычисляем разницу между сервером и клиентом один раз
+const serverStartTime = {{ server_time }} * 1000;
+const clientStartTime = Date.now();
+const timeOffset = serverStartTime - clientStartTime;
+
+function updateClock() {
+    // Получаем актуальное время клиента + зафиксированное смещение
+    const now = new Date(Date.now() + timeOffset);
+    
+    const formatted = now.toLocaleString('ru-RU', {
+        timeZone: "{{ server_timezone }}",
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    
+    document.getElementById('server-time').textContent = ' | Server time: ' + formatted;
+}
+
+// Запуск
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+{% endif %}
+</body>
+</html>

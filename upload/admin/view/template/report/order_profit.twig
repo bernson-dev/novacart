@@ -1,0 +1,147 @@
+{{ header }}{{ column_left }}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <h1>{{ heading_title }}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <i class="fa fa-filter"></i> {{ text_filter }}</h3></div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label class="control-label">{{ entry_date_start }}</label>
+                            <input type="date" name="filter_date_start" value="{{ filter_date_start }}" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label class="control-label">{{ entry_date_end }}</label>
+                            <input type="date" name="filter_date_end" value="{{ filter_date_end }}" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label class="control-label">{{ entry_order_status }}</label>
+                            <select name="filter_order_status_id" class="form-control">
+                                <option value="0">{{ text_all_statuses }}</option>
+                                {% for os in order_statuses %}
+                                <option value="{{ os.order_status_id }}" {% if os.order_status_id == filter_order_status_id %}selected{% endif %}>{{ os.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label class="control-label">&nbsp;</label>
+                            <button type="button" id="button-filter" class="btn btn-primary btn-block">
+                                <i class="fa fa-filter"></i> {{ button_filter }}
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-sm-4">
+                        <strong>{{ text_summary_revenue }}:</strong> {{ summary_revenue }}</div>
+                    <div class="col-sm-4">
+                        <strong>{{ text_summary_cost }}:</strong> {{ summary_cost }}</div>
+                    <div class="col-sm-4">
+                        <strong>{{ text_summary_profit }}:</strong> {{ summary_profit }}</div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <i class="fa fa-list"></i> {{ text_list }}</h3></div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <td class="text-right"><a href="{{ sort_order_id }}">{{ column_order_id }}</a></td>
+                                <td class="text-left"><a href="{{ sort_date_added }}">{{ column_date_added }}</a></td>
+                                <td class="text-left">{{ column_customer }}</td>
+                                <td class="text-right">{{ column_order_total }}</td>
+                                <td class="text-right"><a href="{{ sort_revenue }}">{{ column_revenue }}</a></td>
+                                <td class="text-right"><a href="{{ sort_cost }}">{{ column_cost }}</a></td>
+                                <td class="text-right"><a href="{{ sort_profit }}">{{ column_profit }}</a></td>
+                                <td class="text-right">{{ column_margin }}</td>
+                                <td class="text-left">{{ column_action }}</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if orders %}
+                            {% for o in orders %}
+                            <tr>
+                                <td class="text-right">{{ o.order_id }}</td>
+                                <td class="text-left">{{ o.date_added }}</td>
+                                <td class="text-left">{{ o.customer }}</td>
+                                <td class="text-right">{{ o.order_total }}</td>
+                                <td class="text-right">{{ o.revenue_products }}</td>
+                                <td class="text-right">{{ o.cost_products }}</td>
+                                <td class="text-right">{{ o.profit_products }}</td>
+                                <td class="text-right">{{ o.margin }}</td>
+                                <td class="text-left">
+                                    <a class="btn btn-info" href="{{ o.order_link }}">
+                                        <i class="fa fa-eye"></i> {{ button_view }}</a></td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td class="text-center" colspan="9">{{ text_no_results }}</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-6 text-left">{{ pagination }}</div>
+                    <div class="col-sm-6 text-right">{{ results }}</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <script>
+        $('#button-filter').on('click', function() {
+            var url = 'index.php?route=report/order_profit&user_token={{ user_token }}';
+
+            var ds = $('input[name="filter_date_start"]').val();
+            var de = $('input[name="filter_date_end"]').val();
+            var st = $('select[name="filter_order_status_id"]').val();
+
+            if (ds)
+                url += '&filter_date_start=' + encodeURIComponent(ds);
+            if (de)
+                url += '&filter_date_end=' + encodeURIComponent(de);
+            if (st && st !== '0')
+                url += '&filter_order_status_id=' + encodeURIComponent(st);
+
+            location = url;
+        });
+    </script>
+</div>
+
+{{ footer }}
