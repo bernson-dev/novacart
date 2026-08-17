@@ -18,8 +18,10 @@ $_['entry_country'] = 'List of countries';
 $_['entry_default_country'] = 'Default Country';
 
 $_['help_country'] = 'The selected countries will be automatically enabled after the installation is complete.';
-$_['help_default_country'] = 'The selected country will be the default after installation is complete. If nothing is selected: Ukraine &#8594; Russia &#8594; first selected';
+$_['help_default_country'] = 'The selected country will be the default after installation. If none is selected: Ukraine → Russia → first selected.';
 
 // Error
-$_['error_delete_demodata'] = 'Demodata action must be selected!';
-$_['error_country'] = 'At least one country must be selected!';
+$_['error_delete_demodata'] = 'Demo data action must be selected!';
+$_['error_country'] = 'At least one valid country must be selected!';
+$_['error_default_country'] = 'The default country must be one of the selected countries!';
+$_['error_demo_images'] = 'Could not completely delete the demo images directory:';
