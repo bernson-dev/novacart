@@ -14,10 +14,9 @@ class ControllerInstallStep3 extends Controller {
 					$this->load->model('install/install');
 
 					$install_data = $this->request->post;
-					$install_data['repair_schema'] = !empty($this->request->post['repair_schema']) ? 1 : 0;
+					$install_data['repair_schema'] = 0;
 
 					$this->model_install_install->database($install_data);
-
 					$this->writeConfigFiles($install_data);
 
 					$this->session->data['install'] = 1;
@@ -37,8 +36,6 @@ class ControllerInstallStep3 extends Controller {
 		$data['text_db_administration'] = $this->language->get('text_db_administration');
 		$data['text_dump_select'] = $this->language->get('text_dump_select');
 		$data['text_dump'] = $this->language->get('text_dump');
-		$data['text_repair_schema'] = $this->language->get('text_repair_schema');
-		$data['help_repair_schema'] = $this->language->get('help_repair_schema');
 
 		$data['entry_db_driver'] = $this->language->get('entry_db_driver');
 		$data['entry_db_hostname'] = $this->language->get('entry_db_hostname');
@@ -50,7 +47,6 @@ class ControllerInstallStep3 extends Controller {
 		$data['entry_username'] = $this->language->get('entry_username');
 		$data['entry_password'] = $this->language->get('entry_password');
 		$data['entry_email'] = $this->language->get('entry_email');
-		$data['entry_repair_schema'] = $this->language->get('entry_repair_schema');
 
 		$data['button_continue'] = $this->language->get('button_continue');
 		$data['button_back'] = $this->language->get('button_back');
@@ -83,7 +79,6 @@ class ControllerInstallStep3 extends Controller {
 		$data['password'] = isset($this->request->post['password']) ? $this->request->post['password'] : '';
 		$data['email'] = isset($this->request->post['email']) ? $this->request->post['email'] : '';
 		$data['sql_dump'] = isset($this->request->post['sql_dump']) ? $this->request->post['sql_dump'] : (in_array('opencart.sql', $sql_dumps, true) ? 'opencart.sql' : ($sql_dumps ? $sql_dumps[0] : ''));
-		$data['repair_schema'] = $this->request->server['REQUEST_METHOD'] == 'POST' ? !empty($this->request->post['repair_schema']) : true;
 
 		$data['back'] = $this->url->link('install/step_2');
 		$data['footer'] = $this->load->controller('common/footer');
