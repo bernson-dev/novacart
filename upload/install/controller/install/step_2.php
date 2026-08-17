@@ -5,6 +5,9 @@ class ControllerInstallStep2 extends Controller {
 	public function index() {
 		$this->load->language('install/step_2');
 
+		$this->createConfigFile(DIR_OPENCART . 'config.php', DIR_OPENCART);
+		$this->createConfigFile(DIR_OPENCART . 'admin/config.php', DIR_OPENCART . 'admin/');
+
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 			$this->response->redirect($this->url->link('install/step_3'));
 			return;
@@ -46,9 +49,6 @@ class ControllerInstallStep2 extends Controller {
 		$data['button_back'] = $this->language->get('button_back');
 		$data['error_warning'] = isset($this->error['warning']) ? $this->error['warning'] : '';
 		$data['action'] = $this->url->link('install/step_2');
-
-		$this->createConfigFile(DIR_OPENCART . 'config.php', DIR_OPENCART);
-		$this->createConfigFile(DIR_OPENCART . 'admin/config.php', DIR_OPENCART . 'admin/');
 
 		$paths = array(
 			'admin_config'   => DIR_OPENCART . 'admin/config.php',
@@ -186,7 +186,7 @@ class ControllerInstallStep2 extends Controller {
 			array(DIR_DOWNLOAD, 'error_download', 'error_download'),
 			array(DIR_UPLOAD, 'error_upload', 'error_upload'),
 			array(DIR_MODIFICATION, 'error_modification', 'error_modification'),
-			array(DIR_SESSION, 'error_session_dir', 'error_session_dir')
+			array(DIR_SESSION, 'error_missing', 'error_unwritable')
 		);
 
 		foreach ($requirements as $requirement) {
