@@ -323,40 +323,43 @@ class ModelInstallInstall extends Model {
 
 		$this->db->query("SET FOREIGN_KEY_CHECKS = 0");
 
-		foreach ($tablesToClear as $table) {
-			if (!preg_match('/^[a-zA-Z0-9_]+$/', $table)) {
-				continue;
+		try {
+			foreach ($tablesToClear as $table) {
+				if (!preg_match('/^[a-zA-Z0-9_]+$/', $table)) {
+					continue;
+				}
+
+				$this->db->query("TRUNCATE TABLE `" . $table . "`");
 			}
 
-			$this->db->query("TRUNCATE TABLE `" . $table . "`");
+			$this->db->query("DELETE FROM `" . DB_PREFIX . "setting` WHERE `code` = 'module_filter'");
+			$this->db->query(
+				"DELETE FROM `" . DB_PREFIX . "extension`
+					WHERE `type` = 'module'
+						AND `code` IN ('banner', 'carousel', 'featured', 'slideshow', 'filter')"
+			);
+
+			$this->db->query(
+				"DELETE FROM `" . DB_PREFIX . "seo_url`
+					WHERE
+					(query LIKE 'product_id=%' AND SUBSTRING_INDEX(query, '=', -1) NOT IN (
+						SELECT product_id FROM `" . DB_PREFIX . "product`
+					))
+					OR (query LIKE 'information_id=%' AND SUBSTRING_INDEX(query, '=', -1) NOT IN (
+						SELECT information_id FROM `" . DB_PREFIX . "information`
+					))
+					OR (query LIKE 'manufacturer_id=%' AND SUBSTRING_INDEX(query, '=', -1) NOT IN (
+						SELECT manufacturer_id FROM `" . DB_PREFIX . "manufacturer`
+					))
+					OR (query LIKE 'category_id=%' AND SUBSTRING_INDEX(query, '=', -1) NOT IN (
+						SELECT category_id FROM `" . DB_PREFIX . "category`
+					))"
+			);
+
+			$this->db->query("DELETE FROM `" . DB_PREFIX . "layout_module` WHERE `layout_module_id` > '20'");
+		} finally {
+			$this->db->query("SET FOREIGN_KEY_CHECKS = 1");
 		}
-
-		$this->db->query("DELETE FROM `" . DB_PREFIX . "setting` WHERE `code` = 'module_filter'");
-		$this->db->query(
-			"DELETE FROM `" . DB_PREFIX . "extension`
-				WHERE `type` = 'module'
-					AND `code` IN ('banner', 'carousel', 'featured', 'slideshow', 'filter')"
-		);
-
-		$this->db->query(
-			"DELETE FROM `" . DB_PREFIX . "seo_url`
-				WHERE
-				(query LIKE 'product_id=%' AND SUBSTRING_INDEX(query, '=', -1) NOT IN (
-					SELECT product_id FROM `" . DB_PREFIX . "product`
-				))
-				OR (query LIKE 'information_id=%' AND SUBSTRING_INDEX(query, '=', -1) NOT IN (
-					SELECT information_id FROM `" . DB_PREFIX . "information`
-				))
-				OR (query LIKE 'manufacturer_id=%' AND SUBSTRING_INDEX(query, '=', -1) NOT IN (
-					SELECT manufacturer_id FROM `" . DB_PREFIX . "manufacturer`
-				))
-				OR (query LIKE 'category_id=%' AND SUBSTRING_INDEX(query, '=', -1) NOT IN (
-					SELECT category_id FROM `" . DB_PREFIX . "category`
-				))"
-		);
-
-		$this->db->query("DELETE FROM `" . DB_PREFIX . "layout_module` WHERE `layout_module_id` > '20'");
-		$this->db->query("SET FOREIGN_KEY_CHECKS = 1");
 	}
 
 	/**
