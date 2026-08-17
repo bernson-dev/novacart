@@ -1,128 +1,112 @@
 {{ header }}
 <div class="container">
-  <header>
-    <div class="row">
-      <div class="col-md-8 col-sm-6">
-        <h1 class="pull-left">5 <small>/5</small></h1>
-        <h3>{{ heading_title }}<br><small>{{ text_step_5 }}</small></h3>
-      </div>
-      <div class="col-md-4 col-sm-6">
-        <div id="logo" class="pull-right hidden-xs">
-          <img src="view/image/logo.png" alt="NovaCart" title="NovaCart">
+    <header>
+        <div class="row">
+            <div class="col-md-8 col-sm-6">
+                <h1 class="pull-left">5
+                    <small>/5</small></h1>
+                <h3>{{ heading_title }}<br>
+                    <small>{{ text_step_4 }}</small></h3>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div id="logo" class="pull-right hidden-xs">
+                    <img src="view/image/logo.png" alt="OpenCart" title="OpenCart">
+                </div>
+            </div>
         </div>
-      </div>
+    </header>
+
+    <div class="alert alert-danger alert-dismissible">
+        <i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+        <input class="form-check-input" style="margin-left: 20px;" type="checkbox" id="delete-install-folder" value="1">
+        <label class="form-check-label" for="delete-install-folder" style="margin-left: 5px;">
+            {{ text_install_deleted }}
+        </label>
     </div>
-  </header>
 
-  <div class="alert alert-danger">
-    <i class="fa fa-exclamation-circle"></i> {{ error_warning }}
-    <label style="margin-left: 20px; font-weight: normal;">
-      <input type="checkbox" id="delete-install-folder" value="1"> {{ text_install_deleted }}
-    </label>
-  </div>
+    <!-- Блок для отображения сообщений -->
+    <div id="message-box"></div>
 
-  <div id="message-box"></div>
-
-  <div class="visit">
+<div class="visit">
     <div class="row">
-      <div class="col-sm-5 col-sm-offset-1 text-center">
-        <a href="../" id="go-to-catalog" class="button-block">
-          <i class="fa fa-shopping-cart fa-5x"></i>
-          <span>{{ text_catalog }}</span>
-        </a>
-      </div>
-      <div class="col-sm-5 text-center">
-        <a href="../admin/" id="go-to-admin" class="button-block">
-          <i class="fa fa-cog fa-5x white"></i>
-          <span>{{ text_admin }}</span>
-        </a>
-      </div>
+        <div class="col-sm-5 col-sm-offset-1 text-center">
+            <a href="../" id="go-to-catalog" class="button-block">
+                <i class="fa fa-shopping-cart fa-5x"></i>
+                <span>{{ text_catalog }}</span>
+            </a>
+        </div>
+        <div class="col-sm-5 text-center">
+            <a href="../admin/" id="go-to-admin" class="button-block">
+                <i class="fa fa-cog fa-5x white"></i>
+                <span>{{ text_admin }}</span>
+            </a>
+        </div>
     </div>
-  </div>
 </div>
 
-<script type="text/javascript">
-(function() {
-  var checkbox = document.getElementById('delete-install-folder');
-  var messageBox = document.getElementById('message-box');
-  var links = document.querySelectorAll('#go-to-catalog, #go-to-admin');
-  var deleteAction = '{{ delete_action|e('js') }}';
-  var cleanupToken = '{{ cleanup_token|e('js') }}';
-  var requestInProgress = false;
 
-  function showMessage(type, message) {
-    messageBox.innerHTML = '<div class="alert alert-' + type + '"><i class="fa ' + (type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle') + '"></i> ' + message + '</div>';
-  }
-
-  function setLinksDisabled(disabled) {
-    for (var i = 0; i < links.length; i++) {
-      if (disabled) {
-        links[i].setAttribute('aria-disabled', 'true');
-        links[i].style.pointerEvents = 'none';
-        links[i].style.opacity = '0.6';
-      } else {
-        links[i].removeAttribute('aria-disabled');
-        links[i].style.pointerEvents = '';
-        links[i].style.opacity = '';
-      }
-    }
-  }
-
-  function deleteInstallFolder(targetUrl) {
-    if (requestInProgress) {
-      return;
-    }
-
-    requestInProgress = true;
-    setLinksDisabled(true);
-
-    var body = 'token=' + encodeURIComponent(cleanupToken);
-
-    fetch(deleteAction, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-      },
-      body: body,
-      credentials: 'same-origin'
-    })
-    .then(function(response) {
-      if (!response.ok) {
-        throw new Error('HTTP ' + response.status);
-      }
-
-      return response.json();
-    })
-    .then(function(data) {
-      if (data.success) {
-        showMessage('success', data.success);
-        window.location.href = targetUrl;
-        return;
-      }
-
-      showMessage('danger', data.error || '{{ text_error_install_delete|e('js') }}');
-      requestInProgress = false;
-      setLinksDisabled(false);
-    })
-    .catch(function() {
-      showMessage('danger', '{{ text_error_install_delete|e('js') }}');
-      requestInProgress = false;
-      setLinksDisabled(false);
-    });
-  }
-
-  function handleNavigation(event) {
-    if (!checkbox.checked) {
-      return;
-    }
-
-    event.preventDefault();
-    deleteInstallFolder(this.getAttribute('href'));
-  }
-
-  for (var i = 0; i < links.length; i++) {
-    links[i].addEventListener('click', handleNavigation);
-  }
-})();
-</script>
+</div>
 {{ footer }}
+
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+        const deleteInstallFolderCheckbox = document.getElementById('delete-install-folder');
+        const messageBox = document.getElementById('message-box');
+
+        // Общая функция для обработки перехода
+        function handleNavigation(event, targetUrl)
+        {
+            event.preventDefault();
+
+            if (deleteInstallFolderCheckbox.checked) {
+                deleteInstallFolder(() => {
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 2000); // Задержка 2 секунды после удаления папки
+                });
+            } else {
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 500); // Задержка 0.5 секунды без удаления папки
+            }
+        }
+
+        // Обработчики для кнопок
+        document.getElementById('go-to-catalog').addEventListener('click', (e) => {
+            handleNavigation(e, '../');
+        });
+
+        document.getElementById('go-to-admin').addEventListener('click', (e) => {
+            handleNavigation(e, '../admin/');
+        });
+
+        // Функция для удаления папки install
+        function deleteInstallFolder(callback)
+        {
+            fetch('index.php?route=install/step_5/deleteInstallFolder', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    messageBox.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fa fa-check-circle"></i> ${data.success}
+                    </div>`;
+                    //console.log('Папка install успешно удалена');
+                } else if (data.error) {
+                    messageBox.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fa fa-exclamation-circle"></i> ${data.error}
+                    </div>`;
+                    //console.error('Ошибка при удалении папки install: ' + data.error);
+                }
+                callback();
+            })
+            .catch(error => {
+                //console.error('Ошибка при удалении папки install:', error);
+                callback();
+            });
+        }
+    });
+</script>

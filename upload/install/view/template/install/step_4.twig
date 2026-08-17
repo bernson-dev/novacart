@@ -3,116 +3,135 @@
   <header>
     <div class="row">
       <div class="col-md-8 col-sm-6">
-        <h1 class="pull-left">4<small>/5</small></h1>
-        <h3>{{ heading_title }}<br/><small>{{ text_step_4 }}</small></h3>
+        <h1 class="pull-left">4
+	<small>/5</small>
+        </h1>
+        <h3>{{ heading_title }}
+          <br/>
+          <small>{{ text_step_4 }}</small>
+        </h3>
       </div>
       <div class="col-md-4 col-sm-6">
-        <div id="logo" class="pull-right hidden-xs"><img src="view/image/logo.png" alt="NovaCart" title="NovaCart"/></div>
+        <div id="logo" class="pull-right hidden-xs"><img src="view/image/logo.png" alt="OpenCart" title="OpenCart"/></div>
       </div>
     </div>
   </header>
-
   {% if error_warning %}
-  <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
-    <button type="button" class="close" data-dismiss="alert">&times;</button>
-  </div>
+    <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
   {% endif %}
-
   <div class="row">
     <div class="col-sm-9">
-      <form action="{{ action }}" method="post" class="form-horizontal">
+      <form action="{{ action }}" method="post" enctype="multipart/form-data" class="form-horizontal">
+        <p>{{ text_db_connection }}</p>
         <fieldset>
           <div class="form-group">
-            <label class="col-sm-4 control-label" for="input-delete-demodata">{{ entry_delete_demodata }}</label>
+            <label class="col-sm-4 control-label" for="input-db-hostname">{{ entry_delete_demodata }}</label>
             <div class="col-sm-8">
               <select name="delete_demodata" id="input-delete-demodata" class="form-control">
-                <option value="no"{% if delete_demodata == 'no' %} selected="selected"{% endif %}>{{ text_no }}</option>
-                <option value="yes"{% if delete_demodata == 'yes' %} selected="selected"{% endif %}>{{ text_delete }}</option>
+                <option value="no" {% if delete_demodata == 'no' %}selected="selected"{% endif %}>{{ text_no }}</option>
+                <option value="yes" {% if delete_demodata == 'yes' %}selected="selected"{% endif %}>{{ text_delete }}</option>
               </select>
               {% if error_delete_demodata %}<div class="text-danger">{{ error_delete_demodata }}</div>{% endif %}
             </div>
           </div>
-
           <div class="form-group required">
-            <label class="col-sm-4 control-label" for="country-list">{{ entry_country }}
-              <span class="help-block"><small class="text-muted">{{ help_country }}</small></span>
-            </label>
-            <div class="col-sm-8">
-              <div id="country-list" class="country-list well well-sm">
-                {% for item in countries %}
-                <div class="checkbox">
-                  <label>
-                    <input type="checkbox" class="country-checkbox" data-id="{{ item.country_id }}" data-name="{{ item.name }}" name="country[]" value="{{ item.country_id }}"{% if item.country_id in country %} checked="checked"{% endif %}/>
-                    {{ item.name }}
-                  </label>
+              <label class="col-sm-4 control-label" for="input-country">{{ entry_country }}
+                  <div class="help">
+                      <small class="text-muted">{{ help_country }}</small>
                 </div>
-                {% endfor %}
+              </label>
+              <div class="col-sm-8">
+                  <div class="country-list well well-sm">
+                      {% for item in countries %}
+                      <div class="checkbox">
+                          <label>
+                              <input type="checkbox" class="country-checkbox" data-id="{{ item.country_id }}" data-name="{{ item.name }}"
+                              name="country[]" value="{{ item.country_id }}"
+                              {% if item.country_id in country %} checked="checked"{% endif %}/>
+                              {{ item.name }}
+                          </label>
+                      </div>
+                      {% endfor %}
+                  </div>
+
+                  <button type="button" onclick="$(this).parent().find(':checkbox').prop('checked', true).trigger('change');" class="btn-link">
+                      {{ text_select_all }}
+                  </button> /
+                  <button type="button" onclick="$(this).parent().find(':checkbox').prop('checked', false).trigger('change');" class="btn-link">
+                      {{ text_unselect_all }}
+                  </button>
+
+                  {% if error_country %}
+                  <div class="text-danger">{{ error_country }}</div>
+                  {% endif %}
               </div>
-
-              <button type="button" id="button-country-all" class="btn-link">{{ text_select_all }}</button> /
-              <button type="button" id="button-country-none" class="btn-link">{{ text_unselect_all }}</button>
-
-              {% if error_country %}<div class="text-danger">{{ error_country }}</div>{% endif %}
-            </div>
           </div>
-
-          <div class="form-group">
-            <label class="col-sm-4 control-label" for="input-default-country">{{ entry_default_country }}
-              <span class="help-block"><small class="text-muted">{{ help_default_country }}</small></span>
-            </label>
-            <div class="col-sm-8">
-              <select id="input-default-country" name="default_country" class="form-control"></select>
-              {% if error_default_country %}<div class="text-danger">{{ error_default_country }}</div>{% endif %}
-            </div>
+          <!-- Выпадающий список выбранных стран -->
+          <div class="form-group" style="margin-top:15px;">
+              <label class=" col-sm-4 control-label" for="input-default-country">{{ entry_default_country }}
+                  <div class="help">
+                      <small class="text-muted">{{ help_default_country }}</small></div>            
+              </label>
+              <div class="col-sm-8">
+              <select id="input-default-country" name="default_country" class="form-control">
+                  <option value="">— {{ text_select_default }} —</option>
+                  <!-- опции будут заполняться скриптом -->
+              </select>
+              </div>
           </div>
+          
         </fieldset>
-
         <div class="buttons">
           <div class="pull-left"><a href="{{ back }}" class="btn btn-default">{{ button_back }}</a></div>
-          <div class="pull-right"><input type="submit" value="{{ button_continue }}" class="btn btn-primary"/></div>
+          <div class="pull-right">
+            <input type="submit" value="{{ button_continue }}" class="btn btn-primary"/>
+          </div>
         </div>
       </form>
     </div>
     <div class="col-sm-3">{{ column_left }}</div>
   </div>
-</div>
+<script>
+$(document).ready(function() {
+    // tooltips on hover
+    $('[data-toggle=\'tooltip\']').tooltip({container: 'body', html: true});
+});
+</script>
 
 <script>
-(function($) {
-    'use strict';
-
-    var defaultCountry = '{{ default_country }}';
-
-    function rebuildDefaultSelect() {
+    function rebuildDefaultSelect()
+    {
         var $select = $('#input-default-country');
-        var current = $select.val() || defaultCountry;
+        $select.empty();
+        
+        // 1) placeholder
+        $select.append($('<option>').val('').text('— {{ text_select_default }} —'));
 
-        $select.empty().append($('<option>').val('').text('— {{ text_select_default }} —'));
-
+        // 2) отмеченные страны
         $('.country-checkbox:checked').each(function() {
-            $select.append($('<option>').val($(this).data('id')).text($(this).data('name')));
+            var id = $(this).data('id');
+            var name = $(this).data('name');
+            $select.append($('<option>').val(id).text(name));
         });
 
-        if (current && $select.find('option[value="' + current + '"]').length) {
-            $select.val(current);
+        // если ранее была сохранена default_country, поставить её
+        var prev = '{{ default_country|default('') }}';
+        if (prev) {
+            $select.val(prev);
         }
     }
 
-    $(function() {
+    // при загрузке страницы
+    $(document).ready(function() {
         rebuildDefaultSelect();
-
-        $(document).on('change', '.country-checkbox', rebuildDefaultSelect);
-
-        $('#button-country-all').on('click', function() {
-            $('.country-checkbox').prop('checked', true);
-            rebuildDefaultSelect();
-        });
-
-        $('#button-country-none').on('click', function() {
-            $('.country-checkbox').prop('checked', false);
-            rebuildDefaultSelect();
-        });
     });
-})(jQuery);
+
+    // при каждом (un)чекании
+    $(document).on('change', '.country-checkbox', function() {
+        rebuildDefaultSelect();
+    });
 </script>
+</div>
 {{ footer }}
