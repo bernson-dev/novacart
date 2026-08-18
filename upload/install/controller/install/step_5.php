@@ -27,19 +27,21 @@ class ControllerInstallStep5 extends Controller {
 			$install_path = DIR_OPENCART . 'install';
 
 			if (is_dir($install_path)) {
-				// На Windows нельзя удалить текущую рабочую директорию.
-				// Перед удалением install выходим в корень магазина.
-				if (!@chdir(DIR_OPENCART)) {
-					$json['error'] = $this->language->get('text_error_dir_delete');
-				} else {
-					$result = $this->deleteDirectory($install_path);
+				$result = $this->deleteDirectory($install_path);
 
-					if ($result === true) {
+				if ($result === true) {
+					$json['success'] = $this->language->get('text_success_install_deleted');
+				} elseif ($result === 'text_error_dir_delete' && $this->isDirectoryEmpty($install_path)) {
+					// На Windows/PHP 8.x текущий запрос может удерживать сам каталог install.
+					// Содержимое уже удалено, поэтому откладываем только финальный rmdir().
+					if (@file_put_contents(DIR_STORAGE . 'install_cleanup.flag', '1', LOCK_EX) !== false) {
 						$json['success'] = $this->language->get('text_success_install_deleted');
 					} else {
-						// result содержит ключ ошибки
-						$json['error'] = $this->language->get($result);
+						$json['error'] = $this->language->get('text_error_dir_delete');
 					}
+				} else {
+					// result содержит ключ ошибки
+					$json['error'] = $this->language->get($result);
 				}
 			} else {
 				$json['error'] = $this->language->get('text_error_install_not_found');
@@ -79,5 +81,15 @@ class ControllerInstallStep5 extends Controller {
 		}
 
 		return true;
+	}
+
+	private function isDirectoryEmpty($dir) {
+		if (!is_dir($dir)) {
+			return false;
+		}
+
+		$files = scandir($dir);
+
+		return $files !== false && count($files) === 2;
 	}
 }
