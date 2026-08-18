@@ -56,6 +56,19 @@ $isHttps = (
 
 $_SERVER['HTTPS'] = $isHttps ? 'on' : '';
 
+// Finish installer cleanup deferred by Windows/PHP 8.x
+if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
+	$cleanup_flag = DIR_STORAGE . 'install_cleanup.flag';
+
+	if (is_file($cleanup_flag)) {
+		$install_dir = dirname(rtrim(DIR_SYSTEM, '/\\')) . DIRECTORY_SEPARATOR . 'install';
+
+		if (!is_dir($install_dir) || @rmdir($install_dir)) {
+			@unlink($cleanup_flag);
+		}
+	}
+}
+
 // Modification Override
 function modification(string $filename): string {
 	$filename = str_replace('\\', '/', $filename);
