@@ -27,13 +27,19 @@ class ControllerInstallStep5 extends Controller {
 			$install_path = DIR_OPENCART . 'install';
 
 			if (is_dir($install_path)) {
-				$result = $this->deleteDirectory($install_path);
-
-				if ($result === true) {
-					$json['success'] = $this->language->get('text_success_install_deleted');
+				// На Windows нельзя удалить текущую рабочую директорию.
+				// Перед удалением install выходим в корень магазина.
+				if (!@chdir(DIR_OPENCART)) {
+					$json['error'] = $this->language->get('text_error_dir_delete');
 				} else {
-					// result содержит ключ ошибки
-					$json['error'] = $this->language->get($result);
+					$result = $this->deleteDirectory($install_path);
+
+					if ($result === true) {
+						$json['success'] = $this->language->get('text_success_install_deleted');
+					} else {
+						// result содержит ключ ошибки
+						$json['error'] = $this->language->get($result);
+					}
 				}
 			} else {
 				$json['error'] = $this->language->get('text_error_install_not_found');
