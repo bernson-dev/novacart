@@ -76,7 +76,7 @@ class ControllerInstallStep5 extends Controller {
 			}
 		}
 
-		if (!rmdir($dir)) {
+		if (!@rmdir($dir)) {
 			return 'text_error_dir_delete';
 		}
 
