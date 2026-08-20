@@ -62,9 +62,27 @@ if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
 
 	if (is_file($cleanup_flag)) {
 		$install_dir = dirname(rtrim(DIR_SYSTEM, '/\\')) . DIRECTORY_SEPARATOR . 'install';
+		$install_index = $install_dir . DIRECTORY_SEPARATOR . 'index.php';
 
-		if (!is_dir($install_dir) || @rmdir($install_dir)) {
+		if (!is_dir($install_dir)) {
 			@unlink($cleanup_flag);
+		} else {
+			$files = @scandir($install_dir);
+
+			if ($files !== false) {
+				$files = array_values(array_diff($files, array('.', '..')));
+
+				if ($files === array('index.php')) {
+					@unlink($install_index);
+					clearstatcache(true, $install_dir);
+					$files = @scandir($install_dir);
+					$files = $files === false ? false : array_values(array_diff($files, array('.', '..')));
+
+					if ($files === array() && @rmdir($install_dir)) {
+						@unlink($cleanup_flag);
+					}
+				}
+			}
 		}
 	}
 }
