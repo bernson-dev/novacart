@@ -142,7 +142,7 @@ class ControllerCatalogProduct extends Controller {
 				));
 			}
 
-			//Сохранить: стандартное повдение переход в список категорий
+			//Сохранить: стандартное поведение переход в список категорий
 			$this->session->data['success'] = sprintf(
 			$this->language->get('text_success_created'),
 			$name
@@ -205,20 +205,12 @@ class ControllerCatalogProduct extends Controller {
 				$url .= '&filter_quantity=' . $this->request->get['filter_quantity'];
 			}
 
-			if (isset($this->request->get['filter_quantity'])) {
-				$url .= '&filter_quantity=' . $this->request->get['filter_quantity'];
-			}
-
 			if (isset($this->request->get['filter_quantity_min'])) {
 				$url .= '&filter_quantity_min=' . $this->request->get['filter_quantity_min'];
 			}
 
 			if (isset($this->request->get['filter_quantity_max'])) {
 				$url .= '&filter_quantity_max=' . $this->request->get['filter_quantity_max'];
-			}
-
-			if (isset($this->request->get['filter_status'])) {
-				$url .= '&filter_status=' . $this->request->get['filter_status'];
 			}
 
 			if (isset($this->request->get['filter_status'])) {
@@ -293,7 +285,7 @@ class ControllerCatalogProduct extends Controller {
 				));
 			}
 
-			//Сохранить: стандартное повдение переход в список товаров
+			//Сохранить: стандартное поведение переход в список товаров
 			$this->session->data['success'] = sprintf(
 			$this->language->get('text_success_created'),
 			$name
@@ -1185,10 +1177,6 @@ $filter_manufacturer_name = $this->language->get('text_none_manufacturer');
 
 		if (isset($this->request->get['filter_quantity_max'])) {
 			$url .= '&filter_quantity_max=' . $this->request->get['filter_quantity_max'];
-		}
-
-		if (isset($this->request->get['filter_status'])) {
-			$url .= '&filter_status=' . $this->request->get['filter_status'];
 		}
 
 		if (isset($this->request->get['filter_status'])) {
