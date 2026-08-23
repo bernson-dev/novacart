@@ -84,7 +84,7 @@ if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
 				// Сбрасываем кэш состояния файлов
 				clearstatcache(true, $install_path);
 			} catch (Throwable $e) {
-				// ВАЖНО: Ловим любые ошибки (включая Error в PHP 8.x),
+				// Ловим любые ошибки (включая Error в PHP 8.x),
 				// чтобы не сломать запуск магазина при проблемах с файловой системой.
 			}
 		}
