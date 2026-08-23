@@ -33,14 +33,16 @@ class ControllerCommonSecurity extends Controller {
 
 		$json = array();
 
-		if ($this->request->post['path']) {
-			$path = $this->request->post['path'];
+		// Validate and sanitize path input
+		if (isset($this->request->post['path'])) {
+			$path = $this->db->escape($this->request->post['path']);
 		} else {
 			$path = '';
 		}
 
-		if ($this->request->post['directory']) {
-			$directory = $this->request->post['directory'];
+		// Validate and sanitize directory input
+		if (isset($this->request->post['directory'])) {
+			$directory = preg_replace('/[^a-zA-Z0-9_-]/', '', $this->request->post['directory']);
 		} else {
 			$directory = '';
 		}

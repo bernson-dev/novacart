@@ -19,10 +19,19 @@ class ControllerInformationContact extends Controller {
 			$mail->setTo($this->config->get('config_email'));
 			//$mail->setFrom($this->request->post['email']);
 			$mail->setFrom($this->config->get('config_email'));
-			$mail->setReplyTo($this->request->post['email']);
-			$mail->setSender(html_entity_decode($this->request->post['name'], ENT_QUOTES, 'UTF-8'));
-			$mail->setSubject(html_entity_decode(sprintf($this->language->get('email_subject'), $this->request->post['name'] . ' (' . $this->request->post['email'] . ')'), ENT_QUOTES, 'UTF-8'));
-			$mail->setText($this->request->post['enquiry']);
+			// Sanitize email for Reply-To header
+			$reply_to_email = filter_var($this->request->post['email'], FILTER_SANITIZE_EMAIL);
+			$mail->setReplyTo($reply_to_email);
+			// Sanitize name for Sender header
+			$sender_name = html_entity_decode(strip_tags($this->request->post['name']), ENT_QUOTES, 'UTF-8');
+			$mail->setSender($sender_name);
+			// Sanitize subject
+			$subject_name = strip_tags($this->request->post['name']);
+			$subject_email = filter_var($this->request->post['email'], FILTER_SANITIZE_EMAIL);
+			$mail->setSubject(html_entity_decode(sprintf($this->language->get('email_subject'), $subject_name . ' (' . $subject_email . ')'), ENT_QUOTES, 'UTF-8'));
+			// Sanitize enquiry text
+			$enquiry_text = strip_tags($this->request->post['enquiry']);
+			$mail->setText($enquiry_text);
 			$mail->send();
 
 			$this->response->redirect($this->url->link('information/contact/success'));
