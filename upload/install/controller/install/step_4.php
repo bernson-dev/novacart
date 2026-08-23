@@ -40,8 +40,6 @@ class ControllerInstallStep4 extends Controller {
 			// передаём оба параметра в модель
 			$this->model_install_install->enableCountries($countries, $default_country);
 
-			//unset($this->session->data['install']);
-
 			$this->response->redirect($this->url->link('install/step_5'));
 		}
 

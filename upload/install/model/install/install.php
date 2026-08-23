@@ -124,9 +124,6 @@ class ModelInstallInstall extends Model {
 			$db->query($sql_exec);
 		}
 
-		// Восстановление/синхронизация схемы
-		//$this->repairSchemaFromFile($db, $data['db_prefix']);
-
 		// Опциональное восстановление структуры после импорта дампа.
 		// Нужно для старых/неполных дампов: добавляет отсутствующие таблицы, колонки и индексы.
 		if (!empty($data['repair_schema'])) {
