@@ -1,0 +1,199 @@
+{{ header }}{{ column_left }}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <div class="pull-right">
+                <button type="submit" form="form-currency" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary">
+                    <i class="fa fa-save"></i>
+                </button>
+                <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default">
+                    <i class="fa fa-reply"></i>
+                </a>
+            </div>
+            <h1>{{ heading_title }}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        {% if error_warning %}
+        <div class="alert alert-danger alert-dismissible">
+            <i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {% endif %}
+
+        <div class="alert alert-info">
+            <i class="fa fa-info-circle"></i> {{ text_iso }}
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <i class="fa fa-pencil"></i> {{ text_form }}
+                </h3>
+            </div>
+            <div class="panel-body">
+                <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-currency" class="form-horizontal">
+                    <div class="form-group required">
+                        <label class="col-sm-2 control-label" for="input-title">{{ entry_title }}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="title" value="{{ title }}" placeholder="{{ entry_title }}" id="input-title" class="form-control" />
+                            {% if error_title %}
+                            <div class="text-danger">{{ error_title }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-group required">
+                        <label class="col-sm-2 control-label" for="input-code">
+                            <span data-toggle="tooltip" title="{{ help_code }}">{{ entry_code }}</span>
+                        </label>
+                        <div class="col-sm-10">
+                            <input type="text" name="code" value="{{ code }}" placeholder="{{ entry_code }}" id="input-code" class="form-control" />
+                            {% if error_code %}
+                            <div class="text-danger">{{ error_code }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-symbol-left">{{ entry_symbol_left }}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="symbol_left" value="{{ symbol_left }}" placeholder="{{ entry_symbol_left }}" id="input-symbol-left" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-symbol-right">{{ entry_symbol_right }}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="symbol_right" value="{{ symbol_right }}" placeholder="{{ entry_symbol_right }}" id="input-symbol-right" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-decimal-place">{{ entry_decimal_place }}</label>
+                        <div class="col-sm-10">
+                            <input type="number" name="decimal_place" value="{{ decimal_place }}" placeholder="{{ entry_decimal_place }}" id="input-decimal-place" class="form-control" step="1" min="0" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-value">
+                            <span data-toggle="tooltip" title="{{ help_value }}">{{ entry_value }}</span>
+                        </label>
+                        <div class="col-sm-10">
+                            <input type="number" name="value" value="{{ value }}" placeholder="{{ entry_value }}" id="input-value" class="form-control" step="0.00000001" min="0" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-reverse-rate">{{ entry_reverse_rate }}</label>
+                        <div class="col-sm-10">
+                            <input type="number" name="reverse_rate" value="{{ reverse_rate }}" placeholder="{{ placeholder_reverse_rate }}" id="input-reverse-rate" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-correction-rate">
+                            <span data-toggle="tooltip" title="{{ help_correction_rate }}">{{ entry_correction_rate }}</span>
+                        </label>
+                        <div class="col-sm-10">
+                            <input type="number" name="correction_rate" value="{{ correction_rate }}" placeholder="{{ entry_correction_rate }}" id="input-correction-rate" class="form-control" step="0.1" min="0.1" />
+                            <div id="correction-rate-info" class="help-block text-info"></div>
+                            {% if error_correction_rate %}
+                            <div class="text-danger">{{ error_correction_rate }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-status">{{ entry_status }}</label>
+                        <div class="col-sm-10">
+                            <select name="status" id="input-status" class="form-control">
+                                {% if status %}
+                                <option value="1" selected="selected">{{ text_enabled }}</option>
+                                <option value="0">{{ text_disabled }}</option>
+                                {% else %}
+                                <option value="1">{{ text_enabled }}</option>
+                                <option value="0" selected="selected">{{ text_disabled }}</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script>
+    (function() {
+        var inputValue = document.getElementById('input-value');
+        var inputReverseRate = document.getElementById('input-reverse-rate');
+        var inputCorrectionRate = document.getElementById('input-correction-rate');
+        var correctionRateInfo = document.getElementById('correction-rate-info');
+
+        if (inputValue && inputReverseRate) {
+            inputValue.addEventListener('input', function() {
+                var value = parseFloat(this.value);
+
+                if (!isNaN(value) && value > 0) {
+                    inputReverseRate.value = (1 / value).toFixed(8);
+                } else if (this.value === '') {
+                    inputReverseRate.value = '';
+                }
+            });
+
+            inputReverseRate.addEventListener('input', function() {
+                var reverseValue = parseFloat(this.value);
+
+                if (!isNaN(reverseValue) && reverseValue > 0) {
+                    inputValue.value = (1 / reverseValue).toFixed(8);
+                } else if (this.value === '') {
+                    inputValue.value = '';
+                }
+            });
+        }
+
+        function updateCorrectionRateInfo() {
+            if (!inputCorrectionRate || !correctionRateInfo) {
+                return;
+            }
+
+            var rate = parseFloat(inputCorrectionRate.value);
+
+            if (isNaN(rate) || rate <= 0) {
+                correctionRateInfo.innerHTML = '';
+                correctionRateInfo.style.color = '';
+                return;
+            }
+
+            var percent = ((rate - 1) * 100).toFixed(2);
+            var text = '';
+
+            if (Math.abs(rate - 1) < 0.00000001) {
+                text = '● 0.00%';
+                correctionRateInfo.style.color = '#999';
+            } else if (percent > 0) {
+                text = '▲ +' + percent + '%';
+                correctionRateInfo.style.color = '#28a745';
+            } else {
+                text = '▼ ' + percent + '%';
+                correctionRateInfo.style.color = '#dc3545';
+            }
+
+            correctionRateInfo.innerHTML = text;
+        }
+
+        if (inputCorrectionRate) {
+            inputCorrectionRate.addEventListener('input', updateCorrectionRateInfo);
+            updateCorrectionRateInfo();
+        }
+    })();
+</script>
+</div>
+{{ footer }}

@@ -1,0 +1,381 @@
+{{ header }}{{ column_left }}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <!-- Admin Extensions Installer Refresh Button -->
+            <div class="pull-right">
+                <a href="{{ refresh }}" data-toggle="tooltip" title="{{ button_refresh }}" class="btn btn-info">
+                    <i class="fa fa-refresh"></i></a>
+            </div>
+            <!-- Admin Extensions Installer Refresh Button -->
+            <h1>{{ heading_title }}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <!-- Admin Extensions Installer Refresh Button -->
+        {% if success is defined and success %}
+        <div class="alert alert-success">
+            <i class="fa fa-check-circle"></i> {{ success }}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {% endif %}
+        <!-- Admin Extensions Installer Refresh Button -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <i class="fa fa-puzzle-piece"></i> {{ text_upload }}</h3>
+            </div>
+            <div class="panel-body">
+                <form class="form-horizontal">
+                    <fieldset>
+                        <legend>{{ text_upload }}</legend>
+                        <div class="form-group required">
+                            <label class="col-sm-2 control-label" for="button-manual-upload">
+                                <span data-toggle="tooltip" title="{{ help_upload }}">{{ entry_upload }}</span>
+                            </label>
+                            <div class="col-sm-10">
+                                <div id="upload-dropzone" class="well text-center" style="padding: 20px; border: 2px dashed #ddd;">
+                                    <i class="fa fa-cloud-upload fa-2x"></i><br>
+                                    <strong>{{ text_dragdrop }}</strong><br>
+                                    <small>{{ text_dragdrop_sub }}</small>
+                                    <br><br>
+                                    <input type="file" id="input-upload" name="file" multiple="multiple" style="display:none;" />
+                                    <!-- Чекбокс перед кнопкой -->
+                                    <div class="checkbox" style="margin-bottom: 10px;">
+                                        <label>
+                                            <input type="checkbox" class="form-check-input" id="allow_protected_install" name="allow_protected_install" value="">
+                                            <span data-toggle="tooltip" title="{{ help_allow_protected_install }}">{{ entry_allow_protected_install }}</span>
+                                        </label>
+                                    </div>
+                                    <button type="button" id="button-manual-upload" class="btn btn-primary">
+                                        <i class="fa fa-upload"></i> {{ button_upload }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>{{ text_progress }}</legend>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">{{ entry_progress }}</label>
+                            <div class="col-sm-10">
+                                <div class="progress">
+                                    <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+                                </div>
+                                <div id="progress-text"></div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <br />
+                    <fieldset>
+                        <legend>{{ text_history }}</legend>
+                        <div id="history"></div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        // Handle history pagination
+        $('#history').on('click', '.pagination a, a.js-history-sort', function(e) {
+            e.preventDefault();
+            $('#history').load(this.href);
+        });
+
+        // Initial load of the history log
+        $('#history').load('index.php?route=marketplace/installer/history&user_token={{ user_token }}');
+
+        // --- Config ---
+        const MAX_FILE_SIZE = {{ config_file_max_size|
+            default(0) }};
+
+        // --- Unified Multiple File Upload Logic ---
+        let fileQueue = [];
+        let fileIndex = 0;
+
+        // Click по кнопке -> открываем системный выбор файлов
+        $('#button-manual-upload').on('click', function(e) {
+            e.preventDefault();
+            $('#input-upload').trigger('click');
+        });
+
+        // Drag & drop logic
+        $('#upload-dropzone')
+        .on('dragover', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).css('background-color', '#f0f0f0');
+        })
+        .on('dragleave', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).css('background-color', '');
+        })
+        .on('drop', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).css('background-color', '');
+            const files = e.originalEvent.dataTransfer.files;
+            handleMultipleUpload(files);
+        });
+
+        // Handle file selection from file input
+        $('#input-upload').on('change', function () {
+            const files = this.files;
+            handleMultipleUpload(files);
+            // очищаем input, чтобы можно было повторно выбрать файлы
+            this.value = '';
+        });
+
+        function handleMultipleUpload(files) {
+            if (!files || files.length === 0)
+                return;
+
+            // Сброс интерфейса перед новой загрузкой (до вывода ошибок)
+            resetUI();
+
+            const validFiles = [];
+
+            for (let i = 0; i < files.length; i++) {
+                // Если MAX_FILE_SIZE = 0 -> ограничение отключено
+                if (MAX_FILE_SIZE > 0 && files[i].size > MAX_FILE_SIZE) {
+                    $('#progress-text').append(
+                    '<div class="text-danger">' +
+                    '<i class="fa fa-times-circle"></i> ' +
+                    files[i].name + ': {{ error_upload_size }}' +
+                    '</div>'
+                    );
+                    continue; // пропускаем файл
+                }
+                validFiles.push(files[i]);
+            }
+
+            if (validFiles.length === 0) {
+                // Если все файлы отброшены — ничего не загружаем
+                return;
+            }
+
+            fileQueue = validFiles;
+            fileIndex = 0;
+
+            uploadNextFile();
+        }
+
+        // Function to reset the UI elements
+        // Сброс интерфейса и прогресс-бара
+        function resetUI() {
+            $('.alert-dismissible').remove();
+
+            $('#progress-bar')
+            .stop(true, true)
+            .removeClass('progress-bar-success progress-bar-info progress-bar-danger progress-bar-striped active')
+            .css({
+                width: '0%',
+                backgroundColor: '',
+                transition: 'none'
+            });
+
+            $('#progress-text').html('');
+            $('#button-manual-upload').button('reset');
+        }
+
+        function finishQueueSuccess() {
+            $('#button-manual-upload').button('reset');
+            $('#progress-bar').addClass('progress-bar-success').css('width', '100%');
+            fileQueue = [];
+            // Сбросим интерфейс после завершения ВСЕЙ очереди
+            setTimeout(resetUI, 5000);
+        }
+
+        function uploadNextFile() {
+            if (fileIndex >= fileQueue.length) {
+                finishQueueSuccess();
+                return;
+            }
+
+            const file = fileQueue[fileIndex];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const allowProtected = $('#allow_protected_install').prop('checked') ? 1 : 0;
+            formData.append('allow_protected', allowProtected);
+
+            const logId = 'uploading-' + fileIndex;
+            const fileName = file.name;
+
+            const progressStep = Math.round(((fileIndex + 1) / fileQueue.length) * 100);
+            $('#progress-bar').css('width', progressStep + '%');
+
+            $('#progress-text').append(
+            '<div id="' + logId + '">' +
+            '<i class="fa fa-spinner fa-spin"></i> ' + fileName +
+            '</div>'
+            );
+
+            $.ajax({
+                url: 'index.php?route=marketplace/installer/upload&user_token={{ user_token }}',
+                type: 'post',
+                dataType: 'json',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                beforeSend: function() {
+                    $('#button-manual-upload').button('loading');
+                },
+                success: function(json) {
+                    if (json.error) {
+                        $('#' + logId).html(
+                        '<span class="text-danger"><i class="fa fa-times-circle"></i> ' +
+                        fileName + ': ' + json.error + '</span>'
+                        );
+                        $('#progress-bar').addClass('progress-bar-danger');
+
+                        fileIndex++;
+                        setTimeout(uploadNextFile, 500);
+                        return;
+                    }
+
+                    if (json.text) {
+                        $('#' + logId).html(
+                        '<span class="text-info"><i class="fa fa-spinner fa-spin"></i> ' +
+                        fileName + ': ' + json.text + '</span>'
+                        );
+
+                        if (json.next) {
+                            nextSequential(json.next, logId, fileName);
+                            return;
+                        }
+
+                        fileIndex++;
+                        setTimeout(uploadNextFile, 500);
+                    }
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    $('#' + logId).html('<span class="text-danger">' + fileName + ': ' + thrownError + '</span>');
+                    $('#progress-bar').addClass('progress-bar-danger');
+
+                    fileIndex++;
+                    setTimeout(uploadNextFile, 500);
+                }
+            });
+        }
+
+        function nextSequential(url, logId, fileName) {
+            const allowProtected = $('#allow_protected_install').prop('checked') ? 1 : 0;
+
+            $.ajax({
+                url: url + '&allow_protected=' + allowProtected,
+                dataType: 'json',
+                success: function(json) {
+                    if (json.error) {
+                        $('#' + logId).html(
+                        '<span class="text-danger"><i class="fa fa-times-circle"></i> ' +
+                        fileName + ': ' + json.error + '</span>'
+                        );
+                        $('#progress-bar').addClass('progress-bar-danger');
+
+                        fileIndex++;
+                        setTimeout(uploadNextFile, 500);
+                        return;
+                    }
+
+                    if (json.success) {
+                        $('#' + logId).html(
+                        '<span class="text-success"><i class="fa fa-check-circle"></i> ' +
+                        fileName + ': ' + json.success + '</span>'
+                        );
+
+                        $('#history').load('index.php?route=marketplace/installer/history&user_token={{ user_token }}');
+
+                        fileIndex++;
+                        setTimeout(uploadNextFile, 500);
+                        return;
+                    }
+
+                    if (json.text) {
+                        $('#' + logId).append('<br><small>' + json.text + '</small>');
+                        if (json.next) {
+                            nextSequential(json.next, logId, fileName);
+                        } else {
+                            fileIndex++;
+                            setTimeout(uploadNextFile, 500);
+                        }
+                    }
+                },
+                error: function(xhr, ajaxOptions, thrownError) {
+                    $('#' + logId).html('<span class="text-danger">' + fileName + ': ' + thrownError + '</span>');
+                    $('#progress-bar').addClass('progress-bar-danger');
+
+                    fileIndex++;
+                    setTimeout(uploadNextFile, 500);
+                }
+            });
+        }
+
+        // --- Uninstall logic ---
+        $('#history').on('click', '.btn-danger', function(e) {
+            e.preventDefault();
+            const element = this;
+
+            // Сброс интерфейса перед удалением
+            resetUI();
+
+            const extensionName = $(element).closest('tr').find('td:first').text().trim();
+
+            $.ajax({
+                url: 'index.php?route=marketplace/install/uninstall&user_token={{ user_token }}&extension_install_id=' + $(element).attr('value'),
+                dataType: 'json',
+
+                beforeSend: function() {
+                    $(element).button('loading');
+
+                    $('#progress-bar')
+                    .stop(true, true)
+                    .removeClass('progress-bar-success progress-bar-danger')
+                    .addClass('progress-bar-info')
+                    .css({ width: '100%' });
+
+                    $('#progress-text').html('<div><i class="fa fa-spinner fa-spin"></i> {{ text_uninstalling }} ' + extensionName + '</div>');
+                },
+
+                complete: function() {
+                    $(element).button('reset');
+                },
+
+                success: function(json) {
+                    $('.alert-dismissible').remove();
+
+                    if (json.success) {
+                        $('#progress-bar').animate({ width: '0%' }, 600, function() {
+                            $(this)
+                            .removeClass('progress-bar-info progress-bar-success progress-bar-danger progress-bar-striped active')
+                            .css({ width: '0%', backgroundColor: '', transition: 'none' });
+                        });
+
+                        $('#progress-text').html(
+                        '<div><i class="fa fa-check-circle text-success"></i> <strong>' +
+                        extensionName +
+                        '</strong>: ' + json.success + '</div>'
+                        );
+
+                        $('#history').load('index.php?route=marketplace/installer/history&user_token={{ user_token }}');
+
+                        setTimeout(resetUI, 3000);
+                    }
+                },
+
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                }
+            });
+        });
+    </script>
+</div>
+{{ footer }}

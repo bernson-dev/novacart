@@ -1,0 +1,328 @@
+<div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title"><i class="fa fa-cog"></i> {{ heading_title }}</h4>
+        </div>
+        <div class="modal-body">
+            <h4>{{ text_cache_section }}</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="developer-cache-table">
+                    <thead>
+                        <tr>
+                            <td>{{ column_component }}</td>
+                            <td style="width: 170px;">{{ entry_cache }}</td>
+                            <td class="text-right" style="width: 120px;">{{ column_size }}</td>
+                            <td class="text-right" style="width: 100px;">{{ column_files }}</td>
+                            <td class="text-right" style="width: 1px;">{{ column_action }}</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-cache-row="theme">
+                            <td>{{ entry_theme }}</td>
+                            <td>
+                                <div class="btn-group" data-toggle="buttons">
+                                    {% if developer_theme %}
+                                    <label class="btn btn-success active" {% if not eval %}disabled="disabled"{% endif %}>
+                                        <input type="radio" name="developer_theme" value="1" autocomplete="off" {% if not eval %}disabled="disabled"{% endif %} checked> {{ button_on }}
+                                    </label>
+                                    {% else %}
+                                    <label class="btn btn-success" {% if not eval %}disabled="disabled"{% endif %}>
+                                        <input type="radio" name="developer_theme" value="1" autocomplete="off" {% if not eval %}disabled="disabled"{% endif %}> {{ button_on }}
+                                    </label>
+                                    {% endif %}
+
+                                    {% if not developer_theme %}
+                                    <label class="btn btn-danger active" {% if not eval %}disabled="disabled"{% endif %}>
+                                        <input type="radio" name="developer_theme" value="0" autocomplete="off" {% if not eval %}disabled="disabled"{% endif %} checked> {{ button_off }}
+                                    </label>
+                                    {% else %}
+                                    <label class="btn btn-danger" {% if not eval %}disabled="disabled"{% endif %}>
+                                        <input type="radio" name="developer_theme" value="0" autocomplete="off" {% if not eval %}disabled="disabled"{% endif %}> {{ button_off }}
+                                    </label>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="text-right cache-size"><i class="fa fa-spinner fa-spin"></i></td>
+                            <td class="text-right cache-files"><i class="fa fa-spinner fa-spin"></i></td>
+                            <td class="text-right">
+                                <button type="button" data-action="theme" data-toggle="tooltip" title="{{ button_refresh }}" class="btn btn-warning developer-cache-action">
+                                    <i class="fa fa-refresh"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr data-cache-row="sass">
+                            <td>{{ entry_sass }}</td>
+                            <td>
+                                <div class="btn-group" data-toggle="buttons">
+                                    {% if developer_sass %}
+                                    <label class="btn btn-success active">
+                                        <input type="radio" name="developer_sass" value="1" autocomplete="off" checked> {{ button_on }}
+                                    </label>
+                                    {% else %}
+                                    <label class="btn btn-success">
+                                        <input type="radio" name="developer_sass" value="1" autocomplete="off"> {{ button_on }}
+                                    </label>
+                                    {% endif %}
+
+                                    {% if not developer_sass %}
+                                    <label class="btn btn-danger active">
+                                        <input type="radio" name="developer_sass" value="0" autocomplete="off" checked> {{ button_off }}
+                                    </label>
+                                    {% else %}
+                                    <label class="btn btn-danger">
+                                        <input type="radio" name="developer_sass" value="0" autocomplete="off"> {{ button_off }}
+                                    </label>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="text-right cache-size"><i class="fa fa-spinner fa-spin"></i></td>
+                            <td class="text-right cache-files"><i class="fa fa-spinner fa-spin"></i></td>
+                            <td class="text-right">
+                                <button type="button" data-action="sass" data-toggle="tooltip" title="{{ button_refresh }}" class="btn btn-warning developer-cache-action">
+                                    <i class="fa fa-refresh"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr data-cache-row="systemcache">
+                            <td>{{ entry_systemcache }}</td>
+                            <td>{{ text_type }} <b>{{ cache_engine }}</b></td>
+                            <td class="text-right cache-size"><i class="fa fa-spinner fa-spin"></i></td>
+                            <td class="text-right cache-files"><i class="fa fa-spinner fa-spin"></i></td>
+                            <td class="text-right">
+                                <button type="button" data-action="systemcache" data-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger developer-cache-action">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr data-cache-row="imgcache">
+                            <td>
+                                {{ entry_imgcache }}
+                                <div class="help-block" style="margin-bottom: 0;">{{ help_imgcache }}</div>
+                            </td>
+                            <td></td>
+                            <td class="text-right cache-size"><i class="fa fa-spinner fa-spin"></i></td>
+                            <td class="text-right cache-files"><i class="fa fa-spinner fa-spin"></i></td>
+                            <td class="text-right">
+                                <button type="button" data-action="imgcache" data-confirm="{{ confirm_imgcache }}" data-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger developer-cache-action">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4"><b>{{ entry_allcache }}</b></td>
+                            <td class="text-right">
+                                <button type="button" data-action="allcache" data-confirm="{{ confirm_allcache }}" data-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger developer-cache-action">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <h4>{{ text_environment_section }}</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <td>{{ column_information }}</td>
+                            <td class="text-right">{{ column_value }}</td>
+                            <td class="text-right">{{ column_recommended }}</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ entry_twig_version }}</td>
+                            <td class="text-right"><b>{{ twig_version ?: error_not_found }}</b></td>
+                            <td class="text-right"></td>
+                        </tr>
+                        <tr>
+                            <td>{{ entry_php_version }}</td>
+                            <td class="text-right"><b>{{ php_version }}</b></td>
+                            <td class="text-right"></td>
+                        </tr>
+                        <tr>
+                            <td>{{ entry_ioncube_version }}</td>
+                            <td class="text-right">
+                                {% if ioncube_version %}
+                                <b class="{{ ioncube_class }}">{{ ioncube_version }}</b>
+                                {% else %}
+                                <b class="text-danger">{{ error_not_found_ic }}</b>
+                                {% endif %}
+                            </td>
+                            <td class="text-right"></td>
+                        </tr>
+                        <tr>
+                            <td>{{ entry_opcache }}</td>
+                            <td class="text-right">
+                                {% if opcache_enabled %}
+                                <b class="text-success">{{ text_enabled }}</b>
+                                {% else %}
+                                <b class="text-muted">{{ text_disabled }}</b>
+                                {% endif %}
+                            </td>
+                            <td class="text-right"></td>
+                        </tr>
+                        {% for param in params %}
+                        <tr>
+                            <td>
+                                {% if param.info %}
+                                <label class="control-label"><span data-toggle="tooltip" title="{{ param.info }}">{{ param.name }}</span></label>
+                                {% else %}
+                                <label class="control-label">{{ param.name }}</label>
+                                {% endif %}
+                            </td>
+                            <td class="text-right">
+                                {% if param.warning %}
+                                <b class="text-danger">{{ param.value }}</b>
+                                {% elseif param.recommended %}
+                                <b class="text-success">{{ param.value }}</b>
+                                {% else %}
+                                <b>{{ param.value }}</b>
+                                {% endif %}
+                            </td>
+                            <td class="text-right">{{ param.recommended }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript"><!--
+(function() {
+    var $modal = $('#modal-developer');
+    var $body = $modal.find('.modal-body');
+
+    function showDeveloperAlert(type, message) {
+        $body.find('.alert-dismissible').remove();
+
+        var icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+        var $alert = $('<div class="alert alert-' + type + ' alert-dismissible"><i class="fa ' + icon + '"></i> <span></span> <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+
+        $alert.find('span').text(message);
+        $body.prepend($alert);
+
+        window.setTimeout(function() {
+            $alert.fadeTo(300, 0).slideUp(300, function() {
+                $(this).remove();
+            });
+        }, 5000);
+    }
+
+    function updateCacheStats(stats) {
+        if (!stats) {
+            return;
+        }
+
+        $.each(stats, function(key, stat) {
+            var $row = $modal.find('[data-cache-row="' + key + '"]');
+
+            if (!$row.length) {
+                return;
+            }
+
+            $row.find('.cache-size').text(stat.size || '0 B');
+            $row.find('.cache-files').text(typeof stat.files !== 'undefined' ? stat.files : 0);
+
+            if (stat.failed && parseInt(stat.failed, 10) > 0) {
+                $row.find('.cache-size, .cache-files').addClass('text-warning');
+            } else {
+                $row.find('.cache-size, .cache-files').removeClass('text-warning');
+            }
+        });
+    }
+
+    function loadCacheStats() {
+        $.ajax({
+            url: 'index.php?route=common/developer/cachestats&user_token={{ user_token }}',
+            type: 'post',
+            dataType: 'json',
+            success: function(json) {
+                if (json['stats']) {
+                    updateCacheStats(json['stats']);
+                }
+            },
+            error: function() {
+                $modal.find('.cache-size, .cache-files').text('{{ text_stat_error|e('js') }}').addClass('text-danger');
+            }
+        });
+    }
+
+    $('input[name=\'developer_theme\'], input[name=\'developer_sass\']', $modal).on('change', function() {
+        var $inputs = $('input[name=\'developer_theme\'], input[name=\'developer_sass\']', $modal);
+
+        $.ajax({
+            url: 'index.php?route=common/developer/edit&user_token={{ user_token }}',
+            type: 'post',
+            data: $('input[name=\'developer_theme\']:checked, input[name=\'developer_sass\']:checked', $modal),
+            dataType: 'json',
+            beforeSend: function() {
+                $inputs.prop('disabled', true);
+            },
+            complete: function() {
+                $inputs.each(function() {
+                    if (!$(this).closest('label').is('[disabled]')) {
+                        $(this).prop('disabled', false);
+                    }
+                });
+            },
+            success: function(json) {
+                if (json['error']) {
+                    showDeveloperAlert('danger', json['error']);
+                }
+
+                if (json['success']) {
+                    showDeveloperAlert('success', json['success']);
+                }
+            },
+            error: function(xhr, ajaxOptions, thrownError) {
+                showDeveloperAlert('danger', thrownError + ': ' + xhr.statusText);
+            }
+        });
+    });
+
+    $modal.on('click', '.developer-cache-action', function() {
+        var element = this;
+        var $button = $(element);
+        var action = $button.data('action');
+        var confirmText = $button.data('confirm');
+
+        if (confirmText && !window.confirm(confirmText)) {
+            return;
+        }
+
+        $.ajax({
+            url: 'index.php?route=common/developer/' + action + '&user_token={{ user_token }}',
+            type: 'post',
+            dataType: 'json',
+            beforeSend: function() {
+                $button.button('loading');
+            },
+            complete: function() {
+                $button.button('reset');
+            },
+            success: function(json) {
+                if (json['stats']) {
+                    updateCacheStats(json['stats']);
+                }
+
+                if (json['error']) {
+                    showDeveloperAlert('danger', json['error']);
+                } else if (json['success']) {
+                    showDeveloperAlert('success', json['success']);
+                }
+            },
+            error: function(xhr, ajaxOptions, thrownError) {
+                showDeveloperAlert('danger', thrownError + ': ' + xhr.statusText);
+            }
+        });
+    });
+
+    loadCacheStats();
+})();
+//--></script>

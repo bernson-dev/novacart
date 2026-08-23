@@ -1,0 +1,582 @@
+{{ header }}{{ column_left }}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <h1>{{ heading_title }}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        {% if error_warning %}
+        <div class="alert alert-danger alert-dismissible">
+            <i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {% endif %}
+
+        <div class="panel panel-default dump-panel">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <i class="fa fa-database"></i> {{ text_list }}
+                </h3>
+            </div>
+
+            <div class="panel-body">
+                <div class="alert alert-info dump-help-main">
+                    <div class="dump-help-title">
+                        <i class="fa fa-info-circle"></i> {{ text_quick_help_title }}
+                    </div>
+                    <ul>
+                        <li>{{ text_quick_help_structure }}</li>
+                        <li>{{ text_quick_help_data }}</li>
+                        <li>{{ text_quick_help_safe }}</li>
+                    </ul>
+                </div>
+
+                <div class="alert alert-warning dump-help-warning">
+                    <i class="fa fa-exclamation-circle"></i> {{ text_help }}
+                </div>
+
+                <form id="form-dump-install" action="{{ action }}" method="post" class="form-horizontal">
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-comment">{{ entry_comment }}</label>
+                        <div class="col-sm-10">
+                            <input type="text"
+                            name="comment"
+                            value="{{ default_comment }}"
+                            placeholder="Default dump"
+                            id="input-comment"
+                            class="form-control"
+                            maxlength="200" />
+                            <div class="help-block">{{ entry_comment_help }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-comment-store">{{ entry_comment_store }}</label>
+                        <div class="col-sm-10">
+                            <select name="comment_store_id" id="input-comment-store" class="form-control">
+                                <option value="">{{ text_comment_store_none }}</option>
+
+                                {% for store in comment_stores %}
+                                {% if comment_store_id != '' and comment_store_id == store.store_id %}
+                                <option value="{{ store.store_id }}" selected="selected">{{ store.name }}</option>
+                                {% else %}
+                                <option value="{{ store.store_id }}">{{ store.name }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="help-block">{{ entry_comment_store_help }}</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">{{ entry_installer_mode }}</label>
+                        <div class="col-sm-10">
+                            <div class="checkbox dump-checkbox-main">
+                                <label>
+                                    <input type="checkbox" name="installer_mode" value="1" {{ installer_mode_default }} />
+                                    {{ text_installer_mode }}
+                                </label>
+                            </div>
+
+                            <div class="help-block">
+                                {{ text_installer_mode_help }}
+                            </div>
+
+                            {% if installer_mode_details %}
+                            <div class="dump-auto-mode">
+                                <div class="dump-auto-mode-title">
+                                    <i class="fa fa-exclamation-triangle"></i> {{ text_installer_auto_hint }}
+                                </div>
+                                <div class="dump-auto-mode-reason">
+                                    {{ text_installer_auto_reason }}
+                                </div>
+                            </div>
+
+                            <div class="dump-hosting-details">
+                                <div class="dump-hosting-details-title">
+                                    <i class="fa fa-info-circle"></i> {{ text_hosting_limit_details_title }}
+                                </div>
+                                <ul>
+                                    {% for warning in installer_mode_details %}
+                                    <li>{{ warning }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
+                            <div class="dump-note dump-note-success">
+                                <i class="fa fa-check-circle"></i> {{ text_installer_mode_notice }}
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">{{ entry_include_drop }}</label>
+                        <div class="col-sm-10">
+                            <div class="checkbox dump-checkbox-main">
+                                <label>
+                                    <input type="checkbox" name="include_drop" value="1" checked="checked" />
+                                    {{ entry_include_drop }}
+                                </label>
+                            </div>
+                            <div class="help-block">{{ entry_include_drop_help }}</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-table-filter">{{ entry_table_filter }}</label>
+                        <div class="col-sm-10">
+                            <div class="input-group dump-filter-group">
+                                <input type="text"
+                                id="input-table-filter"
+                                class="form-control"
+                                placeholder="{{ entry_table_filter_placeholder }}" />
+                                <span class="input-group-btn">
+                                    <button type="button" id="button-clear-filter" class="btn btn-default">
+                                        <i class="fa fa-times"></i> {{ button_clear_filter }}
+                                    </button>
+                                </span>
+                            </div>
+                            <div class="help-block">{{ text_table_filter_help }}</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">{{ entry_data_include }}</label>
+                        <div class="col-sm-10">
+
+                            <div class="dump-note dump-note-info">
+                                <i class="fa fa-info-circle"></i> {{ entry_data_include_help }}
+                            </div>
+
+                            <div class="dump-table-control-panel">
+                                <div class="dump-table-actions">
+                                    <button type="button" class="btn btn-default" id="button-select-visible">
+                                        <i class="fa fa-check-square-o"></i> {{ button_sel_all }}
+                                    </button>
+
+                                    <button type="button" class="btn btn-default" id="button-unselect-visible">
+                                        <i class="fa fa-square-o"></i> {{ button_sel_none }}
+                                    </button>
+
+                                    <button type="button" class="btn btn-default" id="btn-default">
+                                        <i class="fa fa-refresh"></i> {{ button_default }}
+                                    </button>
+                                </div>
+
+                                <div class="dump-table-counters">
+                                    <span class="dump-counter dump-counter-info">
+                                        <i class="fa fa-eye"></i>
+                                        {{ text_visible_tables }}:
+                                        <strong><span id="visible-count">{{ total_tables }}</span> / {{ total_tables }}</strong>
+                                    </span>
+
+                                    <span class="dump-counter dump-counter-success">
+                                        <i class="fa fa-check"></i>
+                                        {{ text_selected_tables }}:
+                                        <strong><span id="selected-count">{{ selected_tables_count }}</span></strong>
+                                    </span>
+
+                                    <span class="dump-counter dump-counter-muted">
+                                        <i class="fa fa-ban"></i>
+                                        {{ text_default_excluded_tables }}:
+                                        <strong>{{ default_excluded_count }}</strong>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="well well-sm dump-table-list">
+                                {% for t in tables %}
+                                <div class="checkbox dump-table-item" data-table="{{ t|lower }}">
+                                    <label>
+                                        {% if t in data_include %}
+                                        <input type="checkbox" name="data_include[]" value="{{ t }}" checked="checked" />
+                                        {% else %}
+                                        <input type="checkbox" name="data_include[]" value="{{ t }}" />
+                                        {% endif %}
+                                        <span class="dump-table-name">{{ t }}</span>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="dump-note dump-note-warning">
+                                <i class="fa fa-exclamation-triangle"></i> {{ text_data_include_notice }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group dump-submit-row">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button form="form-dump-install" type="submit" class="btn btn-primary">
+                                <i class="fa fa-download"></i> {{ button_export }}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <style>
+                    .dump-panel .panel-body {
+                        padding-bottom: 20px;
+                    }
+
+                    .dump-help-main {
+                        padding: 12px 15px;
+                        margin-bottom: 15px;
+                    }
+
+                    .dump-help-main .dump-help-title {
+                        font-weight: 600;
+                        margin-bottom: 6px;
+                    }
+
+                    .dump-help-main ul {
+                        margin: 0;
+                        padding-left: 18px;
+                    }
+
+                    .dump-help-main li {
+                        margin-bottom: 3px;
+                    }
+
+                    .dump-help-warning {
+                        padding: 10px 12px;
+                        margin-bottom: 18px;
+                    }
+
+                    .dump-checkbox-main {
+                        margin-top: 0;
+                    }
+
+                    .dump-auto-mode {
+                        margin-top: 8px;
+                        padding: 8px 10px;
+                        color: #8a6d3b;
+                        background: #fcf8e3;
+                        border: 1px solid #faebcc;
+                        border-radius: 3px;
+                        line-height: 1.45;
+                    }
+
+                    .dump-auto-mode-title {
+                        font-weight: 600;
+                        margin-bottom: 3px;
+                    }
+
+                    .dump-auto-mode-reason {
+                        color: #66512c;
+                    }
+
+                    .dump-hosting-details {
+                        margin-top: 8px;
+                        padding: 8px 10px;
+                        color: #555;
+                        background: #f7f7f7;
+                        border: 1px solid #ddd;
+                        border-radius: 3px;
+                        line-height: 1.45;
+                    }
+
+                    .dump-hosting-details-title {
+                        font-weight: 600;
+                        margin-bottom: 4px;
+                    }
+
+                    .dump-hosting-details ul {
+                        margin: 0;
+                        padding-left: 18px;
+                    }
+
+                    .dump-hosting-details li {
+                        margin-bottom: 3px;
+                    }
+
+                    .dump-note {
+                        border-radius: 3px;
+                        padding: 8px 10px;
+                        margin-top: 8px;
+                        margin-bottom: 0;
+                        line-height: 1.45;
+                    }
+
+                    .dump-note-info {
+                        color: #31708f;
+                        background: #d9edf7;
+                        border: 1px solid #bce8f1;
+                        margin-bottom: 10px;
+                    }
+
+                    .dump-note-success {
+                        color: #3c763d;
+                        background: #dff0d8;
+                        border: 1px solid #d6e9c6;
+                    }
+
+                    .dump-note-warning {
+                        color: #8a6d3b;
+                        background: #fcf8e3;
+                        border: 1px solid #faebcc;
+                    }
+
+                    .dump-filter-group .form-control {
+                        height: 36px;
+                    }
+
+                    .dump-filter-group .btn {
+                        height: 36px;
+                    }
+
+                    .dump-table-control-panel {
+                        margin-bottom: 10px;
+                        padding: 10px;
+                        background: #f7f7f7;
+                        border: 1px solid #ddd;
+                        border-radius: 3px;
+                    }
+
+                    .dump-table-actions {
+                        margin-bottom: 8px;
+                    }
+
+                    .dump-table-actions .btn {
+                        margin-right: 5px;
+                        margin-bottom: 5px;
+                    }
+
+                    .dump-table-counters {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 6px;
+                    }
+
+                    .dump-counter {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 5px;
+                        padding: 5px 8px;
+                        border-radius: 3px;
+                        font-size: 13px;
+                        line-height: 1.3;
+                        border: 1px solid transparent;
+                    }
+
+                    .dump-counter-info {
+                        color: #31708f;
+                        background: #d9edf7;
+                        border-color: #bce8f1;
+                    }
+
+                    .dump-counter-success {
+                        color: #3c763d;
+                        background: #dff0d8;
+                        border-color: #d6e9c6;
+                    }
+
+                    .dump-counter-muted {
+                        color: #555;
+                        background: #eee;
+                        border-color: #ddd;
+                    }
+
+                    .dump-table-list {
+                        height: 320px;
+                        overflow: auto;
+                        margin-bottom: 10px;
+                        background: #fff;
+                        border-color: #ddd;
+                    }
+
+                    .dump-table-item {
+                        margin-top: 0;
+                        margin-bottom: 2px;
+                        padding: 5px 8px;
+                        border-radius: 3px;
+                    }
+
+                    .dump-table-item:hover {
+                        background: #f5f5f5;
+                    }
+
+                    .dump-table-item label {
+                        display: block;
+                        margin-bottom: 0;
+                        font-weight: normal;
+                        cursor: pointer;
+                    }
+
+                    .dump-table-item input[type="checkbox"] {
+                        margin-top: 2px;
+                    }
+
+                    .dump-table-name {
+                        font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+                        font-size: 14px;
+                        color: #222;
+                        margin-left: 4px;
+                    }
+
+                    .dump-table-item.is-hidden {
+                        display: none;
+                    }
+
+                    .dump-submit-row {
+                        border-top: 1px solid #eee;
+                        padding-top: 15px;
+                        margin-bottom: 0;
+                    }
+
+                    .dump-submit-row .btn {
+                        padding: 7px 14px;
+                        font-size: 14px;
+                    }
+
+                    @media (max-width: 767px) {
+
+                        .dump-table-control-panel {
+                            padding: 8px;
+                        }
+
+                        .dump-table-actions .btn {
+                            display: block;
+                            width: 100%;
+                            margin-right: 0;
+                        }
+
+                        .dump-table-counters {
+                            display: block;
+                        }
+
+                        .dump-counter {
+                            display: block;
+                            margin-bottom: 5px;
+                        }
+
+                        .dump-table-list {
+                            height: 260px;
+                        }
+
+                        .dump-submit-row .btn {
+                            width: 100%;
+                        }
+                    }
+                </style>
+
+                <script>
+                    (function() {
+                        var defaults = {{ default_data_include_json|raw }};
+
+                        var $form = $('#form-dump-install');
+                        var $items = $('.dump-table-item');
+                        var $filter = $('#input-table-filter');
+                        var $visibleCount = $('#visible-count');
+                        var $selectedCount = $('#selected-count');
+
+                        function escapeSelectorValue(value) {
+                            return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                        }
+
+                        function updateCounters() {
+                            var visible = $items.not('.is-hidden').length;
+                            var selected = $form.find('input[name="data_include[]"]:checked').length;
+
+                            $visibleCount.text(visible);
+                            $selectedCount.text(selected);
+                        }
+
+                        function applyFilter() {
+                            var query = $.trim($filter.val()).toLowerCase();
+
+                            if (!query) {
+                                $items.removeClass('is-hidden');
+                                updateCounters();
+                                return;
+                            }
+
+                            $items.each(function() {
+                                var $item = $(this);
+                                var table = $item.data('table') || '';
+
+                                if (table.indexOf(query) !== -1) {
+                                    $item.removeClass('is-hidden');
+                                } else {
+                                    $item.addClass('is-hidden');
+                                }
+                            });
+
+                            updateCounters();
+                        }
+
+                        function setDefault() {
+                            var $checkboxes = $form.find('input[name="data_include[]"]');
+
+                            $checkboxes.prop('checked', false);
+
+                            defaults.forEach(function(name) {
+                                $form
+                                .find('input[name="data_include[]"][value="' + escapeSelectorValue(name) + '"]')
+                                .prop('checked', true);
+                            });
+
+                            updateCounters();
+                        }
+
+                        $('#btn-default').on('click', setDefault);
+
+                        $('#button-select-visible').on('click', function() {
+                            $items.not('.is-hidden').find('input[name="data_include[]"]').prop('checked', true);
+                            updateCounters();
+                        });
+
+                        $('#button-unselect-visible').on('click', function() {
+                            $items.not('.is-hidden').find('input[name="data_include[]"]').prop('checked', false);
+                            updateCounters();
+                        });
+
+                        $('#button-clear-filter').on('click', function() {
+                            $filter.val('');
+                            applyFilter();
+                            $filter.focus();
+                        });
+
+                        $filter.on('input', applyFilter);
+
+                        $form.on('change', 'input[name="data_include[]"]', updateCounters);
+
+                        $form.on('submit', function() {
+                            var $button = $form.find('button[type="submit"]');
+
+                            if ($button.data('loading')) {
+                                return false;
+                            }
+
+                            $button
+                            .data('loading', true)
+                            .prop('disabled', true)
+                            .html('<i class="fa fa-spinner fa-spin"></i> {{ text_export_processing }}');
+
+                            setTimeout(function() {
+                                $button
+                                .data('loading', false)
+                                .prop('disabled', false)
+                                .html('<i class="fa fa-download"></i> {{ button_export }}');
+                            }, 3000);
+                        });
+
+                        updateCounters();
+                    })();
+                </script>
+
+            </div>
+        </div>
+    </div>
+</div>
+{{ footer }}

@@ -1,0 +1,26 @@
+<?php
+$_['heading_title']        = 'Order Profit Report';
+$_['text_home']            = 'Home';
+$_['text_reports']         = 'Reports';
+$_['text_filter']          = 'Filter';
+$_['text_list']            = 'List';
+$_['text_no_results']      = 'No results';
+$_['text_all_statuses']    = 'All statuses';
+$_['text_summary_revenue'] = 'Revenue (products)';
+$_['text_summary_cost']    = 'Cost';
+$_['text_summary_profit']  = 'Profit';
+$_['entry_date_start']     = 'Date Start';
+$_['entry_date_end']       = 'Date End';
+$_['entry_order_status']   = 'Order Status';
+$_['column_order_id']      = 'Order ID';
+$_['column_date_added']    = 'Date Added';
+$_['column_customer']      = 'Customer';
+$_['column_order_total']   = 'Order Total';
+$_['column_revenue']       = 'Revenue';
+$_['column_cost']          = 'Cost';
+$_['column_profit']        = 'Profit';
+$_['column_margin']        = 'Margin %';
+$_['column_action']        = 'Action';
+$_['button_filter']        = 'Filter';
+$_['button_view']          = 'View';
+$_['text_pagination']      = 'Showing %d to %d of %d (%d Pages)';

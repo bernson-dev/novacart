@@ -1,0 +1,191 @@
+html {
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+}
+
+*,h1,h2,h3,h4,h5,h6 {
+    font-family: 'Open Sans',sans-serif;
+    font-weight: 400;
+    margin-top: 0;
+    margin-bottom: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    background: #f9f9f9;
+    color: #444;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+fieldset {
+    border: 1px solid #ced4da;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+}
+
+
+
+select,input[type='text'],input[type='password'],textarea {
+    background: #fff;
+    border-radius: 5px 5px 5px 5px;
+    border: 1px solid #dbdbdb;
+    padding: 4px;
+    color: #000
+}
+
+option {
+    color: #000
+}
+
+
+
+b,strong {
+    color: #555
+}
+
+label {
+    cursor: pointer
+}
+
+/*Header*/
+header {
+    padding: 50px
+}
+
+header h1 {
+    margin: 0 25px 0 0;
+    font-size: 48px
+}
+
+header h3 {
+    margin: 0;
+    float: left
+}
+
+header h3 small {
+    margin: 10px 0 0;
+    display: block
+}
+
+#logo img {
+    max-height: 50px
+}
+
+footer {
+    margin: 25px 0;
+    text-align: center
+}
+
+
+div.required .control-label:before {
+    content: '* ';
+    color: red;
+    font-weight: 700
+}
+
+.buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.btn {
+    font-weight: 500;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.terms {
+    background: #fff;
+    border: 1px solid #dbdbdb;
+    margin: 3px 0 10px;
+    padding: 4px;
+    height: 250px;
+    overflow-y: scroll
+}
+
+.terms p,.terms ul,.terms ol {
+    color: #000
+}
+
+.country-list.well {
+    height: 300px;
+    overflow-y: auto;
+    margin: 0;
+    padding-top: 0
+}
+
+.visit {
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.visit a {
+    text-decoration: none;
+    font-weight: bold;
+}
+
+    .button-block {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        padding: 20px;
+        background-color: #008cba;
+        color: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        font-size: 18px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .button-block i {
+        margin-right: 10px;
+    }
+
+    .button-block:hover {
+        background-color: #005f8a;
+        color: #e0f7fa;
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .button-block:active {
+        background-color: #004564;
+        transform: translateY(0px);
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+    }
+    
+.scroll-box {
+    width: 100%; /* Устанавливает ширину блока */
+    height: 300px; /* Фиксированная высота блока */
+    overflow-y: auto; /* Включает вертикальную прокрутку */
+    overflow-x: hidden; /* Отключает горизонтальную прокрутку */
+    padding: 10px; /* Добавляет внутренние отступы */
+    border: 1px solid #ccc; /* Рамка вокруг блока */
+    border-radius: 5px; /* Скругление углов */
+    background-color: #f9f9f9; /* Цвет фона */
+    margin-bottom: 20px; /* Отступ после блока */
+    word-wrap: break-word; /* Перенос длинных слов */
+    white-space: normal; /* Перенос строк при длинных текстах */
+}
+

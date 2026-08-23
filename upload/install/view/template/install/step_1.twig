@@ -1,0 +1,61 @@
+{{ header }}
+<div class="container">
+    <header>
+        <div class="row">
+            <div class="col-md-8 col-sm-6">
+                <h1 class="pull-left">1
+                    <small>/5</small></h1>
+                <h3>{{ heading_title }}
+                    <br/>
+                    <small>{{ text_step_1 }}</small>
+                </h3>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div id="logo" class="pull-right hidden-xs">
+                    <img src="view/image/logo.png" alt="NovaCart" title="NovaCart" />
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="row">
+        <div class="col-sm-9">
+            <form action="{{ action }}" method="post" enctype="multipart/form-data">
+                <div class="terms">{{ text_terms }}</div>
+                {% if deletion_log is not empty %}
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" href="#deletionLog">{{ text_collapse }}</a>
+                        </h4>
+                    </div>
+                    <div id="deletionLog" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div class="scroll-box">
+                                <ul>
+                                    {% for folder, logs in deletion_log %}
+                                    <li>
+                                        <strong>{{ folder }}</strong>:
+                                        <ul>
+                                            {% for message in logs %}
+                                            <li>{{ message }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="buttons">
+                    <div class="pull-right">
+                        <input type="submit" value="{{ button_continue }}" class="btn btn-primary" />
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm-3">{{ column_left }}</div>
+    </div>
+</div>
+{{ footer }}

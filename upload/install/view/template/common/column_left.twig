@@ -1,0 +1,63 @@
+<ul class="list-group">
+    {% set steps = {
+    'install': [
+    {'route': 'install/step_1', 'text': text_license},
+    {'route': 'install/step_2', 'text': text_installation},
+    {'route': 'install/step_3', 'text': text_configuration},
+    {'route': 'install/step_4', 'text': text_settings}
+    ],
+    'upgrade': [
+    {'route': 'upgrade/upgrade', 'text': text_upgrade},
+    {'route': 'upgrade/upgrade/success', 'text': text_finished}
+    ]
+    } %}
+
+    {% if route|slice(0, 8) == 'upgrade/' %}
+    {% for step in steps.upgrade %}
+    <li class="list-group-item {% if route == step.route %}active{% endif %}">
+    {{ step.text }}
+    </li>
+    {% endfor %}
+    {% else %}
+    {% for step in steps.install %}
+    <li class="list-group-item {% if route == step.route %}active{% endif %}">
+    {{ step.text }}
+    </li>
+    {% endfor %}
+    {% endif %}
+</ul>
+
+<form action="{{ action }}" method="post" enctype="multipart/form-data" id="language">
+    <ul class="list-group">
+        <li class="list-group-item">
+            <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                    {{ text_language }} <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    {% for language in languages %}
+                    <li>
+                        <a href="{{ language.code }}">
+                        <img src="language/{{ language.code }}/{{ language.code }}.png" alt="{{ language.name }}" />
+                        {{ language.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </li>
+    </ul>
+    <input type="hidden" name="code" value="" />
+    <input type="hidden" name="redirect" value="{{ redirect }}" />
+</form>
+
+<script type="text/javascript">
+    // Language selection handling
+    document.querySelectorAll('#language a').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector('#language input[name="code"]').value = this.getAttribute('href');
+            document.getElementById('language').submit();
+        });
+    });
+</script>

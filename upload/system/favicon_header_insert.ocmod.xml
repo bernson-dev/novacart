@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+  <name>Favicon set insert</name>
+  <code>favicon_set_insert_single_headclose</code>
+  <version>1.0</version>
+  <author>NovaCart</author>
+
+  <file path="catalog/view/theme/*/template/common/header.twig">
+    <operation>
+      <search><![CDATA[</head>]]></search>
+      <add position="before"><![CDATA[
+<!-- FAVICON_SET -->
+{% if has_favicon %}
+<link rel="icon" href="/{{ favicon_dir }}favicon.ico?v={{ favicon_ver }}">
+<link rel="icon" type="image/png" sizes="32x32" href="/{{ favicon_dir }}favicon-32x32.png?v={{ favicon_ver }}">
+<link rel="icon" type="image/png" sizes="96x96" href="/{{ favicon_dir }}favicon-96x96.png?v={{ favicon_ver }}">
+<link rel="apple-touch-icon" sizes="180x180" href="/{{ favicon_dir }}favicon-180x180.png?v={{ favicon_ver }}">
+<link rel="manifest" href="/{{ favicon_dir }}site.webmanifest?v={{ favicon_ver }}">
+<link rel="mask-icon" href="/{{ favicon_dir }}safari-pinned-tab.svg?v={{ favicon_ver }}" color="{{ favicon_color }}">
+{% endif %}
+
+]]></add>
+    </operation>
+  </file>
+</modification>

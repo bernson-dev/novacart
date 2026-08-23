@@ -1,0 +1,5 @@
+{% macro render(status, text) %}
+    <span class="label {{ status ? 'label-success' : 'label-default' }}">
+        {{ text }}
+    </span>
+{% endmacro %}

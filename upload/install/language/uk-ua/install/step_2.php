@@ -1,0 +1,70 @@
+<?php
+// Heading
+$_['heading_title'] = 'Системні вимоги';
+
+// Text
+$_['text_step_2'] = 'Перевірка відповідності сервера та доступності файлів для встановлення';
+$_['text_install_php'] = '1. Налаштуйте PHP для відповідності наступним вимогам.';
+$_['text_install_extension'] = '2. Переконайтеся, що наведені нижче розширення встановлені.';
+$_['text_install_db'] = '3. У вас має бути хоча б одна з доступних баз даних.';
+$_['text_install_file'] = '4. Переконайтеся, що наведені нижче файли мають дозвіл на запис та відповідне ім\'я';
+$_['text_install_directory'] = '5. Переконайтеся, що наведені нижче каталоги, а також всі їхні підкаталоги та файли мають дозвіл на запис.';
+$_['text_setting'] = 'Налаштування PHP';
+$_['text_current'] = 'Поточні установки';
+$_['text_required'] = 'Потрібні установки';
+$_['text_extension'] = 'Розширення';
+$_['text_db'] = 'База Даних';
+$_['text_db_driver'] = 'Драйвер бази даних';
+$_['text_file'] = 'Файли';
+$_['text_directory'] = 'Папки';
+$_['text_status'] = 'Статус';
+$_['text_version'] = 'Версія PHP';
+$_['text_global'] = 'Register Globals';
+$_['text_magic'] = 'Magic Quotes GPC';
+$_['text_file_upload'] = 'Завантаження файлів (upload)';
+$_['text_session'] = 'Автозапуск сесії';
+$_['text_gd'] = 'GD';
+$_['text_curl'] = 'cURL';
+$_['text_openssl'] = 'OpenSSL';
+$_['text_zlib'] = 'ZLIB';
+$_['text_zip'] = 'ZIP';
+$_['text_mbstring'] = 'mbstring';
+$_['text_dom'] = 'DOM/XML';
+$_['text_hash'] = 'Hash';
+$_['text_xmlwriter'] = 'XMLWriter';
+$_['text_json'] = 'JSON';
+$_['text_on'] = 'Так';
+$_['text_off'] = 'Ні';
+$_['text_writable'] = 'Доступно для запису';
+$_['text_unwritable'] = 'Недоступно для запису';
+//$_['text_missing'] = 'Файл відсутній або неправильне ім\'я';
+
+// Error
+$_['error_missing'] = 'Відсутня';
+$_['error_unwritable'] = 'Недоступно для запису';
+$_['error_version'] = 'Увага: Для роботи OpenCart необхідно використовувати PHP 7.3 або вище!';
+$_['error_file_upload'] = 'Увага: Необхідно включити file_uploads у налаштуваннях PHP!';
+$_['error_session'] = 'Увага: OpenCart не буде коректно працювати з увімкненим налаштуванням PHP session.auto_start!';
+$_['error_db'] = 'Увага: Для роботи OpenCart необхідно встановити PHP розширення для роботи з базами даних!';
+$_['error_gd'] = 'Увага: Для роботи OpenCart необхідно встановити PHP розширення GD!';
+$_['error_curl'] = 'Увага: Для роботи OpenCart необхідно встановити PHP розширення CURL!';
+$_['error_openssl'] = 'Увага: Для роботи OpenCart необхідно встановити PHP розширення OpenSSL!';
+$_['error_zlib'] = 'Увага: Для роботи OpenCart необхідно встановити PHP розширення ZLIB!';
+$_['error_zip'] = 'Увага: Для роботи OpenCart необхідно встановити PHP розширення ZIP!';
+$_['error_mbstring'] = 'Увага: Для роботи OpenCart необхідно встановити PHP розширення mbstring!';
+$_['error_dom'] = 'Увага: для роботи OpenCart необхідно завантажити розширення DOM/XML!';
+$_['error_hash'] = 'Увага: для роботи OpenCart необхідно завантажити розширення Hash!';
+$_['error_xmlwriter'] = 'Увага: для роботи OpenCart необхідно завантажити розширення XMLWriter!';
+$_['error_json'] = 'Увага: для роботи OpenCart необхідно завантажити розширення JSON!';
+$_['error_catalog_exist'] = 'Увага: Файл config.php не існує. Необхідно перейменувати config-dist.php на config.php!';
+$_['error_catalog_writable'] = 'Увага: Файл config.php має бути доступним для запису для встановлення OpenCart!';
+$_['error_admin_exist'] = 'Увага: Файл admin/config.php не існує. Необхідно перейменувати admin/config-dist.php на admin/config.php!';
+$_['error_admin_writable'] = 'Увага: Файл admin/config.php має бути доступним для запису для встановлення OpenCart!';
+$_['error_image'] = 'Увага: Папка <b>image</b> повинна бути доступна для запису для встановлення OpenCart!';
+$_['error_image_cache'] = 'Увага: Папка <b>image/cache</b> повинна бути доступна для запису для встановлення OpenCart!';
+$_['error_image_catalog'] = 'Увага: Папка <b>image/catalog</b> має бути доступною для запису для встановлення OpenCart!';
+$_['error_cache'] = 'Увага: Папка <b>storage/cache</b> має бути доступною для запису для встановлення OpenCart!';
+$_['error_log'] = 'Увага: Папка <b>storage/logs</b> має бути доступною для запису для встановлення OpenCart!';
+$_['error_download'] = 'Увага: Папка <b>storage/download</b> має бути доступною для запису для встановлення OpenCart!';
+$_['error_upload'] = 'Увага: Папка <b>storage/upload</b> має бути доступною для запису для встановлення OpenCart!';
+$_['error_modification'] = 'Увага: Папка <b>storage/modification</b> має бути доступною для запису для встановлення OpenCart!';

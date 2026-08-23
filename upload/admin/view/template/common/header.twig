@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html dir="{{ direction }}" lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8" />
+    <title>{{ title }}</title>
+    <base href="{{ base }}" />
+    <link rel="icon" type="image/png" href="view/image/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="view/image/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="view/image/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="view/image/favicon/apple-touch-icon.png" />
+    <link rel="manifest" href="view/image/favicon/site.webmanifest" />
+    {% if description %}
+    <meta name="description" content="{{ description }}" />
+    {% endif %}
+    {% if keywords %}
+    <meta name="keywords" content="{{ keywords }}" />
+    {% endif %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <script type="text/javascript" src="view/javascript/jquery/jquery-3.7.1.min.js"> </script>
+    <script type="text/javascript" src="view/javascript/bootstrap/js/bootstrap.min.js"> </script>
+    <script>
+        (function() {
+            var root = document.documentElement;
+
+            function isDesktop() {
+                return window.matchMedia('(min-width: 48rem)').matches;
+            }
+
+            function isMediumScreen() {
+                return window.matchMedia('(min-width: 48rem) and (max-width: 100rem)').matches;
+            }
+
+            function setSidebarClass(expanded) {
+                root.classList.toggle('sidebar-expanded', expanded);
+                root.classList.toggle('sidebar-minimized', !expanded);
+            }
+
+            try {
+                if (!isDesktop()) {
+                    setSidebarClass(false);
+                    return;
+                }
+
+                if (isMediumScreen()) {
+                    setSidebarClass(sessionStorage.getItem('column-left-medium') === 'expanded');
+                    return;
+                }
+
+                setSidebarClass(localStorage.getItem('column-left') !== 'minimized');
+            } catch (e) {
+                setSidebarClass(false);
+            }
+        })();
+    </script>
+    <link href="view/stylesheet/bootstrap.css" type="text/css" rel="stylesheet" />
+    <link href="view/javascript/font-awesome/css/font-awesome.min.css" type="text/css" rel="stylesheet" />
+    <script src="view/javascript/jquery/datetimepicker/moment/moment.min.js" type="text/javascript"> </script>
+    <script src="view/javascript/jquery/datetimepicker/moment/moment-with-locales.min.js" type="text/javascript"> </script>
+    <script src="view/javascript/jquery/datetimepicker/bootstrap-datetimepicker.min.js" type="text/javascript"> </script>
+    <link href="view/javascript/jquery/datetimepicker/bootstrap-datetimepicker.min.css" type="text/css" rel="stylesheet" media="screen" />
+    <link type="text/css" href="view/stylesheet/stylesheet.css" rel="stylesheet" media="screen" />
+
+    {% for style in styles %}
+    <link type="text/css" href="{{ style.href }}" rel="{{ style.rel }}" media="{{ style.media }}" />
+    {% endfor %}
+    {% for link in links %}
+    <link href="{{ link.href }}" rel="{{ link.rel }}" />
+    {% endfor %}
+    <script src="view/javascript/common.js" type="text/javascript"> </script>
+    <script>
+        var defaultLanguageId = {{ default_language_id }};
+        var languages = {
+            {% for language in languages %}
+            {{ language.language_id }}: '{{ language.code }}'{% if not loop.last %},{% endif %}
+            {% endfor %}
+        };
+    </script>
+    {% for script in scripts %}
+    <script type="text/javascript" src="{{ script }}"> </script>
+    {% endfor %}
+
+</head>
+<body>
+<div id="container">
+<header id="header" class="navbar navbar-static-top">
+    <div class="container-fluid">
+        {% if logged %}
+        <a href="#" id="button-menu" class="navbar-toggle">
+            <span class="fa fa-bars"></span>
+        </a>
+        {% endif %}
+
+        <div id="header-logo" class="navbar-header visible-lg">
+            <a href="{{ home }}" class="navbar-brand">
+            <img src="view/image/logo.png" alt="{{ heading_title }}" title="{{ heading_title }}" />
+            </a>
+        </div>
+
+        {% if logged %}
+        <ul class="nav pull-left">
+            <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown"  title="{{ text_new }}">
+                    <i class="fa fa-plus fa-lg"></i> <span class="header-item hidden-xs hidden-sm">{{ text_new }}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-left alerts-dropdown">
+                    <li><a href="{{ new_product }}" style="display: block; overflow: auto;">{{ text_new_product }}</a></li>
+                    <li><a href="{{ new_category }}" style="display: block; overflow: auto;">{{ text_new_category }}</a></li>
+                    <li><a href="{{ new_manufacturer }}" style="display: block; overflow: auto;">{{ text_new_manufacturer }}</a></li>
+                    <li><a href="{{ new_customer }}" style="display: block; overflow: auto;">{{ text_new_customer }}</a></li>
+                    <li><a href="{{ new_download }}" style="display: block; overflow: auto;">{{ text_new_download }}</a></li>
+                </ul>
+            </li>
+        </ul>
+
+        <div id="oc-search-div" class="col-sm-3 col-md-3 pull-left">
+            {{ search }}
+        </div>
+        <ul class="nav navbar-nav navbar-right">
+            <li id="maintenance-status"{% if maintenance %} class="maintenance-active"{% endif %}>
+                {% if maintenance_modify %}
+                <a href="{{ maintenance_url }}"
+                   id="button-maintenance"
+                   data-maintenance="{{ maintenance ? 1 : 0 }}"
+                   data-enabled="{{ text_maintenance_enabled }}"
+                   data-disabled="{{ text_maintenance_disabled }}"
+                   title="{{ maintenance ? text_maintenance_enabled : text_maintenance_disabled }}">
+                    <i class="fa fa-wrench"></i>
+                </a>
+                {% else %}
+                <a href="javascript:void(0);"
+                    title="{{ maintenance ? text_maintenance_enabled : text_maintenance_disabled }}">
+                    <i class="fa fa-wrench"></i>
+                </a>
+                {% endif %}
+            </li>
+
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="{{ firstname }} {{ lastname }}">
+                    <img src="{{ image }}" alt="{{ firstname }} {{ lastname }}" title="{{ username }}" id="user-profile" class="img-circle" />
+                    {{ firstname }} {{ lastname }}
+                    <i class="fa fa-caret-down fa-fw"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-right">
+                    <li>
+                        <a href="{{ profile }}">
+                            <i class="fa fa-user-circle-o fa-fw"></i> {{ text_profile }}</a></li>
+                    <li role="separator" class="divider"></li>
+                    <li class="dropdown-header">{{ text_store }}</li>
+                    {% for store in stores %}
+                    <li><a href="{{ store.href }}" target="_blank">{{ store.name }}</a></li>
+                    {% endfor %}
+                    <li role="separator" class="divider"></li>
+                    <li class="dropdown-header">{{ text_help }}</li>
+                    <li>
+                        <a href="//docs.opencart.com/" target="_blank">
+                            <i class="fa fa-file-text-o fa-fw"></i> {{ text_documentation }} EN</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="{{ logout }}">
+                    <i class="fa fa-sign-out"></i> <span class="hidden-xs hidden-sm hidden-md">{{ text_logout }}</span></a></li>
+        </ul>
+        {% endif %}
+    </div>
+</header>
+
+{% if maintenance_modify %}
+<script type="text/javascript">
+    $('#button-maintenance').on('click', function(e) {
+        e.preventDefault();
+
+        var $button = $(this);
+
+        if ($button.data('loading')) {
+            return;
+        }
+
+        var current = parseInt($button.attr('data-maintenance'), 10) || 0;
+        var maintenance = current ? 0 : 1;
+
+        $button.data('loading', true);
+
+        $.ajax({
+            url: $button.attr('href'),
+            type: 'post',
+            dataType: 'json',
+            data: {
+                maintenance: maintenance
+            },
+            success: function(json) {
+                if (json.error) {
+                    alert(json.error);
+                    return;
+                }
+
+                if (!json.success) {
+                    alert('{{ error_maintenance|escape('js') }}');
+                    return;
+                }
+
+                var enabled = parseInt(json.maintenance, 10) === 1;
+
+                $button.attr('data-maintenance', enabled ? '1' : '0');
+
+                $button.attr(
+                'title',
+                enabled
+                ? $button.attr('data-enabled')
+                : $button.attr('data-disabled')
+                );
+
+                $('#maintenance-status').toggleClass('maintenance-active', enabled);
+            },
+            error: function(xhr, ajaxOptions, thrownError) {
+                alert('{{ error_maintenance|escape('js') }}');
+            },
+            complete: function() {
+                $button.data('loading', false);
+            }
+        });
+    });
+</script>
+{% endif %}

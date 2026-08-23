@@ -1,0 +1,838 @@
+{% import "common/status_label.twig" as status %}
+{{ header }}
+{{ column_left }}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <div class="pull-right">
+                <a href="{{ add }}" data-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary">
+                    <i class="fa fa-plus"></i>
+                </a>
+                <a href="{{ repair }}" data-toggle="tooltip" title="{{ button_rebuild }}" class="btn btn-default">
+                    <i class="fa fa-refresh"></i>
+                </a>
+                <button type="submit" form="form-category" formaction="{{ enabled }}" data-toggle="tooltip" title="{{ button_enable }}" class="btn btn-default">
+                    <i class="fa fa-play"></i>
+                </button>
+                <button type="submit" form="form-category" formaction="{{ disabled }}" data-toggle="tooltip" title="{{ button_disable }}" class="btn btn-default">
+                    <i class="fa fa-pause"></i>
+                </button>
+                <button type="submit" form="form-category" formaction="{{ delete }}" data-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger" onclick="return confirm('{{ text_confirm }}');">
+                    <i class="fa fa-trash-o"></i>
+                </button>
+            </div>
+            <h1>{{ heading_title }}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="container-fluid">
+        {% if error_warning %}
+        <div class="alert alert-danger alert-dismissible">
+            <i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {% endif %}
+        {% if success %}
+        <div class="alert alert-success alert-dismissible">
+            <i class="fa fa-check-circle"></i> {{ success }}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {% endif %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">
+                    <i class="fa fa-list"></i> {{ text_list }}
+                </h3>
+            </div>
+            <div class="panel-body">
+                <div class="alert alert-info category-tree-mode-help">
+                    <i class="fa fa-info-circle"></i>
+                    {{ text_tree_mode_help }}
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 text-left">{{ results }}</div>
+                </div>
+
+                <form action="{{ delete }}" method="post" enctype="multipart/form-data" id="form-category">
+                    <div class="category-tree-toolbar">
+                        <div class="category-tree-toolbar__buttons">
+                            <button type="button" class="btn btn-default btn-sm" id="button-expand-all">
+                                <i class="fa fa-plus-square-o"></i> {{ button_expand_all }}
+                            </button>
+                            <button type="button" class="btn btn-default btn-sm" id="button-collapse-all">
+                                <i class="fa fa-minus-square-o"></i> {{ button_collapse_all }}
+                            </button>
+                            <button type="button" class="btn btn-default btn-sm" id="button-select-visible">
+                                <i class="fa fa-check-square-o"></i> {{ button_select_visible|default('Выбрать видимые') }}
+                            </button>
+                            <button type="button"
+                                    class="btn btn-danger btn-sm"
+                                    id="button-compact-mode"
+                                    data-text-compact="{{ button_tree_mode_compact }}"
+                                    data-text-free="{{ button_tree_mode_free }}"
+                                    aria-pressed="false">
+                                <i class="fa fa-random"></i>
+                                <span class="category-tree-mode-text">{{ button_tree_mode_free }}</span>
+                            </button>
+                        </div>
+
+                        <div class="category-tree-toolbar__search">
+                            <div class="input-group">
+                                <input type="text"
+                                id="input-category-search"
+                                class="form-control"
+                                autocomplete="off"
+                                placeholder="{{ text_quick_find_category }}" />
+                                <span class="input-group-btn">
+                                    <button type="button"
+                                            class="btn btn-default"
+                                            id="button-clear-category-search"
+                                            data-toggle="tooltip"
+                                            title="{{ button_clear_filter|default('Clear') }}">
+                                        <i class="fa fa-times"></i>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Счётчик выбранных #}
+                    <div class="category-tree-selected-counter" style="margin-bottom: 10px; text-align: right;">
+                        <span id="selected-counter" class="label label-info" style="display: none; padding: 6px 12px;">
+                            <i class="fa fa-check-square-o"></i> <span id="selected-count">0</span> / <span id="total-count">0</span> {{ text_categories_selected|default('выбрано') }}
+                        </span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="category-tree-table">
+                            <thead>
+                                <tr>
+                                    <td style="width: 1px;" class="text-center">
+                                        <input type="checkbox" id="input-check-all-category" />
+                                    </td>
+                                    <td class="text-left">{{ column_name }}</td>
+                                    <td class="text-left">{{ column_status }}</td>
+                                    <td class="text-right">{{ column_sort_order }}</td>
+                                    <td class="text-left">{{ column_noindex }}</td>
+                                    <td class="text-right">{{ column_action }}</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if categories %}
+                                {% for category in categories %}
+                                <tr class="category-tree-row"
+                                    data-category-id="{{ category.category_id }}"
+                                    data-parent-id="{{ category.parent_id }}"
+                                    data-level="{{ category.level }}"
+                                    data-search-name="{{ category.search_name|e('html_attr') }}"
+                                    data-original-name="{{ category.name|e('html_attr') }}">
+                                    <td class="text-center">
+                                        <input type="checkbox" name="selected[]" value="{{ category.category_id }}" {% if category.category_id in selected %}checked="checked"{% endif %} class="category-checkbox" />
+                                    </td>
+                                    <td class="text-left category-tree-name">
+                                        <span class="category-tree-indent" style="width: {{ category.level * 24 }}px;"></span>
+
+                                        {% if category.has_children %}
+                                        <button type="button" class="btn btn-default btn-xs category-tree-toggle" data-category-id="{{ category.category_id }}">
+                                            <i class="fa fa-angle-down"></i>
+                                        </button>
+                                        {% else %}
+                                        <span class="category-tree-toggle-placeholder"></span>
+                                        {% endif %}
+
+                                        <span class="category-tree-level-badge" title="{{ text_category_level }}">
+                                        {{ category.level + 1 }}
+                                        </span>
+                                        <span class="category-tree-title">{{ category.name }}</span>
+                                    </td>
+                                    <td class="text-left">
+                                        {{ status.render(category.status, category.status_text) }}
+                                    </td>
+                                    <td class="text-right">{{ category.sort_order }}</td>
+                                    <td class="text-left">{{ category.noindex }}</td>
+                                    <td class="text-right">
+                                        <a target="_blank" href="{{ category.href_shop }}" data-toggle="tooltip" title="{{ button_shop }}" class="btn btn-success">
+                                            <i class="fa fa-eye"></i>
+                                        </a>
+                                        <a href="{{ category.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary">
+                                            <i class="fa fa-pencil"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td class="text-center" colspan="6">{{ text_no_results }}</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+                <div class="row">
+                    <div class="col-sm-6 text-left">{{ results }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .category-tree-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .category-tree-mode-help {
+            margin-bottom: 15px;
+        }
+        #button-compact-mode.btn-danger {
+            color: #fff;
+            background-color: #d9534f;
+            border-color: #d43f3a;
+        }
+        #button-compact-mode.btn-success {
+            color: #fff;
+            background-color: #5cb85c;
+            border-color: #4cae4c;
+        }
+        #button-compact-mode .fa {
+            color: inherit;
+        }
+        .category-tree-toolbar__buttons {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        .category-tree-toolbar__search {
+            width: 100%;
+            max-width: 450px;
+        }
+        .category-tree-name {
+            white-space: nowrap;
+        }
+        .category-tree-indent {
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .category-tree-toggle,
+        .category-tree-toggle-placeholder {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .category-tree-toggle {
+            padding: 3px 0;
+        }
+        .category-tree-toggle .fa {
+            font-size: 16px;
+        }
+        .category-tree-level-badge {
+            display: inline-block;
+            min-width: 24px;
+            padding: 2px 6px;
+            margin-right: 6px;
+            border-radius: 10px;
+            background: #eef2f7;
+            border: 1px solid #d6dde6;
+            color: #4a5568;
+            font-size: 11px;
+            line-height: 16px;
+            font-weight: 600;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .category-tree-title {
+            vertical-align: middle;
+        }
+        .category-tree-row.is-hidden,
+        .category-tree-row.is-search-hidden {
+            display: none;
+        }
+        .category-tree-row.is-search-match > td {
+            background: #fffde7;
+        }
+        .search-highlight {
+            background-color: #ffeb3b;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        .children-count {
+            font-size: 11px;
+            color: #666;
+            margin-left: 4px;
+        }
+        /* Стиль для строк, у которых все потомки выбраны */
+        .category-tree-row.has-all-children-selected .category-tree-title {
+            font-weight: bold;
+        }
+        @media (max-width: 767px) {
+            .category-tree-toolbar {
+                display: block;
+            }
+            .category-tree-toolbar__buttons {
+                margin-bottom: 10px;
+            }
+            .category-tree-toolbar__search {
+                max-width: none;
+            }
+            .category-tree-name {
+                min-width: 260px;
+            }
+        }
+    </style>
+
+    <script type="text/javascript">
+        // Фикс сабмита для старых браузеров (IE/Edge)
+        $('button[form="form-category"]').on('click', function(e) {
+            var formaction = $(this).attr('formaction');
+            if (formaction) {
+                $('#form-category').attr('action', formaction);
+            }
+        });
+
+        (function($) {
+            var collapsed = {};
+            var rows = [];
+            var compactMode = true;
+            var searchTimeout = null;
+            var debounceDelay = 300;
+            var childrenMap = {};
+
+            var storageCompactKey = 'categoryTreeCompactMode';
+            var storageStateKey = 'categoryTreeState';
+            var storageStateTtl = 30 * 60 * 1000;
+
+            // ==================== ПОСТРОЕНИЕ ДЕРЕВА КЕША ====================
+            function buildRows() {
+                rows = [];
+                $('#category-tree-table tbody tr.category-tree-row').each(function() {
+                    var $row = $(this);
+                    rows.push({
+                        id: String($row.data('category-id')),
+                        parentId: String($row.data('parent-id') || 0),
+                        level: parseInt($row.data('level'), 10) || 0,
+                        name: String($row.data('search-name') || '').toLowerCase(),
+                        originalName: String($row.data('original-name') || ''),
+                        $row: $row
+                    });
+                });
+                buildChildrenMap();
+            }
+
+            function buildChildrenMap() {
+                childrenMap = {};
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    if (!childrenMap[row.parentId])
+                        childrenMap[row.parentId] = [];
+                    childrenMap[row.parentId].push(row);
+                }
+            }
+
+            function getChildrenFast(parentId) {
+                return childrenMap[parentId] || [];
+            }
+
+            function getChildChainFast(categoryId) {
+                var result = [];
+                var stack = getChildrenFast(categoryId).slice(); // копия
+                while (stack.length) {
+                    var node = stack.pop();
+                    result.push(node);
+                    var grandchildren = getChildrenFast(node.id);
+                    for (var i = 0; i < grandchildren.length; i++) {
+                        stack.push(grandchildren[i]);
+                    }
+                }
+                return result;
+            }
+
+            function hasChildrenFast(categoryId) {
+                return getChildrenFast(categoryId).length > 0;
+            }
+
+            // ==================== СЧЁТЧИК ДОЧЕРНИХ КАТЕГОРИЙ ====================
+            function updateChildrenCounts() {
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var $titleSpan = row.$row.find('.category-tree-title');
+                    if (!$titleSpan.length)
+                        continue;
+                    var childrenCount = getChildrenFast(row.id).length;
+                    if (childrenCount > 0) {
+                        if ($titleSpan.find('.children-count').length === 0) {
+                            $titleSpan.append(' <span class="children-count">(' + childrenCount + ')</span>');
+                        } else {
+                            $titleSpan.find('.children-count').text('(' + childrenCount + ')');
+                        }
+                    } else {
+                        $titleSpan.find('.children-count').remove();
+                    }
+                }
+            }
+
+            // ==================== ПОДСВЕТКА ПОИСКА ====================
+            function escapeRegex(str) {
+                return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+
+            function highlightMatches() {
+                var searchValue = $.trim($('#input-category-search').val()).toLowerCase();
+                if (!searchValue) {
+                    // Восстанавливаем оригинальные названия
+                    for (var i = 0; i < rows.length; i++) {
+                        var row = rows[i];
+                        var $titleSpan = row.$row.find('.category-tree-title');
+                        if ($titleSpan.length && $titleSpan.data('original-text')) {
+                            $titleSpan.html($titleSpan.data('original-text'));
+                            $titleSpan.removeData('original-text');
+                        }
+                    }
+                    return;
+                }
+                var regex = new RegExp('(' + escapeRegex(searchValue) + ')', 'gi');
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var $titleSpan = row.$row.find('.category-tree-title');
+                    if (!$titleSpan.length)
+                        continue;
+                    // Сохраняем оригинальный HTML, если ещё не сохранён
+                    if (!$titleSpan.data('original-text')) {
+                        $titleSpan.data('original-text', $titleSpan.html());
+                    }
+                    var originalHtml = $titleSpan.data('original-text');
+                    // Удаляем старые <mark>, чтобы не накапливались
+                    var cleanHtml = originalHtml.replace(/<mark class="search-highlight">|<\/mark>/g, '');
+                    var newHtml = cleanHtml.replace(regex, '<mark class="search-highlight">$1</mark>');
+                    $titleSpan.html(newHtml);
+                }
+            }
+
+            // ==================== ОСТАЛЬНЫЕ ФУНКЦИИ ====================
+            function getRowById(categoryId) {
+                categoryId = String(categoryId);
+                for (var i = 0; i < rows.length; i++) {
+                    if (rows[i].id === categoryId)
+                        return rows[i];
+                }
+                return null;
+            }
+
+
+            function initCollapsed() {
+                collapsed = {};
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    if (hasChildrenFast(row.id))
+                        collapsed[row.id] = true;
+                }
+            }
+
+            function isParentCollapsed(row) {
+                var parentId = row.parentId;
+                while (parentId && parentId !== '0') {
+                    if (collapsed[parentId])
+                        return true;
+                    var parent = getRowById(parentId);
+                    if (!parent)
+                        break;
+                    parentId = parent.parentId;
+                }
+                return false;
+            }
+
+            function getParentChain(row) {
+                var chain = [];
+                var parentId = row.parentId;
+                while (parentId && parentId !== '0') {
+                    var parent = getRowById(parentId);
+                    if (!parent) {
+                        break;
+                    }
+                    chain.push(parent);
+                    parentId = parent.parentId;
+                }
+                return chain;
+            }
+
+            function collapseBranch(categoryId) {
+                categoryId = String(categoryId);
+                collapsed[categoryId] = true;
+                var children = getChildChainFast(categoryId);
+                for (var i = 0; i < children.length; i++) {
+                    var child = children[i];
+                    if (hasChildrenFast(child.id))
+                        collapsed[child.id] = true;
+                }
+            }
+
+            function closeSiblingBranches(row) {
+                var siblings = getChildrenFast(row.parentId);
+                for (var i = 0; i < siblings.length; i++) {
+                    var sibling = siblings[i];
+                    if (sibling.id !== row.id && hasChildrenFast(sibling.id)) {
+                        collapseBranch(sibling.id);
+                    }
+                }
+            }
+
+            function normalizeCollapsedState(sourceCollapsed) {
+                var normalized = {};
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    if (!hasChildrenFast(row.id))
+                        continue;
+                    if (sourceCollapsed && sourceCollapsed.hasOwnProperty(row.id)) {
+                        normalized[row.id] = !!sourceCollapsed[row.id];
+                    } else {
+                        normalized[row.id] = true;
+                    }
+                }
+                return normalized;
+            }
+
+            function updateToggleIcons() {
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var $button = row.$row.find('.category-tree-toggle');
+                    if (!$button.length)
+                        continue;
+                    var $icon = $button.find('.fa');
+                    if (collapsed[row.id]) {
+                        $icon.removeClass('fa-angle-down').addClass('fa-angle-right');
+                    } else {
+                        $icon.removeClass('fa-angle-right').addClass('fa-angle-down');
+                    }
+                }
+            }
+
+            function updateCompactButton() {
+                var $button = $('#button-compact-mode');
+                var compactText = $button.data('text-compact') || 'Compact Mode';
+                var freeText = $button.data('text-free') || 'Free Mode';
+                $button
+                .toggleClass('btn-success', compactMode)
+                .toggleClass('btn-danger', !compactMode)
+                .attr('aria-pressed', compactMode ? 'true' : 'false')
+                .attr('title', compactMode ? compactText : freeText);
+                $button.find('.category-tree-mode-text').text(compactMode ? compactText : freeText);
+                $button.find('.fa')
+                .toggleClass('fa-compress', compactMode)
+                .toggleClass('fa-random', !compactMode);
+            }
+
+            function setCompactMode(state) {
+                compactMode = !!state;
+                try {
+                    localStorage.setItem(storageCompactKey, compactMode ? '1' : '0');
+                } catch (e) {
+                }
+                updateCompactButton();
+            }
+
+            function loadCompactMode() {
+                try {
+                    var saved = localStorage.getItem(storageCompactKey);
+                    if (saved === null) {
+                        compactMode = true;
+                        localStorage.setItem(storageCompactKey, '1');
+                    } else {
+                        compactMode = saved === '1';
+                    }
+                } catch (e) {
+                    compactMode = true;
+                }
+                updateCompactButton();
+            }
+
+            // ==================== ВИДИМОСТЬ ====================
+            function applyDefaultVisibility() {
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    row.$row.removeClass('is-search-hidden is-search-match');
+                    if (isParentCollapsed(row)) {
+                        row.$row.addClass('is-hidden');
+                    } else {
+                        row.$row.removeClass('is-hidden');
+                    }
+                }
+                updateToggleIcons();
+            }
+
+            function applySearch(searchValue) {
+                var visibleMap = {};
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    row.$row.removeClass('is-hidden is-search-hidden is-search-match');
+                    if (row.name.indexOf(searchValue) !== -1) {
+                        visibleMap[row.id] = true;
+                        row.$row.addClass('is-search-match');
+                        var parents = getParentChain(row);
+                        for (var p = 0; p < parents.length; p++) {
+                            visibleMap[parents[p].id] = true;
+                        }
+                        var children = getChildChainFast(row.id);
+                        for (var c = 0; c < children.length; c++) {
+                            visibleMap[children[c].id] = true;
+                        }
+                    }
+                }
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    if (!visibleMap[row.id]) {
+                        row.$row.addClass('is-search-hidden');
+                    }
+                }
+                // Разворачиваем все иконки для найденных веток
+                $('#category-tree-table .category-tree-toggle .fa')
+                .removeClass('fa-angle-right')
+                .addClass('fa-angle-down');
+                // Обновляем подсветку
+                highlightMatches();
+            }
+
+            function applyVisibility() {
+                var searchValue = $.trim($('#input-category-search').val()).toLowerCase();
+                if (searchValue) {
+                    applySearch(searchValue);
+                } else {
+                    applyDefaultVisibility();
+                    highlightMatches(); // очистить подсветку
+                }
+            }
+
+            function expandAll() {
+                collapsed = {};
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    if (hasChildrenFast(row.id))
+                        collapsed[row.id] = false;
+                }
+                applyVisibility();
+            }
+
+            function collapseAll() {
+                collapsed = {};
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    if (hasChildrenFast(row.id))
+                        collapsed[row.id] = true;
+                }
+                applyVisibility();
+            }
+
+            // ==================== СЧЁТЧИК ВЫБРАННЫХ ====================
+            function updateSelectedCounter() {
+                var totalSelected = 0;
+                for (var i = 0; i < rows.length; i++) {
+                    var $checkbox = rows[i].$row.find('input[name*="selected"]');
+                    if ($checkbox.length && $checkbox.prop('checked'))
+                        totalSelected++;
+                }
+                $('#selected-count').text(totalSelected);
+                $('#total-count').text(rows.length);
+                if (totalSelected === 0) {
+                    $('#selected-counter').hide();
+                } else {
+                    $('#selected-counter').show();
+                }
+            }
+
+            // ==================== ТУЛТИП ДЛЯ РОДИТЕЛЬСКИХ СТРОК ====================
+            function updateParentTooltips() {
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var $titleSpan = row.$row.find('.category-tree-title');
+                    if (!$titleSpan.length)
+                        continue;
+                    var children = getChildrenFast(row.id);
+                    if (children.length === 0) {
+                        $titleSpan.attr('title', '');
+                        row.$row.removeClass('has-all-children-selected');
+                        continue;
+                    }
+                    var allChildrenSelected = true;
+                    for (var j = 0; j < children.length; j++) {
+                        var $childCheckbox = children[j].$row.find('input[name*="selected"]');
+                        if (!$childCheckbox.length || !$childCheckbox.prop('checked')) {
+                            allChildrenSelected = false;
+                            break;
+                        }
+                    }
+                    if (allChildrenSelected) {
+                        $titleSpan.attr('title', '{{ text_all_children_selected|default("All descendants are selected.") }}');
+                        row.$row.addClass('has-all-children-selected');
+                    } else {
+                        $titleSpan.attr('title', '');
+                        row.$row.removeClass('has-all-children-selected');
+                    }
+                }
+            }
+
+            // ==================== СОХРАНЕНИЕ СОСТОЯНИЯ ====================
+            function getCurrentScrollY() {
+                return window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+            }
+
+            function saveTreeState() {
+                var state = {
+                    compactMode: compactMode ? 1 : 0,
+                    collapsed: collapsed,
+                    scrollY: getCurrentScrollY(),
+                    timestamp: Date.now()
+                };
+                try {
+                    sessionStorage.setItem(storageStateKey, JSON.stringify(state));
+                } catch (e) {
+                }
+            }
+
+            function restoreTreeState() {
+                var state = null;
+                try {
+                    state = JSON.parse(sessionStorage.getItem(storageStateKey) || 'null');
+                } catch (e) {
+                }
+                if (!state || !state.timestamp)
+                    return false;
+                if (Date.now() - state.timestamp > storageStateTtl) {
+                    try {
+                        sessionStorage.removeItem(storageStateKey);
+                    } catch (e) {
+                    }
+                    return false;
+                }
+                if (typeof state.compactMode !== 'undefined') {
+                    compactMode = String(state.compactMode) === '1';
+                    try {
+                        localStorage.setItem(storageCompactKey, compactMode ? '1' : '0');
+                    } catch (e) {
+                    }
+                }
+                collapsed = normalizeCollapsedState(state.collapsed);
+                updateCompactButton();
+                applyVisibility();
+                if (typeof state.scrollY !== 'undefined') {
+                    setTimeout(function() { window.scrollTo(0, parseInt(state.scrollY, 10) || 0); }, 50);
+                }
+                return true;
+            }
+
+            function debouncedApplyVisibility() {
+                if (searchTimeout)
+                    clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    applyVisibility();
+                    saveTreeState();
+                }, debounceDelay);
+            }
+
+            // ==================== ОБРАБОТЧИКИ ====================
+            $(document).on('click', '.category-tree-toggle', function() {
+                var categoryId = String($(this).data('category-id'));
+                var row = getRowById(categoryId);
+                if (!row)
+                    return;
+                var willExpand = !!collapsed[categoryId];
+                if (compactMode && willExpand) {
+                    closeSiblingBranches(row);
+                }
+                collapsed[categoryId] = !collapsed[categoryId];
+                applyVisibility();
+                saveTreeState();
+            });
+
+            $('#button-expand-all').on('click', function() {
+                $('#input-category-search').val('');
+                expandAll();
+                saveTreeState();
+            });
+
+            $('#button-collapse-all').on('click', function() {
+                $('#input-category-search').val('');
+                collapseAll();
+                saveTreeState();
+            });
+
+            $('#button-select-visible').on('click', function() {
+                $('#category-tree-table tbody tr.category-tree-row:not(.is-hidden):not(.is-search-hidden)')
+                .find('input[name*="selected"]')
+                .prop('checked', true);
+                updateSelectedCounter();
+                updateParentTooltips();
+            });
+
+            $('#button-compact-mode').on('click', function() {
+                $('#input-category-search').val('');
+                setCompactMode(!compactMode);
+                if (compactMode) {
+                    collapseAll();
+                } else {
+                    applyVisibility();
+                }
+                saveTreeState();
+            }).removeAttr('data-toggle');
+
+            $('#input-category-search').on('input', function() {
+                debouncedApplyVisibility();
+            });
+
+            $('#button-clear-category-search').on('click', function() {
+                $('#input-category-search').val('').focus();
+                applyVisibility();
+                saveTreeState();
+            });
+
+            $('#input-check-all-category').on('change', function() {
+                var isChecked = this.checked;
+                $('#category-tree-table tbody tr.category-tree-row').each(function() {
+                    var $row = $(this);
+                    if (!$row.hasClass('is-hidden') && !$row.hasClass('is-search-hidden')) {
+                        $row.find('input[name*="selected"]').prop('checked', isChecked);
+                    }
+                });
+                updateSelectedCounter();
+                updateParentTooltips();
+            });
+
+            $(document).on('change', '.category-checkbox', function() {
+                var $row = $(this).closest('tr.category-tree-row');
+                var categoryId = $row.data('category-id');
+                var isChecked = this.checked;
+                var children = getChildChainFast(categoryId);
+                for (var i = 0; i < children.length; i++) {
+                    children[i].$row.find('input[name*="selected"]').prop('checked', isChecked);
+                }
+                updateSelectedCounter();
+                updateParentTooltips();
+            });
+
+            $(document).on('click', '#content a', function() { saveTreeState(); });
+            $('#form-category').on('submit', function() { saveTreeState(); });
+
+            // Инициализация
+            $(function() {
+                buildRows();
+                loadCompactMode();
+                initCollapsed();
+                updateChildrenCounts();
+                if (!restoreTreeState()) {
+                    applyVisibility();
+                }
+                updateSelectedCounter();
+                updateParentTooltips();
+                window.onbeforeunload = function() { saveTreeState(); };
+            });
+        })(jQuery);
+    </script>
+</div>
+{{ footer }}
