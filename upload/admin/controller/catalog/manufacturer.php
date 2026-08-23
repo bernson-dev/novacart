@@ -148,7 +148,7 @@ class ControllerCatalogManufacturer extends Controller {
 				));
 			}
 
-			//Сохранить: стандартное повдение: в список категорий
+			//Сохранить: стандартное поведение: в список категорий
 			$this->session->data['success'] = sprintf(
 			$this->language->get('text_success_created'),
 			$name
