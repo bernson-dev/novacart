@@ -80,7 +80,7 @@ class ControllerCatalogCategory extends Controller {
 				));
 			}
 
-			//Сохранить: стандартное повдение переход в список категорий
+			//Сохранить: стандартное поведение переход в список категорий
 			$this->session->data['success'] = sprintf(
 			$this->language->get('text_success_created'),
 			$name
@@ -160,7 +160,7 @@ class ControllerCatalogCategory extends Controller {
 				));
 			}
 
-			//Сохранить: стандартное повдение: в список категорий
+			//Сохранить: стандартное поведение: в список категорий
 			$this->session->data['success'] = sprintf(
 			$this->language->get('text_success_created'),
 			$name
