@@ -1,1 +1,26 @@
-Nothing should be ignored based on the provided file changes. The modification of 'upload/catalog/model/blog/article.php' is a source code file that should not be added to .gitignore.
+```
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+
+# Dependencies
+node_modules/
+vendor/
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+```
