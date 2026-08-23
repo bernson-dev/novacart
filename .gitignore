@@ -1,1 +1,1 @@
-Nothing should be ignored based on the provided file changes, as they only contain source code files (.php) without any build artifacts, dependencies, or temporary files.
+Nothing should be ignored based on the provided file changes. The modification of 'upload/catalog/model/blog/article.php' is a source code file that should not be added to .gitignore.

@@ -39,6 +39,61 @@ class ModelBlogArticle extends Model {
 			return false;
 		}
 	}
+	
+	public function getArticlesData($article_ids) {
+		if ($this->customer->isLogged()) {
+			$customer_group_id = $this->customer->getGroupId();
+		} else {
+			$customer_group_id = $this->config->get('config_customer_group_id');
+		}
+
+		$article_data = array();
+		
+		if (empty($article_ids)) {
+			return $article_data;
+		}
+		
+		// Формируем список ID для запроса
+		$ids_implode = implode(',', $article_ids);
+		
+		$query = $this->db->query("SELECT DISTINCT *, pd.name AS name, p.image, 
+			(SELECT AVG(rating) AS total FROM " . DB_PREFIX . "review_article r1 WHERE r1.article_id = p.article_id AND r1.status = '1' GROUP BY r1.article_id) AS rating, 
+			(SELECT COUNT(*) AS total FROM " . DB_PREFIX . "review_article r2 WHERE r2.article_id = p.article_id AND r2.status = '1' GROUP BY r2.article_id) AS reviews, 
+			p.sort_order 
+			FROM " . DB_PREFIX . "article p 
+			LEFT JOIN " . DB_PREFIX . "article_description pd ON (p.article_id = pd.article_id) 
+			LEFT JOIN " . DB_PREFIX . "article_to_store p2s ON (p.article_id = p2s.article_id) 
+			WHERE p.article_id IN (" . $ids_implode . ") 
+			AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "' 
+			AND p.status = '1' 
+			AND p.date_available <= NOW() 
+			AND p2s.store_id = '" . (int)$this->config->get('config_store_id') . "'");
+
+		foreach ($query->rows as $row) {
+			$article_data[$row['article_id']] = array(
+				'meta_title'       => $row['meta_title'],
+				'noindex'          => $row['noindex'],
+				'meta_h1'          => $row['meta_h1'],
+				'article_id'       => $row['article_id'],
+				'name'             => $row['name'],
+				'description'      => $row['description'],
+				'meta_description' => $row['meta_description'],
+				'meta_keyword'     => $row['meta_keyword'],
+				'image'            => $row['image'],
+				'rating'           => $row['rating'] ? round($row['rating']) : 0,
+				'reviews'          => $row['reviews'],
+				'sort_order'       => $row['sort_order'],
+				'article_review'   => $row['article_review'],
+				'status'           => $row['status'],
+				'gstatus'          => $row['gstatus'],
+				'date_added'       => $row['date_added'],
+				'date_modified'    => $row['date_modified'],
+				'viewed'           => $row['viewed']
+			);
+		}
+
+		return $article_data;
+	}
 
 	public function getArticles($data = array()) {
 		if ($this->customer->isLogged()) {
@@ -52,7 +107,7 @@ class ModelBlogArticle extends Model {
 		$article_data = $this->cache->get($cache);
 
 		if (!$article_data) {
-			$sql = "SELECT p.article_id, (SELECT AVG(rating) AS total FROM " . DB_PREFIX . "review_article r1 WHERE r1.article_id = p.article_id AND r1.status = '1' GROUP BY r1.article_id) AS rating FROM " . DB_PREFIX . "article p LEFT JOIN " . DB_PREFIX . "article_description pd ON (p.article_id = pd.article_id) LEFT JOIN " . DB_PREFIX . "article_to_store p2s ON (p.article_id = p2s.article_id)";
+			$sql = "SELECT p.article_id FROM " . DB_PREFIX . "article p LEFT JOIN " . DB_PREFIX . "article_description pd ON (p.article_id = pd.article_id) LEFT JOIN " . DB_PREFIX . "article_to_store p2s ON (p.article_id = p2s.article_id)";
 
 			if (!empty($data['filter_blog_category_id'])) {
 				$sql .= " LEFT JOIN " . DB_PREFIX . "article_to_blog_category a2c ON (p.article_id = a2c.article_id)";
@@ -139,12 +194,19 @@ class ModelBlogArticle extends Model {
 				$sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
 			}
 
-			$article_data = array();
-
 			$query = $this->db->query($sql);
 
+			// Получаем все article_id одним массивом
+			$article_ids = array();
 			foreach ($query->rows as $result) {
-				$article_data[$result['article_id']] = $this->getArticle($result['article_id']);
+				$article_ids[] = (int)$result['article_id'];
+			}
+
+			// Получаем полные данные всех статей одним запросом
+			if (!empty($article_ids)) {
+				$article_data = $this->getArticlesData($article_ids);
+			} else {
+				$article_data = array();
 			}
 
 			$this->cache->set($cache, $article_data);
@@ -164,12 +226,17 @@ class ModelBlogArticle extends Model {
 		$article_data = $this->cache->get($cache);
 
 		if (!$article_data) {
-			$article_data = array();
-
 			$query = $this->db->query("SELECT p.article_id FROM " . DB_PREFIX . "article p LEFT JOIN " . DB_PREFIX . "article_to_store p2s ON (p.article_id = p2s.article_id) WHERE p.status = '1' AND p.date_available <= NOW() AND p2s.store_id = '" . (int)$this->config->get('config_store_id') . "' ORDER BY p.date_added DESC LIMIT " . (int)$limit);
 
+			$article_ids = array();
 			foreach ($query->rows as $result) {
-				$article_data[$result['article_id']] = $this->getArticle($result['article_id']);
+				$article_ids[] = (int)$result['article_id'];
+			}
+
+			if (!empty($article_ids)) {
+				$article_data = $this->getArticlesData($article_ids);
+			} else {
+				$article_data = array();
 			}
 
 			$this->cache->set($cache, $article_data);
@@ -179,15 +246,18 @@ class ModelBlogArticle extends Model {
 	}
 
 	public function getPopularArticles($limit) {
-		$article_data = array();
-
 		$query = $this->db->query("SELECT p.article_id FROM " . DB_PREFIX . "article p LEFT JOIN " . DB_PREFIX . "article_to_store p2s ON (p.article_id = p2s.article_id) WHERE p.status = '1' AND p.date_available <= NOW() AND p2s.store_id = '" . (int)$this->config->get('config_store_id') . "' ORDER BY p.viewed DESC, p.date_added DESC LIMIT " . (int)$limit);
 
+		$article_ids = array();
 		foreach ($query->rows as $result) {
-			$article_data[$result['article_id']] = $this->getArticle($result['article_id']);
+			$article_ids[] = (int)$result['article_id'];
 		}
 
-		return $article_data;
+		if (!empty($article_ids)) {
+			return $this->getArticlesData($article_ids);
+		} else {
+			return array();
+		}
 	}
 
 	public function getArticleImages($article_id) {
@@ -197,56 +267,66 @@ class ModelBlogArticle extends Model {
 	}
 
 	public function getArticleRelated($article_id) {
-		$article_data = array();
-
 		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "article_related pr LEFT JOIN " . DB_PREFIX . "article p ON (pr.related_id = p.article_id) LEFT JOIN " . DB_PREFIX . "article_to_store p2s ON (p.article_id = p2s.article_id) WHERE pr.article_id = '" . (int)$article_id . "' AND p.status = '1' AND p.date_available <= NOW() AND p2s.store_id = '" . (int)$this->config->get('config_store_id') . "'");
 
+		$article_ids = array();
 		foreach ($query->rows as $result) {
-			$article_data[$result['related_id']] = $this->getArticle($result['related_id']);
+			$article_ids[] = (int)$result['related_id'];
 		}
 
-		return $article_data;
+		if (!empty($article_ids)) {
+			return $this->getArticlesData($article_ids);
+		} else {
+			return array();
+		}
 	}
 
 	public function getArticleRelatedByProduct($data) {
-		$article_data = array();
-
-		$this->load->model('blog/article');
-
 		$sql = "SELECT * FROM " . DB_PREFIX . "product_related_article np LEFT JOIN " . DB_PREFIX . "article p ON (np.article_id = p.article_id) LEFT JOIN " . DB_PREFIX . "article_to_store p2s ON (p.article_id = p2s.article_id) WHERE np.product_id = '" . (int)$data['product_id'] . "' AND p.status = '1' AND p.date_available <= NOW() AND p2s.store_id = '" . (int)$this->config->get('config_store_id') . "' LIMIT " . (int)$data['limit'];
 
 		$query = $this->db->query($sql);
 
+		$article_ids = array();
 		foreach ($query->rows as $result) {
-			$article_data[$result['article_id']] = $this->model_blog_article->getArticle($result['article_id']);
+			$article_ids[] = (int)$result['article_id'];
 		}
 
-		return $article_data;
+		if (!empty($article_ids)) {
+			return $this->getArticlesData($article_ids);
+		} else {
+			return array();
+		}
 	}
 
 	//category manu
 	public function getArticleRelatedByCategory($data) {
-		$article_data = array();
-
 		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "article_related_wb pr LEFT JOIN " . DB_PREFIX . "article p ON (pr.article_id = p.article_id) LEFT JOIN " . DB_PREFIX . "article_to_store p2s ON (p.article_id = p2s.article_id) WHERE pr.category_id = '" . (int)$data['category_id'] . "' AND p.status = '1' AND p.date_available <= NOW() AND p2s.store_id = '" . (int)$this->config->get('config_store_id') . "' LIMIT " . (int)$data['limit']);
 
+		$article_ids = array();
 		foreach ($query->rows as $result) {
-			$article_data[$result['article_id']] = $this->getArticle($result['article_id']);
+			$article_ids[] = (int)$result['article_id'];
 		}
 
-		return $article_data;
+		if (!empty($article_ids)) {
+			return $this->getArticlesData($article_ids);
+		} else {
+			return array();
+		}
 	}
 
 	public function getArticleRelatedByManufacturer($data) {
-		$article_data = array();
-
 		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "article_related_mn pr LEFT JOIN " . DB_PREFIX . "article p ON (pr.article_id = p.article_id) LEFT JOIN " . DB_PREFIX . "article_to_store p2s ON (p.article_id = p2s.article_id) WHERE pr.manufacturer_id = '" . (int)$data['manufacturer_id'] . "' AND p.status = '1' AND p.date_available <= NOW() AND p2s.store_id = '" . (int)$this->config->get('config_store_id') . "' LIMIT " . (int)$data['limit']);
 
+		$article_ids = array();
 		foreach ($query->rows as $result) {
-			$article_data[$result['article_id']] = $this->getArticle($result['article_id']);
+			$article_ids[] = (int)$result['article_id'];
 		}
 
-		return $article_data;
+		if (!empty($article_ids)) {
+			return $this->getArticlesData($article_ids);
+		} else {
+			return array();
+		}
 	}
 	//category manu
 
