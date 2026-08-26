@@ -825,14 +825,14 @@ label.control-label span::after {
 .table-bordered > thead > tr:first-child > td {
 	border-top: 0;
 }
-
+/*
 .table-bordered > thead > tr > th:first-child,
 .table-bordered > thead > tr > td:first-child,
 .table-bordered > tbody > tr > th:first-child,
 .table-bordered > tbody > tr > td:first-child {
 	border-left: 0;
 }
-
+*/
 .table td .dropdown,
 .table td .btn-group {
 	z-index: auto;
