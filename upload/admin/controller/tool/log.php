@@ -44,6 +44,20 @@ class ControllerToolLog extends Controller {
 
 		$file = DIR_LOGS . $this->config->get('config_error_filename');
 
+		// Проверка наличия файлов ротации
+		$rotated_files = array();
+		for ($i = 1; $i <= 5; $i++) {
+			$rotated_file = $file . '.' . $i;
+			if (is_file($rotated_file)) {
+				$rotated_files[] = array(
+					'name' => basename($rotated_file),
+					'size' => filesize($rotated_file)
+				);
+			}
+		}
+		
+		$data['rotated_files'] = $rotated_files;
+
 		if (is_file($file)) {
 			$size = filesize($file);
 
@@ -74,6 +88,9 @@ class ControllerToolLog extends Controller {
 				// Файл до 5 MB читаем полностью
 				$data['log'] = htmlspecialchars(file_get_contents($file), ENT_COMPAT, 'UTF-8');
 			}
+		} elseif (!empty($rotated_files)) {
+			// Текущий файл пуст или отсутствует, но есть файлы ротации
+			$data['error_warning'] = $this->language->get('error_rotated');
 		}
 
 		$data['header'] = $this->load->controller('common/header');
