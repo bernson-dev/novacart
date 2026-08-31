@@ -147,7 +147,7 @@ class File {
 			if (strpos(basename($file), '.tmp') !== false) {
 				continue;
 			}
-			
+
 			$parts = explode('.', $file);
 			$expire = (int)end($parts);
 			if ($expire > 0 && $expire < $now) {
