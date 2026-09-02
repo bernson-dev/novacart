@@ -35,6 +35,7 @@ target/
 .idea/
 *.swp
 *.swo
+*.tmp
 
 # System files
 .DS_Store
