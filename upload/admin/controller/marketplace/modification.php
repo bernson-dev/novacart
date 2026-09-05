@@ -272,9 +272,18 @@ class ControllerMarketplaceModification extends Controller {
 		if (empty($json)) {
 			$files = array();
 			$path = array($directory);
-			while (count($path) != 0) {
+			$remove_failed = false;
+
+			while ($path) {
 				$next = array_shift($path);
-				foreach (array_diff(scandir($next), array('.', '..')) as $file) {
+				$items = @scandir($next);
+
+				if ($items === false) {
+					$remove_failed = true;
+					break;
+				}
+
+				foreach (array_diff($items, array('.', '..')) as $file) {
 					$file = $next . '/' . $file;
 					if (is_dir($file)) {
 						$path[] = $file;
@@ -282,18 +291,26 @@ class ControllerMarketplaceModification extends Controller {
 					$files[] = $file;
 				}
 			}
+
 			rsort($files);
+
 			foreach ($files as $file) {
-				if (is_file($file)) {
-					unlink($file);
-				} elseif (is_dir($file)) {
-					rmdir($file);
+				if ((is_file($file) || is_link($file)) && !@unlink($file)) {
+					$remove_failed = true;
+				} elseif (is_dir($file) && !@rmdir($file)) {
+					$remove_failed = true;
 				}
 			}
-			if (file_exists($directory)) {
-				rmdir($directory);
+
+			if (is_dir($directory) && !@rmdir($directory)) {
+				$remove_failed = true;
 			}
-			$json['success'] = $this->language->get('text_success');
+
+			if ($remove_failed) {
+				$json['error'] = $this->language->get('error_directory_remove');
+			} else {
+				$json['success'] = $this->language->get('text_success');
+			}
 		}
 
 		$this->response->addHeader('Content-Type: application/json');
@@ -307,6 +324,8 @@ class ControllerMarketplaceModification extends Controller {
 		$this->load->model('setting/modification');
 
 		if (isset($this->request->post['selected']) && $this->validate()) {
+			$delete_failed = false;
+
 			foreach ($this->request->post['selected'] as $item) {
 				if (strpos($item, 'file:') === 0) {
 					$filename = substr($item, 5);
@@ -317,20 +336,26 @@ class ControllerMarketplaceModification extends Controller {
 					$file_path = DIR_SYSTEM . $filename;
 
 					// Удаляем файл
-					if (file_exists($file_path)) {
-						unlink($file_path);
+					if (is_file($file_path) && !@unlink($file_path)) {
+						$delete_failed = true;
 					}
 
 					// отключённый: XXX.ocmod.xm_
 					$xm_file = substr($file_path, 0, -strlen('.ocmod.xml')) . '.ocmod.xm_';
-					if (file_exists($xm_file)) {
-						unlink($xm_file);
+					if (is_file($xm_file) && !@unlink($xm_file)) {
+						$delete_failed = true;
 					}
 				} else {
 					$modification_id = (int)$item;
 					$this->model_setting_modification->deleteModification($modification_id);
 					$this->model_setting_modification->deleteModificationBackups($modification_id);
 				}
+			}
+
+			if ($delete_failed) {
+				$this->error['warning'] = $this->language->get('error_file_delete');
+				$this->getList();
+				return;
 			}
 
 			$this->session->data['success'] = $this->language->get('text_success');
@@ -361,6 +386,49 @@ class ControllerMarketplaceModification extends Controller {
 		return str_pad($text, $lineLength, '-', STR_PAD_BOTH);
 	}
 
+	private function clearModificationCache() {
+		$files = array();
+		$path = array(DIR_MODIFICATION . '*');
+
+		while ($path) {
+			$next = array_shift($path);
+			$matches = glob($next);
+
+			if (!$matches) {
+				continue;
+			}
+
+			foreach ($matches as $file) {
+				if (is_dir($file)) {
+					$path[] = $file . '/*';
+				}
+
+				$files[] = $file;
+			}
+		}
+
+		rsort($files);
+		$success = true;
+
+		foreach ($files as $file) {
+			if ($file === DIR_MODIFICATION . 'index.html') {
+				continue;
+			}
+
+			if (is_file($file) || is_link($file)) {
+				if (!@unlink($file)) {
+					$success = false;
+				}
+			} elseif (is_dir($file)) {
+				if (!@rmdir($file)) {
+					$success = false;
+				}
+			}
+		}
+
+		return $success;
+	}
+
 	public function refresh($data = array()) {
 
 		$this->load->language('marketplace/modification');
@@ -389,47 +457,38 @@ class ControllerMarketplaceModification extends Controller {
 			return;
 		}
 
-		// Очистка логов
-		file_put_contents(DIR_LOGS . 'ocmod.log', '');
-		file_put_contents(DIR_LOGS . 'ocmod-error.log', '');
-		file_put_contents(DIR_LOGS . 'ocmod-success.log', '');
+		// Очистка логов. Ошибка записи логов не должна оставаться незамеченной.
+		$log_files = array(
+			DIR_LOGS . 'ocmod.log',
+			DIR_LOGS . 'ocmod-error.log',
+			DIR_LOGS . 'ocmod-success.log'
+		);
+
+		foreach ($log_files as $log_file) {
+			if (@file_put_contents($log_file, '') === false) {
+				$this->error['warning'] = sprintf($this->language->get('error_file_write'), $log_file);
+				$this->deleteEmergencyClearToken();
+				$this->getList();
+				return;
+			}
+		}
+
+		// Сначала очищаем кеш. Режим обслуживания включаем только после успешной очистки.
+		if (!$this->clearModificationCache()) {
+			$this->error['warning'] = $this->language->get('error_modification_clear');
+			$this->deleteEmergencyClearToken();
+			$this->getList();
+			return;
+		}
 
 		$maintenance = $this->config->get('config_maintenance');
 		$this->load->model('setting/setting');
 		$this->model_setting_setting->editSettingValue('config', 'config_maintenance', true);
 
-		//Log
+		// Log
 		$log = array();
 		$log_error = array();
 		$log_success = array();
-
-		// Удаление старых модифицированных файлов
-		$files = array();
-		// Make path into an array
-		$path = array(DIR_MODIFICATION . '*');
-		while (count($path) != 0) {
-			$next = array_shift($path);
-			foreach (glob($next) as $file) {
-				// If directory add to path array
-				if (is_dir($file)) {
-					$path[] = $file . '/*';
-				}
-				// Add the file to the files to be deleted array
-				$files[] = $file;
-			}
-		}
-		// Reverse sort the file array
-		rsort($files);
-		// Clear all modification files
-		foreach ($files as $file) {
-			if ($file != DIR_MODIFICATION . 'index.html') {
-				if (is_file($file)) {
-					unlink($file);
-				} elseif (is_dir($file)) {
-					rmdir($file);
-				}
-			}
-		}
 
 		// Сбор XML
 		$xmlList = array();
@@ -758,31 +817,62 @@ class ControllerMarketplaceModification extends Controller {
 			array_pop($log_error);
 
 		$timestamp = date('Y-m-d H:i:s');
-		file_put_contents(DIR_LOGS . 'ocmod.log', "{$timestamp} - Full Log\n" . implode("\n", $log));
-		if (!empty($log_success)) {
-			file_put_contents(DIR_LOGS . 'ocmod-success.log', "{$timestamp} - Success Log\n" . implode("\n", $log_success));
-		}
-		if (!empty($log_error)) {
-			file_put_contents(DIR_LOGS . 'ocmod-error.log', "{$timestamp} - Error Log ({$total_errors} error)\n" . implode("\n", $log_error));
+		$log_write_failed = false;
+
+		if (@file_put_contents(DIR_LOGS . 'ocmod.log', "{$timestamp} - Full Log\n" . implode("\n", $log)) === false) {
+			$log_write_failed = true;
 		}
 
-		file_put_contents(
-		DIR_LOGS . 'ocmod-error-map.json',
-		json_encode($modErrorMap, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
-		);
+		if (!empty($log_success) && @file_put_contents(DIR_LOGS . 'ocmod-success.log', "{$timestamp} - Success Log\n" . implode("\n", $log_success)) === false) {
+			$log_write_failed = true;
+		}
 
-		// Сохранение изменённых файлов
+		if (!empty($log_error) && @file_put_contents(DIR_LOGS . 'ocmod-error.log', "{$timestamp} - Error Log ({$total_errors} error)\n" . implode("\n", $log_error)) === false) {
+			$log_write_failed = true;
+		}
+
+		if (@file_put_contents(
+			DIR_LOGS . 'ocmod-error-map.json',
+			json_encode($modErrorMap, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+		) === false) {
+			$log_write_failed = true;
+		}
+
+		// Сохранение изменённых файлов. Ошибка здесь критична: частичный кеш использовать нельзя.
+		$cache_write_error = '';
+
 		foreach ($modification as $key => $value) {
 			if ($original[$key] != $value) {
-				$dir = dirname(DIR_MODIFICATION . $key);
-				if (!is_dir($dir)) {
-					mkdir($dir, 0777, true);
+				$target = DIR_MODIFICATION . $key;
+				$dir = dirname($target);
+
+				if (!is_dir($dir) && !@mkdir($dir, 0777, true) && !is_dir($dir)) {
+					$cache_write_error = $target;
+					break;
 				}
-				file_put_contents(DIR_MODIFICATION . $key, $value);
+
+				if (@file_put_contents($target, $value) === false) {
+					$cache_write_error = $target;
+					break;
+				}
 			}
 		}
-		// Maintance mode back to original settings
+
+		// Maintenance mode back to original settings.
 		$this->model_setting_setting->editSettingValue('config', 'config_maintenance', $maintenance);
+
+		if ($cache_write_error !== '') {
+			$this->clearModificationCache();
+			$this->deleteEmergencyClearToken();
+			$this->error['warning'] = sprintf($this->language->get('error_file_write'), $cache_write_error);
+			$this->getList();
+			return;
+		}
+
+		if ($log_write_failed) {
+			$this->error['warning'] = $this->language->get('error_log_write');
+		}
+
 		$this->session->data['success'] = sprintf($this->language->get('text_refresh_success'), $total_success, $total_errors);
 
 		$url = $this->buildUrl();
@@ -815,27 +905,12 @@ class ControllerMarketplaceModification extends Controller {
 		$this->load->model('setting/modification');
 
 		if ($this->validate()) {
-			$files = array();
-			$path = array(DIR_MODIFICATION . '*');
-			while (count($path) != 0) {
-				$next = array_shift($path);
-				foreach (glob($next) as $file) {
-					if (is_dir($file)) {
-						$path[] = $file . '/*';
-					}
-					$files[] = $file;
-				}
+			if (!$this->clearModificationCache()) {
+				$this->error['warning'] = $this->language->get('error_modification_clear');
+				$this->getList();
+				return;
 			}
-			rsort($files);
-			foreach ($files as $file) {
-				if ($file != DIR_MODIFICATION . 'index.html') {
-					if (is_file($file)) {
-						unlink($file);
-					} elseif (is_dir($file)) {
-						rmdir($file);
-					}
-				}
-			}
+
 			$this->session->data['success'] = $this->language->get('text_success');
 			$url = $this->buildUrl();
 			$this->response->redirect($this->url->link('marketplace/modification', 'user_token=' . $this->session->data['user_token'] . $url, true));
@@ -860,8 +935,10 @@ class ControllerMarketplaceModification extends Controller {
 			// XXX.ocmod.xml -> XXX.ocmod.xm_
 			$disabled_file = substr($original_file, 0, -strlen('.ocmod.xml')) . '.ocmod.xm_';
 
-			if (file_exists($disabled_file)) {
-				rename($disabled_file, $original_file);
+			if (!is_file($disabled_file) || file_exists($original_file) || !@rename($disabled_file, $original_file)) {
+				$this->error['warning'] = sprintf($this->language->get('error_file_operation'), $filename);
+				$this->getList();
+				return;
 			}
 
 			$this->session->data['success'] = $this->language->get('text_enable');
@@ -893,8 +970,10 @@ class ControllerMarketplaceModification extends Controller {
 			// XXX.ocmod.xml -> XXX.ocmod.xm_
 			$disabled_file = substr($original_file, 0, -strlen('.ocmod.xml')) . '.ocmod.xm_';
 
-			if (file_exists($original_file)) {
-				rename($original_file, $disabled_file);
+			if (!is_file($original_file) || file_exists($disabled_file) || !@rename($original_file, $disabled_file)) {
+				$this->error['warning'] = sprintf($this->language->get('error_file_operation'), $filename);
+				$this->getList();
+				return;
 			}
 
 			$this->session->data['success'] = $this->language->get('text_disable');
@@ -1031,6 +1110,8 @@ class ControllerMarketplaceModification extends Controller {
 		];
 
 		foreach ($results as $result) {
+			$status = !empty($result['status']) ? 1 : 0;
+
 			$data['modifications'][] = array(
 			'modification_id' => $result['modification_id'],
 			'name'            => $result['name'],
@@ -1038,8 +1119,9 @@ class ControllerMarketplaceModification extends Controller {
 			'author'          => $result['author'],
 			'filename'        => $result['code'].".ocmod.xml",
 			'version'         => $result['version'],
-			'status'          => (int)$result['status'],
-			'status_text'     => $statusText[(int)$result['status']],
+			'status'          => $status,
+			'enabled'         => (bool)$status,
+			'status_text'     => $statusText[$status],
 			'date_added'      => date($this->language->get('datetime_format'), strtotime($result['date_added'])),
 			'link'            => $result['link'],
 			'edit'            => $this->url->link('marketplace/modification/edit', 'user_token=' . $this->session->data['user_token'] . '&modification_id=' . $result['modification_id'], true),
@@ -1128,10 +1210,10 @@ class ControllerMarketplaceModification extends Controller {
 			}
 
 			if ($order === 'ASC') {
-				return ($a[$field] < $b[$field]) ? -1 : 1;
-			} else {
-				return ($a[$field] > $b[$field]) ? -1 : 1;
+				return ($cmp_a < $cmp_b) ? -1 : 1;
 			}
+
+			return ($cmp_a > $cmp_b) ? -1 : 1;
 		});
 
 		// Paginate merged list
