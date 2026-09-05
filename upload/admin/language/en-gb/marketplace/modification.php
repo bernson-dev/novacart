@@ -4,7 +4,7 @@ $_['heading_title']             = 'Modifiers';
 
 // Text
 $_['text_success']              = 'Extension successfully updated!';
-$_['text_refresh_success']      = 'OCMOD add-ons list updated. Total: %d success, %d errors';
+$_['text_refresh_success']      = 'OCMOD add-ons list updated. Successful operations: %d. Errors: %d';
 $_['text_refresh']              = 'When you enable / disable or remove one of the add-ons, you must click the "Refresh" button - to update the cache!';
 $_['text_list']                 = 'List of installed OCMOD add-ons';
 $_['text_form']                 = 'Editing an OCMOD add-on';
