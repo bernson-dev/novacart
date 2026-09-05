@@ -9,8 +9,10 @@ class ModelSettingModification extends Model {
 
 		$xml = (string)$xml;
 
-		// Если XML пришёл из textarea после экранирования HTML.
-		if (strpos($xml, '&lt;') !== false || strpos($xml, '&gt;') !== false || strpos($xml, '&quot;') !== false) {
+		// Decode only when the whole XML document is HTML-escaped.
+		// Valid raw XML may contain entities such as &amp; in attributes;
+		// decoding them would corrupt the XML by producing a raw '&'.
+		if (strpos($xml, '<') === false && strpos($xml, '&lt;') !== false) {
 			$xml = html_entity_decode($xml, ENT_QUOTES, 'UTF-8');
 		}
 
