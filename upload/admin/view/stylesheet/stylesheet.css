@@ -843,6 +843,12 @@ label.control-label span::after {
 	z-index: 1070;
 }
 
+.table th.text-right,
+.table td.text-right {
+    white-space: nowrap;
+    min-width: 110px;
+}
+
 /* ==========================================================================
 ФОРМЫ
 ========================================================================== */
@@ -998,6 +1004,10 @@ fieldset legend {
 	min-height: 1.125rem;
 }
 
+.checkbox > label > input[type="checkbox"] {
+    margin-right: 7px;
+}
+
 input[type="radio"], .radio input[type="radio"], .radio-inline input[type="radio"],
 input[type="checkbox"], .checkbox input[type="checkbox"], .checkbox-inline input[type="checkbox"] {
 	position: relative;
@@ -1103,18 +1113,21 @@ input[type="checkbox"]:checked::after {
 	background: linear-gradient(180deg, var(--color-primary-light), var(--color-primary));
 	border-top-left-radius: var(--radius);
 }
-.panel-heading h3, .panel-heading h3.panel-title {
+
+.panel-heading .panel-title {
+	display: inline-block;
 	margin: 0;
 	font-size: 0.9375rem;
 	font-weight: 700;
 	color: var(--color-text);
-	letter-spacing: -0.01875rem;
+	letter-spacing: -0.02rem;
 }
 
-.panel-heading h3 i {
+.panel-heading .panel-title i {
 	color: var(--color-primary);
 	margin-right: 0.3125rem;
 }
+
 .panel-body {
 	background: var(--color-bg-panel);
 	padding: 1.25rem;

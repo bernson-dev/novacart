@@ -367,13 +367,22 @@
                                 <div class="col-sm-10">
                                     <div class="row">
                                         <div class="col-sm-4">
-                                            <input type="text" name="length" value="{{ length }}" placeholder="{{ entry_length }}" id="input-length" class="form-control"/>
+                                            <div class="input-group">
+                                                <input type="text" name="length" value="{{ length }}" placeholder="{{ entry_length }}" id="input-length" class="form-control"/>
+                                                <span class="input-group-addon length-unit"></span>
+                                            </div>
                                         </div>
                                         <div class="col-sm-4">
-                                            <input type="text" name="width" value="{{ width }}" placeholder="{{ entry_width }}" id="input-width" class="form-control"/>
+                                            <div class="input-group">
+                                                <input type="text" name="width" value="{{ width }}" placeholder="{{ entry_width }}" id="input-width" class="form-control"/>
+                                                <span class="input-group-addon length-unit"></span>
+                                            </div>
                                         </div>
                                         <div class="col-sm-4">
-                                            <input type="text" name="height" value="{{ height }}" placeholder="{{ entry_height }}" id="input-height" class="form-control"/>
+                                            <div class="input-group">
+                                                <input type="text" name="height" value="{{ height }}" placeholder="{{ entry_height }}" id="input-height" class="form-control"/>
+                                                <span class="input-group-addon length-unit"></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -384,9 +393,9 @@
                                     <select name="length_class_id" id="input-length-class" class="form-control">
                                         {% for length_class in length_classes %}
                                         {% if length_class.length_class_id == length_class_id %}
-                                        <option value="{{ length_class.length_class_id }}" selected="selected">{{ length_class.title }}</option>
+                                        <option value="{{ length_class.length_class_id }}" data-unit="{{ length_class.unit }}" selected="selected">{{ length_class.title }}</option>
                                         {% else %}
-                                        <option value="{{ length_class.length_class_id }}">{{ length_class.title }}</option>
+                                        <option value="{{ length_class.length_class_id }}" data-unit="{{ length_class.unit }}">{{ length_class.title }}</option>
                                         {% endif %}
                                         {% endfor %}
                                     </select>
@@ -395,7 +404,10 @@
                             <div class="form-group">
                                 <label class="col-sm-2 control-label" for="input-weight">{{ entry_weight }}</label>
                                 <div class="col-sm-10">
-                                    <input type="text" name="weight" value="{{ weight }}" placeholder="{{ entry_weight }}" id="input-weight" class="form-control"/>
+                                    <div class="input-group">
+                                        <input type="text" name="weight" value="{{ weight }}" placeholder="{{ entry_weight }}" id="input-weight" class="form-control"/>
+                                        <span class="input-group-addon weight-unit"></span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -404,9 +416,9 @@
                                     <select name="weight_class_id" id="input-weight-class" class="form-control">
                                         {% for weight_class in weight_classes %}
                                         {% if weight_class.weight_class_id == weight_class_id %}
-                                        <option value="{{ weight_class.weight_class_id }}" selected="selected">{{ weight_class.title }}</option>
+                                        <option value="{{ weight_class.weight_class_id }}" data-unit="{{ weight_class.unit }}" selected="selected">{{ weight_class.title }}</option>
                                         {% else %}
-                                        <option value="{{ weight_class.weight_class_id }}">{{ weight_class.title }}</option>
+                                        <option value="{{ weight_class.weight_class_id }}" data-unit="{{ weight_class.unit }}">{{ weight_class.title }}</option>
                                         {% endif %}
                                         {% endfor %}
                                     </select>
@@ -560,10 +572,7 @@
                                             </div>
                                             {% endfor %}
                                         </td>
-                                        <td class="text-center">
-                                            <button type="button" onclick="$('#attribute-row{{ attribute_row }}').remove();" data-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger">
-                                                <i class="fa fa-minus-circle"></i></button>
-                                        </td>
+                                        <td class="text-center"><button type="button" onclick="$('#attribute-row{{ attribute_row }}').remove();" data-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button> </td>
                                     </tr>
                                     {% set attribute_row = attribute_row + 1 %}
                                     {% endfor %}
@@ -768,9 +777,7 @@
                                                                     <option value="-">-</option>
                                                                     {% endif %}
                                                                 </select> <input type="text" name="product_option[{{ option_row }}][product_option_value][{{ option_value_row }}][weight]" value="{{ product_option_value.weight }}" placeholder="{{ entry_weight }}" class="form-control"/></td>
-                                                            <td class="text-right">
-                                                                <button type="button" onclick="$(this).tooltip('destroy');$('#option-value-row{{ option_value_row }}').remove();" data-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger">
-                                                                    <i class="fa fa-minus-circle"></i></button></td>
+                                                            <td class="text-right"><button type="button" onclick="$(this).tooltip('destroy');$('#option-value-row{{ option_value_row }}').remove();" data-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td>
                                                         </tr>
                                                         {% set option_value_row = option_value_row + 1 %}
                                                         {% endfor %}
@@ -837,7 +844,7 @@
                                                     {% endif %}
                                                     {% endfor %}
                                                 </select></td>
-                                                <td class="text-center">
+                                            <td class="text-center">
                                                 <button type="button" onclick="removeRecurringRow('recurring-row{{ recurring_row }}');" data-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger">
                                                     <i class="fa fa-minus-circle"></i></button>
                                             </td>
@@ -1031,34 +1038,16 @@
                                                 <span class="drag-hint" title="{{ text_drag }}" style="cursor: move; margin-right: 8px;">
                                                     <i class="fa fa-arrows-alt"></i>
                                                 </span>
-
                                                 <a href="" id="thumb-image{{ image_row }}" data-toggle="image" class="img-thumbnail">
                                                 <img src="{{ product_image.thumb }}" alt="" title="" data-placeholder="{{ placeholder }}" />
                                                 </a>
-
                                                 <input type="hidden"
                                                 name="product_image[{{ image_row }}][image]"
                                                 value="{{ product_image.image }}"
                                                 id="input-image{{ image_row }}" />
                                             </td>
-
-                                            <td class="text-right">
-                                                <input type="text"
-                                                name="product_image[{{ image_row }}][sort_order]"
-                                                value="{{ product_image.sort_order }}"
-                                                class="form-control sort-order-input"
-                                                readonly />
-                                            </td>
-
-                                            <td class="text-center">
-                                                <button type="button"
-                                                    onclick="removeImageRow('image-row{{ image_row }}');"
-                                                    data-toggle="tooltip"
-                                                    title="{{ button_remove }}"
-                                                    class="btn btn-danger">
-                                                    <i class="fa fa-minus-circle"></i>
-                                                </button>
-                                            </td>
+                                            <td class="text-right"><input type="text" name="product_image[{{ image_row }}][sort_order]" value="{{ product_image.sort_order }}" class="form-control sort-order-input" readonly /></td>
+                                            <td class="text-center"><button type="button"onclick="removeImageRow('image-row{{ image_row }}');"data-toggle="tooltip" title="{{ button_remove }}"class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td>
                                         </tr>
                                         {% set image_row = image_row + 1 %}
                                         {% endfor %}
@@ -1067,15 +1056,7 @@
                                     <tfoot>
                                         <tr>
                                             <td colspan="2"></td>
-                                            <td class="text-center">
-                                                <button type="button"
-                                                      onclick="addImage();"
-                                                      data-toggle="tooltip"
-                                                      title="{{ button_image_add }}"
-                                                      class="btn btn-primary">
-                                                      <i class="fa fa-plus-circle"></i>
-                                                </button>
-                                            </td>
+                                            <td class="text-center"><button type="button" onclick="addImage();" data-toggle="tooltip" title="{{ button_image_add }}" class="btn btn-primary"><i class="fa fa-plus-circle"></i></button></td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -2063,6 +2044,19 @@
             $(recalcStats);
         })();
     </script>
+    <script type="text/javascript">
+    function updateProductUnits() {
+        var lengthUnit = $('#input-length-class option:selected').data('unit') || '';
+        var weightUnit = $('#input-weight-class option:selected').data('unit') || '';
+
+        $('.length-unit').text(lengthUnit);
+        $('.weight-unit').text(weightUnit);
+    }
+
+    $('#input-length-class, #input-weight-class').on('change', updateProductUnits);
+    updateProductUnits();
+    </script>
 
 </div>
+
 {{ footer }}
