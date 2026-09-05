@@ -91,13 +91,9 @@ class ModelSettingModification extends Model {
 		$meta = $this->parseMeta($xml);
 
 		$name = isset($data['name']) ? $data['name'] : ($meta['name'] !== '' ? $meta['name'] : (isset($current['name']) ? $current['name'] : ''));
-
 		$code = isset($data['code']) ? $data['code'] : ($meta['code'] !== '' ? $meta['code'] : (isset($current['code']) ? $current['code'] : ''));
-
 		$author = isset($data['author']) ? $data['author'] : ($meta['author'] !== '' ? $meta['author'] : (isset($current['author']) ? $current['author'] : ''));
-
 		$version = isset($data['version']) ? $data['version'] : ($meta['version'] !== '' ? $meta['version'] : (isset($current['version']) ? $current['version'] : ''));
-
 		$link = isset($data['link']) ? $data['link'] : ($meta['link'] !== '' ? $meta['link'] : (isset($current['link']) ? $current['link'] : ''));
 
 		if ($keep_status) {
@@ -180,10 +176,7 @@ class ModelSettingModification extends Model {
 	}
 
 	public function setModificationRestore($modification_id, $xml_raw) {
-		$data = array(
-		'xml' => $xml_raw
-		);
-
+		$data = array('xml' => $xml_raw);
 		$this->db->query($this->getModificationUpdateSql($modification_id, $data, true));
 	}
 
@@ -207,7 +200,6 @@ class ModelSettingModification extends Model {
 		}
 
 		$sql .= " WHERE `modification_id` = '" . (int)$modification_id . "'";
-
 		$this->db->query($sql);
 	}
 
@@ -219,13 +211,11 @@ class ModelSettingModification extends Model {
 		}
 
 		$sql .= " WHERE `modification_id` = '" . (int)$modification_id . "'";
-
 		$this->db->query($sql);
 	}
 
 	public function getModification($modification_id) {
 		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "modification` WHERE `modification_id` = '" . (int)$modification_id . "'");
-
 		return $query->row;
 	}
 
@@ -240,16 +230,22 @@ class ModelSettingModification extends Model {
 			'date_added'
 		);
 
-		if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
-			$sql .= " ORDER BY `" . $data['sort'] . "`";
+		if (isset($data['sort']) && in_array($data['sort'], $sort_data, true)) {
+			$sort = $data['sort'];
 		} else {
-			$sql .= " ORDER BY `name`";
+			$sort = 'date_added';
 		}
 
-		if (isset($data['order']) && $data['order'] == 'DESC') {
-			$sql .= " DESC";
+		if (isset($data['order'])) {
+			$order = strtoupper($data['order']) === 'ASC' ? 'ASC' : 'DESC';
 		} else {
-			$sql .= " ASC";
+			$order = ($sort === 'date_added') ? 'DESC' : 'ASC';
+		}
+
+		$sql .= " ORDER BY `" . $sort . "` " . $order;
+
+		if ($sort === 'date_added') {
+			$sql .= ", `modification_id` " . $order;
 		}
 
 		if (isset($data['start']) || isset($data['limit'])) {
@@ -268,31 +264,26 @@ class ModelSettingModification extends Model {
 		}
 
 		$query = $this->db->query($sql);
-
 		return $query->rows;
 	}
 
 	public function getModificationBackups($modification_id) {
 		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "modification_backup` WHERE `modification_id` = '" . (int)$modification_id . "' ORDER BY `date_added` DESC, `backup_id` DESC");
-
 		return $query->rows;
 	}
 
 	public function getModificationBackup($modification_id, $backup_id) {
 		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "modification_backup` WHERE `modification_id` = '" . (int)$modification_id . "' AND `backup_id` = '" . (int)$backup_id . "' LIMIT 1");
-
 		return $query->row;
 	}
 
 	public function getTotalModifications() {
 		$query = $this->db->query("SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "modification`");
-
 		return (int)$query->row['total'];
 	}
 
 	public function getModificationByCode($code) {
 		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "modification` WHERE `code` = '" . $this->db->escape($code) . "' LIMIT 1");
-
 		return $query->row;
 	}
 
