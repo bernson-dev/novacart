@@ -1,4 +1,5 @@
 <?php
+
 // ErrorRenderer
 class ErrorRenderer {
 	public static function render(string $errorType, string $message, string $file, int $line): string {
@@ -37,6 +38,9 @@ class ErrorRenderer {
 	}
 }
 
+/**
+* Normalize PHP timezone identifier.
+*/
 if (!function_exists('frameworkNormalizeTimezone')) {
 function frameworkNormalizeTimezone($timezone) {
 $timezone = trim((string)$timezone);
@@ -83,16 +87,76 @@ return 'UTC';
 }
 }
 
+/**
+* Detect AJAX / JSON request.
+*
+* Standard OpenCart AJAX requests made through jQuery send:
+* X-Requested-With: XMLHttpRequest
+*
+* Accept and Content-Type checks also cover fetch()/JSON requests
+* where X-Requested-With may be absent.
+*/
+if (!function_exists('frameworkIsAjaxRequest')) {
+	function frameworkIsAjaxRequest() {
+		if (
+		isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+		strtolower((string)$_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+		) {
+			return true;
+		}
+
+		if (
+		isset($_SERVER['HTTP_ACCEPT']) &&
+		stripos((string)$_SERVER['HTTP_ACCEPT'], 'application/json') !== false
+		) {
+			return true;
+		}
+
+		if (
+		isset($_SERVER['CONTENT_TYPE']) &&
+		stripos((string)$_SERVER['CONTENT_TYPE'], 'application/json') !== false
+		) {
+			return true;
+		}
+
+		return false;
+	}
+}
+
+/**
+* Send critical error response.
+*
+* AJAX requests always receive JSON and HTTP 500.
+* Regular requests may be redirected to configured error_page.
+*/
 if (!function_exists('frameworkSendErrorResponse')) {
 	function frameworkSendErrorResponse($config, $message = 'A critical system error has occurred. Please try again later.') {
+		if (frameworkIsAjaxRequest()) {
+			if (!headers_sent()) {
+				http_response_code(500);
+				header('Content-Type: application/json; charset=utf-8');
+			}
+
+			echo json_encode(
+			array(
+			'success' => false,
+			'error'   => $message
+			),
+			JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+			);
+
+			exit();
+		}
+
 		if (!headers_sent()) {
 			$error_page = $config->get('error_page');
 
 			if ($error_page) {
 				header('Location: ' . $error_page, true, 302);
 			} else {
-				header('HTTP/1.1 500 Internal Server Error');
+				http_response_code(500);
 				header('Content-Type: text/plain; charset=utf-8');
+
 				echo $message;
 			}
 		} else {
@@ -103,8 +167,10 @@ if (!function_exists('frameworkSendErrorResponse')) {
 	}
 }
 
+
 // Registry
 $registry = new Registry();
+
 
 // Config
 $config = new Config();
@@ -112,17 +178,32 @@ $config = new Config();
 // Load the default config
 $config->load('default');
 $config->load($application_config ?? 'application');
+
 $registry->set('config', $config);
 
+
 // Set the default time zone
-date_default_timezone_set(frameworkNormalizeTimezone($config->get('config_timezone') ?: $config->get('date_timezone') ?: 'UTC'));
+date_default_timezone_set(
+frameworkNormalizeTimezone(
+$config->get('config_timezone')
+?: $config->get('date_timezone')
+?: 'UTC'
+)
+);
+
 
 // Log
 $log = new Log($config->get('error_filename'));
 $registry->set('log', $log);
 
+
 // Error Handler
 set_error_handler(function (int $code, string $message, string $file, int $line) use ($log, $config) {
+/*
+* Respect current error_reporting().
+*
+* This also correctly handles errors suppressed using @.
+*/
 	if (!(error_reporting() & $code)) {
 		return false;
 	}
@@ -130,6 +211,7 @@ set_error_handler(function (int $code, string $message, string $file, int $line)
 	switch ($code) {
 		case E_NOTICE:
 		case E_USER_NOTICE:
+		case E_STRICT:
 			$error = 'Notice';
 			break;
 
@@ -147,7 +229,6 @@ set_error_handler(function (int $code, string $message, string $file, int $line)
 			$error = 'Recoverable Error';
 			break;
 
-		case E_ERROR:
 		case E_USER_ERROR:
 			$error = 'Fatal Error';
 			break;
@@ -157,66 +238,252 @@ set_error_handler(function (int $code, string $message, string $file, int $line)
 			break;
 	}
 
+	// Log error
 	if ($config->get('error_log')) {
-		$log->write('PHP ' . $error . ': ' . $message . ' in ' . $file . ' on line ' . $line);
+		$log->write(
+		'PHP ' . $error . ': ' .
+		$message .
+		' in ' . $file .
+		' on line ' . $line
+		);
 	}
 
-	if ($config->get('error_display')) {
-		echo ErrorRenderer::render($error, $message, $file, $line);
+/*
+* IMPORTANT:
+*
+* Never print HTML error blocks into AJAX/JSON responses.
+*
+* Otherwise a valid response such as:
+*
+* {"success":true}
+*
+* becomes:
+*
+* <div>Warning...</div>{"success":true}
+*
+* and JavaScript can no longer parse it as JSON.
+*/
+	if ($config->get('error_display') && !frameworkIsAjaxRequest()) {
+		echo ErrorRenderer::render(
+		$error,
+		$message,
+		$file,
+		$line
+		);
 
 		return true;
 	}
 
-	// В production не ломаем сайт из-за обычных Notice / Warning / Deprecated.
-	// Редирект или 500 только для реально критичных ошибок.
-	if ($code == E_ERROR || $code == E_USER_ERROR || $code == E_RECOVERABLE_ERROR) {
-		frameworkSendErrorResponse($config);
+/*
+* Notice / Warning / Deprecated errors are logged,
+* but do not terminate the application.
+*
+* Critical user/recoverable errors return HTTP 500.
+*/
+	if (
+	$code == E_USER_ERROR ||
+	$code == E_RECOVERABLE_ERROR
+	) {
+		$error_message = 'A critical system error has occurred. Please try again later.';
+
+		if ($config->get('error_display')) {
+			$error_message =
+			$error . ': ' .
+			$message .
+			' in ' . $file .
+			' on line ' . $line;
+		}
+
+		frameworkSendErrorResponse($config, $error_message);
 	}
 
 	return true;
 });
 
+
 // Exception Handler
 set_exception_handler(function (\Throwable $e) use ($log, $config) {
-	$message = get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine();
+	$message =
+	get_class($e) . ': ' .
+	$e->getMessage() .
+	' in ' . $e->getFile() .
+	' on line ' . $e->getLine();
 
+	// Log exception
 	if ($config->get('error_log')) {
 		$log->write($message);
 	}
 
+/*
+* AJAX must always receive JSON instead of HTML.
+*/
+	if (frameworkIsAjaxRequest()) {
+		if ($config->get('error_display')) {
+			frameworkSendErrorResponse($config, $message);
+		} else {
+			frameworkSendErrorResponse($config);
+		}
+	}
+
+/*
+* Normal browser request.
+*/
 	if ($config->get('error_display')) {
+		if (!headers_sent()) {
+			http_response_code(500);
+		}
+
 		echo ErrorRenderer::renderException($e);
 	} else {
 		frameworkSendErrorResponse($config);
 	}
 });
 
+
+// Fatal Error Handler
+register_shutdown_function(function () use ($log, $config) {
+	$error = error_get_last();
+
+	if (!$error) {
+		return;
+	}
+
+/*
+* Errors which cannot be handled by set_error_handler().
+*/
+	$fatal_errors = array(
+	E_ERROR,
+	E_PARSE,
+	E_CORE_ERROR,
+	E_COMPILE_ERROR
+	);
+
+	if (!in_array($error['type'], $fatal_errors, true)) {
+		return;
+	}
+
+	$message = isset($error['message'])
+	? (string)$error['message']
+	: 'Unknown fatal error';
+
+	$file = isset($error['file'])
+	? (string)$error['file']
+	: '';
+
+	$line = isset($error['line'])
+	? (int)$error['line']
+	: 0;
+
+	if ($config->get('error_log')) {
+		$log->write(
+		'PHP Fatal Error: ' .
+		$message .
+		' in ' . $file .
+		' on line ' . $line
+		);
+	}
+
+/*
+* AJAX:
+* return clean JSON error response where possible.
+*/
+	if (frameworkIsAjaxRequest()) {
+		$error_message = 'A critical system error has occurred. Please try again later.';
+
+		if ($config->get('error_display')) {
+			$error_message =
+			'Fatal Error: ' .
+			$message .
+			' in ' . $file .
+			' on line ' . $line;
+		}
+
+		frameworkSendErrorResponse(
+		$config,
+		$error_message
+		);
+	}
+
+/*
+* Normal browser request.
+*/
+	if ($config->get('error_display')) {
+		if (!headers_sent()) {
+			http_response_code(500);
+		}
+
+		echo ErrorRenderer::render(
+		'Fatal Error',
+		$message,
+		$file,
+		$line
+		);
+
+		return;
+	}
+
+/*
+* We cannot safely redirect here if output has already started.
+*/
+	if (!headers_sent()) {
+		$error_page = $config->get('error_page');
+
+		if ($error_page) {
+			header('Location: ' . $error_page, true, 302);
+
+			return;
+		}
+
+		http_response_code(500);
+		header('Content-Type: text/plain; charset=utf-8');
+	}
+
+	echo 'A critical system error has occurred. Please try again later.';
+});
+
+
 // Event
 $event = new Event($registry);
 $registry->set('event', $event);
+
 
 // Event Register
 if ($config->has('action_event')) {
 	foreach ($config->get('action_event') as $key => $value) {
 		foreach ($value as $priority => $action) {
-			$event->register($key, new Action($action), $priority);
+			$event->register(
+			$key,
+			new Action($action),
+			$priority
+			);
 		}
 	}
 }
+
 
 // Loader
 $loader = new Loader($registry);
 $registry->set('load', $loader);
 
+
 // Request
 $request = new Request();
 $registry->set('request', $request);
 
+
 // Response
 $response = new Response();
-$response->addHeader('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
-$response->setCompression($config->get('config_compression'));
+
+$response->addHeader(
+'Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
+);
+
+$response->setCompression(
+$config->get('config_compression')
+);
+
 $registry->set('response', $response);
+
 
 // Database
 if ($config->get('db_autostart')) {
@@ -231,61 +498,148 @@ if ($config->get('db_autostart')) {
 
 	$registry->set('db', $db);
 
-	// Set time zone from store settings
-	$query = $db->query("SELECT value FROM " . DB_PREFIX . "setting WHERE `key` = 'config_timezone' AND store_id = '0' LIMIT 1");
+/*
+* Set timezone from store settings.
+*/
+	$query = $db->query(
+	"SELECT `value`
+		 FROM `" . DB_PREFIX . "setting`
+		 WHERE `key` = 'config_timezone'
+		   AND `store_id` = '0'
+		 LIMIT 1"
+	);
 
-	if ($query->num_rows && $query->row['value']) {
-		date_default_timezone_set(frameworkNormalizeTimezone($query->row['value']));
+	if (
+	$query->num_rows &&
+	!empty($query->row['value'])
+	) {
+		date_default_timezone_set(
+		frameworkNormalizeTimezone(
+		$query->row['value']
+		)
+		);
 	}
 
-	// Sync PHP and DB time zones
-	$db->query("SET time_zone = '" . $db->escape(date('P')) . "'");
+/*
+* Synchronize PHP and database timezone.
+*
+* Using numeric offset avoids dependency on installed
+* MySQL/MariaDB timezone tables.
+*/
+	$db->query(
+	"SET time_zone = '" .
+	$db->escape(date('P')) .
+	"'"
+	);
 }
 
+
 // Session
-$session = new Session($config->get('session_engine'), $registry);
+$session = new Session(
+$config->get('session_engine'),
+$registry
+);
+
 $registry->set('session', $session);
 
+
 if ($config->get('session_autostart')) {
-	$session_name = $config->get('session_name') ?: 'OCSESSID';
-	$session_id = isset($_COOKIE[$session_name]) ? $_COOKIE[$session_name] : '';
+	$session_name = $config->get('session_name')
+	?: 'OCSESSID';
+
+	$session_id = isset($_COOKIE[$session_name])
+	? $_COOKIE[$session_name]
+	: '';
 
 	$session->start($session_id);
 
-	$cookie_lifetime = (int)ini_get('session.cookie_lifetime');
-
-	$is_ssl = (
-	isset($_SERVER['HTTPS']) &&
-	($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === '1')
-	) || (
-	isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
-	$_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https'
+	$cookie_lifetime = (int)ini_get(
+	'session.cookie_lifetime'
 	);
 
-	setcookie($session_name, $session->getId(), array(
-	'expires'  => $cookie_lifetime ? time() + $cookie_lifetime : 0,
-	'path'     => ini_get('session.cookie_path') ?: '/',
-	'domain'   => ini_get('session.cookie_domain') ?: '',
+/*
+* Detect HTTPS directly or behind reverse proxy.
+*/
+	$is_ssl = false;
+
+	if (
+	isset($_SERVER['HTTPS']) &&
+	(
+	strtolower((string)$_SERVER['HTTPS']) === 'on' ||
+	(string)$_SERVER['HTTPS'] === '1'
+	)
+	) {
+		$is_ssl = true;
+	} elseif (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+		$forwarded_proto = explode(
+		',',
+		(string)$_SERVER['HTTP_X_FORWARDED_PROTO']
+		);
+
+		$forwarded_proto = strtolower(
+		trim($forwarded_proto[0])
+		);
+
+		if ($forwarded_proto === 'https') {
+			$is_ssl = true;
+		}
+	}
+
+	setcookie(
+	$session_name,
+	$session->getId(),
+	array(
+	'expires'  => $cookie_lifetime
+	? time() + $cookie_lifetime
+	: 0,
+	'path'     => ini_get('session.cookie_path')
+	?: '/',
+	'domain'   => ini_get('session.cookie_domain')
+	?: '',
 	'secure'   => $is_ssl,
 	'httponly' => true,
 	'samesite' => 'Lax'
-	));
+	)
+	);
 }
 
+
 // Cache
-$registry->set('cache', new Cache($config->get('cache_engine'), $config->get('cache_expire')));
+$registry->set(
+'cache',
+new Cache(
+$config->get('cache_engine'),
+$config->get('cache_expire')
+)
+);
+
 
 // Url
 if ($config->get('url_autostart')) {
-	$registry->set('url', new Url($config->get('site_url'), $config->get('site_ssl')));
+	$registry->set(
+	'url',
+	new Url(
+	$config->get('site_url'),
+	$config->get('site_ssl')
+	)
+	);
 }
 
+
 // Language
-$language = new Language($config->get('language_directory'));
+$language = new Language(
+$config->get('language_directory')
+);
+
 $registry->set('language', $language);
 
+
 // Document
-$registry->set('document', new Document());
+$registry->set(
+'document',
+new Document()
+);
+
 
 // Config Autoload
 if ($config->has('config_autoload')) {
@@ -294,12 +648,14 @@ if ($config->has('config_autoload')) {
 	}
 }
 
+
 // Language Autoload
 if ($config->has('language_autoload')) {
 	foreach ($config->get('language_autoload') as $value) {
 		$loader->language($value);
 	}
 }
+
 
 // Library Autoload
 if ($config->has('library_autoload')) {
@@ -308,6 +664,7 @@ if ($config->has('library_autoload')) {
 	}
 }
 
+
 // Model Autoload
 if ($config->has('model_autoload')) {
 	foreach ($config->get('model_autoload') as $value) {
@@ -315,18 +672,31 @@ if ($config->has('model_autoload')) {
 	}
 }
 
+
 // Route
 $route = new Router($registry);
+
 
 // Pre Actions
 if ($config->has('action_pre_action')) {
 	foreach ($config->get('action_pre_action') as $value) {
-		$route->addPreAction(new Action($value));
+		$route->addPreAction(
+		new Action($value)
+		);
 	}
 }
 
+
 // Dispatch
-$route->dispatch(new Action($config->get('action_router')), new Action($config->get('action_error')));
+$route->dispatch(
+new Action(
+$config->get('action_router')
+),
+new Action(
+$config->get('action_error')
+)
+);
+
 
 // Output
 $response->output();

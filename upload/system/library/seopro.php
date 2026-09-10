@@ -19,11 +19,11 @@ class SeoPro {
 	private $session;
 	private $db;
 	private $cache;
-	private $cat_tree = array();
-	private $keywords = array();
-	private $queries = array();
-	private $product_categories = array();
-	private $valide_get_param = array();
+	private $cat_tree = [];
+	private $keywords = [];
+	private $queries = [];
+	private $product_categories = [];
+	private $valide_get_param = [];
 
 	public function __construct($registry) {
 		$this->registry = $registry;
@@ -70,7 +70,7 @@ class SeoPro {
 					$url = explode('=', (string)$query, 2);
 
 					if (!empty($url[0])) {
-						if (!in_array($url[0], array('category_id', 'product_id', 'manufacturer_id', 'information_id', 'article_id', 'blog_category_id'))) {
+					if(!in_array($url[0], ['category_id', 'product_id', 'manufacturer_id', 'information_id', 'article_id', 'blog_category_id'])) {
 							return $parts;
 						}
 
@@ -97,7 +97,7 @@ class SeoPro {
 
 			if (!$query) {
 				$this->request->get['route'] = 'error/not_found';
-				return array();
+				return [];
 			}
 		}
 
@@ -264,7 +264,7 @@ class SeoPro {
 					$postfix = true;
 					unset($data[$key]);
 					break;
-
+				case 'category_id':
 				case 'information_id':
 					$information_id = (int)$value;
 					$queries[] = 'information_id=' . $information_id;
@@ -332,7 +332,7 @@ class SeoPro {
 		return array($url, $data, $postfix);
 	}
 
-	private function getPath($categories, $category_id, $current_path = array()) {
+	private function getPath($categories, $category_id, $current_path = []) {
 		if (!$current_path) {
 			$current_path = array((int)$category_id);
 		}
@@ -364,8 +364,8 @@ class SeoPro {
 		if (!$this->cat_tree || empty($this->cat_tree)) {
 			$this->cat_tree = array();
 			$all_cat_query = $this->db->query("SELECT category_id, parent_id FROM " . DB_PREFIX . "category ORDER BY parent_id");
-			$allcats = array();
-			$categories = array();
+			$allcats = [];
+			$categories = [];
 
 			if ($all_cat_query->num_rows) {
 				$allcats = $all_cat_query->rows;
@@ -392,7 +392,7 @@ class SeoPro {
 			}
 
 			if (!$this->queries || !is_array($this->queries)) {
-				$this->queries = array();
+				$this->queries = [];
 			}
 
 			if (empty($this->keywords) || empty($this->queries)) {

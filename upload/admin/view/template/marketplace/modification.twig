@@ -40,7 +40,7 @@
             </div>
             <div class="panel-body">
                 {% if modifications %}
-                <div class="form-group">
+                <div id="modification-progress" class="form-group" style="display: none;">
                     <label class="col-sm-2 control-label">{{ entry_progress }}</label>
                     <div class="col-sm-10">
                         <div class="progress">
@@ -505,6 +505,7 @@
 
                 // Reset UI
                 $('.alert').remove();
+                $('#modification-progress').stop(true, true).show();
                 $('#progress-bar').css('width', '0%');
                 $('#progress-bar').removeClass('progress-bar-danger progress-bar-success');
                 $('#progress-text').html('');
@@ -571,6 +572,11 @@
                     if (json.success) {
                         $('#progress-bar').addClass('progress-bar-success');
                         $('#progress-text').html('<span class="text-success">' + json.success + '</span>');
+
+                        setTimeout(function () {
+                            $('#modification-progress').fadeOut();
+                        }, 3000);
+
                         return; // если success — это финальный шаг
                     }
 

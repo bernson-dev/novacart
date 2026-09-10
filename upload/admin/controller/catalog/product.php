@@ -638,19 +638,19 @@ $filter_manufacturer_name = $this->language->get('text_none_manufacturer');
 		} else {
 			$filter_noindex = '';
 		}
-		
+
 		// Сортировка списка товаров по умолчанию
-//		if (isset($this->request->get['sort'])) {
-//			$sort = $this->request->get['sort'];
-//		} else {
-//			$sort = 'pd.name';
-//		}
-//
-//		if (isset($this->request->get['order'])) {
-//			$order = $this->request->get['order'];
-//		} else {
-//			$order = 'ASC';
-//		}
+		//		if (isset($this->request->get['sort'])) {
+		//			$sort = $this->request->get['sort'];
+		//		} else {
+		//			$sort = 'pd.name';
+		//		}
+		//
+		//		if (isset($this->request->get['order'])) {
+		//			$order = $this->request->get['order'];
+		//		} else {
+		//			$order = 'ASC';
+		//		}
 
 		// сортировка по ID в порядке убывания (от новых к старым)
 		if (isset($this->request->get['sort'])) {
@@ -1818,7 +1818,7 @@ $data['action'] = $this->url->link('catalog/product/edit', 'user_token=' . $this
 
 			$data['product_images'][] = array(
 			'image'      => $image,
-			'thumb'      => $this->model_tool_image->resize(html_entity_decode($thumb, ENT_QUOTES, 'UTF-8'), 100, 100),
+			'thumb'      => $this->model_tool_image->resize($thumb, 100, 100),
 			'sort_order' => $product_image['sort_order']
 			);
 		}

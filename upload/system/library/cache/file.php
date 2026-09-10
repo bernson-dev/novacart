@@ -1,5 +1,6 @@
 <?php
 namespace Cache;
+
 class File {
 	private $expire;
 	private $gc_probability = 5;
@@ -24,13 +25,35 @@ class File {
 		$safeKey = preg_replace('/[^A-Z0-9._\-]/i', '', $key);
 		$pattern = $this->cacheDir . 'cache.' . $safeKey . '.*';
 		$files = glob($pattern);
+
 		if (!$files) {
 			return null;
 		}
-		// Берём самый свежий (если вдруг несколько)
-		return array_reduce($files, function($carry, $item) {
-			return (!$carry || filemtime($item) > filemtime($carry)) ? $item : $carry;
+		
+		// Исключаем временные файлы (.tmp), чтобы не читать незавершённые данные
+		$files = array_filter($files, function($f) {
+			return strpos(basename($f), '.tmp') === false;
 		});
+
+		if (empty($files)) {
+			return null;
+		}
+
+		// Берём самый свежий файл, безопасно проверяя его существование
+		$latestFile = null;
+		$latestTime = 0;
+		
+		foreach ($files as $file) {
+			if (is_file($file)) {
+				$mtime = @filemtime($file);
+				if ($mtime !== false && $mtime > $latestTime) {
+					$latestTime = $mtime;
+					$latestFile = $file;
+				}
+			}
+		}
+		
+		return $latestFile;
 	}
 
 	public function get($key) {
@@ -39,7 +62,7 @@ class File {
 			return false;
 		}
 
-		// TTL из имени
+		// TTL из имени файла
 		$parts = explode('.', $file);
 		$expire = (int)end($parts);
 
@@ -72,7 +95,22 @@ class File {
 		}
 
 		if (file_put_contents($temp, $json, LOCK_EX) !== false) {
-			return rename($temp, $file);
+			// Для Windows: если файл уже существует и заблокирован, предварительный unlink повышает шансы на успех
+			if (file_exists($file)) {
+				@unlink($file);
+			}
+			
+			// Пробуем стандартное переименование
+			if (@rename($temp, $file)) {
+				return true;
+			}
+			
+			// Fallback: если переименование всё ещё не сработало (строгая блокировка антивирусом),
+			// пробуем скопировать содержимое и удалить временный файл
+			if (@copy($temp, $file)) {
+				@unlink($temp);
+				return true;
+			}
 		}
 
 		return false;
@@ -105,6 +143,11 @@ class File {
 
 		$now = time();
 		foreach ($files as $file) {
+			// Пропускаем временные файлы, они могут быть в процессе записи
+			if (strpos(basename($file), '.tmp') !== false) {
+				continue;
+			}
+
 			$parts = explode('.', $file);
 			$expire = (int)end($parts);
 			if ($expire > 0 && $expire < $now) {
