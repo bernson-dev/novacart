@@ -38,32 +38,49 @@ class ErrorRenderer {
 }
 
 if (!function_exists('frameworkNormalizeTimezone')) {
-	function frameworkNormalizeTimezone($timezone) {
-		$timezone = trim((string)$timezone);
+function frameworkNormalizeTimezone($timezone) {
+$timezone = trim((string)$timezone);
 
-		if ($timezone && in_array($timezone, timezone_identifiers_list(), true)) {
-			return $timezone;
-		}
+if ($timezone && in_array($timezone, timezone_identifiers_list(), true)) {
+return $timezone;
+}
 
-		$aliases = array(
-		'Europe/Kiev'     => 'Europe/Kyiv',   // Старое -> Новое (PHP 8+)
-		'Europe/Uzhgorod' => 'Europe/Uzhgorod',
-		'Europe/Zaporozhye' => 'Europe/Zaporozhye',
-		'Asia/Calcutta'   => 'Asia/Kolkata',
-		'Asia/Katmandu'   => 'Asia/Kathmandu',
-		'Pacific/Truk'    => 'Pacific/Chuuk',
-		'Pacific/Ponape'  => 'Pacific/Pohnpei'
-		);
+// Определяем версию PHP для правильного маппинга
+$isPhp8Plus = version_compare(PHP_VERSION, '8.0.0', '>=');
 
-		if (isset($aliases[$timezone])) {
-                        $newTimezone = $aliases[$timezone];
-                        if (in_array($newTimezone, timezone_identifiers_list(), true)) {
-			return $newTimezone;
-                        }
-		}
+$aliases = array();
 
-		return 'UTC';
-	}
+if ($isPhp8Plus) {
+// PHP 8+: старое название больше не поддерживается, маппим на новое
+$aliases = array(
+'Europe/Kiev'       => 'Europe/Kyiv',
+'Europe/Uzhgorod'   => 'Europe/Kyiv',      // В PHP 8+ нет, маппим на Kyiv
+'Europe/Zaporozhye' => 'Europe/Kyiv',      // В PHP 8+ нет, маппим на Kyiv
+'Asia/Calcutta'     => 'Asia/Kolkata',
+'Asia/Katmandu'     => 'Asia/Kathmandu',
+'Pacific/Truk'      => 'Pacific/Chuuk',
+'Pacific/Ponape'    => 'Pacific/Pohnpei'
+);
+} else {
+// PHP 7: новое название может отсутствовать, маппим на старое
+$aliases = array(
+'Europe/Kyiv'       => 'Europe/Kiev',
+'Asia/Kolkata'      => 'Asia/Calcutta',
+'Asia/Kathmandu'    => 'Asia/Katmandu',
+'Pacific/Chuuk'     => 'Pacific/Truk',
+'Pacific/Pohnpei'   => 'Pacific/Ponape'
+);
+}
+
+if (isset($aliases[$timezone])) {
+$newTimezone = $aliases[$timezone];
+if (in_array($newTimezone, timezone_identifiers_list(), true)) {
+return $newTimezone;
+}
+}
+
+return 'UTC';
+}
 }
 
 if (!function_exists('frameworkSendErrorResponse')) {
