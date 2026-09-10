@@ -1,6 +1,6 @@
 <?php
 
-class SvgPreview {
+class Svg_preview {
 	public function __construct($registry) {
 	}
 
