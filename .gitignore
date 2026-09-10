@@ -1,1 +1,39 @@
-Nothing should be ignored based on the provided file changes, as they only contain source code files (.php) without any build artifacts, dependencies, or temporary files.
+# Dependencies
+node_modules/
+vendor/
+venv/
+.venv/
+
+# Environment and local configuration
+.env
+.env.local
+.env.*
+config.php
+admin/config.php
+
+# Build directories
+dist/
+build/
+target/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Editors and IDEs
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Coverage and caches
+coverage/
+htmlcov/
+.coverage
+.mypy_cache/
+.pytest_cache/
+.gradle/
