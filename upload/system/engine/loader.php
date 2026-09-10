@@ -75,21 +75,25 @@ final class Loader {
 			$file = DIR_APPLICATION . 'model/' . $route . '.php';
 			$class = 'Model' . preg_replace('/[^a-zA-Z0-9]/', '', $route);
 
-			if (is_file($file)) {
-				include_once($file);
-
-				$proxy = new Proxy();
-
-				// Overriding models is a little harder so we have to use PHP's magic methods
-				// In future version we can use runkit
-				foreach (get_class_methods($class) as $method) {
-					$proxy->{$method} = $this->callback($this->registry, $route . '/' . $method);
-				}
-
-				$this->registry->set('model_' . str_replace('/', '_', (string)$route), $proxy);
-			} else {
+			if (!is_file($file)) {
 				throw new \Exception('Error: Could not load model ' . $route . '!');
 			}
+
+			include_once($file);
+
+			if (!class_exists($class, false)) {
+				throw new \Exception('Error: Model class ' . $class . ' not found in ' . $file . '!');
+			}
+
+			$proxy = new Proxy();
+
+			// Overriding models is a little harder so we have to use PHP's magic methods
+			// In future version we can use runkit
+			foreach (get_class_methods($class) as $method) {
+				$proxy->{$method} = $this->callback($this->registry, $route . '/' . $method);
+			}
+
+			$this->registry->set('model_' . str_replace('/', '_', (string)$route), $proxy);
 		}
 	}
 
@@ -151,13 +155,17 @@ final class Loader {
 		$file = DIR_SYSTEM . 'library/' . $route . '.php';
 		$class = str_replace('/', '\\', $route);
 
-		if (is_file($file)) {
-			include_once($file);
-
-			$this->registry->set(basename($route), new $class($this->registry));
-		} else {
+		if (!is_file($file)) {
 			throw new \Exception('Error: Could not load library ' . $route . '!');
 		}
+
+		include_once($file);
+
+		if (!class_exists($class, false)) {
+			throw new \Exception('Error: Library class ' . $class . ' not found in ' . $file . '!');
+		}
+
+		$this->registry->set(basename($route), new $class($this->registry));
 	}
 
 	/**
