@@ -35,13 +35,11 @@ class Proxy extends \stdClass {
 	public function __call($key, $args) {
 		$arg_data = array();
 
-		$args = func_get_args();
-
-		foreach ($args as $arg) {
+		foreach ($args as $index => $arg) {
 			if ($arg instanceof Ref) {
-				$arg_data[] = & $arg->getRef();
+				$arg_data[$index] = & $args[$index]->getRef();
 			} else {
-				$arg_data[] = & $arg;
+				$arg_data[$index] = & $args[$index];
 			}
 		}
 
