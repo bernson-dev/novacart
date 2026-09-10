@@ -44,6 +44,8 @@ final class Loader {
 		if ($result != null && !$result instanceof Exception) {
 			$output = $result;
 		} else {
+			$route = preg_replace('/[^a-zA-Z0-9_\/]/', '', (string)$route);
+
 			$action = new Action($route);
 			$output = $action->execute($this->registry, array(&$data));
 		}
@@ -116,6 +118,8 @@ final class Loader {
 		if ($result && !$result instanceof Exception) {
 			$output = $result;
 		} else {
+			$route = preg_replace('/[^a-zA-Z0-9_\/]/', '', (string)$route);
+
 			$template = new Template($this->registry->get('config')->get('template_engine'));
 
 			foreach ($data as $key => $value) {
@@ -182,11 +186,15 @@ final class Loader {
 		// Sanitize the call
 		$route = preg_replace('/[^a-zA-Z0-9_\-\/]/', '', (string)$route);
 
-		$this->registry->get('event')->trigger('config/' . $route . '/before', array(&$route));
+		// Keep the original trigger
+		$trigger = $route;
 
+		$this->registry->get('event')->trigger('config/' . $trigger . '/before', array(&$route));
+
+		$route = preg_replace('/[^a-zA-Z0-9_\-\/]/', '', (string)$route);
 		$this->registry->get('config')->load($route);
 
-		$this->registry->get('event')->trigger('config/' . $route . '/after', array(&$route));
+		$this->registry->get('event')->trigger('config/' . $trigger . '/after', array(&$route));
 	}
 
 	/**
@@ -209,6 +217,7 @@ final class Loader {
 		if ($result && !$result instanceof Exception) {
 			$output = $result;
 		} else {
+			$route = preg_replace('/[^a-zA-Z0-9_\/]/', '', (string)$route);
 			$output = $this->registry->get('language')->load($route, $key);
 		}
 
