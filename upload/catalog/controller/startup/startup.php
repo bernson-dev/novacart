@@ -46,24 +46,11 @@ class ControllerStartupStartup extends Controller {
 			}
 		}
 
-		// Set time zone
-		$timezone = (string)$this->config->get('config_timezone');
+		// Apply the store timezone after its settings have been loaded.
+		$timezone = frameworkNormalizeTimezone($this->config->get('config_timezone'));
+		date_default_timezone_set($timezone);
 
-		// Нормализуем таймзону с учетом версии PHP (функция из framework.php)
-		if (function_exists('frameworkNormalizeTimezone')) {
-			$timezone = frameworkNormalizeTimezone($timezone);
-		}
-
-		// Если таймзона задана и валидна
-		if ($timezone !== '' && in_array($timezone, timezone_identifiers_list())) {
-			date_default_timezone_set($timezone);
-		} else {
-			// Фолбэк на UTC
-			$timezone = 'UTC';
-			date_default_timezone_set($timezone);
-		}
-
-		// Синхронизация PHP и DB таймзоны
+		// Use a numeric offset so MySQL/MariaDB timezone tables are not required.
 		$this->db->query("SET time_zone = '" . $this->db->escape(date('P')) . "'");
 
 		// Theme
