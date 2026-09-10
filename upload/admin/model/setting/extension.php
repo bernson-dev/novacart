@@ -76,20 +76,20 @@ class ModelSettingExtension extends Model {
 
 		$allowed_sort = array('filename', 'date_added');
 
-		if (!in_array($sort, $allowed_sort)) {
+		if (!in_array($sort, $allowed_sort, true)) {
 			$sort = 'date_added';
 		}
 
 		$order = strtoupper($order) === 'ASC' ? 'ASC' : 'DESC';
+		$secondary_order = ($sort === 'date_added') ? $order : 'DESC';
 
 		$query = $this->db->query("SELECT *
 		FROM `" . DB_PREFIX . "extension_install`
-		ORDER BY " . $sort . " " . $order . "
+		ORDER BY `" . $sort . "` " . $order . ", `extension_install_id` " . $secondary_order . "
 		LIMIT " . (int)$start . "," . (int)$limit);
 
 		return $query->rows;
 	}
-
 
 	public function getExtensionInstallByExtensionDownloadId($extension_download_id) {
 		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "extension_install` WHERE `extension_download_id` = '" . (int)$extension_download_id . "'");

@@ -4,7 +4,7 @@ $_['heading_title']             = 'Modifiers';
 
 // Text
 $_['text_success']              = 'Extension successfully updated!';
-$_['text_refresh_success']      = 'OCMOD add-ons list updated. Total: %d success, %d errors';
+$_['text_refresh_success']      = 'OCMOD add-ons list updated. Successful operations: %d. Errors: %d';
 $_['text_refresh']              = 'When you enable / disable or remove one of the add-ons, you must click the "Refresh" button - to update the cache!';
 $_['text_list']                 = 'List of installed OCMOD add-ons';
 $_['text_form']                 = 'Editing an OCMOD add-on';
@@ -72,3 +72,9 @@ $_['error_code']                = 'Modifier requires a unique ID code!';
 $_['error_exists']              = 'Modifier %s already uses the unique ID code you are trying to upload!';
 $_['error_directory']           = 'Folder with files to upload not found!';
 $_['error_warning']             = 'Error!';
+$_['error_file_operation'] = 'Unable to change modification file status: %s';
+$_['error_file_write'] = 'Unable to write file: %s';
+$_['error_modification_clear'] = 'Unable to completely clear the modification cache. Check file and directory permissions.';
+$_['error_log_write'] = 'Modification cache was refreshed, but one or more OCMOD log files could not be written.';
+$_['error_directory_remove'] = 'Unable to completely remove the temporary upload directory.';
+$_['error_file_delete'] = 'One or more modification files could not be deleted.';

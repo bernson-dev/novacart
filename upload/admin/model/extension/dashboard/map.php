@@ -21,6 +21,8 @@ class ModelExtensionDashboardMap extends Model {
 				INNER JOIN `" . DB_PREFIX . "country` c 
 					ON o.payment_country_id = c.country_id
 				WHERE o.order_status_id IN(" . implode(',', $implode) . ")
+					AND c.iso_code_2 IS NOT NULL
+					AND c.iso_code_2 != ''
 				GROUP BY o.payment_country_id, c.iso_code_2
 			");
 
