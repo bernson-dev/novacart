@@ -230,33 +230,59 @@ final class Loader {
 			// Keep the original trigger
 			$trigger = $route;
 
-			// Trigger the pre events
+			// Trigger the pre events. Both route and args may be changed by an event.
 			$result = $registry->get('event')->trigger('model/' . $trigger . '/before', array(&$route, &$args));
 
 			if ($result && !$result instanceof Exception) {
 				$output = $result;
 			} else {
-				$class = 'Model' . preg_replace('/[^a-zA-Z0-9]/', '', substr($route, 0, strrpos($route, '/')));
+				// A before-event is allowed to replace the model route, so validate it again.
+				$route = preg_replace('/[^a-zA-Z0-9_\/]/', '', (string)$route);
 
-				// Store the model object
-				$key = substr($route, 0, strrpos($route, '/'));
+				if (!is_array($args)) {
+					throw new \UnexpectedValueException('Error: Model arguments for ' . $trigger . ' must be an array!');
+				}
+
+				$pos = strrpos($route, '/');
+
+				if ($pos === false || $pos === 0 || $pos === strlen($route) - 1) {
+					throw new \Exception('Error: Invalid model route ' . $route . '!');
+				}
+
+				$model_route = substr($route, 0, $pos);
+				$method = substr($route, $pos + 1);
+				$class = 'Model' . preg_replace('/[^a-zA-Z0-9]/', '', $model_route);
+				$key = $model_route;
+
+				// If a before-event redirected the call to another model, load that model too.
+				if (!class_exists($class, false)) {
+					$file = DIR_APPLICATION . 'model/' . $model_route . '.php';
+
+					if (!is_file($file)) {
+						throw new \Exception('Error: Could not load model ' . $model_route . '!');
+					}
+
+					include_once($file);
+
+					if (!class_exists($class, false)) {
+						throw new \Exception('Error: Model class ' . $class . ' not found!');
+					}
+				}
 
 				if (!isset($model[$key])) {
 					$model[$key] = new $class($registry);
 				}
 
-				$method = substr($route, strrpos($route, '/') + 1);
-
 				$callable = array($model[$key], $method);
 
 				if (is_callable($callable)) {
-					$output = $callable(...$args);
+					$output = call_user_func_array($callable, $args);
 				} else {
 					throw new \Exception('Error: Could not call model/' . $route . '!');
 				}
 			}
 
-			// Trigger the post events
+			// Trigger the post events using the original trigger name, as in OpenCart.
 			$result = $registry->get('event')->trigger('model/' . $trigger . '/after', array(&$route, &$args, &$output));
 
 			if ($result && !$result instanceof Exception) {
