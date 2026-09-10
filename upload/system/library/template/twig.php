@@ -41,24 +41,30 @@ final class Twig {
 	public function render($filename, $code = '') {
 		if (!$code) {
 			$file = DIR_TEMPLATE . $filename . '.twig';
+			$template_file = '';
 
 			// --- поддержка OCMOD Встроена проверка - работает без модификатора и fallback ---
 			if (defined('DIR_CATALOG') && is_file(DIR_MODIFICATION . 'admin/view/template/' . $filename . '.twig')) {
-				$code = file_get_contents(DIR_MODIFICATION . 'admin/view/template/' . $filename . '.twig');
+				$template_file = DIR_MODIFICATION . 'admin/view/template/' . $filename . '.twig';
 			} elseif (is_file(DIR_MODIFICATION . 'catalog/view/theme/' . $filename . '.twig')) {
-				$code = file_get_contents(DIR_MODIFICATION . 'catalog/view/theme/' . $filename . '.twig');
+				$template_file = DIR_MODIFICATION . 'catalog/view/theme/' . $filename . '.twig';
 			} elseif (is_file($file)) {
 				// !!! эта строка нужна для OCMOD поиска. С установленным modification.xml — OCMOD перехватывает и расширяет
-				$code = file_get_contents($file);
+				$template_file = $file;
 			} else {
-				// сообщение об ошибке, если файл шаблона не найден.
 				throw new \Exception('Error: Could not load template file: ' . $file . '!');
+			}
+
+			$code = file_get_contents($template_file);
+
+			if ($code === false) {
+				throw new \Exception('Error: Could not read template file: ' . $template_file . '!');
 			}
 		}
 
 		try {
 			// если передан динамический код — подключаем ArrayLoader
-			if ($code) {
+			if ($code !== '') {
 				$loader = new ArrayLoader([$filename . '.twig' => $code]);
 				$chain  = new ChainLoader([$loader, new FilesystemLoader([DIR_TEMPLATE])]);
 				$this->twig->setLoader($chain);
@@ -67,30 +73,30 @@ final class Twig {
 			return $this->twig->render($filename . '.twig', $this->data);
 		} catch (SyntaxError $e) {
 			$error_message = sprintf(
-			'Syntax Error in template "%s" at line %d: %s',
-			$e->getSourceContext()->getName(),
-			$e->getTemplateLine(),
-			$e->getMessage()
+				'Syntax Error in template "%s" at line %d: %s',
+				$e->getSourceContext()->getName(),
+				$e->getTemplateLine(),
+				$e->getMessage()
 			);
-			trigger_error('Error: ' . $error_message, E_USER_WARNING);
-			throw new \Exception($error_message);
+
+			throw new \Exception($error_message, 0, $e);
 		} catch (RuntimeError $e) {
 			$error_message = sprintf(
-			'Runtime Error in template "%s" at line %d: %s',
-			$e->getSourceContext()->getName(),
-			$e->getTemplateLine(),
-			$e->getMessage()
+				'Runtime Error in template "%s" at line %d: %s',
+				$e->getSourceContext()->getName(),
+				$e->getTemplateLine(),
+				$e->getMessage()
 			);
-			trigger_error('Error: ' . $error_message, E_USER_WARNING);
-			throw new \Exception($error_message);
+
+			throw new \Exception($error_message, 0, $e);
 		} catch (\Exception $e) {
 			$error_message = sprintf(
-			'Could not render template "%s". Original message: %s',
-			$filename . '.twig',
-			$e->getMessage()
+				'Could not render template "%s". Original message: %s',
+				$filename . '.twig',
+				$e->getMessage()
 			);
-			trigger_error('Error: ' . $error_message, E_USER_WARNING);
-			throw new \Exception($error_message);
+
+			throw new \Exception($error_message, 0, $e);
 		}
 	}
 }
