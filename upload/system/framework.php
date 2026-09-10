@@ -59,18 +59,20 @@ if (!function_exists('frameworkNormalizeTimezone')) {
 * Compatibility aliases for systems with older timezone databases.
 */
 		$aliases = array(
-		'Europe/Kyiv'     => 'Europe/Kiev',
-		'Asia/Kolkata'    => 'Asia/Calcutta',
-		'Asia/Kathmandu'  => 'Asia/Katmandu',
-		'Pacific/Chuuk'   => 'Pacific/Truk',
-		'Pacific/Pohnpei' => 'Pacific/Ponape'
+		'Europe/Kiev'     => 'Europe/Kyiv',   // Старое -> Новое (PHP 8+)
+		'Europe/Uzhgorod' => 'Europe/Uzhgorod',
+		'Europe/Zaporozhye' => 'Europe/Zaporozhye',
+		'Asia/Calcutta'   => 'Asia/Kolkata',
+		'Asia/Katmandu'   => 'Asia/Kathmandu',
+		'Pacific/Truk'    => 'Pacific/Chuuk',
+		'Pacific/Ponape'  => 'Pacific/Pohnpei'
 		);
 
-		if (
-		isset($aliases[$timezone]) &&
-		in_array($aliases[$timezone], $identifiers, true)
-		) {
-			return $aliases[$timezone];
+		if (isset($aliases[$timezone])) {
+                        $newTimezone = $aliases[$timezone];
+                        if (in_array($newTimezone, timezone_identifiers_list(), true)) {
+			return $newTimezone;
+                        }
 		}
 
 		return 'UTC';
