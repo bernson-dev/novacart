@@ -1,0 +1,39 @@
+name: Create Release
+
+on:
+  workflow_dispatch: # Запуск вручную через кнопку в интерфейсе
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Clean up (remove cache, logs, git)
+        run: |
+          rm -rf upload/system/storage/cache/*
+          rm -rf upload/system/storage/logs/*
+          rm -rf upload/system/storage/session/*
+          rm -rf upload/image/cache/*
+          find upload -name ".gitkeep" -delete
+          rm -rf .git
+
+      - name: Create Zip Archive
+        run: zip -r opencart-custom-v1.0.0.zip upload/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.0.0-custom
+          name: OpenCart Custom v1.0.0
+          body: |
+            ## Изменения в версии 1.0.0-custom
+            - ✅ Удален функционал обновления (только чистая установка)
+            - ✅ Исправлены уязвимости (SQL, XSS)
+            - ✅ Оптимизирован блог (N+1 запросы)
+            - ✅ Добавлена ротация логов
+            - ✅ Исправлена работа часовых поясов (PHP 7/8 совместимость)
+          files: opencart-custom-v1.0.0.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
