@@ -341,7 +341,8 @@ $_['entry_favicon_color']               = 'Колір SVG';
 $_['error_svg_icon']                    = 'Виберіть правильний файл SVG.';
 $_['error_favicon_color']               = 'Колір повинен бути у форматі #RRGGBB.';
 
-$_['warning_favicon_generate']          = 'Favicon не було згенеровано. Перевірте SVG та наявність Imagick.';
+$_['warning_favicon_generate']          = 'Не вдалося згенерувати favicon з вибраного SVG.';
+$_['warning_imagick_missing']           = 'PHP-розширення Imagick недоступне. Генерація favicon з SVG не працюватиме.';
 
 $_['error_svg_icon_client']             = 'Помилка! Можно використовувати лише SVG файл.';
 $_['error_geocode_request']             = 'Помилка при запиті геокоду';

@@ -29,11 +29,14 @@ class ControllerSettingSetting extends Controller {
 			$this->load->model('tool/favicon_generator');
 
 			if ($svg) {
-				$result = $this->model_tool_favicon_generator->generateFromSvg($svg, $store_id, $color, $original);
+				if (!class_exists('Imagick')) {
+					$this->session->data['warning'] = $this->language->get('warning_imagick_missing');
+				} else {
+					$result = $this->model_tool_favicon_generator->generateFromSvg($svg, $store_id, $color, $original);
 
-				if (!$result) {
-					//$this->session->data['warning'] = 'Favicon не был сгенерирован. Проверьте SVG и наличие Imagick.';
-					$this->session->data['warning'] = $this->language->get('warning_favicon_generate');
+					if (!$result) {
+						$this->session->data['warning'] = $this->language->get('warning_favicon_generate');
+					}
 				}
 			} else {
 				// SVG не выбран — удаляем старый набор, чтобы has_favicon не “залипал”
@@ -214,6 +217,18 @@ class ControllerSettingSetting extends Controller {
 			$data['warning'] = '';
 		}
 
+		if (!class_exists('Imagick')) {
+			$imagick_warning = $this->language->get('warning_imagick_missing');
+
+			if ($data['warning']) {
+				if (strpos($data['warning'], $imagick_warning) === false) {
+					$data['warning'] .= ' ' . $imagick_warning;
+				}
+			} else {
+				$data['warning'] = $imagick_warning;
+			}
+		}
+
 		$data['action'] = $this->url->link('setting/setting', 'user_token=' . $this->session->data['user_token'], true);
 
 		$data['cancel'] = $this->url->link('setting/store', 'user_token=' . $this->session->data['user_token'], true);
@@ -357,13 +372,8 @@ class ControllerSettingSetting extends Controller {
 			$data['config_favicon_color'] = $this->config->get('config_favicon_color') ?: '#ff0000';
 		}
 
-		// placeholder 100x100
-		//$data['placeholder'] = $this->model_tool_image->resize('no_image.png', 100, 100);
-
 		// URL предпросмотра SVG с цветом
-		//$data['svg_preview_url'] = $this->url->link('setting/setting/svgPreview', 'user_token=' . $this->session->data['user_token'], true);
-
-		$data['svg_preview_url'] = $this->url->link('tool/svg_preview', 'user_token=' . $this->session->data['user_token'], true);
+		$data['svg_preview_url'] = $this->url->link('setting/setting/svgPreview', 'user_token=' . $this->session->data['user_token'], true);
 
 
 		// Картинка превью: если svg — отдаём через svgPreview, иначе обычный resize
@@ -1328,6 +1338,35 @@ class ControllerSettingSetting extends Controller {
 		}
 
 		return !$this->error;
+	}
+
+	public function svgPreview() {
+		if (
+			!isset($this->session->data['user_token']) ||
+			!isset($this->request->get['user_token']) ||
+			$this->request->get['user_token'] !== $this->session->data['user_token']
+		) {
+			$this->response->addHeader('HTTP/1.1 403 Forbidden');
+			return;
+		}
+
+		$path = isset($this->request->get['path']) ? (string)$this->request->get['path'] : '';
+		$color = isset($this->request->get['color']) ? (string)$this->request->get['color'] : '#000000';
+		$original = !empty($this->request->get['original']);
+
+		$this->load->library('svg_preview');
+
+		$svg = $this->svg_preview->render($path, $color, $original);
+
+		if ($svg === false) {
+			$this->response->addHeader('HTTP/1.1 404 Not Found');
+			return;
+		}
+
+		$this->response->addHeader('Content-Type: image/svg+xml; charset=utf-8');
+		$this->response->addHeader('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+		$this->response->addHeader('Pragma: no-cache');
+		$this->response->setOutput($svg);
 	}
 
 	public function theme() {

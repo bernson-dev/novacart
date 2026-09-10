@@ -336,7 +336,8 @@ $_['help_svg_icon']                     = 'Выберите SVG (через ме
 $_['entry_favicon_color']               = 'Цвет SVG';
 $_['error_svg_icon']                    = 'Выберите корректный SVG файл.';
 $_['error_favicon_color']               = 'Цвет должен быть в формате #RRGGBB.';
-$_['warning_favicon_generate']          = 'Favicon не был сгенерирован. Проверьте SVG и наличие Imagick.';
+$_['warning_favicon_generate']          = 'Не удалось сгенерировать favicon из выбранного SVG.';
+$_['warning_imagick_missing']           = 'PHP-расширение Imagick недоступно. Генерация favicon из SVG работать не будет.';
 
 $_['error_svg_icon_client']             = 'Ошибка! Можно использовать только SVG файл.';
 $_['error_geocode_request']             = 'Ошибка при запросе геокода';

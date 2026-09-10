@@ -302,3 +302,6 @@ $_['error_warning']                     = 'Warning: Please check the form carefu
 $_['error_permission']                  = 'Warning: You do not have permission to modify settings!';
 $_['error_name']                        = 'Store Name must be between 3 and 32 characters!';
 $_['error_owner']                       = 'Store Owner must be between 3 and 64 characters!';
+
+$_['warning_favicon_generate']          = 'Failed to generate favicon from the selected SVG.';
+$_['warning_imagick_missing']           = 'The PHP Imagick extension is not available. SVG favicon generation will not work.';
