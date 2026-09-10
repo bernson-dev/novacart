@@ -1,22 +1,29 @@
+# Compiled and build artifacts
+*.pyc
+__pycache__/
+*.o
+*.obj
+*.class
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
 # Dependencies
 node_modules/
-vendor/
 venv/
 .venv/
-
-# Environment and local configuration
 .env
 .env.local
 .env.*
-config.php
-admin/config.php
 
 # Build directories
 dist/
 build/
 target/
 
-# Logs and temporary files
+# Logs and temp files
 *.log
 *.tmp
 *.swp
@@ -30,10 +37,12 @@ target/
 .DS_Store
 Thumbs.db
 
-# Coverage and caches
+# Coverage
 coverage/
 htmlcov/
 .coverage
+
+# Cache directories
 .mypy_cache/
 .pytest_cache/
 .gradle/
