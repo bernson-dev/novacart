@@ -33,18 +33,10 @@ class Proxy extends \stdClass {
 	}
 
 	public function __call($key, $args) {
-		$arg_data = array();
-
-		foreach ($args as $index => $arg) {
-			if ($arg instanceof Ref) {
-				$arg_data[$index] = & $args[$index]->getRef();
-			} else {
-				$arg_data[$index] = & $args[$index];
-			}
-		}
-
 		if (isset($this->{$key})) {
-			return ($this->{$key})(...$arg_data);
+			// Loader::callback() expects one argument: the complete array
+			// of arguments originally passed to the proxied model method.
+			return ($this->{$key})($args);
 		} else {
 			$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
 
