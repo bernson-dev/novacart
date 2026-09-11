@@ -76,6 +76,7 @@ if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
 							@unlink($path);
 						}
 					}
+				}
 
 				@chmod($install_path, 0777);
 				@rmdir($install_path);
