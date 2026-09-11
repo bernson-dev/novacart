@@ -117,6 +117,26 @@ jobs:
               // Expected.
           }
 
+          // ImageAttributes: standard OpenCart cache URLs must gain intrinsic
+          // dimensions without changing existing semantic attributes.
+          $html = '<!DOCTYPE html><html><body><img src="/image/cache/catalog/test-300x200.jpg"></body></html>';
+          $enhanced = ImageAttributes::enhance($html);
+          assertSameValue(true, strpos($enhanced, 'width="300"') !== false, 'Image width was not added');
+          assertSameValue(true, strpos($enhanced, 'height="200"') !== false, 'Image height was not added');
+          assertSameValue(true, strpos($enhanced, 'alt=""') !== false, 'Missing alt was not added');
+
+          $svg = '<!DOCTYPE html><html><body><img src="/image/cache/catalog/logo-240x80.svg" alt="Store"></body></html>';
+          $enhancedSvg = ImageAttributes::enhance($svg);
+          assertSameValue(true, strpos($enhancedSvg, 'width="240"') !== false, 'SVG width was not added');
+          assertSameValue(true, strpos($enhancedSvg, 'height="80"') !== false, 'SVG height was not added');
+          assertSameValue(true, strpos($enhancedSvg, 'alt="Store"') !== false, 'Existing alt was changed');
+
+          $custom = '<!DOCTYPE html><html><body><img src="/image/cache/catalog/test-300x200.jpg" width="120" height="80" alt="Custom"></body></html>';
+          assertSameValue($custom, ImageAttributes::enhance($custom), 'Existing image dimensions were changed');
+
+          $json = '{"html":"<img src=\"/image/cache/catalog/test-300x200.jpg\">"}';
+          assertSameValue($json, ImageAttributes::enhance($json), 'Non-HTML response was modified');
+
           restore_error_handler();
           echo 'NovaCart core runtime smoke test passed on PHP ' . PHP_VERSION . PHP_EOL;
           PHP
