@@ -1,0 +1,127 @@
+name: PHP Runtime Compatibility
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    name: PHP ${{ matrix.php }} runtime smoke
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - '8.2'
+          - '8.5'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Core runtime smoke test
+        shell: bash
+        run: |
+          cat > /tmp/novacart-runtime-smoke.php <<'PHP'
+          <?php
+          error_reporting(E_ALL);
+          ini_set('display_errors', '1');
+
+          set_error_handler(function ($severity, $message, $file, $line) {
+              if (!(error_reporting() & $severity)) {
+                  return false;
+              }
+
+              throw new ErrorException($message, 0, $severity, $file, $line);
+          });
+
+          $root = getcwd() . '/upload/';
+          $runtime = sys_get_temp_dir() . '/novacart-runtime-' . getmypid() . '/';
+          $storage = $runtime . 'storage/';
+          $modification = $runtime . 'modification/';
+
+          if (!is_dir($storage) && !mkdir($storage, 0777, true) && !is_dir($storage)) {
+              throw new RuntimeException('Unable to create temporary storage directory');
+          }
+
+          if (!is_dir($modification) && !mkdir($modification, 0777, true) && !is_dir($modification)) {
+              throw new RuntimeException('Unable to create temporary modification directory');
+          }
+
+          define('DIR_SYSTEM', $root . 'system/');
+          define('DIR_APPLICATION', $root . 'admin/');
+          define('DIR_STORAGE', $storage);
+          define('DIR_MODIFICATION', $modification);
+
+          require DIR_SYSTEM . 'startup.php';
+
+          function assertSameValue($expected, $actual, $message) {
+              if ($expected !== $actual) {
+                  throw new RuntimeException($message);
+              }
+          }
+
+          // Registry: basic set/get/has behavior.
+          $registry = new Registry();
+          $registry->set('runtime_test', 'ok');
+          assertSameValue('ok', $registry->get('runtime_test'), 'Registry::get() failed');
+          assertSameValue(true, $registry->has('runtime_test'), 'Registry::has() failed');
+          assertSameValue(null, $registry->get('missing_key'), 'Registry missing key behavior changed');
+
+          // Controller: magic access must continue to proxy through Registry without
+          // creating deprecated dynamic properties on PHP 8.2+.
+          $controller = new class($registry) extends Controller {};
+          $controller->runtime_value = 123;
+          assertSameValue(123, $controller->runtime_value, 'Controller registry proxy failed');
+
+          // Action: a missing route must fail cleanly and not emit warnings/deprecations.
+          $action = new Action('runtime/missing/controller');
+          $actionResult = $action->execute($registry);
+          if (!($actionResult instanceof Exception)) {
+              throw new RuntimeException('Action missing-route behavior changed');
+          }
+
+          // Event: empty trigger and registration/unregistration paths.
+          $event = new Event($registry);
+          assertSameValue(null, $event->trigger('runtime/test'), 'Empty Event::trigger() must return null');
+          $event->register('runtime/test', $action, 10);
+          $event->unregister('runtime/test', 'runtime/missing/controller');
+          $event->clear('runtime/test');
+
+          // Proxy: callback execution and undefined-method exception path.
+          $proxy = new Proxy();
+          $proxy->runtimeMethod = function ($args) {
+              return isset($args[0]) ? $args[0] : null;
+          };
+          assertSameValue('proxy-ok', $proxy->runtimeMethod('proxy-ok'), 'Proxy callback failed');
+
+          try {
+              $proxy->undefinedRuntimeMethod();
+              throw new RuntimeException('Proxy undefined method did not throw');
+          } catch (BadMethodCallException $e) {
+              // Expected.
+          }
+
+          restore_error_handler();
+          echo 'NovaCart core runtime smoke test passed on PHP ' . PHP_VERSION . PHP_EOL;
+          PHP
+
+          php \
+            -d error_reporting=E_ALL \
+            -d display_errors=1 \
+            /tmp/novacart-runtime-smoke.php
