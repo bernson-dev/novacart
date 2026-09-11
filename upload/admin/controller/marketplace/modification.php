@@ -857,7 +857,9 @@ class ControllerMarketplaceModification extends Controller {
 				continue;
 			}
 			if (strpos($trimmed, 'NOT FOUND') !== false || strpos($trimmed, 'ERROR: ') === 0) {
-				$total_errors++;
+				if ($current_mod_name !== 'Generated PHP validation') {
+					$total_errors++;
+				}
 				$entry = array_filter(array($current_source, $current_file, $current_code, $line));
 				$mods[$current_mod_name]['error'][] = $entry;
 				continue;
@@ -1193,7 +1195,6 @@ class ControllerMarketplaceModification extends Controller {
 							'message' => (string)$generated_error['message']
 						);
 					}
-				}
 			}
 		}
 		$data['error_generated_php'] = $this->language->get('error_generated_php');
