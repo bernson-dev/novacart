@@ -11,6 +11,12 @@ class ControllerMarketplaceInstall extends Controller {
 			$extension_install_id = 0;
 		}
 
+		if (isset($this->request->get['allow_protected'])) {
+			$allow_protected = (int)$this->request->get['allow_protected'];
+		} else {
+			$allow_protected = 0;
+		}
+
 		if (!$this->user->hasPermission('modify', 'marketplace/install')) {
 			$json['error'] = $this->language->get('error_permission');
 		}
@@ -23,7 +29,7 @@ class ControllerMarketplaceInstall extends Controller {
 
 		if (!$json) {
 			$json['text'] = $this->language->get('text_unzip');
-			$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/unzip', 'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id, true));
+			$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/unzip', 'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id . '&allow_protected=' . $allow_protected, true));
 		}
 
 		if (!empty($json['error'])) {
@@ -43,6 +49,12 @@ class ControllerMarketplaceInstall extends Controller {
 			$extension_install_id = $this->request->get['extension_install_id'];
 		} else {
 			$extension_install_id = 0;
+		}
+
+		if (isset($this->request->get['allow_protected'])) {
+			$allow_protected = (int)$this->request->get['allow_protected'];
+		} else {
+			$allow_protected = 0;
 		}
 
 		if (!$this->user->hasPermission('modify', 'marketplace/install')) {
@@ -70,7 +82,7 @@ class ControllerMarketplaceInstall extends Controller {
 					}
 
 					$json['text'] = $this->language->get('text_move');
-					$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/move', 'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id, true));
+					$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/move', 'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id . '&allow_protected=' . $allow_protected, true));
 				} else {
 					$zip->close();
 					$json['error'] = $this->language->get('error_unzip');
@@ -159,14 +171,12 @@ class ControllerMarketplaceInstall extends Controller {
 						$safe = true;
 					} else {
 						$safe = false;
+						$destination_path = rtrim($destination, '/');
 
 						foreach ($allowed as $value) {
-							if (strlen($destination) < strlen($value) && substr($value, 0, strlen($destination)) == $destination) {
-								$safe = true;
-								break;
-							}
+							$allowed_path = rtrim($value, '/');
 
-							if (strlen($destination) > strlen($value) && substr($destination, 0, strlen($value)) == $value) {
+							if ($destination_path === $allowed_path || strpos($allowed_path . '/', $destination_path . '/') === 0 || strpos($destination_path . '/', $allowed_path . '/') === 0) {
 								$safe = true;
 								break;
 							}
