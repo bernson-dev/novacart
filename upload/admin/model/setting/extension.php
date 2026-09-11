@@ -34,31 +34,16 @@ class ModelSettingExtension extends Model {
 */
 
 	public function addExtensionInstall($filename, $hash, $extension_download_id = 0) {
-		// hash = BINARY(20), передаём как строку и храним через UNHEX(HEX(...))
 		$hash_hex = bin2hex($hash);
 
-		$this->db->query("INSERT INTO `" . DB_PREFIX . "extension_install`
+		$this->db->query("INSERT IGNORE INTO `" . DB_PREFIX . "extension_install`
         SET `filename` = '" . $this->db->escape($filename) . "',
             `hash` = UNHEX('" . $this->db->escape($hash_hex) . "'),
             `extension_download_id` = '" . (int)$extension_download_id . "',
-            `date_added` = NOW()
-        ON DUPLICATE KEY UPDATE
-            `filename` = VALUES(`filename`),
-            `date_added` = NOW(),
-            `extension_download_id` = VALUES(`extension_download_id`)"
+            `date_added` = NOW()"
 		);
 
-		$id = (int)$this->db->getLastId();
-
-		if (!$id) {
-			$q = $this->db->query("SELECT `extension_install_id`
-            FROM `" . DB_PREFIX . "extension_install`
-            WHERE `hash` = UNHEX('" . $this->db->escape($hash_hex) . "')
-            LIMIT 1");
-			$id = (int)$q->row['extension_install_id'];
-		}
-
-		return $id;
+		return (int)$this->db->getLastId();
 	}
 
 	public function deleteExtensionInstall($extension_install_id) {
