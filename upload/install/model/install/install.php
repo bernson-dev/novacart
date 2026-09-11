@@ -46,6 +46,7 @@ class ModelInstallInstall extends Model {
 * @return void
 */
 	public function database($data) {
+		// Создаём подключение к базе данных
 		$db = new DB(
 		$data['db_driver'],
 		html_entity_decode($data['db_hostname'], ENT_QUOTES, 'UTF-8'),
@@ -55,26 +56,31 @@ class ModelInstallInstall extends Model {
 		$data['db_port']
 		);
 
+		// Проверяем наличие SQL-файла
 		$file = DIR_APPLICATION . $data['sql_dump'];
 		if (!file_exists($file)) {
 			throw new \Exception('Could not load sql file: ' . $file);
 		}
 
+		// Устанавливаем кодировку
 		$res = $db->query("SELECT VERSION() as version");
 		$version = isset($res->row['version']) ? $res->row['version'] : '0';
 
+		// Пробуем вытащить числовую часть (на случай MariaDB "10.x.x-MariaDB")
 		if (preg_match('/^\d+(\.\d+){1,3}/', $version, $m)) {
 			$version_num = $m[0];
 		} else {
 			$version_num = $version;
 		}
 
+		// utf8mb4 доступен с 5.5.3
 		$charset = (version_compare($version_num, '5.5.3', '>=') ? 'utf8mb4' : 'utf8');
 
 		$db->query("SET NAMES '" . $charset . "'");
 		$db->query("SET CHARACTER SET " . $charset);
 		$db->query("SET @@session.sql_mode = ''");
 
+		// Загружаем SQL-файл потоково в память)
 		$handle = fopen($file, 'r');
 		if (!$handle) {
 			throw new \Exception('Could not open sql file: ' . $file);
@@ -82,86 +88,63 @@ class ModelInstallInstall extends Model {
 
 		$sql = '';
 		$inBlockComment = false;
-		$query_number = 0;
 
-		try {
-			while (($line = fgets($handle)) !== false) {
-				$line = trim($line);
+		while (($line = fgets($handle)) !== false) {
+			$line = trim($line);
 
-				if ($line === '') {
-					continue;
-				}
-
-				if ($inBlockComment) {
-					if (strpos($line, '*/') !== false) {
-						$inBlockComment = false;
-					}
-					continue;
-				}
-
-				if (strpos($line, '/*') === 0) {
-					if (strpos($line, '*/') === false) {
-						$inBlockComment = true;
-					}
-					continue;
-				}
-
-				if (strpos($line, '--') === 0 || strpos($line, '#') === 0) {
-					continue;
-				}
-
-				$sql .= $line . "\n";
-
-				if (substr(rtrim($line), -1) === ';') {
-					$query_number++;
-					$sql_exec = str_replace('`oc_', '`' . $data['db_prefix'], $sql);
-
-					try {
-						$db->query($sql_exec);
-					} catch (\Throwable $e) {
-						$preview = preg_replace('/\s+/', ' ', trim($sql_exec));
-						$preview = substr($preview, 0, 300);
-
-						throw new \Exception(
-							'SQL import failed at query #' . $query_number . ': ' . $e->getMessage() .
-							($preview !== '' ? ' [' . $preview . ']' : ''),
-							0,
-							$e
-						);
-					}
-
-					$sql = '';
-				}
+			if ($line === '') {
+				continue;
 			}
 
-			$sql = trim($sql);
-			if ($sql !== '') {
-				$query_number++;
+			// Обработка блочных комментариев /* ... */
+			if ($inBlockComment) {
+				if (strpos($line, '*/') !== false) {
+					$inBlockComment = false;
+				}
+				continue;
+			}
+			if (strpos($line, '/*') === 0) {
+				if (strpos($line, '*/') === false) {
+					$inBlockComment = true;
+				}
+				continue;
+			}
+
+			// Пропускаем однострочные комментарии
+			if (strpos($line, '--') === 0 || strpos($line, '#') === 0) {
+				continue;
+			}
+
+			$sql .= $line . "\n";
+
+			// Запрос завершён ;
+			if (substr(rtrim($line), -1) === ';') {
+				// Замена префикса
+				// Было: `oc_...` -> `myprefix...`
 				$sql_exec = str_replace('`oc_', '`' . $data['db_prefix'], $sql);
 
-				try {
-					$db->query($sql_exec);
-				} catch (\Throwable $e) {
-					$preview = preg_replace('/\s+/', ' ', trim($sql_exec));
-					$preview = substr($preview, 0, 300);
-
-					throw new \Exception(
-						'SQL import failed at query #' . $query_number . ': ' . $e->getMessage() .
-						($preview !== '' ? ' [' . $preview . ']' : ''),
-						0,
-						$e
-					);
-				}
+				$db->query($sql_exec);
+				$sql = '';
 			}
-		} finally {
-			fclose($handle);
 		}
 
+		fclose($handle);
+
+		// Дополнительно: если что-то накопилось без ;
+		$sql = trim($sql);
+		if ($sql !== '') {
+			$sql_exec = str_replace('`oc_', '`' . $data['db_prefix'], $sql);
+			$db->query($sql_exec);
+		}
+
+		// Опциональное восстановление структуры после импорта дампа.
+		// Нужно для старых/неполных дампов: добавляет отсутствующие таблицы, колонки и индексы.
 		if (!empty($data['repair_schema'])) {
 			$repairer = new SchemaRepairer();
 			$repairer->repairSchemaFromFile($db, $data['db_prefix']);
 		}
 
+		// Управление пользователем
 		$db->query(
 		"DELETE FROM `" . $data['db_prefix'] . "user` WHERE `user_id` = '1'"
 		);
@@ -181,6 +164,7 @@ class ModelInstallInstall extends Model {
 			date_added = NOW()"
 		);
 
+		// Обновляем настройки
 		$db->query(
 		"DELETE FROM `" . $data['db_prefix'] . "setting` WHERE `key` = 'config_email'"
 		);
@@ -203,10 +187,12 @@ class ModelInstallInstall extends Model {
 			`value` = '" . $db->escape(token(1024)) . "'"
 		);
 
+		// Сбрасываем счётчики просмотров
 		$db->query(
 		"UPDATE `" . $data['db_prefix'] . "product` SET `viewed` = '0'"
 		);
 
+		// Создаём API-пользователя
 		$db->query("DELETE FROM `" . $data['db_prefix'] . "api`");
 		$db->query(
 		"INSERT INTO `" . $data['db_prefix'] . "api` SET
@@ -218,6 +204,7 @@ class ModelInstallInstall extends Model {
 		);
 		$api_id = $db->getLastId();
 
+		// Обновляем настройки API
 		$db->query(
 		"DELETE FROM `" . $data['db_prefix'] . "setting` WHERE `key` = 'config_api_id'"
 		);
@@ -229,15 +216,18 @@ class ModelInstallInstall extends Model {
 			`value` = '" . (int)$api_id . "'"
 		);
 
+		// Устанавливаем префикс счёта
 		$db->query(
 		"UPDATE `" . $data['db_prefix'] . "setting`
 			SET `value` = 'INV-" . date('Y') . "-00'
 			WHERE `key` = 'config_invoice_prefix'"
 		);
 
-		$upload_max_filesize = ini_get('upload_max_filesize');
-		$post_max_size       = ini_get('post_max_size');
+		// --- исправление максимального размера загружаемого файла ---
+		$upload_max_filesize = ini_get('upload_max_filesize'); // например "64M"
+		$post_max_size       = ini_get('post_max_size');       // например "64M"
 
+		// Функция перевода php.ini значений в мегабайты
 		function parseSizeToMb($size) {
 			$unit  = strtolower(substr($size, -1));
 			$value = (int)$size;
@@ -250,13 +240,20 @@ class ModelInstallInstall extends Model {
 		}
 
 		$max_upload_mb = min(parseSizeToMb($upload_max_filesize), parseSizeToMb($post_max_size));
+
+		// Целевое значение — 20 МБ
 		$target = 20;
+
+		// Если PHP позволяет ≥ 20 МБ — ставим 20, иначе максимально доступное
 		$value = ($max_upload_mb >= $target) ? $target : $max_upload_mb;
 
+		// Обновляем настройку в таблице setting
 		$db->query("UPDATE `" . $data['db_prefix'] . "setting`
 				SET `value` = '" . (int)$value . "'
 				WHERE `key` = 'config_file_max_size'");
 
+
+		// Универсальная коррекция таймзоны для совместимости
 		$timezone_query = $db->query(
 		"SELECT `value` FROM `" . $data['db_prefix'] . "setting`
 			WHERE `key` = 'config_timezone' LIMIT 1"
@@ -301,6 +298,13 @@ class ModelInstallInstall extends Model {
 			}
 		}
 
+		// Очищаем таблицы модификаторов, чтобы избежать конфликтов при установке из дампа
+//		$db->query("TRUNCATE TABLE `" . $data['db_prefix'] . "extension_install`");
+//		$db->query("TRUNCATE TABLE `" . $data['db_prefix'] . "extension_path`");
+//		$db->query("TRUNCATE TABLE `" . $data['db_prefix'] . "modification`");
+//		$db->query("TRUNCATE TABLE `" . $data['db_prefix'] . "modification_backup`");
+
+		// Список таблиц для очистки
 		$tables = [
 			$data['db_prefix'] . "extension_install",
 			$data['db_prefix'] . "extension_path",
@@ -316,6 +320,11 @@ class ModelInstallInstall extends Model {
 		}
 	}
 
+/**
+* Удаление демонстрационных данных
+*
+* @return void
+*/
 	public function deleteDemoData() {
 		$tablePatterns = array(
 		'article*',
@@ -348,13 +357,16 @@ class ModelInstallInstall extends Model {
 		$this->db->query("SET FOREIGN_KEY_CHECKS = 0");
 
 		foreach ($tablesToClear as $table) {
+			// Валидация идентификатора таблицы)
 			if (!preg_match('/^[a-zA-Z0-9_]+$/', $table)) {
 				continue;
 			}
 
+			// TRUNCATE быстрее, сбрасывает AUTO_INCREMENT
 			$this->db->query("TRUNCATE TABLE `" . $table . "`");
 		}
 
+		// Дополнительные таблицы
 		$this->db->query(
 		"DELETE FROM `" . DB_PREFIX . "setting` WHERE `code` = 'module_filter'"
 		);
@@ -364,6 +376,7 @@ class ModelInstallInstall extends Model {
 				AND `code` IN ('banner', 'carousel', 'featured', 'slideshow', 'filter')"
 		);
 
+		// Очищаем "висячие" SeoUrl
 		$this->db->query(
 		"DELETE FROM `" . DB_PREFIX . "seo_url`
 			WHERE
@@ -388,6 +401,11 @@ class ModelInstallInstall extends Model {
 		$this->db->query("SET FOREIGN_KEY_CHECKS = 1");
 	}
 
+/**
+* Получение списка стран
+*
+* @return array
+*/
 	public function getCountries() {
 		$query = $this->db->query(
 		"SELECT country_id, name, status
@@ -398,14 +416,24 @@ class ModelInstallInstall extends Model {
 		return $query->rows;
 	}
 
+/**
+* Включение выбранных стран
+*
+* @param array $countries
+* @param int   $default_country
+* @return void
+*/
 	public function enableCountries($countries, $default_country = 0) {
+		// 1) Выключаем все страны
 		$this->db->query("UPDATE `" . DB_PREFIX . "country` SET status = '0'");
 
+		// 2) Фильтруем входящий массив
 		$countries_filtered = array_filter(array_map('intval', (array)$countries));
 
 		if (!empty($countries_filtered)) {
 			$in_clause = implode(',', $countries_filtered);
 
+			// Включаем отмеченные
 			$this->db->query(
 			"UPDATE `" . DB_PREFIX . "country`
 				SET status = '1'
@@ -418,16 +446,18 @@ class ModelInstallInstall extends Model {
 				$default_country_id = 0;
 			}
 
+			// 3) Определяем default_country_id:
 			if ($default_country_id === 0) {
 				if (in_array(220, $countries_filtered, true)) {
-					$default_country_id = 220;
+					$default_country_id = 220; // Украина
 				} elseif (in_array(176, $countries_filtered, true)) {
-					$default_country_id = 176;
+					$default_country_id = 176; // Россия
 				} else {
 					$default_country_id = (int)reset($countries_filtered);
 				}
 			}
 
+			// 4) Сохраняем в настройках
 			$this->db->query(
 			"UPDATE `" . DB_PREFIX . "setting`
 				SET `value` = '" . (int)$default_country_id . "'
