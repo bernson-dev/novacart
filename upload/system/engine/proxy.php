@@ -37,10 +37,15 @@ class Proxy extends \stdClass {
 			// Loader::callback() expects one argument: the complete array
 			// of arguments originally passed to the proxied model method.
 			return ($this->{$key})($args);
-		} else {
-			$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-
-			exit('<b>Notice</b>:  Undefined property: Proxy::' . $key . ' in <b>' . $trace[1]['file'] . '</b> on line <b>' . $trace[1]['line'] . '</b>');
 		}
+
+		$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+		$message = 'Undefined method: Proxy::' . $key;
+
+		if (isset($trace[1]['file'], $trace[1]['line'])) {
+			$message .= ' in ' . $trace[1]['file'] . ' on line ' . (int)$trace[1]['line'];
+		}
+
+		throw new \BadMethodCallException($message);
 	}
 }
