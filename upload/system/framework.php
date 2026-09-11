@@ -119,25 +119,34 @@ if (!function_exists('frameworkIsAjaxRequest')) {
 /**
 * Send critical error response.
 *
-* AJAX requests always receive JSON and HTTP 500.
+* AJAX requests always receive clean JSON and HTTP 500.
 * Regular requests may be redirected to configured error_page.
 */
 if (!function_exists('frameworkSendErrorResponse')) {
 	function frameworkSendErrorResponse($config, $message = 'A critical system error has occurred. Please try again later.') {
 		if (frameworkIsAjaxRequest()) {
+			while (ob_get_level() > 0) {
+				ob_end_clean();
+			}
+
 			if (!headers_sent()) {
 				http_response_code(500);
 				header('Content-Type: application/json; charset=utf-8');
 			}
 
-			echo json_encode(
-			array(
-			'success' => false,
-			'error'   => $message
-			),
-			JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+			$json = json_encode(
+				array(
+					'success' => false,
+					'error'   => $message
+				),
+				JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE
 			);
 
+			if ($json === false) {
+				$json = '{"success":false,"error":"A critical system error has occurred. Please try again later."}';
+			}
+
+			echo $json;
 			exit();
 		}
 
@@ -242,6 +251,26 @@ set_error_handler(function (int $code, string $message, string $file, int $line)
 	}
 
 /*
+* Critical user/recoverable errors must terminate the request.
+*/
+	if (
+	$code == E_USER_ERROR ||
+	$code == E_RECOVERABLE_ERROR
+	) {
+		$error_message = 'A critical system error has occurred. Please try again later.';
+
+		if ($config->get('error_display')) {
+			$error_message =
+			$error . ': ' .
+			$message .
+			' in ' . $file .
+			' on line ' . $line;
+		}
+
+		frameworkSendErrorResponse($config, $error_message);
+	}
+
+/*
 * IMPORTANT:
 *
 * Never print HTML error blocks into AJAX/JSON responses.
@@ -263,31 +292,6 @@ set_error_handler(function (int $code, string $message, string $file, int $line)
 		$file,
 		$line
 		);
-
-		return true;
-	}
-
-/*
-* Notice / Warning / Deprecated errors are logged,
-* but do not terminate the application.
-*
-* Critical user/recoverable errors return HTTP 500.
-*/
-	if (
-	$code == E_USER_ERROR ||
-	$code == E_RECOVERABLE_ERROR
-	) {
-		$error_message = 'A critical system error has occurred. Please try again later.';
-
-		if ($config->get('error_display')) {
-			$error_message =
-			$error . ': ' .
-			$message .
-			' in ' . $file .
-			' on line ' . $line;
-		}
-
-		frameworkSendErrorResponse($config, $error_message);
 	}
 
 	return true;
