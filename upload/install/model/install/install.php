@@ -23,6 +23,19 @@ class ModelInstallInstall extends Model {
 			html_entity_decode(DB_DATABASE, ENT_QUOTES, 'UTF-8'),
 			DB_PORT
 			);
+		} elseif (isset($this->session->data['install_db']) && is_array($this->session->data['install_db'])) {
+			$data = $this->session->data['install_db'];
+
+			if (isset($data['db_driver'], $data['db_hostname'], $data['db_username'], $data['db_password'], $data['db_database'], $data['db_port'])) {
+				$this->db = new DB(
+					$data['db_driver'],
+					html_entity_decode($data['db_hostname'], ENT_QUOTES, 'UTF-8'),
+					html_entity_decode($data['db_username'], ENT_QUOTES, 'UTF-8'),
+					html_entity_decode($data['db_password'], ENT_QUOTES, 'UTF-8'),
+					html_entity_decode($data['db_database'], ENT_QUOTES, 'UTF-8'),
+					$data['db_port']
+				);
+			}
 		}
 	}
 

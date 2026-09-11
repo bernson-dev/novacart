@@ -11,7 +11,7 @@ class ControllerInstallStep5 extends Controller {
 		$data['footer'] = $this->load->controller('common/footer');
 		$data['header'] = $this->load->controller('common/header');
 
-		unset($this->session->data['install']);
+		unset($this->session->data['install'], $this->session->data['install_db']);
 		// Рендерим шаблон
 		$this->response->setOutput($this->load->view('install/step_5', $data));
 	}

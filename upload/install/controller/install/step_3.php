@@ -13,6 +13,18 @@ class ControllerInstallStep3 extends Controller {
 
 			$this->model_install_install->database($install_data);
 
+			// Сохраняем параметры подключения только на время мастера установки.
+			// Следующий HTTP-запрос (step_4) не загружает созданный config.php.
+			$this->session->data['install_db'] = array(
+				'db_driver'   => $this->request->post['db_driver'],
+				'db_hostname' => $this->request->post['db_hostname'],
+				'db_username' => $this->request->post['db_username'],
+				'db_password' => $this->request->post['db_password'],
+				'db_database' => $this->request->post['db_database'],
+				'db_port'     => $this->request->post['db_port'],
+				'db_prefix'   => $this->request->post['db_prefix']
+			);
+
 			// Catalog config.php
 			$output = '<?php' . "\n";
 			$output .= '// HTTP' . "\n";
@@ -359,6 +371,17 @@ class ControllerInstallStep3 extends Controller {
 
 		if (!$this->request->post['password']) {
 			$this->error['password'] = $this->language->get('error_password');
+		}
+
+		if (empty($this->request->post['sql_dump'])) {
+			$this->error['warning'] = 'SQL dump is not selected.';
+		} else {
+			$sql_dump = (string)$this->request->post['sql_dump'];
+			$sql_file = DIR_APPLICATION . $sql_dump;
+
+			if (basename($sql_dump) !== $sql_dump || strtolower(pathinfo($sql_dump, PATHINFO_EXTENSION)) !== 'sql' || !is_file($sql_file)) {
+				$this->error['warning'] = 'Invalid SQL dump.';
+			}
 		}
 
 		if (!is_writable(DIR_OPENCART . 'config.php')) {
