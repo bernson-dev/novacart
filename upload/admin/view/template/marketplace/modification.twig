@@ -205,7 +205,12 @@
                         <div class="text-center"><a href="{{ clear_log_success }}" class="btn btn-danger"><i class="fa fa-eraser"></i> {{ button_clear }}</a></div>
                     </div>
                     <div class="tab-pane" id="tab-log-error">
-                        <input type="text" id="log-search" placeholder="{{ entry_log_search }}" class="form-control" style="margin-bottom:10px;">
+                        <div class="input-group" style="margin-bottom:10px;">
+                            <input type="text" id="log-search" placeholder="{{ entry_log_search }}" class="form-control" autocomplete="off">
+                            <span class="input-group-btn">
+                                <button type="button" id="log-search-clear" class="btn btn-default" title="{{ button_clear }}"><i class="fa fa-times"></i></button>
+                            </span>
+                        </div>
                         <div class="form-control ocmod-log-view js-ocmod-log">{{ log_error }}</div>
                         <div class="text-center">
                             <a href="{{ clear_log_error }}" class="btn btn-danger"><i class="fa fa-eraser"></i> {{ button_clear }}</a>
@@ -284,6 +289,7 @@
             const lines = text.split(/\r\n|\r|\n/);
             let html = '';
             let block = [];
+            let inSection = false;
 
             function flushBlock() {
                 if (block.length) {
@@ -294,16 +300,25 @@
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
+                const trimmed = line.trim();
                 const className = ocmodGetLogClass(line);
                 const lineHtml = `<span class="ocmod-log-line ${className}">${ocmodEscapeHtml(line)}</span>`;
 
-                if (className === 'ocmod-log-separator') {
+                if (className === 'ocmod-log-separator' && trimmed.includes('START')) {
                     flushBlock();
-                    html += `<div class="ocmod-log-block">${lineHtml}</div>`;
+                    inSection = true;
+                    block.push(lineHtml);
                     continue;
                 }
 
-                if (line.trim().startsWith('FILE: ')) {
+                if (className === 'ocmod-log-separator' && trimmed.includes('END')) {
+                    block.push(lineHtml);
+                    flushBlock();
+                    inSection = false;
+                    continue;
+                }
+
+                if (!inSection && trimmed.startsWith('FILE: ')) {
                     flushBlock();
                 }
 
@@ -334,12 +349,21 @@
 
             const searchInput = document.getElementById('log-search');
             if (searchInput) {
+                searchInput.value = '';
                 searchInput.addEventListener('input', function() {
                     const query = this.value.toLowerCase();
                     document.querySelectorAll('#tab-log-error .ocmod-log-block').forEach(block => {
                         const text = block.textContent.toLowerCase();
                         block.style.display = query === '' || text.includes(query) ? '' : 'none';
                     });
+                });
+                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+
+            const clearSearchBtn = document.getElementById('log-search-clear');
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener('click', function() {
+                    ocmodApplyLogFilter('');
                 });
             }
 
@@ -364,6 +388,14 @@
                         setTimeout(() => { copyBtn.innerHTML = defaultText; }, 2000);
                     });
                 });
+            }
+        });
+
+        window.addEventListener('pageshow', function() {
+            const searchInput = document.getElementById('log-search');
+            if (searchInput && searchInput.value !== '') {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
             }
         });
     </script>
