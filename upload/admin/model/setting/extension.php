@@ -36,11 +36,20 @@ class ModelSettingExtension extends Model {
 	public function addExtensionInstall($filename, $hash, $extension_download_id = 0) {
 		$hash_hex = bin2hex($hash);
 
-		$this->db->query("INSERT IGNORE INTO `" . DB_PREFIX . "extension_install`
-        SET `filename` = '" . $this->db->escape($filename) . "',
-            `hash` = UNHEX('" . $this->db->escape($hash_hex) . "'),
-            `extension_download_id` = '" . (int)$extension_download_id . "',
-            `date_added` = NOW()"
+		$query = $this->db->query("SELECT `extension_install_id`
+		FROM `" . DB_PREFIX . "extension_install`
+		WHERE `hash` = UNHEX('" . $this->db->escape($hash_hex) . "')
+		LIMIT 1");
+
+		if ($query->num_rows) {
+			return 0;
+		}
+
+		$this->db->query("INSERT INTO `" . DB_PREFIX . "extension_install`
+		SET `filename` = '" . $this->db->escape($filename) . "',
+			`hash` = UNHEX('" . $this->db->escape($hash_hex) . "'),
+			`extension_download_id` = '" . (int)$extension_download_id . "',
+			`date_added` = NOW()"
 		);
 
 		return (int)$this->db->getLastId();
