@@ -36,6 +36,11 @@ class ControllerStartupPermission extends Controller {
 				$route .= '/' . $part[2];
 			}
 
+			// All marketplace/install routes modify installation data and files.
+			if ($route === 'marketplace/install' && !$this->user->hasPermission('modify', 'marketplace/install')) {
+				return new Action('error/permission');
+			}
+
 			// We want to ingore some pages from having its permission checked.
 			$ignore = array(
 				'common/dashboard',
