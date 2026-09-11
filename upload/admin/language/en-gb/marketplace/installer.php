@@ -28,6 +28,9 @@ $_['help_upload']                   = 'The file must be in \'.ocmod.zip\' format
 $_['help_allow_protected_install']  = 'Allow writing to directories when access is restricted.';
 
 
+// Button
+$_['button_refresh_stay']           = 'Refresh and stay on this page';
+
 // Error
 $_['error_permission']              = 'Warning: You do not have permission to modify extensions!';
 $_['error_install']                 = 'Extension installation taking place please wait a few seconds before trying to install!';

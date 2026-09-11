@@ -919,9 +919,6 @@ class ControllerMarketplaceModification extends Controller {
 		$this->session->data['success'] = sprintf($this->language->get('text_refresh_success'), $total_success, $total_errors);
 
 		$url = $this->buildUrl();
-		if (isset($this->request->get['redirect_installer']) && $this->request->get['redirect_installer']) {
-			// Intentionally no redirect here; installer renders the refreshed list.
-		}
 
 		$this->deleteEmergencyClearToken();
 
@@ -932,6 +929,19 @@ class ControllerMarketplaceModification extends Controller {
 		) . ');';
 
 		$this->document->addScript('data:text/javascript;charset=utf-8,' . rawurlencode($js));
+
+		if (isset($this->request->get['redirect'])) {
+			if ($this->request->get['redirect'] === 'installer') {
+				$this->response->redirect($this->url->link('marketplace/installer', 'user_token=' . $this->session->data['user_token'], true));
+				return;
+			}
+
+			if ($this->request->get['redirect'] === 'modification') {
+				$this->response->redirect($this->url->link('marketplace/modification', 'user_token=' . $this->session->data['user_token'] . $url, true));
+				return;
+			}
+		}
+
 		$this->getList();
 	}
 

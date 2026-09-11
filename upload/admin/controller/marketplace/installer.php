@@ -30,7 +30,9 @@ class ControllerMarketplaceInstaller extends Controller {
 		} else {
 			$data['success'] = '';
 		}
-		$data['refresh'] = $this->url->link('marketplace/modification/refresh', 'user_token=' . $this->session->data['user_token'] . '&redirect_installer=1', true);
+		$data['refresh'] = $this->url->link('marketplace/modification/refresh', 'user_token=' . $this->session->data['user_token'] . '&redirect=modification', true);
+		$data['refresh_stay'] = $this->url->link('marketplace/modification/refresh', 'user_token=' . $this->session->data['user_token'] . '&redirect=installer', true);
+		$data['button_refresh_stay'] = $this->language->get('button_refresh_stay');
 		//Admin Extensions Installer Refresh Button
 
 

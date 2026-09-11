@@ -4,8 +4,17 @@
         <div class="container-fluid">
             <!-- Admin Extensions Installer Refresh Button -->
             <div class="pull-right">
-                <a href="{{ refresh }}" data-toggle="tooltip" title="{{ button_refresh }}" class="btn btn-info">
-                    <i class="fa fa-refresh"></i></a>
+                <div class="btn-group">
+                    <a href="{{ refresh }}" data-toggle="tooltip" title="{{ button_refresh }}" class="btn btn-info">
+                        <i class="fa fa-refresh"></i>
+                    </a>
+                    <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                        <li><a href="{{ refresh_stay }}"><i class="fa fa-refresh"></i> {{ button_refresh_stay }}</a></li>
+                    </ul>
+                </div>
             </div>
             <!-- Admin Extensions Installer Refresh Button -->
             <h1>{{ heading_title }}</h1>
@@ -98,6 +107,7 @@
         // --- Unified Multiple File Upload Logic ---
         let fileQueue = [];
         let fileIndex = 0;
+        let queueHasErrors = false;
 
         // Click по кнопке -> открываем системный выбор файлов
         $('#button-manual-upload').on('click', function(e) {
@@ -139,12 +149,14 @@
 
             // Сброс интерфейса перед новой загрузкой (до вывода ошибок)
             resetUI();
+            queueHasErrors = false;
 
             const validFiles = [];
 
             for (let i = 0; i < files.length; i++) {
                 // Если MAX_FILE_SIZE = 0 -> ограничение отключено
                 if (MAX_FILE_SIZE > 0 && files[i].size > MAX_FILE_SIZE) {
+                    queueHasErrors = true;
                     $('#progress-text').append(
                     '<div class="text-danger">' +
                     '<i class="fa fa-times-circle"></i> ' +
@@ -187,9 +199,22 @@
 
         function finishQueueSuccess() {
             $('#button-manual-upload').button('reset');
-            $('#progress-bar').addClass('progress-bar-success').css('width', '100%');
             fileQueue = [];
-            // Сбросим интерфейс после завершения ВСЕЙ очереди
+
+            if (queueHasErrors) {
+                $('#progress-bar')
+                .removeClass('progress-bar-success progress-bar-info')
+                .addClass('progress-bar-danger')
+                .css('width', '100%');
+                return;
+            }
+
+            $('#progress-bar')
+            .removeClass('progress-bar-danger progress-bar-info')
+            .addClass('progress-bar-success')
+            .css('width', '100%');
+
+            // При полностью успешной установке лог можно автоматически скрыть.
             setTimeout(resetUI, 5000);
         }
 
@@ -231,6 +256,7 @@
                 },
                 success: function(json) {
                     if (json.error) {
+                        queueHasErrors = true;
                         $('#' + logId).html(
                         '<span class="text-danger"><i class="fa fa-times-circle"></i> ' +
                         fileName + ': ' + json.error + '</span>'
@@ -258,6 +284,7 @@
                     }
                 },
                 error: function(xhr, ajaxOptions, thrownError) {
+                    queueHasErrors = true;
                     $('#' + logId).html('<span class="text-danger">' + fileName + ': ' + thrownError + '</span>');
                     $('#progress-bar').addClass('progress-bar-danger');
 
@@ -275,6 +302,7 @@
                 dataType: 'json',
                 success: function(json) {
                     if (json.error) {
+                        queueHasErrors = true;
                         $('#' + logId).html(
                         '<span class="text-danger"><i class="fa fa-times-circle"></i> ' +
                         fileName + ': ' + json.error + '</span>'
@@ -310,6 +338,7 @@
                     }
                 },
                 error: function(xhr, ajaxOptions, thrownError) {
+                    queueHasErrors = true;
                     $('#' + logId).html('<span class="text-danger">' + fileName + ': ' + thrownError + '</span>');
                     $('#progress-bar').addClass('progress-bar-danger');
 
