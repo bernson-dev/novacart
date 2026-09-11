@@ -16,24 +16,54 @@ class ImageAttributes {
 
 	private static function enhanceTag($matches) {
 		$tag = $matches[0];
-
-		if (!preg_match('/\bsrc\s*=\s*(["\'])(.*?)\1/i', $tag, $src_match)) {
-			return self::ensureAlt($tag);
-		}
-
 		$has_width = preg_match('/\bwidth\s*=\s*(["\']).*?\1/i', $tag);
 		$has_height = preg_match('/\bheight\s*=\s*(["\']).*?\1/i', $tag);
 
 		if (!$has_width && !$has_height) {
-			$src = html_entity_decode($src_match[2], ENT_QUOTES, 'UTF-8');
-			$size = self::getSize($src);
+			$sources = self::getTagSources($tag);
 
-			if ($size) {
-				$tag = self::appendAttributes($tag, ' width="' . $size[0] . '" height="' . $size[1] . '"');
+			foreach ($sources as $src) {
+				$size = self::getSize($src);
+
+				if ($size) {
+					$tag = self::appendAttributes($tag, ' width="' . $size[0] . '" height="' . $size[1] . '"');
+					break;
+				}
 			}
 		}
 
 		return self::ensureAlt($tag);
+	}
+
+	private static function getTagSources($tag) {
+		$sources = array();
+		$lazy_attributes = array('data-src', 'data-original', 'data-lazy-src');
+
+		foreach ($lazy_attributes as $attribute) {
+			if (preg_match('/\b' . preg_quote($attribute, '/') . '\s*=\s*(["\'])(.*?)\1/i', $tag, $match)) {
+				$src = html_entity_decode($match[2], ENT_QUOTES, 'UTF-8');
+
+				if ($src !== '' && !in_array($src, $sources, true)) {
+					$sources[] = $src;
+				}
+			}
+		}
+
+		// Lazy-load placeholders are often 1x1 images and must not define
+		// the intrinsic dimensions of the real image.
+		if ($sources) {
+			return $sources;
+		}
+
+		if (preg_match('/\bsrc\s*=\s*(["\'])(.*?)\1/i', $tag, $match)) {
+			$src = html_entity_decode($match[2], ENT_QUOTES, 'UTF-8');
+
+			if ($src !== '') {
+				$sources[] = $src;
+			}
+		}
+
+		return $sources;
 	}
 
 	private static function getSize($src) {
@@ -50,6 +80,10 @@ class ImageAttributes {
 	private static function detectSize($src) {
 		if (stripos($src, 'data:image/svg+xml') === 0) {
 			return self::getSvgDataSize($src);
+		}
+
+		if (!self::isLocalUrl($src)) {
+			return false;
 		}
 
 		$src_path = parse_url($src, PHP_URL_PATH);
@@ -100,6 +134,43 @@ class ImageAttributes {
 		}
 
 		return false;
+	}
+
+	private static function isLocalUrl($src) {
+		$parts = parse_url($src);
+
+		if ($parts === false) {
+			return false;
+		}
+
+		$scheme = isset($parts['scheme']) ? strtolower($parts['scheme']) : '';
+		$host = isset($parts['host']) ? strtolower($parts['host']) : '';
+
+		if ($host === '') {
+			return $scheme === '';
+		}
+
+		if ($scheme !== '' && $scheme !== 'http' && $scheme !== 'https') {
+			return false;
+		}
+
+		$request_hosts = array();
+
+		foreach (array('HTTP_HOST', 'SERVER_NAME') as $server_key) {
+			if (!empty($_SERVER[$server_key])) {
+				$request_host = parse_url('http://' . ltrim((string)$_SERVER[$server_key], '/'), PHP_URL_HOST);
+
+				if (is_string($request_host) && $request_host !== '') {
+					$request_host = strtolower($request_host);
+
+					if (!in_array($request_host, $request_hosts, true)) {
+						$request_hosts[] = $request_host;
+					}
+				}
+			}
+		}
+
+		return in_array($host, $request_hosts, true);
 	}
 
 	private static function resolveLocalFile($src_path) {

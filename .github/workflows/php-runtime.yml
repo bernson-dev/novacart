@@ -154,6 +154,27 @@ jobs:
           assertSameValue(true, strpos($enhancedDataLogo, 'width="220"') !== false, 'Data SVG width was not added');
           assertSameValue(true, strpos($enhancedDataLogo, 'height="60"') !== false, 'Data SVG height was not added');
 
+          // Lazy-load attributes must define the real image dimensions rather than
+          // an unrelated placeholder src.
+          $lazy = '<!DOCTYPE html><html><body><img src="/image/cache/catalog/placeholder-1x1.jpg" data-src="/image/cache/catalog/product-640x480.jpg"></body></html>';
+          $enhancedLazy = ImageAttributes::enhance($lazy);
+          assertSameValue(true, strpos($enhancedLazy, 'width="640"') !== false, 'Lazy-load image width was not added');
+          assertSameValue(true, strpos($enhancedLazy, 'height="480"') !== false, 'Lazy-load image height was not added');
+          assertSameValue(false, strpos($enhancedLazy, 'width="1"') !== false, 'Lazy-load placeholder dimensions were used');
+
+          // Absolute URLs for the current host remain local, while remote hosts
+          // must never be resolved against the local DIR_IMAGE tree.
+          $_SERVER['HTTP_HOST'] = 'store.test';
+          $sameHost = '<!DOCTYPE html><html><body><img src="https://store.test/image/cache/catalog/test-320x180.jpg"></body></html>';
+          $enhancedSameHost = ImageAttributes::enhance($sameHost);
+          assertSameValue(true, strpos($enhancedSameHost, 'width="320"') !== false, 'Same-host absolute image width was not added');
+          assertSameValue(true, strpos($enhancedSameHost, 'height="180"') !== false, 'Same-host absolute image height was not added');
+
+          $remoteHost = '<!DOCTYPE html><html><body><img src="https://cdn.example/image/cache/catalog/test-320x180.jpg"></body></html>';
+          $enhancedRemoteHost = ImageAttributes::enhance($remoteHost);
+          assertSameValue(false, strpos($enhancedRemoteHost, 'width="320"') !== false, 'Remote image URL was treated as local');
+          assertSameValue(false, strpos($enhancedRemoteHost, 'height="180"') !== false, 'Remote image URL was treated as local');
+
           $custom = '<!DOCTYPE html><html><body><img src="/image/cache/catalog/test-300x200.jpg" width="120" height="80" alt="Custom"></body></html>';
           assertSameValue($custom, ImageAttributes::enhance($custom), 'Existing image dimensions were changed');
 
