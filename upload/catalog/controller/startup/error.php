@@ -30,7 +30,7 @@ class ControllerStartupError extends Controller {
 				break;
 		}
 
-		if ($this->config->get('config_error_display')) {
+		if ($this->config->get('config_error_display') && !frameworkIsAjaxRequest()) {
 			echo '<b>' . $error . '</b>: ' . $message . ' in <b>' . $file . '</b> on line <b>' . $line . '</b>';
 		}
 
