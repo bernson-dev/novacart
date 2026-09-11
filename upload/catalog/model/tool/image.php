@@ -6,19 +6,33 @@ class ModelToolImage extends Model {
 		}
 
 		$extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-
-		if ($extension === 'svg' || $extension === 'svgz') {
-			$image = str_replace('\\', '/', $filename);
-
-			if (!empty($this->request->server['HTTPS']) && $this->request->server['HTTPS'] != 'off') {
-				return $this->config->get('config_ssl') . 'image/' . $image;
-			} else {
-				return $this->config->get('config_url') . 'image/' . $image;
-			}
-		}
-
 		$image_old = $filename;
 		$image_new = 'cache/' . utf8_substr($filename, 0, utf8_strrpos($filename, '.')) . '-' . (int)$width . 'x' . (int)$height . '.' . $extension;
+
+		if ($extension === 'svg' || $extension === 'svgz') {
+			if (!is_file(DIR_IMAGE . $image_new) || filemtime(DIR_IMAGE . $image_old) > filemtime(DIR_IMAGE . $image_new)) {
+				$path = '';
+				$directories = explode('/', dirname($image_new));
+
+				foreach ($directories as $directory) {
+					$path .= '/' . $directory;
+
+					if (!is_dir(DIR_IMAGE . $path)) {
+						@mkdir(DIR_IMAGE . $path, 0755);
+					}
+				}
+
+				copy(DIR_IMAGE . $image_old, DIR_IMAGE . $image_new);
+			}
+
+			$image_new = str_replace(' ', '%20', $image_new);
+
+			if (!empty($this->request->server['HTTPS']) && $this->request->server['HTTPS'] != 'off') {
+				return $this->config->get('config_ssl') . 'image/' . $image_new;
+			} else {
+				return $this->config->get('config_url') . 'image/' . $image_new;
+			}
+		}
 
 		if (!is_file(DIR_IMAGE . $image_new) || (filemtime(DIR_IMAGE . $image_old) > filemtime(DIR_IMAGE . $image_new))) {
 			list($width_orig, $height_orig, $image_type) = getimagesize(DIR_IMAGE . $image_old);
