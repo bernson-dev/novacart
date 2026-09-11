@@ -124,6 +124,134 @@ function modification(string $filename): string {
 	return is_file($file) ? $file : $filename;
 }
 
+/**
+ * Check whether an error originated from the generated modification cache.
+ */
+function emergencyModificationFile($filename): bool {
+	if (!defined('DIR_MODIFICATION') || !$filename) {
+		return false;
+	}
+
+	$filename = str_replace('\\', '/', (string)$filename);
+	$base = rtrim(str_replace('\\', '/', DIR_MODIFICATION), '/') . '/';
+
+	return strpos($filename, $base) === 0;
+}
+
+/**
+ * Create a short-lived one-time URL for emergency modification cache cleanup.
+ */
+function emergencyModificationClearLink(): string {
+	if (!defined('DIR_STORAGE') || !is_dir(DIR_STORAGE)) {
+		return '';
+	}
+
+	try {
+		$token = bin2hex(random_bytes(32));
+	} catch (Throwable $e) {
+		return '';
+	}
+
+	$data = array(
+		'hash'    => hash('sha256', $token),
+		'expires' => time() + 600
+	);
+
+	$json = json_encode($data);
+
+	if ($json === false) {
+		return '';
+	}
+
+	$token_file = DIR_STORAGE . 'emergency_clear_token.json';
+
+	if (@file_put_contents($token_file, $json, LOCK_EX) === false) {
+		return '';
+	}
+
+	@chmod($token_file, 0600);
+
+	$is_https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' && $_SERVER['HTTPS'] !== '0';
+
+	if ($is_https && defined('HTTPS_CATALOG')) {
+		$base_url = HTTPS_CATALOG;
+	} elseif (!$is_https && defined('HTTP_CATALOG')) {
+		$base_url = HTTP_CATALOG;
+	} elseif ($is_https && defined('HTTPS_SERVER')) {
+		$base_url = HTTPS_SERVER;
+	} elseif (defined('HTTP_SERVER')) {
+		$base_url = HTTP_SERVER;
+	} elseif (!empty($_SERVER['HTTP_HOST'])) {
+		$base_url = ($is_https ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/';
+	} else {
+		@unlink($token_file);
+		return '';
+	}
+
+	return rtrim($base_url, '/') . '/emergency_clear.php?token=' . rawurlencode($token);
+}
+
+/**
+ * Return a minimal recovery response when a generated OCMOD PHP file is broken.
+ */
+function emergencyModificationFailure(Throwable $e): void {
+	$link = emergencyModificationClearLink();
+
+	if ($link === '') {
+		throw $e;
+	}
+
+	$message = get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine();
+	$is_ajax = false;
+
+	if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string)$_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+		$is_ajax = true;
+	} elseif (!empty($_SERVER['HTTP_ACCEPT']) && stripos((string)$_SERVER['HTTP_ACCEPT'], 'application/json') !== false) {
+		$is_ajax = true;
+	} elseif (!empty($_SERVER['CONTENT_TYPE']) && stripos((string)$_SERVER['CONTENT_TYPE'], 'application/json') !== false) {
+		$is_ajax = true;
+	}
+
+	while (ob_get_level() > 0) {
+		@ob_end_clean();
+	}
+
+	if (!headers_sent()) {
+		http_response_code(500);
+	}
+
+	if ($is_ajax) {
+		if (!headers_sent()) {
+			header('Content-Type: application/json; charset=utf-8');
+		}
+
+		echo json_encode(
+			array(
+				'success'         => false,
+				'error'           => $message,
+				'emergency_clear' => $link
+			),
+			JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE
+		);
+		exit;
+	}
+
+	if (!headers_sent()) {
+		header('Content-Type: text/html; charset=utf-8');
+	}
+
+	echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Modification error</title></head><body>';
+	echo '<div style="max-width:900px;margin:30px auto;font-family:Arial,sans-serif;line-height:1.5">';
+	echo '<h1>Modification error</h1>';
+	echo '<p><strong>' . htmlspecialchars(get_class($e), ENT_QUOTES, 'UTF-8') . '</strong>: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . '</p>';
+	echo '<p><small>File: ' . htmlspecialchars($e->getFile(), ENT_QUOTES, 'UTF-8') . ' (line ' . (int)$e->getLine() . ')</small></p>';
+	echo '<p>The error was detected in the generated modification cache.</p>';
+	echo '<p><a href="' . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . '">Clear modification cache</a></p>';
+	echo '<p><small>The recovery link is valid for 10 minutes and can be used once.</small></p>';
+	echo '</div></body></html>';
+	exit;
+}
+
 // Autoloader
 if (defined('DIR_STORAGE') && is_file(DIR_STORAGE . 'vendor/autoload.php')) {
 	require_once(DIR_STORAGE . 'vendor/autoload.php');
@@ -153,5 +281,13 @@ require_once(modification(DIR_SYSTEM . 'helper/utf8.php'));
 
 // Start
 function start($application_config): void {
-	require_once(DIR_SYSTEM . 'framework.php');
+	try {
+		require_once(DIR_SYSTEM . 'framework.php');
+	} catch (Throwable $e) {
+		if (emergencyModificationFile($e->getFile())) {
+			emergencyModificationFailure($e);
+		}
+
+		throw $e;
+	}
 }
