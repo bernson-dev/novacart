@@ -31,6 +31,18 @@
             <button type="button" class="close" data-dismiss="alert">&times;</button>
         </div>
         {% endif %}
+
+        <div id="ocmod-runtime-warning" class="alert alert-danger" style="display:none;">
+            <button type="button" class="close" id="ocmod-runtime-warning-close">&times;</button>
+            <h4 style="margin-top:0;"><i class="fa fa-exclamation-triangle"></i> <span id="ocmod-runtime-warning-title"></span></h4>
+            <p id="ocmod-runtime-warning-text"></p>
+            <p style="margin-bottom:8px;"><strong id="ocmod-runtime-warning-file-label"></strong> <code id="ocmod-runtime-warning-file"></code></p>
+            <pre id="ocmod-runtime-warning-message" style="margin:0 0 10px 0;white-space:pre-wrap;"></pre>
+            <button type="button" id="ocmod-runtime-open-log" class="btn btn-danger btn-sm">
+                <i class="fa fa-list"></i> <span id="ocmod-runtime-open-log-text"></span>
+            </button>
+        </div>
+
         <div class="alert alert-info">
             <i class="fa fa-info-circle"></i> {{ text_refresh }}</div>
         <div class="panel panel-default">
@@ -379,7 +391,9 @@
             if (trimmed.startsWith('LINE: '))
                 return 'ocmod-log-success';
 
-            if (trimmed.includes('NOT FOUND') ||
+            if (trimmed.startsWith('ERROR:') ||
+            trimmed.startsWith('ACTION:') ||
+            trimmed.includes('NOT FOUND') ||
             trimmed.includes('ABORTING') ||
             trimmed.includes('OPERATIONS ABORTED') ||
             lower.includes('exception')) {
@@ -431,9 +445,70 @@
             element.scrollTop = element.scrollHeight;
         }
 
+        function ocmodReadRuntimeWarning() {
+            const prefix = 'ocmod_runtime_warning=';
+            const cookies = document.cookie ? document.cookie.split(';') : [];
+
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.indexOf(prefix) !== 0) {
+                    continue;
+                }
+
+                try {
+                    return JSON.parse(decodeURIComponent(cookie.substring(prefix.length)));
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            return null;
+        }
+
+        function ocmodClearRuntimeWarning() {
+            document.cookie = 'ocmod_runtime_warning=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.js-ocmod-log').forEach(el => ocmodColorizeLog(el));
+
+            const runtimeWarning = ocmodReadRuntimeWarning();
+            if (runtimeWarning && runtimeWarning.file && runtimeWarning.message) {
+                const lang = (document.documentElement.lang || '').toLowerCase();
+                const isRu = lang.indexOf('ru') === 0;
+                const warning = document.getElementById('ocmod-runtime-warning');
+
+                document.getElementById('ocmod-runtime-warning-title').textContent = isRu
+                    ? 'Перехвачена критическая ошибка кэша OCMOD'
+                    : 'Critical OCMOD cache error intercepted';
+                document.getElementById('ocmod-runtime-warning-text').textContent = isRu
+                    ? 'Повреждённый сгенерированный PHP-файл не используется. NovaCart загрузил оригинальный файл, поэтому сайт продолжает работать. Ошибку модификатора необходимо исправить.'
+                    : 'The broken generated PHP file was rejected. NovaCart loaded the original file so the site can continue working. The modification error still needs to be fixed.';
+                document.getElementById('ocmod-runtime-warning-file-label').textContent = isRu ? 'Файл:' : 'File:';
+                document.getElementById('ocmod-runtime-warning-file').textContent = runtimeWarning.file;
+                document.getElementById('ocmod-runtime-warning-message').textContent = runtimeWarning.message;
+                document.getElementById('ocmod-runtime-open-log-text').textContent = isRu ? 'Показать ошибку в логе' : 'Show error in log';
+                warning.style.display = '';
+
+                document.getElementById('ocmod-runtime-warning-close').addEventListener('click', function() {
+                    warning.style.display = 'none';
+                    ocmodClearRuntimeWarning();
+                });
+
+                document.getElementById('ocmod-runtime-open-log').addEventListener('click', function() {
+                    const tabLink = document.querySelector('a[href="#tab-log-error"]');
+                    if (tabLink && window.jQuery) {
+                        $(tabLink).tab('show');
+                    }
+
+                    const searchInput = document.getElementById('log-search');
+                    if (searchInput) {
+                        searchInput.value = runtimeWarning.file;
+                        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        searchInput.focus();
+                    }
+                });
+            }
 
             // поиск по блокам
             const searchInput = document.getElementById('log-search');
