@@ -1,5 +1,7 @@
 <?php
 class ImageAttributes {
+	private static $sizeCache = array();
+
 	public static function enhance($html) {
 		if (!is_string($html) || $html === '') {
 			return $html;
@@ -35,6 +37,17 @@ class ImageAttributes {
 	}
 
 	private static function getSize($src) {
+		if (array_key_exists($src, self::$sizeCache)) {
+			return self::$sizeCache[$src];
+		}
+
+		$size = self::detectSize($src);
+		self::$sizeCache[$src] = $size;
+
+		return $size;
+	}
+
+	private static function detectSize($src) {
 		if (stripos($src, 'data:image/svg+xml') === 0) {
 			return self::getSvgDataSize($src);
 		}
@@ -127,7 +140,6 @@ class ImageAttributes {
 				if (strpos($normalized_file, $base) === 0 && is_file($file)) {
 					return $file;
 				}
-			}
 		}
 
 		return false;
