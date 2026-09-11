@@ -167,7 +167,7 @@ class ControllerMarketplaceInstall extends Controller {
 				foreach ($files as $file) {
 					$destination = str_replace('\\', '/', substr($file, strlen($directory . 'upload/')));
 
-					if ($destination === '' || $destination[0] === '/' || strpos($destination, "\0") !== false || strpos($destination, ':') !== false || preg_match('#(^|/)\.\.?(/|$)#', $destination)) {
+					if (!$this->isSafeInstallPath($destination)) {
 						$json['error'] = sprintf($this->language->get('error_allowed'), $destination);
 						break;
 					}
@@ -188,23 +188,7 @@ class ControllerMarketplaceInstall extends Controller {
 						}
 					}
 
-					if ($safe) {
-						if (substr($destination, 0, 5) == 'admin') {
-							$destination = DIR_APPLICATION . substr($destination, 6);
-						}
-
-						if (substr($destination, 0, 7) == 'catalog') {
-							$destination = DIR_CATALOG . substr($destination, 8);
-						}
-
-						if (substr($destination, 0, 5) == 'image') {
-							$destination = DIR_IMAGE . substr($destination, 6);
-						}
-
-						if (substr($destination, 0, 6) == 'system') {
-							$destination = DIR_SYSTEM . substr($destination, 7);
-						}
-					} else {
+					if (!$safe) {
 						$json['error'] = sprintf($this->language->get('error_allowed'), $destination);
 						break;
 					}
@@ -215,37 +199,59 @@ class ControllerMarketplaceInstall extends Controller {
 
 					foreach ($files as $file) {
 						$destination = str_replace('\\', '/', substr($file, strlen($directory . 'upload/')));
-						$path = '';
+						$path = $this->getInstallPath($destination);
 
-						if (substr($destination, 0, 5) == 'admin') {
-							$path = DIR_APPLICATION . substr($destination, 6);
+						if ($path === '') {
+							$json['error'] = sprintf($this->language->get('error_allowed'), $destination);
+							break;
 						}
 
-						if (substr($destination, 0, 7) == 'catalog') {
-							$path = DIR_CATALOG . substr($destination, 8);
-						}
+						if (is_dir($file)) {
+							if (!is_dir($path)) {
+								if (!mkdir($path, 0777, true)) {
+									$json['error'] = sprintf($this->language->get('error_move'), $destination);
+									break;
+								}
 
-						if (substr($destination, 0, 5) == 'image') {
-							$path = DIR_IMAGE . substr($destination, 6);
-						}
-
-						if (substr($destination, 0, 6) == 'system') {
-							$path = DIR_SYSTEM . substr($destination, 7);
-						}
-
-						if (($path == '') && $allow_protected) {
-							$path = DIR_CATALOG . '../' . $destination;
-						}
-
-						if (is_dir($file) && !is_dir($path)) {
-							if (mkdir($path, 0777)) {
 								$this->model_setting_extension->addExtensionPath($extension_install_id, $destination);
 							}
 						}
 
 						if (is_file($file)) {
+							$backup = $directory . 'backup/' . $destination;
+							$had_backup = false;
+
+							if (is_file($path)) {
+								$backup_directory = dirname($backup);
+
+								if (!is_dir($backup_directory) && !mkdir($backup_directory, 0777, true)) {
+									$json['error'] = sprintf($this->language->get('error_move'), $destination);
+									break;
+								}
+
+								if (!copy($path, $backup)) {
+									$json['error'] = sprintf($this->language->get('error_move'), $destination);
+									break;
+								}
+
+								$had_backup = true;
+
+								if (!unlink($path)) {
+									unlink($backup);
+									$json['error'] = sprintf($this->language->get('error_move'), $destination);
+									break;
+								}
+							}
+
 							if (rename($file, $path)) {
 								$this->model_setting_extension->addExtensionPath($extension_install_id, $destination);
+							} else {
+								if ($had_backup && is_file($backup)) {
+									copy($backup, $path);
+								}
+
+								$json['error'] = sprintf($this->language->get('error_move'), $destination);
+								break;
 							}
 						}
 					}
@@ -379,36 +385,7 @@ class ControllerMarketplaceInstall extends Controller {
 			$directory = DIR_UPLOAD . 'tmp-' . $this->session->data['install'] . '/';
 
 			if (is_dir($directory)) {
-				$files = array();
-				$path = array($directory);
-
-				while (count($path) != 0) {
-					$next = array_shift($path);
-
-					foreach (array_diff(scandir($next), array('.', '..')) as $file) {
-						$file = $next . '/' . $file;
-
-						if (is_dir($file)) {
-							$path[] = $file;
-						}
-
-						$files[] = $file;
-					}
-				}
-
-				rsort($files);
-
-				foreach ($files as $file) {
-					if (is_file($file)) {
-						unlink($file);
-					} elseif (is_dir($file)) {
-						rmdir($file);
-					}
-				}
-
-				if (is_dir($directory)) {
-					rmdir($directory);
-				}
+				$this->removeDirectory($directory);
 			}
 
 			$file = DIR_UPLOAD . $this->session->data['install'] . '.tmp';
@@ -417,6 +394,7 @@ class ControllerMarketplaceInstall extends Controller {
 				unlink($file);
 			}
 
+			unset($this->session->data['install']);
 			$json['success'] = $this->language->get('text_success');
 		}
 
@@ -446,66 +424,17 @@ class ControllerMarketplaceInstall extends Controller {
 		if (!$json) {
 			$this->load->model('setting/extension');
 			$results = $this->model_setting_extension->getExtensionPathsByExtensionInstallId($extension_install_id);
-			rsort($results);
+			$results = array_reverse($results);
 
 			foreach ($results as $result) {
-				$source = '';
+				$source = $this->getInstallPath($result['path']);
 
-				if (substr($result['path'], 0, 5) == 'admin') {
-					$source = DIR_APPLICATION . substr($result['path'], 6);
-				}
-
-				if (substr($result['path'], 0, 7) == 'catalog') {
-					$source = DIR_CATALOG . substr($result['path'], 8);
-				}
-
-				if (substr($result['path'], 0, 5) == 'image') {
-					$source = DIR_IMAGE . substr($result['path'], 6);
-				}
-
-				if (substr($result['path'], 0, 14) == 'system/library') {
-					$source = DIR_SYSTEM . 'library/' . substr($result['path'], 15);
-				}
-
-				if (is_file($source)) {
+				if ($source !== '' && is_file($source)) {
 					unlink($source);
 				}
 
-				if (is_dir($source)) {
-					$files = array();
-					$path = array($source);
-
-					while (count($path) != 0) {
-						$next = array_shift($path);
-
-						foreach (array_diff(scandir($next), array('.', '..')) as $file) {
-							$file = $next . '/' . $file;
-
-							if (is_dir($file)) {
-								$path[] = $file;
-							}
-
-							$files[] = $file;
-						}
-					}
-
-					rsort($files);
-
-					foreach ($files as $file) {
-						if (is_file($file)) {
-							unlink($file);
-						} elseif (is_dir($file)) {
-							rmdir($file);
-						}
-					}
-
-					if (is_file($source)) {
-						unlink($source);
-					}
-
-					if (is_dir($source)) {
-						rmdir($source);
-					}
+				if ($source !== '' && is_dir($source)) {
+					@rmdir($source);
 				}
 
 				$this->model_setting_extension->deleteExtensionPath($result['extension_path_id']);
@@ -529,10 +458,99 @@ class ControllerMarketplaceInstall extends Controller {
 		}
 
 		$this->load->model('setting/extension');
+		$results = array_reverse($this->model_setting_extension->getExtensionPathsByExtensionInstallId($extension_install_id));
+		$directory = '';
+
+		if (!empty($this->session->data['install'])) {
+			$directory = DIR_UPLOAD . 'tmp-' . $this->session->data['install'] . '/';
+		}
+
+		foreach ($results as $result) {
+			$destination = str_replace('\\', '/', $result['path']);
+			$path = $this->getInstallPath($destination);
+			$backup = $directory ? $directory . 'backup/' . $destination : '';
+
+			if ($path !== '') {
+				if ($backup && is_file($backup)) {
+					if (is_file($path)) {
+						unlink($path);
+					}
+
+					$target_directory = dirname($path);
+
+					if (is_dir($target_directory) || mkdir($target_directory, 0777, true)) {
+						if (copy($backup, $path)) {
+							unlink($backup);
+						}
+					}
+				} elseif (is_file($path)) {
+					unlink($path);
+				} elseif (is_dir($path)) {
+					@rmdir($path);
+				}
+			}
+		}
+
 		$this->model_setting_extension->deleteExtensionPathsByExtensionInstallId($extension_install_id);
 		$this->model_setting_extension->deleteExtensionInstall($extension_install_id);
 
 		$this->load->model('setting/modification');
 		$this->model_setting_modification->deleteModificationsByExtensionInstallId($extension_install_id);
+	}
+
+	private function isSafeInstallPath($destination) {
+		$destination = str_replace('\\', '/', (string)$destination);
+
+		if ($destination === '' || $destination[0] === '/' || strpos($destination, "\0") !== false || strpos($destination, ':') !== false) {
+			return false;
+		}
+
+		return !preg_match('#(^|/)\.\.?(/|$)#', $destination);
+	}
+
+	private function getInstallPath($destination) {
+		$destination = str_replace('\\', '/', (string)$destination);
+
+		if (!$this->isSafeInstallPath($destination)) {
+			return '';
+		}
+
+		if ($destination === 'admin' || strpos($destination, 'admin/') === 0) {
+			return DIR_APPLICATION . ($destination === 'admin' ? '' : substr($destination, 6));
+		}
+
+		if ($destination === 'catalog' || strpos($destination, 'catalog/') === 0) {
+			return DIR_CATALOG . ($destination === 'catalog' ? '' : substr($destination, 8));
+		}
+
+		if ($destination === 'image' || strpos($destination, 'image/') === 0) {
+			return DIR_IMAGE . ($destination === 'image' ? '' : substr($destination, 6));
+		}
+
+		if ($destination === 'system' || strpos($destination, 'system/') === 0) {
+			return DIR_SYSTEM . ($destination === 'system' ? '' : substr($destination, 7));
+		}
+
+		return DIR_CATALOG . '../' . $destination;
+	}
+
+	private function removeDirectory($directory) {
+		if (!is_dir($directory)) {
+			return;
+		}
+
+		$files = array_diff(scandir($directory), array('.', '..'));
+
+		foreach ($files as $file) {
+			$path = $directory . '/' . $file;
+
+			if (is_dir($path)) {
+				$this->removeDirectory($path);
+			} elseif (is_file($path)) {
+				unlink($path);
+			}
+		}
+
+		@rmdir($directory);
 	}
 }
