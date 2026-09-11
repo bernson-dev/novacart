@@ -3,7 +3,7 @@
  * @package		OpenCart
  *
  * @author		Daniel Kerr
- * @copyright	Copyright (c) 2005 - 2017, OpenCart, Ltd. (https://www.opencart.com/)
+ * @copyright	Copyright (c) 2005 - 2017 OpenCart, Ltd. (https://www.opencart.com/)
  * @license		https://opensource.org/licenses/GPL-3.0
  * @link		https://www.opencart.com
 */
@@ -111,7 +111,13 @@ class Response {
 	*/
 	public function output() {
 		if ($this->output !== '') {
-			$output = $this->level ? $this->compress($this->output, $this->level) : $this->output;
+			$output = $this->output;
+
+			if (class_exists('ImageAttributes')) {
+				$output = ImageAttributes::enhance($output);
+			}
+
+			$output = $this->level ? $this->compress($output, $this->level) : $output;
 
 			if (!headers_sent()) {
 				foreach ($this->headers as $header) {
