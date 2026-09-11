@@ -74,8 +74,27 @@ class ControllerMarketplaceInstall extends Controller {
 			$open_result = $zip->open($file);
 
 			if ($open_result === true) {
-				if ($zip->extractTo($directory)) {
+				$archive_safe = true;
+
+				for ($index = 0; $index < $zip->numFiles; $index++) {
+					$entry = $zip->getNameIndex($index);
+
+					if ($entry === false || !$this->isSafeZipEntry($zip, $index, $entry)) {
+						$archive_safe = false;
+						break;
+					}
+				}
+
+				if (!$archive_safe) {
 					$zip->close();
+					$json['error'] = $this->language->get('error_unzip');
+				} else {
+					$old_umask = umask(0022);
+					$extracted = $zip->extractTo($directory);
+					umask($old_umask);
+
+					if ($extracted) {
+						$zip->close();
 
 					if (is_file($file)) {
 						unlink($file);
@@ -83,9 +102,10 @@ class ControllerMarketplaceInstall extends Controller {
 
 					$json['text'] = $this->language->get('text_move');
 					$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/move', 'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id . '&allow_protected=' . $allow_protected, true));
-				} else {
-					$zip->close();
-					$json['error'] = $this->language->get('error_unzip');
+					} else {
+						$zip->close();
+						$json['error'] = $this->language->get('error_unzip');
+					}
 				}
 			} else {
 				$json['error'] = $this->language->get('error_unzip');
@@ -394,7 +414,7 @@ class ControllerMarketplaceInstall extends Controller {
 				unlink($file);
 			}
 
-			unset($this->session->data['install']);
+			unset($this->session->data['install'], $this->session->data['extension_install_id']);
 			$json['success'] = $this->language->get('text_success');
 		}
 
@@ -453,7 +473,7 @@ class ControllerMarketplaceInstall extends Controller {
 	private function cleanupFailedInstall($extension_install_id) {
 		$extension_install_id = (int)$extension_install_id;
 
-		if (!$extension_install_id) {
+		if (!$extension_install_id || !isset($this->session->data['extension_install_id']) || (int)$this->session->data['extension_install_id'] !== $extension_install_id) {
 			return;
 		}
 
@@ -496,6 +516,42 @@ class ControllerMarketplaceInstall extends Controller {
 
 		$this->load->model('setting/modification');
 		$this->model_setting_modification->deleteModificationsByExtensionInstallId($extension_install_id);
+
+		if ($directory && is_dir($directory)) {
+			$this->removeDirectory($directory);
+		}
+
+		if (!empty($this->session->data['install'])) {
+			$file = DIR_UPLOAD . $this->session->data['install'] . '.tmp';
+
+			if (is_file($file)) {
+				unlink($file);
+			}
+		}
+
+		unset($this->session->data['install'], $this->session->data['extension_install_id']);
+	}
+
+	private function isSafeZipEntry($zip, $index, $entry) {
+		$entry = str_replace('\\', '/', (string)$entry);
+		$path = rtrim($entry, '/');
+
+		if (!$this->isSafeInstallPath($path)) {
+			return false;
+		}
+
+		$opsys = 0;
+		$attributes = 0;
+
+		if ($zip->getExternalAttributesIndex((int)$index, $opsys, $attributes) && $opsys === ZipArchive::OPSYS_UNIX) {
+			$type = ($attributes >> 16) & 0170000;
+
+			if ($type === 0120000) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private function isSafeInstallPath($destination) {

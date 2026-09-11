@@ -137,8 +137,8 @@ class ControllerMarketplaceInstaller extends Controller {
 
 		// Cleanup только если нет ошибок
 		if (!$json) {
-			$tmp_ttl = 10; // 10 sec
-			$dir_ttl = 10; // 10 sec
+			$tmp_ttl = 3600; // 1 hour
+			$dir_ttl = 3600; // 1 hour
 			// Check if there is an install zip already there
 			$files = glob(DIR_UPLOAD . '*.tmp');
 
@@ -237,6 +237,7 @@ class ControllerMarketplaceInstaller extends Controller {
 						unlink($file);
 						unset($this->session->data['install']);
 					} else {
+						$this->session->data['extension_install_id'] = (int)$extension_install_id;
 						$allow_protected = isset($this->request->post['allow_protected']) ? (int)$this->request->post['allow_protected'] : 0;
 
 						$json['text'] = $this->language->get('text_install');
