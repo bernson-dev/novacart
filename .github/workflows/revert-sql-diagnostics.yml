@@ -1,0 +1,30 @@
+name: Revert SQL Import Diagnostics
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/revert-sql-diagnostics.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  revert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Restore minimal SQL importer
+        shell: bash
+        run: |
+          git checkout cea91254452bd5d6f247e8390767dd8278c5dbf1 -- upload/install/model/install/install.php
+          php -l upload/install/model/install/install.php
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add upload/install/model/install/install.php
+          git commit -m 'Keep installer SQL import simple'
+          git push
