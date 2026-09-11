@@ -1,0 +1,93 @@
+name: Fix Installer Safety
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/fix-installer-safety.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup PHP 7.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.3'
+          coverage: none
+
+      - name: Harden installer
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          install = Path('upload/admin/controller/marketplace/install.php')
+          source = install.read_text(encoding='utf-8')
+
+          old = """\t\t\tif ($open_result === true) {\n\t\t\t\tif ($zip->extractTo($directory)) {\n\t\t\t\t\t$zip->close();\n"""
+          new = """\t\t\tif ($open_result === true) {\n\t\t\t\t$archive_safe = true;\n\n\t\t\t\tfor ($index = 0; $index < $zip->numFiles; $index++) {\n\t\t\t\t\t$entry = $zip->getNameIndex($index);\n\n\t\t\t\t\tif ($entry === false || !$this->isSafeZipEntry($zip, $index, $entry)) {\n\t\t\t\t\t\t$archive_safe = false;\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t}\n\n\t\t\t\tif (!$archive_safe) {\n\t\t\t\t\t$zip->close();\n\t\t\t\t\t$json['error'] = $this->language->get('error_unzip');\n\t\t\t\t} else {\n\t\t\t\t\t$old_umask = umask(0022);\n\t\t\t\t\t$extracted = $zip->extractTo($directory);\n\t\t\t\t\tumask($old_umask);\n\n\t\t\t\t\tif ($extracted) {\n\t\t\t\t\t\t$zip->close();\n"""
+          if source.count(old) != 1:
+              raise SystemExit('Unable to locate unzip extraction block')
+          source = source.replace(old, new, 1)
+
+          old = """\t\t\t\t} else {\n\t\t\t\t\t$zip->close();\n\t\t\t\t\t$json['error'] = $this->language->get('error_unzip');\n\t\t\t\t}\n\t\t\t} else {\n"""
+          new = """\t\t\t\t\t} else {\n\t\t\t\t\t\t$zip->close();\n\t\t\t\t\t\t$json['error'] = $this->language->get('error_unzip');\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t} else {\n"""
+          if source.count(old) != 1:
+              raise SystemExit('Unable to locate unzip extraction tail')
+          source = source.replace(old, new, 1)
+
+          old = """\tprivate function cleanupFailedInstall($extension_install_id) {\n\t\t$extension_install_id = (int)$extension_install_id;\n\n\t\tif (!$extension_install_id) {\n\t\t\treturn;\n\t\t}\n"""
+          new = """\tprivate function cleanupFailedInstall($extension_install_id) {\n\t\t$extension_install_id = (int)$extension_install_id;\n\n\t\tif (!$extension_install_id || !isset($this->session->data['extension_install_id']) || (int)$this->session->data['extension_install_id'] !== $extension_install_id) {\n\t\t\treturn;\n\t\t}\n"""
+          if source.count(old) != 1:
+              raise SystemExit('Unable to locate cleanup guard')
+          source = source.replace(old, new, 1)
+
+          old = """\t\t$this->load->model('setting/modification');\n\t\t$this->model_setting_modification->deleteModificationsByExtensionInstallId($extension_install_id);\n\t}\n\n\tprivate function isSafeInstallPath($destination) {\n"""
+          new = """\t\t$this->load->model('setting/modification');\n\t\t$this->model_setting_modification->deleteModificationsByExtensionInstallId($extension_install_id);\n\n\t\tif ($directory && is_dir($directory)) {\n\t\t\t$this->removeDirectory($directory);\n\t\t}\n\n\t\tif (!empty($this->session->data['install'])) {\n\t\t\t$file = DIR_UPLOAD . $this->session->data['install'] . '.tmp';\n\n\t\t\tif (is_file($file)) {\n\t\t\t\tunlink($file);\n\t\t\t}\n\t\t}\n\n\t\tunset($this->session->data['install'], $this->session->data['extension_install_id']);\n\t}\n\n\tprivate function isSafeZipEntry($zip, $index, $entry) {\n\t\t$entry = str_replace('\\\\', '/', (string)$entry);\n\t\t$path = rtrim($entry, '/');\n\n\t\tif (!$this->isSafeInstallPath($path)) {\n\t\t\treturn false;\n\t\t}\n\n\t\t$opsys = 0;\n\t\t$attributes = 0;\n\n\t\tif ($zip->getExternalAttributesIndex((int)$index, $opsys, $attributes) && $opsys === ZipArchive::OPSYS_UNIX) {\n\t\t\t$type = ($attributes >> 16) & 0170000;\n\n\t\t\tif ($type === 0120000) {\n\t\t\t\treturn false;\n\t\t\t}\n\t\t}\n\n\t\treturn true;\n\t}\n\n\tprivate function isSafeInstallPath($destination) {\n"""
+          if source.count(old) != 1:
+              raise SystemExit('Unable to locate cleanup tail')
+          source = source.replace(old, new, 1)
+
+          old = """\t\t\tunset($this->session->data['install']);\n\t\t\t$json['success'] = $this->language->get('text_success');\n"""
+          new = """\t\t\tunset($this->session->data['install'], $this->session->data['extension_install_id']);\n\t\t\t$json['success'] = $this->language->get('text_success');\n"""
+          if source.count(old) != 1:
+              raise SystemExit('Unable to locate remove session cleanup')
+          source = source.replace(old, new, 1)
+
+          install.write_text(source, encoding='utf-8')
+
+          installer = Path('upload/admin/controller/marketplace/installer.php')
+          source = installer.read_text(encoding='utf-8')
+          source = source.replace('$tmp_ttl = 10; // 10 sec', '$tmp_ttl = 3600; // 1 hour', 1)
+          source = source.replace('$dir_ttl = 10; // 10 sec', '$dir_ttl = 3600; // 1 hour', 1)
+
+          old = """\t\t\t\t\t} else {\n\t\t\t\t\t\t$allow_protected = isset($this->request->post['allow_protected']) ? (int)$this->request->post['allow_protected'] : 0;\n"""
+          new = """\t\t\t\t\t} else {\n\t\t\t\t\t\t$this->session->data['extension_install_id'] = (int)$extension_install_id;\n\t\t\t\t\t\t$allow_protected = isset($this->request->post['allow_protected']) ? (int)$this->request->post['allow_protected'] : 0;\n"""
+          if source.count(old) != 1:
+              raise SystemExit('Unable to locate install session binding point')
+          source = source.replace(old, new, 1)
+
+          installer.write_text(source, encoding='utf-8')
+          PY
+
+          php -l upload/admin/controller/marketplace/install.php
+          php -l upload/admin/controller/marketplace/installer.php
+          git diff --check
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add upload/admin/controller/marketplace/install.php upload/admin/controller/marketplace/installer.php
+          git commit -m 'Harden extension installer rollback and ZIP handling'
+          git push
