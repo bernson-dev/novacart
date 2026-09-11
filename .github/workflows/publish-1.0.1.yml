@@ -1,0 +1,52 @@
+name: Publish NovaCart 1.0.1
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/publish-1.0.1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout stable release state
+        uses: actions/checkout@v5
+        with:
+          ref: c1215c263265362433169080bb9addd9ccb6681a
+
+      - name: Prepare release archive
+        shell: bash
+        run: |
+          for dir in \
+            upload/system/storage/cache \
+            upload/system/storage/logs \
+            upload/system/storage/session \
+            upload/image/cache
+          do
+            if [[ -d "$dir" ]]; then
+              find "$dir" -mindepth 1 -delete
+            fi
+          done
+
+          find upload -name '.gitkeep' -delete
+          zip -r novacart-1.0.1.zip upload \
+            -x '*/.DS_Store' \
+            -x '*/Thumbs.db'
+
+      - name: Create release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create 1.0.1 novacart-1.0.1.zip \
+            --repo "$GITHUB_REPOSITORY" \
+            --target c1215c263265362433169080bb9addd9ccb6681a \
+            --title "NovaCart 1.0.1" \
+            --generate-notes \
+            --notes-start-tag 1.0.0
