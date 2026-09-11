@@ -101,58 +101,6 @@ if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
 }
 
 /**
- * Record that a generated OCMOD PHP file was rejected by the runtime guard.
- *
- * Runtime validation is kept separate from the normal per-modifier error map:
- * one broken generated PHP file may be the result of several OCMOD operations,
- * so attributing it to an arbitrary modification would be misleading.
- */
-function modificationRecordRuntimeError(string $file, string $message): void {
-	if (!defined('DIR_LOGS') || !defined('DIR_MODIFICATION')) {
-		return;
-	}
-
-	$relative = str_replace('\\', '/', $file);
-	$base = rtrim(str_replace('\\', '/', DIR_MODIFICATION), '/') . '/';
-
-	if (strpos($relative, $base) === 0) {
-		$relative = substr($relative, strlen($base));
-	}
-
-	$timestamp = date('Y-m-d H:i:s');
-	$log_entry = $timestamp . ' - Runtime OCMOD validation error' . PHP_EOL
-		. 'MOD: Runtime PHP validation' . PHP_EOL
-		. 'FILE: ' . $relative . PHP_EOL
-		. 'ERROR: INVALID GENERATED PHP - ' . $message . PHP_EOL
-		. 'ACTION: Generated modification was ignored; original PHP file is used.' . PHP_EOL;
-
-	@file_put_contents(
-		DIR_LOGS . 'ocmod-runtime-error.log',
-		$log_entry,
-		FILE_APPEND | LOCK_EX
-	);
-
-	@file_put_contents(
-		DIR_LOGS . 'ocmod-error.log',
-		$log_entry,
-		FILE_APPEND | LOCK_EX
-	);
-
-	// Keep a short-lived browser-visible warning independent from OCMOD log rewrites.
-	if (!headers_sent()) {
-		$warning = json_encode(array(
-			'file'    => $relative,
-			'message' => $message,
-			'time'    => $timestamp
-		), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-
-		if ($warning !== false) {
-			setcookie('ocmod_runtime_warning', $warning, time() + 600, '/');
-		}
-	}
-}
-
-/**
  * Validate generated modification PHP without executing it.
  *
  * Successful and failed checks are cached inside DIR_MODIFICATION and are
@@ -218,10 +166,18 @@ function modificationPhpSyntaxValid(string $file): bool {
 		@file_put_contents($valid ? $ok_marker : $bad_marker, '1', LOCK_EX);
 	}
 
-	if (!$valid) {
-		modificationRecordRuntimeError(
-			$file,
-			$error_message !== '' ? $error_message : 'Unknown syntax error'
+	if (!$valid && defined('DIR_LOGS')) {
+		$relative = $file;
+		$base = rtrim(str_replace('\\', '/', DIR_MODIFICATION), '/') . '/';
+
+		if (strpos($relative, $base) === 0) {
+			$relative = substr($relative, strlen($base));
+		}
+
+		@file_put_contents(
+			DIR_LOGS . 'ocmod-runtime-error.log',
+			date('Y-m-d H:i:s') . ' - Invalid generated PHP: ' . $relative . ($error_message !== '' ? ' - ' . $error_message : '') . PHP_EOL,
+			FILE_APPEND | LOCK_EX
 		);
 	}
 
