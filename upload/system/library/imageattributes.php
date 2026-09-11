@@ -140,6 +140,7 @@ class ImageAttributes {
 				if (strpos($normalized_file, $base) === 0 && is_file($file)) {
 					return $file;
 				}
+			}
 		}
 
 		return false;
