@@ -136,13 +136,12 @@ jobs:
                           }
                       }
 
-                      $usesJsonEncode = strpos($body, 'json_encode') !== false;
                       $usesJsonResponseHelper = strpos($body, 'jsonResponse(') !== false;
                       $hasJsonHeader = preg_match('/Content-Type\s*:\s*application\\/json/i', $body) === 1;
-                      $setsResponseOutput = strpos($body, '->setOutput(') !== false;
+                      $setsJsonOutput = preg_match('/->setOutput\s*\(\s*json_encode\s*\(/s', $body) === 1;
                       $directOutput = preg_match('/\b(?:echo|print)\b[^;]*json_encode\s*\(/s', $body) === 1;
 
-                      if ($usesJsonEncode && $setsResponseOutput && !$hasJsonHeader && !$usesJsonResponseHelper) {
+                      if ($setsJsonOutput && !$hasJsonHeader && !$usesJsonResponseHelper) {
                           annotate(
                               $file,
                               lineOfOffset($source, $functionOffset),
