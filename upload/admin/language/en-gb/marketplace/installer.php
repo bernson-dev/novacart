@@ -34,3 +34,4 @@ $_['error_install']                 = 'Extension installation taking place pleas
 $_['error_upload']                  = 'File could not be uploaded!';
 $_['error_filetype']                = 'Invalid file type!';
 $_['error_file']                    = 'File could not be found!';
+$_['error_duplicate']               = 'This extension archive is already installed. Uninstall the existing installation before installing it again.';
