@@ -19,26 +19,171 @@ class ImageAttributes {
 			return self::ensureAlt($tag);
 		}
 
-		$src = html_entity_decode($src_match[2], ENT_QUOTES, 'UTF-8');
-		$src_path = parse_url($src, PHP_URL_PATH);
-
-		if (!is_string($src_path) || stripos($src_path, '/image/cache/') === false) {
-			return self::ensureAlt($tag);
-		}
-
 		$has_width = preg_match('/\bwidth\s*=\s*(["\']).*?\1/i', $tag);
 		$has_height = preg_match('/\bheight\s*=\s*(["\']).*?\1/i', $tag);
 
-		if (!$has_width && !$has_height && preg_match('/-(\d+)x(\d+)\.[a-z0-9]+$/i', $src_path, $size_match)) {
-			$width = (int)$size_match[1];
-			$height = (int)$size_match[2];
+		if (!$has_width && !$has_height) {
+			$src = html_entity_decode($src_match[2], ENT_QUOTES, 'UTF-8');
+			$size = self::getSize($src);
 
-			if ($width > 0 && $height > 0) {
-				$tag = self::appendAttributes($tag, ' width="' . $width . '" height="' . $height . '"');
+			if ($size) {
+				$tag = self::appendAttributes($tag, ' width="' . $size[0] . '" height="' . $size[1] . '"');
 			}
 		}
 
 		return self::ensureAlt($tag);
+	}
+
+	private static function getSize($src) {
+		if (stripos($src, 'data:image/svg+xml') === 0) {
+			return self::getSvgDataSize($src);
+		}
+
+		$src_path = parse_url($src, PHP_URL_PATH);
+
+		if (!is_string($src_path) || $src_path === '') {
+			return false;
+		}
+
+		$src_path = rawurldecode(str_replace('\\', '/', $src_path));
+
+		// Standard OpenCart resized images already contain the requested size.
+		if (stripos($src_path, '/image/cache/') !== false && preg_match('/-(\d+)x(\d+)\.[a-z0-9]+$/i', $src_path, $size_match)) {
+			$width = (int)$size_match[1];
+			$height = (int)$size_match[2];
+
+			if ($width > 0 && $height > 0) {
+				return array($width, $height);
+			}
+		}
+
+		$file = self::resolveLocalFile($src_path);
+
+		if (!$file) {
+			return false;
+		}
+
+		$extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+
+		if ($extension === 'svg') {
+			return self::getSvgFileSize($file);
+		}
+
+		if ($extension === 'svgz') {
+			$content = file_get_contents($file);
+
+			if ($content !== false && function_exists('gzdecode')) {
+				$content = gzdecode($content);
+				return is_string($content) ? self::getSvgSizeFromContent($content) : false;
+			}
+
+			return false;
+		}
+
+		$size = @getimagesize($file);
+
+		if ($size && !empty($size[0]) && !empty($size[1])) {
+			return array((int)$size[0], (int)$size[1]);
+		}
+
+		return false;
+	}
+
+	private static function resolveLocalFile($src_path) {
+		$path = '/' . ltrim($src_path, '/');
+		$candidates = array();
+
+		if (defined('DIR_IMAGE')) {
+			$pos = stripos($path, '/image/');
+
+			if ($pos !== false) {
+				$relative = substr($path, $pos + 7);
+				$candidates[] = array(DIR_IMAGE, $relative);
+			}
+		}
+
+		if (defined('DIR_APPLICATION')) {
+			$pos = stripos($path, '/catalog/language/');
+
+			if ($pos !== false) {
+				$relative = substr($path, $pos + 18);
+				$candidates[] = array(DIR_APPLICATION . 'language/', $relative);
+			}
+
+			// Admin language flags use language/<code>/<code>.png.
+			if (strpos($path, '/language/') === 0) {
+				$candidates[] = array(DIR_APPLICATION . 'language/', substr($path, 10));
+			}
+		}
+
+		foreach ($candidates as $candidate) {
+			$base = realpath($candidate[0]);
+			$file = realpath($candidate[0] . str_replace('/', DIRECTORY_SEPARATOR, $candidate[1]));
+
+			if ($base && $file) {
+				$base = rtrim(str_replace('\\', '/', $base), '/') . '/';
+				$normalized_file = str_replace('\\', '/', $file);
+
+				if (strpos($normalized_file, $base) === 0 && is_file($file)) {
+					return $file;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private static function getSvgFileSize($file) {
+		$content = file_get_contents($file, false, null, 0, 16384);
+
+		return is_string($content) ? self::getSvgSizeFromContent($content) : false;
+	}
+
+	private static function getSvgDataSize($src) {
+		$comma = strpos($src, ',');
+
+		if ($comma === false) {
+			return false;
+		}
+
+		$meta = substr($src, 0, $comma);
+		$data = substr($src, $comma + 1);
+		$content = stripos($meta, ';base64') !== false ? base64_decode($data, true) : rawurldecode($data);
+
+		return is_string($content) ? self::getSvgSizeFromContent($content) : false;
+	}
+
+	private static function getSvgSizeFromContent($content) {
+		if (!preg_match('/<svg\b([^>]*)>/i', $content, $svg_match)) {
+			return false;
+		}
+
+		$attributes = $svg_match[1];
+		$width = self::getSvgNumericAttribute($attributes, 'width');
+		$height = self::getSvgNumericAttribute($attributes, 'height');
+
+		if ($width > 0 && $height > 0) {
+			return array((int)round($width), (int)round($height));
+		}
+
+		if (preg_match('/\bviewBox\s*=\s*(["\'])\s*[-+0-9.eE]+[\s,]+[-+0-9.eE]+[\s,]+([-+0-9.eE]+)[\s,]+([-+0-9.eE]+)\s*\1/i', $attributes, $viewbox_match)) {
+			$width = (float)$viewbox_match[2];
+			$height = (float)$viewbox_match[3];
+
+			if ($width > 0 && $height > 0) {
+				return array((int)round($width), (int)round($height));
+			}
+		}
+
+		return false;
+	}
+
+	private static function getSvgNumericAttribute($attributes, $name) {
+		if (preg_match('/\b' . preg_quote($name, '/') . '\s*=\s*(["\'])\s*([0-9]+(?:\.[0-9]+)?)\s*(?:px)?\s*\1/i', $attributes, $match)) {
+			return (float)$match[2];
+		}
+
+		return 0;
 	}
 
 	private static function ensureAlt($tag) {
