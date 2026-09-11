@@ -65,6 +65,7 @@ jobs:
 
           define('DIR_SYSTEM', $root . 'system/');
           define('DIR_APPLICATION', $root . 'admin/');
+          define('DIR_IMAGE', $root . 'image/');
           define('DIR_STORAGE', $storage);
           define('DIR_MODIFICATION', $modification);
 
@@ -130,6 +131,28 @@ jobs:
           assertSameValue(true, strpos($enhancedSvg, 'width="240"') !== false, 'SVG width was not added');
           assertSameValue(true, strpos($enhancedSvg, 'height="80"') !== false, 'SVG height was not added');
           assertSameValue(true, strpos($enhancedSvg, 'alt="Store"') !== false, 'Existing alt was changed');
+
+          // Local non-cache images, such as uploaded logos, must use their real size.
+          $placeholderSize = getimagesize(DIR_IMAGE . 'placeholder.png');
+          $localLogo = '<!DOCTYPE html><html><body><img src="/image/placeholder.png" alt="Store"></body></html>';
+          $enhancedLogo = ImageAttributes::enhance($localLogo);
+          assertSameValue(true, strpos($enhancedLogo, 'width="' . (int)$placeholderSize[0] . '"') !== false, 'Local logo width was not added');
+          assertSameValue(true, strpos($enhancedLogo, 'height="' . (int)$placeholderSize[1] . '"') !== false, 'Local logo height was not added');
+
+          // Standard OpenCart language flags live outside DIR_IMAGE.
+          $flagFile = DIR_APPLICATION . 'language/en-gb/en-gb.png';
+          $flagSize = getimagesize($flagFile);
+          $flag = '<!DOCTYPE html><html><body><img src="language/en-gb/en-gb.png" alt="English"></body></html>';
+          $enhancedFlag = ImageAttributes::enhance($flag);
+          assertSameValue(true, strpos($enhancedFlag, 'width="' . (int)$flagSize[0] . '"') !== false, 'Language flag width was not added');
+          assertSameValue(true, strpos($enhancedFlag, 'height="' . (int)$flagSize[1] . '"') !== false, 'Language flag height was not added');
+
+          // Generated fallback logo uses a data URI SVG and must keep intrinsic size.
+          $dataSvg = 'data:image/svg+xml;charset=UTF-8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="220" height="60" viewBox="0 0 220 60"></svg>');
+          $dataLogo = '<!DOCTYPE html><html><body><img src="' . $dataSvg . '" alt="Store"></body></html>';
+          $enhancedDataLogo = ImageAttributes::enhance($dataLogo);
+          assertSameValue(true, strpos($enhancedDataLogo, 'width="220"') !== false, 'Data SVG width was not added');
+          assertSameValue(true, strpos($enhancedDataLogo, 'height="60"') !== false, 'Data SVG height was not added');
 
           $custom = '<!DOCTYPE html><html><body><img src="/image/cache/catalog/test-300x200.jpg" width="120" height="80" alt="Custom"></body></html>';
           assertSameValue($custom, ImageAttributes::enhance($custom), 'Existing image dimensions were changed');
