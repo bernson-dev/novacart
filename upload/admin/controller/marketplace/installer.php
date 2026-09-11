@@ -232,15 +232,15 @@ class ControllerMarketplaceInstaller extends Controller {
 					$json['error'] = $this->language->get('error_file');
 				} else {
 					$extension_install_id = $this->model_setting_extension->addExtensionInstall($this->request->files['file']['name'], $hash);
+
+					// Получаем параметр allow_protected
+					$allow_protected = isset($this->request->post['allow_protected']) ? (int)$this->request->post['allow_protected'] : 0;
+
+					$json['text'] = $this->language->get('text_install');
+
+					// Передаем allow_protected в install
+					$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/install', 'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id . '&allow_protected=' . $allow_protected, true));
 				}
-
-				// Получаем параметр allow_protected
-				$allow_protected = isset($this->request->post['allow_protected']) ? (int)$this->request->post['allow_protected'] : 0;
-
-				$json['text'] = $this->language->get('text_install');
-
-				// Передаем allow_protected в install
-				$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/install', 'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id . '&allow_protected=' . $allow_protected, true));
 			} else {
 				$json['error'] = $this->language->get('error_file');
 			}
