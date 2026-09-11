@@ -35,6 +35,7 @@ class ControllerSearchSearch extends Controller {
 		}
 
 		if (!empty($json['error'])) {
+			$this->response->addHeader('Content-Type: application/json');
 			$this->response->setOutput(json_encode($json));
 			return;
 		}
