@@ -167,6 +167,11 @@ class ControllerMarketplaceInstall extends Controller {
 				foreach ($files as $file) {
 					$destination = str_replace('\\', '/', substr($file, strlen($directory . 'upload/')));
 
+					if ($destination === '' || $destination[0] === '/' || strpos($destination, "\0") !== false || strpos($destination, ':') !== false || preg_match('#(^|/)\.\.?(/|$)#', $destination)) {
+						$json['error'] = sprintf($this->language->get('error_allowed'), $destination);
+						break;
+					}
+
 					if ($allow_protected) {
 						$safe = true;
 					} else {
