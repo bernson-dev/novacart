@@ -103,8 +103,9 @@ if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
 /**
  * Record that a generated OCMOD PHP file was rejected by the runtime guard.
  *
- * The existing modification page already reads ocmod-error.log and
- * ocmod-error-map.json, so no separate admin UI is required for this warning.
+ * Runtime validation is kept separate from the normal per-modifier error map:
+ * one broken generated PHP file may be the result of several OCMOD operations,
+ * so attributing it to an arbitrary modification would be misleading.
  */
 function modificationRecordRuntimeError(string $file, string $message): void {
 	if (!defined('DIR_LOGS') || !defined('DIR_MODIFICATION')) {
@@ -119,51 +120,36 @@ function modificationRecordRuntimeError(string $file, string $message): void {
 	}
 
 	$timestamp = date('Y-m-d H:i:s');
-	$source = 'runtime:' . $relative;
 	$log_entry = $timestamp . ' - Runtime OCMOD validation error' . PHP_EOL
 		. 'MOD: Runtime PHP validation' . PHP_EOL
-		. 'SOURCE: ' . $source . PHP_EOL
 		. 'FILE: ' . $relative . PHP_EOL
 		. 'ERROR: INVALID GENERATED PHP - ' . $message . PHP_EOL
 		. 'ACTION: Generated modification was ignored; original PHP file is used.' . PHP_EOL;
 
-	// Dedicated runtime log for direct diagnostics.
 	@file_put_contents(
 		DIR_LOGS . 'ocmod-runtime-error.log',
 		$log_entry,
 		FILE_APPEND | LOCK_EX
 	);
 
-	// Also add the event to the standard OCMOD error log shown in admin.
 	@file_put_contents(
 		DIR_LOGS . 'ocmod-error.log',
 		$log_entry,
 		FILE_APPEND | LOCK_EX
 	);
 
-	// Add a runtime entry to the existing error map so the Errors tab gets a badge.
-	$map_file = DIR_LOGS . 'ocmod-error-map.json';
-	$map = array();
+	// Keep a short-lived browser-visible warning independent from OCMOD log rewrites.
+	if (!headers_sent()) {
+		$warning = json_encode(array(
+			'file'    => $relative,
+			'message' => $message,
+			'time'    => $timestamp
+		), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-	if (is_file($map_file)) {
-		$map_json = @file_get_contents($map_file);
-		$map_data = $map_json !== false ? json_decode($map_json, true) : null;
-
-		if (is_array($map_data)) {
-			$map = $map_data;
+		if ($warning !== false) {
+			setcookie('ocmod_runtime_warning', $warning, time() + 600, '/');
 		}
 	}
-
-	$map[$source] = array(
-		'name'  => 'Runtime PHP validation: ' . $relative,
-		'count' => 1
-	);
-
-	@file_put_contents(
-		$map_file,
-		json_encode($map, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-		LOCK_EX
-	);
 }
 
 /**
