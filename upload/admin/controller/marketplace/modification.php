@@ -456,6 +456,8 @@ class ControllerMarketplaceModification extends Controller {
 			}
 		}
 
+		@unlink(DIR_LOGS . 'ocmod-generated-php-errors.json');
+
 		if (!$this->clearModificationCache()) {
 			$this->error['warning'] = $this->language->get('error_modification_clear');
 			$this->deleteEmergencyClearToken();
@@ -775,6 +777,42 @@ class ControllerMarketplaceModification extends Controller {
 			$log[] = $this->makeCenteredLine($modName, 'END');
 		}
 
+		$generatedPhpErrors = array();
+
+		foreach ($modification as $key => $value) {
+			if (!isset($original[$key]) || $original[$key] === $value || strtolower(pathinfo($key, PATHINFO_EXTENSION)) !== 'php') {
+				continue;
+			}
+
+			$error_message = '';
+
+			try {
+				token_get_all($value, TOKEN_PARSE);
+			} catch (ParseError $e) {
+				$error_message = $e->getMessage() . ' on line ' . $e->getLine();
+			} catch (Throwable $e) {
+				$error_message = get_class($e) . ': ' . $e->getMessage();
+			}
+
+			if ($error_message === '') {
+				continue;
+			}
+
+			$generatedPhpErrors[] = array(
+				'file'    => $key,
+				'message' => $error_message
+			);
+
+			// Never write syntactically invalid generated PHP. Falling back to the
+			// original file is safer than allowing the next request to crash.
+			$modification[$key] = $original[$key];
+
+			$log[] = PHP_EOL . 'MOD: Generated PHP validation';
+			$log[] = 'FILE: ' . $key;
+			$log[] = 'ERROR: INVALID GENERATED PHP - ' . $error_message;
+			$log[] = 'ACTION: Modified file was rejected; original PHP file is used.';
+		}
+
 		$mods = array();
 		$current_mod_name = null;
 		$current_source = null;
@@ -883,6 +921,19 @@ class ControllerMarketplaceModification extends Controller {
 			$log_write_failed = true;
 		}
 
+		$generated_error_file = DIR_LOGS . 'ocmod-generated-php-errors.json';
+		if (!empty($generatedPhpErrors)) {
+			if (@file_put_contents(
+				$generated_error_file,
+				json_encode($generatedPhpErrors, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+				LOCK_EX
+			) === false) {
+				$log_write_failed = true;
+			}
+		} elseif (is_file($generated_error_file)) {
+			@unlink($generated_error_file);
+		}
+
 		$cache_write_error = '';
 
 		foreach ($modification as $key => $value) {
@@ -914,6 +965,8 @@ class ControllerMarketplaceModification extends Controller {
 
 		if ($log_write_failed) {
 			$this->error['warning'] = $this->language->get('error_log_write');
+		} elseif (!empty($generatedPhpErrors)) {
+			$this->error['warning'] = $this->language->get('error_generated_php');
 		}
 
 		$this->session->data['success'] = sprintf($this->language->get('text_refresh_success'), $total_success, $total_errors);
@@ -1045,6 +1098,7 @@ class ControllerMarketplaceModification extends Controller {
 					break;
 				case 'error':
 					@unlink(DIR_LOGS . 'ocmod-error.log');
+					@unlink(DIR_LOGS . 'ocmod-generated-php-errors.json');
 					break;
 				case 'all':
 				default:
@@ -1052,6 +1106,7 @@ class ControllerMarketplaceModification extends Controller {
 					@unlink(DIR_LOGS . 'ocmod-success.log');
 					@unlink(DIR_LOGS . 'ocmod-error.log');
 					@unlink(DIR_LOGS . 'ocmod-error-map.json');
+					@unlink(DIR_LOGS . 'ocmod-generated-php-errors.json');
 					break;
 			}
 			$this->session->data['success'] = $this->language->get('text_success_clear_logs');
@@ -1124,6 +1179,25 @@ class ControllerMarketplaceModification extends Controller {
 			}
 		}
 		$data['total_error_count'] = $total_error_count;
+
+		$data['generated_php_errors'] = array();
+		$generated_error_file = DIR_LOGS . 'ocmod-generated-php-errors.json';
+		if (is_file($generated_error_file)) {
+			$generated_error_json = @file_get_contents($generated_error_file);
+			$generated_error_data = $generated_error_json !== false ? json_decode($generated_error_json, true) : null;
+			if (is_array($generated_error_data)) {
+				foreach ($generated_error_data as $generated_error) {
+					if (is_array($generated_error) && isset($generated_error['file'], $generated_error['message'])) {
+						$data['generated_php_errors'][] = array(
+							'file'    => (string)$generated_error['file'],
+							'message' => (string)$generated_error['message']
+						);
+					}
+				}
+			}
+		}
+		$data['error_generated_php'] = $this->language->get('error_generated_php');
+
 		$data['modifications'] = array();
 
 		$filter_data = array(
@@ -1337,7 +1411,7 @@ class ControllerMarketplaceModification extends Controller {
 			}
 		}
 
-		$data['has_error_log'] = ($total_error_count > 0);
+		$data['has_error_log'] = ($total_error_count > 0 || !empty($data['generated_php_errors']));
 		$data['clear_log_all'] = $this->url->link('marketplace/modification/clearlog', 'user_token=' . $this->session->data['user_token'] . '&type=all', true);
 		$data['clear_log_success'] = $this->url->link('marketplace/modification/clearlog', 'user_token=' . $this->session->data['user_token'] . '&type=success', true);
 		$data['clear_log_error'] = $this->url->link('marketplace/modification/clearlog', 'user_token=' . $this->session->data['user_token'] . '&type=error', true);
@@ -1402,8 +1476,8 @@ class ControllerMarketplaceModification extends Controller {
 			$data['action'] = $this->url->link('marketplace/modification/edit', 'user_token=' . $this->session->data['user_token'] . '&modification_id=' . $this->request->get['modification_id'] . $url, true);
 		}
 
-		$data['restore'] = $this->url->link('marketplace/modification/restore', 'user_token=' . $this->session->data['user_token'] . '&modification_id=' . $this->request->get['modification_id'] . $url, true);
-		$data['history'] = $this->url->link('marketplace/modification/clearhistory', 'user_token=' . $this->session->data['user_token'] . '&modification_id=' . $this->request->get['modification_id'] . $url, true);
+		$data['restore'] = $this->url->link('marketplace/modification/restore', 'user_token=' . $this->session->data['user_token'] . '&modification_id=' . $this->request->get['modification_id'] . '&backup_id=' . $this->request->get['backup_id'] . $url, true);
+		$data['history'] = $this->url->link('marketplace/modification/clearhistory', 'user_token=' . $this->session->data['user_token'] . '&modification_id=' . $this->request->get['modification_id'], true);
 		$data['cancel'] = $this->url->link('marketplace/modification', 'user_token=' . $this->session->data['user_token'] . $url, true);
 
 		$this->load->model('setting/modification');
