@@ -172,9 +172,10 @@ class ControllerStartupStartup extends Controller {
 		}
 
 		if (!isset($this->session->data['currency']) || $this->session->data['currency'] != $code) {
+			$frontend_currency = (string)$this->config->get('config_frontend_currency');
 
-			if (array_key_exists($this->config->get('config_frontend_currency'), $currencies)) {
-				$code = $this->config->get('config_frontend_currency');
+			if ($frontend_currency !== '' && array_key_exists($frontend_currency, $currencies)) {
+				$code = $frontend_currency;
 			}
 
 			$this->session->data['currency'] = $code;
