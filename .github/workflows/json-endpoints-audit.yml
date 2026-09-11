@@ -49,6 +49,7 @@ jobs:
           function annotate($file, $line, $message) {
               global $errors;
               $errors++;
+              echo 'ISSUE: ' . $file . ':' . (int)$line . ' - ' . $message . PHP_EOL;
               $message = str_replace(array('%', "\r", "\n"), array('%25', '%0D', '%0A'), $message);
               echo '::error file=' . $file . ',line=' . (int)$line . '::' . $message . PHP_EOL;
           }
@@ -89,7 +90,6 @@ jobs:
                       }
 
                       $functionOffset = $offset;
-                      $cursorOffset = $offset + strlen($text);
                       $name = '';
                       $braceIndex = null;
 
@@ -109,8 +109,6 @@ jobs:
                           if ($partText === ';') {
                               break;
                           }
-
-                          $cursorOffset += strlen($partText);
                       }
 
                       if ($braceIndex === null || $name === '') {
@@ -163,7 +161,6 @@ jobs:
                       $checked++;
                       $i = $endIndex;
 
-                      // Recalculate byte offset after skipping the complete method.
                       $offset = 0;
                       for ($k = 0; $k <= $i; $k++) {
                           $part = $tokens[$k];
