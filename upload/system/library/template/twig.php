@@ -63,11 +63,27 @@ final class Twig {
 		}
 
 		try {
-			// если передан динамический код — подключаем ArrayLoader
+			// Основной шаблон может передаваться как динамический код.
+			// Вложенные include/extends сначала ищем среди OCMOD-файлов,
+			// затем в оригинальном DIR_TEMPLATE.
 			if ($code !== '') {
-				$loader = new ArrayLoader([$filename . '.twig' => $code]);
-				$chain  = new ChainLoader([$loader, new FilesystemLoader([DIR_TEMPLATE])]);
-				$this->twig->setLoader($chain);
+				$loaders = [
+					new ArrayLoader([$filename . '.twig' => $code])
+				];
+
+				if (defined('DIR_CATALOG')) {
+					$modified_template_dir = DIR_MODIFICATION . 'admin/view/template/';
+				} else {
+					$modified_template_dir = DIR_MODIFICATION . 'catalog/view/theme/';
+				}
+
+				if (is_dir($modified_template_dir)) {
+					$loaders[] = new FilesystemLoader([$modified_template_dir]);
+				}
+
+				$loaders[] = new FilesystemLoader([DIR_TEMPLATE]);
+
+				$this->twig->setLoader(new ChainLoader($loaders));
 			}
 
 			return $this->twig->render($filename . '.twig', $this->data);
