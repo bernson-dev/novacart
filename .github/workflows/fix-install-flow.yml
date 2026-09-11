@@ -24,51 +24,25 @@ jobs:
           php-version: '7.3'
           coverage: none
 
-      - name: Repair installer flow
+      - name: Keep deferred cleanup flag until install directory is gone
         shell: bash
         run: |
           python3 <<'PY'
           from pathlib import Path
 
-          step3 = Path('upload/install/controller/install/step_3.php')
-          source = step3.read_text(encoding='utf-8')
+          path = Path('upload/system/startup.php')
+          source = path.read_text(encoding='utf-8')
 
-          old = """\t\t\t$this->model_install_install->database($install_data);\n\n\t\t\t// Catalog config.php\n"""
-          new = """\t\t\t$this->model_install_install->database($install_data);\n\n\t\t\t// Сохраняем параметры подключения только на время мастера установки.\n\t\t\t// Следующий HTTP-запрос (step_4) не загружает созданный config.php.\n\t\t\t$this->session->data['install_db'] = array(\n\t\t\t\t'db_driver'   => $this->request->post['db_driver'],\n\t\t\t\t'db_hostname' => $this->request->post['db_hostname'],\n\t\t\t\t'db_username' => $this->request->post['db_username'],\n\t\t\t\t'db_password' => $this->request->post['db_password'],\n\t\t\t\t'db_database' => $this->request->post['db_database'],\n\t\t\t\t'db_port'     => $this->request->post['db_port'],\n\t\t\t\t'db_prefix'   => $this->request->post['db_prefix']\n\t\t\t);\n\n\t\t\t// Catalog config.php\n"""
+          old = """\t\t// Удаляем флаг в любом случае, чтобы не пытаться делать это бесконечно\n\t\t@unlink($install_cleanup_flag);\n"""
+          new = """\t\t// Удаляем флаг только после фактического удаления каталога.\n\t\t// Если файловая система временно не позволила удалить install,\n\t\t// следующая загрузка магазина повторит очистку.\n\t\tclearstatcache(true, $install_path);\n\n\t\tif (!is_dir($install_path)) {\n\t\t\t@unlink($install_cleanup_flag);\n\t\t}\n"""
+
           if source.count(old) != 1:
-              raise SystemExit('step_3: database block not found')
-          source = source.replace(old, new, 1)
+              raise SystemExit('startup cleanup flag block not found')
 
-          marker = """\t\tif (!$this->request->post['password']) {\n\t\t\t$this->error['password'] = $this->language->get('error_password');\n\t\t}\n\n"""
-          insert = """\t\tif (!$this->request->post['password']) {\n\t\t\t$this->error['password'] = $this->language->get('error_password');\n\t\t}\n\n\t\tif (empty($this->request->post['sql_dump'])) {\n\t\t\t$this->error['warning'] = 'SQL dump is not selected.';\n\t\t} else {\n\t\t\t$sql_dump = (string)$this->request->post['sql_dump'];\n\t\t\t$sql_file = DIR_APPLICATION . $sql_dump;\n\n\t\t\tif (basename($sql_dump) !== $sql_dump || strtolower(pathinfo($sql_dump, PATHINFO_EXTENSION)) !== 'sql' || !is_file($sql_file)) {\n\t\t\t\t$this->error['warning'] = 'Invalid SQL dump.';\n\t\t\t}\n\t\t}\n\n"""
-          if source.count(marker) != 1:
-              raise SystemExit('step_3: password validation block not found')
-          source = source.replace(marker, insert, 1)
-          step3.write_text(source, encoding='utf-8')
-
-          model = Path('upload/install/model/install/install.php')
-          source = model.read_text(encoding='utf-8')
-          old = """\t\tif (\n\t\tdefined('DB_DRIVER') &&\n\t\tdefined('DB_HOSTNAME') &&\n\t\tdefined('DB_USERNAME') &&\n\t\tdefined('DB_PASSWORD') &&\n\t\tdefined('DB_DATABASE') &&\n\t\tdefined('DB_PORT')\n\t\t) {\n\t\t\t$this->db = new DB(\n\t\t\tDB_DRIVER,\n\t\t\thtml_entity_decode(DB_HOSTNAME, ENT_QUOTES, 'UTF-8'),\n\t\t\thtml_entity_decode(DB_USERNAME, ENT_QUOTES, 'UTF-8'),\n\t\t\thtml_entity_decode(DB_PASSWORD, ENT_QUOTES, 'UTF-8'),\n\t\t\thtml_entity_decode(DB_DATABASE, ENT_QUOTES, 'UTF-8'),\n\t\t\tDB_PORT\n\t\t\t);\n\t\t}\n"""
-          new = """\t\tif (\n\t\tdefined('DB_DRIVER') &&\n\t\tdefined('DB_HOSTNAME') &&\n\t\tdefined('DB_USERNAME') &&\n\t\tdefined('DB_PASSWORD') &&\n\t\tdefined('DB_DATABASE') &&\n\t\tdefined('DB_PORT')\n\t\t) {\n\t\t\t$this->db = new DB(\n\t\t\tDB_DRIVER,\n\t\t\thtml_entity_decode(DB_HOSTNAME, ENT_QUOTES, 'UTF-8'),\n\t\t\thtml_entity_decode(DB_USERNAME, ENT_QUOTES, 'UTF-8'),\n\t\t\thtml_entity_decode(DB_PASSWORD, ENT_QUOTES, 'UTF-8'),\n\t\t\thtml_entity_decode(DB_DATABASE, ENT_QUOTES, 'UTF-8'),\n\t\t\tDB_PORT\n\t\t\t);\n\t\t} elseif (isset($this->session->data['install_db']) && is_array($this->session->data['install_db'])) {\n\t\t\t$data = $this->session->data['install_db'];\n\n\t\t\tif (isset($data['db_driver'], $data['db_hostname'], $data['db_username'], $data['db_password'], $data['db_database'], $data['db_port'])) {\n\t\t\t\t$this->db = new DB(\n\t\t\t\t\t$data['db_driver'],\n\t\t\t\t\thtml_entity_decode($data['db_hostname'], ENT_QUOTES, 'UTF-8'),\n\t\t\t\t\thtml_entity_decode($data['db_username'], ENT_QUOTES, 'UTF-8'),\n\t\t\t\t\thtml_entity_decode($data['db_password'], ENT_QUOTES, 'UTF-8'),\n\t\t\t\t\thtml_entity_decode($data['db_database'], ENT_QUOTES, 'UTF-8'),\n\t\t\t\t\t$data['db_port']\n\t\t\t\t);\n\t\t\t}\n\t\t}\n"""
-          if source.count(old) != 1:
-              raise SystemExit('install model: constructor block not found')
-          source = source.replace(old, new, 1)
-          model.write_text(source, encoding='utf-8')
-
-          step5 = Path('upload/install/controller/install/step_5.php')
-          source = step5.read_text(encoding='utf-8')
-          old = """\t\tunset($this->session->data['install']);\n"""
-          new = """\t\tunset($this->session->data['install'], $this->session->data['install_db']);\n"""
-          if source.count(old) != 1:
-              raise SystemExit('step_5: session cleanup not found')
-          source = source.replace(old, new, 1)
-          step5.write_text(source, encoding='utf-8')
+          path.write_text(source.replace(old, new, 1), encoding='utf-8')
           PY
 
-          php -l upload/install/controller/install/step_3.php
-          php -l upload/install/controller/install/step_4.php
-          php -l upload/install/controller/install/step_5.php
-          php -l upload/install/model/install/install.php
+          php -l upload/system/startup.php
           git diff --check
 
       - name: Commit fix
@@ -76,6 +50,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add upload/install/controller/install/step_3.php upload/install/controller/install/step_5.php upload/install/model/install/install.php
-          git commit -m 'Fix installer database handoff and SQL dump validation'
+          git add upload/system/startup.php
+          git commit -m 'Retry deferred install directory cleanup until complete'
           git push
