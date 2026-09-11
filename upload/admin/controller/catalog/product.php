@@ -2167,6 +2167,7 @@ $data['action'] = $this->url->link('catalog/product/edit', 'user_token=' . $this
 	}
 
 	public function fillEmptyFields() {
+		$this->response->addHeader('Content-Type: application/json');
 		$this->load->language('catalog/product');
 		try {
 			if (!isset($this->request->post['product_id'])) {
