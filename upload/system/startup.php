@@ -76,7 +76,6 @@ if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
 							@unlink($path);
 						}
 					}
-				}
 
 				@chmod($install_path, 0777);
 				@rmdir($install_path);
@@ -100,6 +99,91 @@ if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
 	}
 }
 
+/**
+ * Validate generated modification PHP without executing it.
+ *
+ * Successful and failed checks are cached inside DIR_MODIFICATION and are
+ * automatically removed by the normal modification-cache cleanup.
+ */
+function modificationPhpSyntaxValid(string $file): bool {
+	static $request_cache = array();
+
+	$file = str_replace('\\', '/', $file);
+
+	if (isset($request_cache[$file])) {
+		return $request_cache[$file];
+	}
+
+	$mtime = @filemtime($file);
+	$size = @filesize($file);
+
+	if ($mtime === false || $size === false) {
+		$request_cache[$file] = false;
+		return false;
+	}
+
+	$fingerprint = sha1($file . '|' . (int)$mtime . '|' . (int)$size);
+	$check_dir = rtrim(DIR_MODIFICATION, '/\\') . DIRECTORY_SEPARATOR . 'runtime-check' . DIRECTORY_SEPARATOR;
+	$ok_marker = $check_dir . $fingerprint . '.ok';
+	$bad_marker = $check_dir . $fingerprint . '.bad';
+
+	if (is_file($ok_marker)) {
+		$request_cache[$file] = true;
+		return true;
+	}
+
+	if (is_file($bad_marker)) {
+		$request_cache[$file] = false;
+		return false;
+	}
+
+	$code = @file_get_contents($file);
+
+	if ($code === false) {
+		$request_cache[$file] = false;
+		return false;
+	}
+
+	$valid = true;
+	$error_message = '';
+
+	try {
+		token_get_all($code, TOKEN_PARSE);
+	} catch (ParseError $e) {
+		$valid = false;
+		$error_message = $e->getMessage() . ' on line ' . $e->getLine();
+	} catch (Throwable $e) {
+		$valid = false;
+		$error_message = get_class($e) . ': ' . $e->getMessage();
+	}
+
+	if (!is_dir($check_dir)) {
+		@mkdir($check_dir, 0777, true);
+	}
+
+	if (is_dir($check_dir)) {
+		@file_put_contents($valid ? $ok_marker : $bad_marker, '1', LOCK_EX);
+	}
+
+	if (!$valid && defined('DIR_LOGS')) {
+		$relative = $file;
+		$base = rtrim(str_replace('\\', '/', DIR_MODIFICATION), '/') . '/';
+
+		if (strpos($relative, $base) === 0) {
+			$relative = substr($relative, strlen($base));
+		}
+
+		@file_put_contents(
+			DIR_LOGS . 'ocmod-runtime-error.log',
+			date('Y-m-d H:i:s') . ' - Invalid generated PHP: ' . $relative . ($error_message !== '' ? ' - ' . $error_message : '') . PHP_EOL,
+			FILE_APPEND | LOCK_EX
+		);
+	}
+
+	$request_cache[$file] = $valid;
+	return $valid;
+}
+
 // Modification Override
 function modification(string $filename): string {
 	$filename = str_replace('\\', '/', $filename);
@@ -108,20 +192,27 @@ function modification(string $filename): string {
 
 	if (strpos($filename, $dirSystem) === 0) {
 		$file = DIR_MODIFICATION . 'system/' . str_replace($dirSystem, '', $filename);
-		return is_file($file) ? $file : $filename;
-	}
-
-	$appName = basename(rtrim($dirApplication, '/'));
-
-	if ($appName === 'admin') {
-		$file = DIR_MODIFICATION . 'admin/' . str_replace($dirApplication, '', $filename);
-	} elseif ($appName === 'install') {
-		$file = DIR_MODIFICATION . 'install/' . str_replace($dirApplication, '', $filename);
 	} else {
-		$file = DIR_MODIFICATION . 'catalog/' . str_replace($dirApplication, '', $filename);
+		$appName = basename(rtrim($dirApplication, '/'));
+
+		if ($appName === 'admin') {
+			$file = DIR_MODIFICATION . 'admin/' . str_replace($dirApplication, '', $filename);
+		} elseif ($appName === 'install') {
+			$file = DIR_MODIFICATION . 'install/' . str_replace($dirApplication, '', $filename);
+		} else {
+			$file = DIR_MODIFICATION . 'catalog/' . str_replace($dirApplication, '', $filename);
+		}
 	}
 
-	return is_file($file) ? $file : $filename;
+	if (!is_file($file)) {
+		return $filename;
+	}
+
+	if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'php' && !modificationPhpSyntaxValid($file)) {
+		return $filename;
+	}
+
+	return $file;
 }
 
 /**
