@@ -89,8 +89,14 @@ if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
 			}
 		}
 
-		// Удаляем флаг в любом случае, чтобы не пытаться делать это бесконечно
-		@unlink($install_cleanup_flag);
+		// Удаляем флаг только после фактического удаления каталога.
+		// Если файловая система временно не позволила удалить install,
+		// следующая загрузка магазина повторит очистку.
+		clearstatcache(true, $install_path);
+
+		if (!is_dir($install_path)) {
+			@unlink($install_cleanup_flag);
+		}
 	}
 }
 
