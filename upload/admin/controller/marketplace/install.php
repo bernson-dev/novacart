@@ -335,6 +335,7 @@ class ControllerMarketplaceInstall extends Controller {
 							$modification_info = $this->model_setting_modification->getModificationByCode($code);
 
 							if ($modification_info) {
+								$this->session->data['install_modification_backup'] = $modification_info;
 								$this->model_setting_modification->deleteModification($modification_info['modification_id']);
 							}
 						} else {
@@ -414,7 +415,7 @@ class ControllerMarketplaceInstall extends Controller {
 				unlink($file);
 			}
 
-			unset($this->session->data['install'], $this->session->data['extension_install_id']);
+			unset($this->session->data['install'], $this->session->data['extension_install_id'], $this->session->data['install_modification_backup']);
 			$json['success'] = $this->language->get('text_success');
 		}
 
@@ -517,6 +518,20 @@ class ControllerMarketplaceInstall extends Controller {
 		$this->load->model('setting/modification');
 		$this->model_setting_modification->deleteModificationsByExtensionInstallId($extension_install_id);
 
+		if (!empty($this->session->data['install_modification_backup']) && is_array($this->session->data['install_modification_backup'])) {
+			$backup_modification = $this->session->data['install_modification_backup'];
+			$this->model_setting_modification->addModification(array(
+				'extension_install_id' => isset($backup_modification['extension_install_id']) ? (int)$backup_modification['extension_install_id'] : 0,
+				'name'                 => isset($backup_modification['name']) ? $backup_modification['name'] : '',
+				'code'                 => isset($backup_modification['code']) ? $backup_modification['code'] : '',
+				'author'               => isset($backup_modification['author']) ? $backup_modification['author'] : '',
+				'version'              => isset($backup_modification['version']) ? $backup_modification['version'] : '',
+				'link'                 => isset($backup_modification['link']) ? $backup_modification['link'] : '',
+				'xml'                  => isset($backup_modification['xml']) ? $backup_modification['xml'] : '',
+				'status'               => isset($backup_modification['status']) ? (int)$backup_modification['status'] : 1
+			));
+		}
+
 		if ($directory && is_dir($directory)) {
 			$this->removeDirectory($directory);
 		}
@@ -529,7 +544,7 @@ class ControllerMarketplaceInstall extends Controller {
 			}
 		}
 
-		unset($this->session->data['install'], $this->session->data['extension_install_id']);
+		unset($this->session->data['install'], $this->session->data['extension_install_id'], $this->session->data['install_modification_backup']);
 	}
 
 	private function isSafeZipEntry($zip, $index, $entry) {
