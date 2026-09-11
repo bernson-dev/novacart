@@ -15,7 +15,6 @@ class ControllerMarketplaceInstall extends Controller {
 			$json['error'] = $this->language->get('error_permission');
 		}
 
-		// Make sure the file name is stored in the session.
 		if (!isset($this->session->data['install'])) {
 			$json['error'] = $this->language->get('error_file');
 		} elseif (!is_file(DIR_UPLOAD . $this->session->data['install'] . '.tmp')) {
@@ -24,11 +23,9 @@ class ControllerMarketplaceInstall extends Controller {
 
 		if (!$json) {
 			$json['text'] = $this->language->get('text_unzip');
-
 			$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/unzip', 'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id, true));
 		}
 
-		// добавлено очистка при ошибке
 		if (!empty($json['error'])) {
 			$this->cleanupFailedInstall($extension_install_id);
 		}
@@ -58,29 +55,31 @@ class ControllerMarketplaceInstall extends Controller {
 			$json['error'] = $this->language->get('error_file');
 		}
 
-		// Sanitize the filename
 		if (!$json) {
 			$file = DIR_UPLOAD . $this->session->data['install'] . '.tmp';
-
-			// Unzip the files
+			$directory = DIR_UPLOAD . 'tmp-' . $this->session->data['install'];
 			$zip = new ZipArchive();
+			$open_result = $zip->open($file);
 
-			if ($zip->open($file)) {
-				$zip->extractTo(DIR_UPLOAD . 'tmp-' . $this->session->data['install']);
-				$zip->close();
+			if ($open_result === true) {
+				if ($zip->extractTo($directory)) {
+					$zip->close();
+
+					if (is_file($file)) {
+						unlink($file);
+					}
+
+					$json['text'] = $this->language->get('text_move');
+					$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/move', 'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id, true));
+				} else {
+					$zip->close();
+					$json['error'] = $this->language->get('error_unzip');
+				}
 			} else {
 				$json['error'] = $this->language->get('error_unzip');
 			}
-
-			// Remove Zip
-			unlink($file);
-
-			$json['text'] = $this->language->get('text_move');
-
-			$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/move', 'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id, true));
 		}
 
-		// добавлено очистка при ошибке
 		if (!empty($json['error'])) {
 			$this->cleanupFailedInstall($extension_install_id);
 		}
@@ -100,7 +99,6 @@ class ControllerMarketplaceInstall extends Controller {
 			$extension_install_id = 0;
 		}
 
-		// Получаем параметр allow_protected из запроса (если он передан)
 		if (isset($this->request->get['allow_protected'])) {
 			$allow_protected = (int)$this->request->get['allow_protected'];
 		} else {
@@ -122,7 +120,6 @@ class ControllerMarketplaceInstall extends Controller {
 
 			if (is_dir($directory . 'upload/')) {
 				$files = array();
-				// Получаем список файлов для копирования
 				$path = array($directory . 'upload/*');
 
 				while (count($path) != 0) {
@@ -137,7 +134,6 @@ class ControllerMarketplaceInstall extends Controller {
 					}
 				}
 
-				// Список разрешённых директорий
 				$allowed = array(
 					'admin/controller/extension/',
 					'admin/language/',
@@ -156,11 +152,9 @@ class ControllerMarketplaceInstall extends Controller {
 					'image/catalog/'
 				);
 
-				// Проверяем файлы на безопасность копирования
 				foreach ($files as $file) {
 					$destination = str_replace('\\', '/', substr($file, strlen($directory . 'upload/')));
 
-					// Если разрешена установка в защищённые папки, то пропускаем проверку
 					if ($allow_protected) {
 						$safe = true;
 					} else {
@@ -169,20 +163,17 @@ class ControllerMarketplaceInstall extends Controller {
 						foreach ($allowed as $value) {
 							if (strlen($destination) < strlen($value) && substr($value, 0, strlen($destination)) == $destination) {
 								$safe = true;
-
 								break;
 							}
 
 							if (strlen($destination) > strlen($value) && substr($destination, 0, strlen($value)) == $value) {
 								$safe = true;
-
 								break;
 							}
 						}
 					}
 
 					if ($safe) {
-						// Определяем реальный путь для копирования
 						if (substr($destination, 0, 5) == 'admin') {
 							$destination = DIR_APPLICATION . substr($destination, 6);
 						}
@@ -200,7 +191,6 @@ class ControllerMarketplaceInstall extends Controller {
 						}
 					} else {
 						$json['error'] = sprintf($this->language->get('error_allowed'), $destination);
-
 						break;
 					}
 				}
@@ -210,7 +200,6 @@ class ControllerMarketplaceInstall extends Controller {
 
 					foreach ($files as $file) {
 						$destination = str_replace('\\', '/', substr($file, strlen($directory . 'upload/')));
-
 						$path = '';
 
 						if (substr($destination, 0, 5) == 'admin') {
@@ -251,11 +240,9 @@ class ControllerMarketplaceInstall extends Controller {
 
 		if (!$json) {
 			$json['text'] = $this->language->get('text_xml');
-
 			$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/xml', 'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id, true));
 		}
 
-		// добавлено очистка при ошибке
 		if (!empty($json['error'])) {
 			$this->cleanupFailedInstall($extension_install_id);
 		}
@@ -290,8 +277,6 @@ class ControllerMarketplaceInstall extends Controller {
 
 			if (is_file($file)) {
 				$this->load->model('setting/modification');
-
-				// If xml file just put it straight into the DB
 				$xml = file_get_contents($file);
 
 				if ($xml) {
@@ -300,19 +285,12 @@ class ControllerMarketplaceInstall extends Controller {
 						$dom->loadXml($xml);
 
 						$name = $dom->getElementsByTagName('name')->item(0);
-
-						if ($name) {
-							$name = $name->nodeValue;
-						} else {
-							$name = '';
-						}
+						$name = $name ? $name->nodeValue : '';
 
 						$code = $dom->getElementsByTagName('code')->item(0);
 
 						if ($code) {
 							$code = $code->nodeValue;
-
-							// Check to see if the modification is already installed or not.
 							$modification_info = $this->model_setting_modification->getModificationByCode($code);
 
 							if ($modification_info) {
@@ -323,28 +301,11 @@ class ControllerMarketplaceInstall extends Controller {
 						}
 
 						$author = $dom->getElementsByTagName('author')->item(0);
-
-						if ($author) {
-							$author = $author->nodeValue;
-						} else {
-							$author = '';
-						}
-
+						$author = $author ? $author->nodeValue : '';
 						$version = $dom->getElementsByTagName('version')->item(0);
-
-						if ($version) {
-							$version = $version->nodeValue;
-						} else {
-							$version = '';
-						}
-
+						$version = $version ? $version->nodeValue : '';
 						$link = $dom->getElementsByTagName('link')->item(0);
-
-						if ($link) {
-							$link = $link->nodeValue;
-						} else {
-							$link = '';
-						}
+						$link = $link ? $link->nodeValue : '';
 
 						if (!$json) {
 							$modification_data = array(
@@ -369,16 +330,9 @@ class ControllerMarketplaceInstall extends Controller {
 
 		if (!$json) {
 			$json['text'] = $this->language->get('text_remove');
-
-			//$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/remove', 'user_token=' . $this->session->data['user_token'], true));
-			$json['next'] = str_replace('&amp;', '&', $this->url->link(
-			'marketplace/install/remove',
-			'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id,
-			true
-			));
+			$json['next'] = str_replace('&amp;', '&', $this->url->link('marketplace/install/remove', 'user_token=' . $this->session->data['user_token'] . '&extension_install_id=' . $extension_install_id, true));
 		}
 
-		// добавлено очистка при ошибке
 		if (!empty($json['error'])) {
 			$this->cleanupFailedInstall($extension_install_id);
 		}
@@ -396,7 +350,6 @@ class ControllerMarketplaceInstall extends Controller {
 			$json['error'] = $this->language->get('error_permission');
 		}
 
-		// читаем extension_install_id и чистим при error
 		if (isset($this->request->get['extension_install_id'])) {
 			$extension_install_id = (int)$this->request->get['extension_install_id'];
 		} else {
@@ -411,15 +364,12 @@ class ControllerMarketplaceInstall extends Controller {
 			$directory = DIR_UPLOAD . 'tmp-' . $this->session->data['install'] . '/';
 
 			if (is_dir($directory)) {
-				// Get a list of files ready to upload
 				$files = array();
-
 				$path = array($directory);
 
 				while (count($path) != 0) {
 					$next = array_shift($path);
 
-					// We have to use scandir function because glob will not pick up dot files.
 					foreach (array_diff(scandir($next), array('.', '..')) as $file) {
 						$file = $next . '/' . $file;
 
@@ -455,7 +405,6 @@ class ControllerMarketplaceInstall extends Controller {
 			$json['success'] = $this->language->get('text_success');
 		}
 
-		// добавлено очистка при ошибке
 		if (!empty($json['error'])) {
 			$this->cleanupFailedInstall($extension_install_id);
 		}
@@ -481,15 +430,12 @@ class ControllerMarketplaceInstall extends Controller {
 
 		if (!$json) {
 			$this->load->model('setting/extension');
-
 			$results = $this->model_setting_extension->getExtensionPathsByExtensionInstallId($extension_install_id);
-
 			rsort($results);
 
 			foreach ($results as $result) {
 				$source = '';
 
-				// Check if the copy location exists or not
 				if (substr($result['path'], 0, 5) == 'admin') {
 					$source = DIR_APPLICATION . substr($result['path'], 6);
 				}
@@ -511,15 +457,12 @@ class ControllerMarketplaceInstall extends Controller {
 				}
 
 				if (is_dir($source)) {
-					// Get a list of files ready to upload
 					$files = array();
-
 					$path = array($source);
 
 					while (count($path) != 0) {
 						$next = array_shift($path);
 
-						// We have to use scandir function because glob will not pick up dot files.
 						foreach (array_diff(scandir($next), array('.', '..')) as $file) {
 							$file = $next . '/' . $file;
 
@@ -553,14 +496,9 @@ class ControllerMarketplaceInstall extends Controller {
 				$this->model_setting_extension->deleteExtensionPath($result['extension_path_id']);
 			}
 
-			// Remove the install
 			$this->model_setting_extension->deleteExtensionInstall($extension_install_id);
-
-			// Remove any xml modifications
 			$this->load->model('setting/modification');
-
 			$this->model_setting_modification->deleteModificationsByExtensionInstallId($extension_install_id);
-
 			$json['success'] = $this->language->get('text_success_uninstall');
 		}
 
@@ -568,7 +506,6 @@ class ControllerMarketplaceInstall extends Controller {
 		$this->response->setOutput(json_encode($json));
 	}
 
-	// добавляем helper очистки
 	private function cleanupFailedInstall($extension_install_id) {
 		$extension_install_id = (int)$extension_install_id;
 
