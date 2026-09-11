@@ -110,7 +110,7 @@ class Response {
 	 * Displays the set HTML output
 	*/
 	public function output() {
-		if ($this->output) {
+		if ($this->output !== '') {
 			$output = $this->level ? $this->compress($this->output, $this->level) : $this->output;
 
 			if (!headers_sent()) {
