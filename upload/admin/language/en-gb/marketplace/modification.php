@@ -78,3 +78,4 @@ $_['error_modification_clear'] = 'Unable to completely clear the modification ca
 $_['error_log_write'] = 'Modification cache was refreshed, but one or more OCMOD log files could not be written.';
 $_['error_directory_remove'] = 'Unable to completely remove the temporary upload directory.';
 $_['error_file_delete'] = 'One or more modification files could not be deleted.';
+$_['error_generated_php'] = 'Invalid PHP was generated after applying OCMOD. The broken file was not written to the modification cache; the original file is used.';

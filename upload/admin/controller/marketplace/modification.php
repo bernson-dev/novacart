@@ -373,7 +373,7 @@ class ControllerMarketplaceModification extends Controller {
 
 	private function makeCenteredLine($modName, $type = '') {
 		$text = ' ' . strtoupper($type) . ' ' . $modName . ' ';
-		$lineLength = 84;
+		$lineLength = 78;
 		return str_pad($text, $lineLength, '-', STR_PAD_BOTH);
 	}
 
@@ -422,21 +422,11 @@ class ControllerMarketplaceModification extends Controller {
 	public function refresh($data = array()) {
 		$this->load->language('marketplace/modification');
 
-		$emergency_link = $this->createEmergencyClearLink();
-		$message = sprintf($this->language->get('text_emergency_clear_link'), $emergency_link);
-
-		$js = 'console.warn(' . json_encode(
-			$message,
-			JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
-		) . ');';
-
-		$this->document->addScript('data:text/javascript;charset=utf-8,' . rawurlencode($js));
 		$this->document->setTitle($this->language->get('heading_title'));
 		$this->load->model('setting/modification');
 		$this->load->model('design/theme');
 
 		if (!$this->validate()) {
-			$this->deleteEmergencyClearToken();
 			$this->getList();
 			return;
 		}
@@ -450,7 +440,6 @@ class ControllerMarketplaceModification extends Controller {
 		foreach ($log_files as $log_file) {
 			if (@file_put_contents($log_file, '') === false) {
 				$this->error['warning'] = sprintf($this->language->get('error_file_write'), $log_file);
-				$this->deleteEmergencyClearToken();
 				$this->getList();
 				return;
 			}
@@ -458,10 +447,11 @@ class ControllerMarketplaceModification extends Controller {
 
 		if (!$this->clearModificationCache()) {
 			$this->error['warning'] = $this->language->get('error_modification_clear');
-			$this->deleteEmergencyClearToken();
 			$this->getList();
 			return;
 		}
+
+		@unlink(DIR_LOGS . 'ocmod-generated-php-errors.json');
 
 		$maintenance = $this->config->get('config_maintenance');
 		$this->load->model('setting/setting');
@@ -775,6 +765,40 @@ class ControllerMarketplaceModification extends Controller {
 			$log[] = $this->makeCenteredLine($modName, 'END');
 		}
 
+		$generatedPhpErrors = array();
+
+		foreach ($modification as $key => $value) {
+			if (!isset($original[$key]) || $original[$key] === $value || strtolower(pathinfo($key, PATHINFO_EXTENSION)) !== 'php') {
+				continue;
+			}
+
+			$error_message = '';
+
+			try {
+				token_get_all($value, TOKEN_PARSE);
+			} catch (ParseError $e) {
+				$error_message = $e->getMessage() . ' on line ' . $e->getLine();
+			} catch (Throwable $e) {
+				$error_message = get_class($e) . ': ' . $e->getMessage();
+			}
+
+			if ($error_message === '') {
+				continue;
+			}
+
+			$generatedPhpErrors[] = array(
+				'file'    => $key,
+				'message' => $error_message
+			);
+
+			$modification[$key] = $original[$key];
+
+			$log[] = PHP_EOL . 'MOD: Generated PHP validation';
+			$log[] = 'FILE: ' . $key;
+			$log[] = 'ERROR: INVALID GENERATED PHP - ' . $error_message;
+			$log[] = 'ACTION: Modified file was rejected; original PHP file is used.';
+		}
+
 		$mods = array();
 		$current_mod_name = null;
 		$current_source = null;
@@ -819,7 +843,9 @@ class ControllerMarketplaceModification extends Controller {
 				continue;
 			}
 			if (strpos($trimmed, 'NOT FOUND') !== false || strpos($trimmed, 'ERROR: ') === 0) {
-				$total_errors++;
+				if ($current_mod_name !== 'Generated PHP validation') {
+					$total_errors++;
+				}
 				$entry = array_filter(array($current_source, $current_file, $current_code, $line));
 				$mods[$current_mod_name]['error'][] = $entry;
 				continue;
@@ -883,6 +909,19 @@ class ControllerMarketplaceModification extends Controller {
 			$log_write_failed = true;
 		}
 
+		$generated_error_file = DIR_LOGS . 'ocmod-generated-php-errors.json';
+		if (!empty($generatedPhpErrors)) {
+			if (@file_put_contents(
+				$generated_error_file,
+				json_encode($generatedPhpErrors, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+				LOCK_EX
+			) === false) {
+				$log_write_failed = true;
+			}
+		} elseif (is_file($generated_error_file)) {
+			@unlink($generated_error_file);
+		}
+
 		$cache_write_error = '';
 
 		foreach ($modification as $key => $value) {
@@ -906,7 +945,6 @@ class ControllerMarketplaceModification extends Controller {
 
 		if ($cache_write_error !== '') {
 			$this->clearModificationCache();
-			$this->deleteEmergencyClearToken();
 			$this->error['warning'] = sprintf($this->language->get('error_file_write'), $cache_write_error);
 			$this->getList();
 			return;
@@ -914,21 +952,14 @@ class ControllerMarketplaceModification extends Controller {
 
 		if ($log_write_failed) {
 			$this->error['warning'] = $this->language->get('error_log_write');
+		} elseif (!empty($generatedPhpErrors)) {
+			$this->error['warning'] = $this->language->get('error_generated_php');
 		}
 
 		$this->session->data['success'] = sprintf($this->language->get('text_refresh_success'), $total_success, $total_errors);
 
 		$url = $this->buildUrl();
 
-		$this->deleteEmergencyClearToken();
-
-		$success_message = $this->language->get('text_emergency_token_deleted');
-		$js = 'console.clear();console.info(' . json_encode(
-			$success_message,
-			JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
-		) . ');';
-
-		$this->document->addScript('data:text/javascript;charset=utf-8,' . rawurlencode($js));
 
 		if (isset($this->request->get['redirect'])) {
 			if ($this->request->get['redirect'] === 'installer') {
@@ -1045,6 +1076,7 @@ class ControllerMarketplaceModification extends Controller {
 					break;
 				case 'error':
 					@unlink(DIR_LOGS . 'ocmod-error.log');
+					@unlink(DIR_LOGS . 'ocmod-generated-php-errors.json');
 					break;
 				case 'all':
 				default:
@@ -1052,6 +1084,7 @@ class ControllerMarketplaceModification extends Controller {
 					@unlink(DIR_LOGS . 'ocmod-success.log');
 					@unlink(DIR_LOGS . 'ocmod-error.log');
 					@unlink(DIR_LOGS . 'ocmod-error-map.json');
+					@unlink(DIR_LOGS . 'ocmod-generated-php-errors.json');
 					break;
 			}
 			$this->session->data['success'] = $this->language->get('text_success_clear_logs');
@@ -1124,6 +1157,25 @@ class ControllerMarketplaceModification extends Controller {
 			}
 		}
 		$data['total_error_count'] = $total_error_count;
+
+		$data['generated_php_errors'] = array();
+		$generated_error_file = DIR_LOGS . 'ocmod-generated-php-errors.json';
+		if (is_file($generated_error_file)) {
+			$generated_error_json = @file_get_contents($generated_error_file);
+			$generated_error_data = $generated_error_json !== false ? json_decode($generated_error_json, true) : null;
+			if (is_array($generated_error_data)) {
+				foreach ($generated_error_data as $generated_error) {
+					if (is_array($generated_error) && isset($generated_error['file'], $generated_error['message'])) {
+						$data['generated_php_errors'][] = array(
+							'file'    => (string)$generated_error['file'],
+							'message' => (string)$generated_error['message']
+						);
+					}
+				}
+			}
+		}
+		$data['error_generated_php'] = $this->language->get('error_generated_php');
+
 		$data['modifications'] = array();
 
 		$filter_data = array(
@@ -1337,7 +1389,7 @@ class ControllerMarketplaceModification extends Controller {
 			}
 		}
 
-		$data['has_error_log'] = ($total_error_count > 0);
+		$data['has_error_log'] = ($total_error_count > 0 || !empty($data['generated_php_errors']));
 		$data['clear_log_all'] = $this->url->link('marketplace/modification/clearlog', 'user_token=' . $this->session->data['user_token'] . '&type=all', true);
 		$data['clear_log_success'] = $this->url->link('marketplace/modification/clearlog', 'user_token=' . $this->session->data['user_token'] . '&type=success', true);
 		$data['clear_log_error'] = $this->url->link('marketplace/modification/clearlog', 'user_token=' . $this->session->data['user_token'] . '&type=error', true);
@@ -1487,49 +1539,4 @@ class ControllerMarketplaceModification extends Controller {
 		return $meta;
 	}
 
-	private function getEmergencyClearTokenFile() {
-		return DIR_STORAGE . 'emergency_clear_token.json';
-	}
-
-	private function getEmergencyClearLinkLogFile() {
-		return DIR_LOGS . 'emergency-clear-link.log';
-	}
-
-	private function createEmergencyClearLink() {
-		$token = bin2hex(random_bytes(32));
-
-		$data = array(
-			'hash'    => hash('sha256', $token),
-			'created' => time(),
-			'expires' => time() + 3600
-		);
-
-		file_put_contents(
-			$this->getEmergencyClearTokenFile(),
-			json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
-			LOCK_EX
-		);
-
-		$link = rtrim(HTTPS_CATALOG, '/') . '/emergency_clear.php?token=' . rawurlencode($token);
-
-		file_put_contents(
-			$this->getEmergencyClearLinkLogFile(),
-			date('Y-m-d H:i:s') . ' - ' . $link . PHP_EOL,
-			LOCK_EX
-		);
-
-		return $link;
-	}
-
-	private function deleteEmergencyClearToken() {
-		$file = $this->getEmergencyClearTokenFile();
-		if (is_file($file)) {
-			@unlink($file);
-		}
-
-		$log_file = $this->getEmergencyClearLinkLogFile();
-		if (is_file($log_file)) {
-			@unlink($log_file);
-		}
-	}
 }
