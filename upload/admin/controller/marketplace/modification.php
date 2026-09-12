@@ -422,21 +422,11 @@ class ControllerMarketplaceModification extends Controller {
 	public function refresh($data = array()) {
 		$this->load->language('marketplace/modification');
 
-		$emergency_link = $this->createEmergencyClearLink();
-		$message = sprintf($this->language->get('text_emergency_clear_link'), $emergency_link);
-
-		$js = 'console.warn(' . json_encode(
-			$message,
-			JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
-		) . ');';
-
-		$this->document->addScript('data:text/javascript;charset=utf-8,' . rawurlencode($js));
 		$this->document->setTitle($this->language->get('heading_title'));
 		$this->load->model('setting/modification');
 		$this->load->model('design/theme');
 
 		if (!$this->validate()) {
-			$this->deleteEmergencyClearToken();
 			$this->getList();
 			return;
 		}
@@ -450,7 +440,6 @@ class ControllerMarketplaceModification extends Controller {
 		foreach ($log_files as $log_file) {
 			if (@file_put_contents($log_file, '') === false) {
 				$this->error['warning'] = sprintf($this->language->get('error_file_write'), $log_file);
-				$this->deleteEmergencyClearToken();
 				$this->getList();
 				return;
 			}
@@ -458,7 +447,6 @@ class ControllerMarketplaceModification extends Controller {
 
 		if (!$this->clearModificationCache()) {
 			$this->error['warning'] = $this->language->get('error_modification_clear');
-			$this->deleteEmergencyClearToken();
 			$this->getList();
 			return;
 		}
@@ -957,7 +945,6 @@ class ControllerMarketplaceModification extends Controller {
 
 		if ($cache_write_error !== '') {
 			$this->clearModificationCache();
-			$this->deleteEmergencyClearToken();
 			$this->error['warning'] = sprintf($this->language->get('error_file_write'), $cache_write_error);
 			$this->getList();
 			return;
@@ -973,15 +960,6 @@ class ControllerMarketplaceModification extends Controller {
 
 		$url = $this->buildUrl();
 
-		$this->deleteEmergencyClearToken();
-
-		$success_message = $this->language->get('text_emergency_token_deleted');
-		$js = 'console.clear();console.info(' . json_encode(
-			$success_message,
-			JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
-		) . ');';
-
-		$this->document->addScript('data:text/javascript;charset=utf-8,' . rawurlencode($js));
 
 		if (isset($this->request->get['redirect'])) {
 			if ($this->request->get['redirect'] === 'installer') {
@@ -1561,49 +1539,4 @@ class ControllerMarketplaceModification extends Controller {
 		return $meta;
 	}
 
-	private function getEmergencyClearTokenFile() {
-		return DIR_STORAGE . 'emergency_clear_token.json';
-	}
-
-	private function getEmergencyClearLinkLogFile() {
-		return DIR_LOGS . 'emergency-clear-link.log';
-	}
-
-	private function createEmergencyClearLink() {
-		$token = bin2hex(random_bytes(32));
-
-		$data = array(
-			'hash'    => hash('sha256', $token),
-			'created' => time(),
-			'expires' => time() + 3600
-		);
-
-		file_put_contents(
-			$this->getEmergencyClearTokenFile(),
-			json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
-			LOCK_EX
-		);
-
-		$link = rtrim(HTTPS_CATALOG, '/') . '/emergency_clear.php?token=' . rawurlencode($token);
-
-		file_put_contents(
-			$this->getEmergencyClearLinkLogFile(),
-			date('Y-m-d H:i:s') . ' - ' . $link . PHP_EOL,
-			LOCK_EX
-		);
-
-		return $link;
-	}
-
-	private function deleteEmergencyClearToken() {
-		$file = $this->getEmergencyClearTokenFile();
-		if (is_file($file)) {
-			@unlink($file);
-		}
-
-		$log_file = $this->getEmergencyClearLinkLogFile();
-		if (is_file($log_file)) {
-			@unlink($log_file);
-		}
-	}
 }
