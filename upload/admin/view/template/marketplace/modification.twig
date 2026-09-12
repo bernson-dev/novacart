@@ -39,8 +39,8 @@
         </div>
         {% endif %}
         {% if success %}
-        <div id="ocmod-result-alert" class="alert alert-success alert-dismissible" data-error-count="{{ total_error_count }}">
-            <i class="fa fa-check-circle js-ocmod-result-icon"></i> <span class="js-ocmod-result-text">{{ success }}</span>
+        <div class="alert {% if total_error_count > 0 %}alert-warning{% else %}alert-success{% endif %} alert-dismissible">
+            <i class="fa {% if total_error_count > 0 %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %}"></i> {{ success }}
             <button type="button" class="close" data-dismiss="alert">&times;</button>
         </div>
         {% endif %}
@@ -344,49 +344,7 @@
             searchInput.focus();
         }
 
-        function ocmodNormalizeRefreshAlert() {
-            const alert = document.getElementById('ocmod-result-alert');
-            if (!alert) return;
-
-            const textNode = alert.querySelector('.js-ocmod-result-text');
-            if (!textNode) return;
-
-            const originalText = textNode.textContent || '';
-            const numbers = originalText.match(/\d+/g);
-
-            // Only the refresh summary contains both operation and error counters.
-            // Other ordinary success messages must remain untouched.
-            if (!numbers || numbers.length < 2) return;
-
-            const actualErrors = parseInt(alert.getAttribute('data-error-count') || '0', 10) || 0;
-            let seen = 0;
-            const correctedText = originalText.replace(/\d+/g, function(value) {
-                seen++;
-                return seen === numbers.length ? String(actualErrors) : value;
-            });
-
-            textNode.textContent = correctedText;
-
-            const icon = alert.querySelector('.js-ocmod-result-icon');
-            alert.classList.remove('alert-success', 'alert-warning');
-
-            if (actualErrors > 0) {
-                alert.classList.add('alert-warning');
-                if (icon) {
-                    icon.classList.remove('fa-check-circle');
-                    icon.classList.add('fa-exclamation-triangle');
-                }
-            } else {
-                alert.classList.add('alert-success');
-                if (icon) {
-                    icon.classList.remove('fa-exclamation-triangle');
-                    icon.classList.add('fa-check-circle');
-                }
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            ocmodNormalizeRefreshAlert();
             document.querySelectorAll('.js-ocmod-log').forEach(el => ocmodColorizeLog(el));
 
             const searchInput = document.getElementById('log-search');
