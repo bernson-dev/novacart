@@ -373,7 +373,7 @@ class ControllerMarketplaceModification extends Controller {
 
 	private function makeCenteredLine($modName, $type = '') {
 		$text = ' ' . strtoupper($type) . ' ' . $modName . ' ';
-		$lineLength = 84;
+		$lineLength = 78;
 		return str_pad($text, $lineLength, '-', STR_PAD_BOTH);
 	}
 
