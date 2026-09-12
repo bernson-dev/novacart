@@ -1,0 +1,87 @@
+name: One-shot emergency cleanup patch
+
+on:
+  push:
+    branches:
+      - fix/emergency-clear-link
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: fix/emergency-clear-link
+          fetch-depth: 0
+
+      - name: Apply targeted controller cleanup
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('upload/admin/controller/marketplace/modification.php')
+          text = path.read_text(encoding='utf-8')
+          original = text
+
+          start_marker = "\t\t$emergency_link = $this->createEmergencyClearLink();\n"
+          end_marker = "\t\t$this->document->setTitle($this->language->get('heading_title'));\n"
+          start = text.find(start_marker)
+          end = text.find(end_marker, start if start != -1 else 0)
+          if start == -1 or end == -1:
+              raise SystemExit('Expected refresh emergency-link block not found')
+          text = text[:start] + text[end:]
+
+          text, count = re.subn(r'^\t+\$this->deleteEmergencyClearToken\(\);\n', '', text, flags=re.MULTILINE)
+          if count < 1:
+              raise SystemExit('Expected deleteEmergencyClearToken() calls not found')
+
+          start_marker = "\t\t$success_message = $this->language->get('text_emergency_token_deleted');\n"
+          end_marker = "\t\tif (isset($this->request->get['redirect'])) {\n"
+          start = text.find(start_marker)
+          end = text.find(end_marker, start if start != -1 else 0)
+          if start == -1 or end == -1:
+              raise SystemExit('Expected refresh console cleanup block not found')
+          text = text[:start] + text[end:]
+
+          methods_marker = "\n\tprivate function getEmergencyClearTokenFile() {"
+          start = text.find(methods_marker)
+          if start == -1:
+              raise SystemExit('Expected controller emergency helper methods not found')
+          text = text[:start] + "\n}\n"
+
+          forbidden = [
+              'createEmergencyClearLink',
+              'deleteEmergencyClearToken',
+              'getEmergencyClearTokenFile',
+              'getEmergencyClearLinkLogFile',
+              'text_emergency_clear_link',
+              'text_emergency_token_deleted',
+              'emergency-clear-link.log',
+          ]
+          leftovers = [item for item in forbidden if item in text]
+          if leftovers:
+              raise SystemExit('Unexpected emergency refresh leftovers: ' + ', '.join(leftovers))
+
+          if text == original:
+              raise SystemExit('No changes produced')
+
+          path.write_text(text, encoding='utf-8', newline='')
+          PY
+
+      - name: PHP syntax check
+        run: php -l upload/admin/controller/marketplace/modification.php
+
+      - name: Commit cleanup and remove one-shot workflow
+        shell: bash
+        run: |
+          rm .github/workflows/one-shot-emergency-cleanup.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add upload/admin/controller/marketplace/modification.php .github/workflows/one-shot-emergency-cleanup.yml
+          git commit -m "Remove emergency link generation from normal OCMOD refresh"
+          git push origin HEAD:fix/emergency-clear-link
