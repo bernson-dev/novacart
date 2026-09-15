@@ -70,8 +70,7 @@ for path in [
     write(path, text)
 
 
-# CLI installer data is already literal command-line input; HTML decoding there
-# changes the password and is incorrect.
+# CLI installer data is literal command-line input.
 path = 'upload/install/cli_install.php'
 text = read(path)
 text = re.sub(
@@ -82,8 +81,8 @@ text = re.sub(
 write(path, text)
 
 
-# HTTP installer DB credentials must remain literal. The install model receives
-# cleaned $data, so use the raw request value when available.
+# HTTP installer model receives cleaned $data, so explicitly recover only opaque
+# password values from the request when available.
 path = 'upload/install/model/install/install.php'
 text = read(path)
 text = re.sub(
@@ -124,8 +123,6 @@ for path, table in [
         text,
     )
 
-    # Old OpenCart dumps often have VARCHAR(40). Widen it only when a verified
-    # password is actually going to be replaced by PASSWORD_DEFAULT.
     if 'private function ensurePasswordColumn()' not in text:
         helper = f'''\n\tprivate function ensurePasswordColumn() {{\n\t\t$query = $this->db->query("SHOW COLUMNS FROM `" . DB_PREFIX . "{table}` LIKE 'password'");\n\n\t\tif ($query->num_rows && isset($query->row['Type']) && preg_match('/^(?:var)?char\\((\\d+)\\)$/i', $query->row['Type'], $matches) && (int)$matches[1] < 255) {{\n\t\t\t$this->db->query("ALTER TABLE `" . DB_PREFIX . "{table}` MODIFY `password` VARCHAR(255) NOT NULL");\n\t\t}}\n\t}}\n\n'''
         marker = '\tpublic function logout()'
@@ -142,9 +139,7 @@ for path, table in [
 
 
 # 4. Every HTTP authentication-password validation path uses raw password and
-#    exact confirm. This covers account/register, checkout/register, affiliate,
-#    admin profile/user/customer/reset and installer forms without relying on a
-#    hard-coded controller list.
+#    exact confirm. Login itself is never trimmed or normalized.
 for p in root.joinpath('upload').rglob('*.php'):
     path = p.as_posix()
     text = read(path)
@@ -161,13 +156,11 @@ for p in root.joinpath('upload').rglob('*.php'):
         text,
     )
 
-    # Length validation over the exact input.
     text = text.replace(
         "utf8_strlen($this->request->post['password'])",
         "utf8_strlen($this->request->getRawPost('password'))",
     )
 
-    # Exact password confirmation.
     text = text.replace(
         "$this->request->post['password'] != $this->request->post['confirm']",
         "$this->request->getRawPost('password') !== $this->request->getRawPost('confirm')",
@@ -177,8 +170,6 @@ for p in root.joinpath('upload').rglob('*.php'):
         "$this->request->getRawPost('password') !== $this->request->getRawPost('confirm')",
     )
 
-    # Reject leading/trailing ASCII whitespace at create/change/reset time.
-    # Login itself never trims or normalizes.
     rx = re.compile(
         r"if \(\(utf8_strlen\(\$this->request->getRawPost\('password'\)\) < ([^)]+)\) \|\| \(utf8_strlen\(\$this->request->getRawPost\('password'\)\) > ([^)]+)\)\) \{"
     )
@@ -191,24 +182,23 @@ for p in root.joinpath('upload').rglob('*.php'):
         write(path, text)
 
 
-# 5. HTTP installer DB password: preserve the exact credential in direct DB
-#    connection checks as well.
+# 5. HTTP installer DB password: change only value reads, never the isset() test.
 path = 'upload/install/controller/install/step_3.php'
 text = read(path)
 text = text.replace(
-    "html_entity_decode($this->request->post['db_password'], ENT_QUOTES, 'UTF-8')",
-    "$this->request->getRawPost('db_password')",
+    "$data['db_password'] = $this->request->post['db_password'];",
+    "$data['db_password'] = $this->request->getRawPost('db_password');",
 )
 text = text.replace(
-    "$this->request->post['db_password']",
+    "html_entity_decode($this->request->post['db_password'], ENT_QUOTES, 'UTF-8')",
     "$this->request->getRawPost('db_password')",
 )
 write(path, text)
 
 
-# 6. Sanity checks are deliberately scoped to authentication passwords and DB
-#    credentials. SMTP keeps its existing encode/decode storage contract in this
-#    branch so existing stored SMTP credentials are not silently reinterpreted.
+# 6. Sanity checks are scoped to authentication/DB passwords. SMTP deliberately
+#    keeps its existing encode/decode storage contract in this branch to preserve
+#    compatibility with already stored SMTP credentials.
 offenders = []
 for p in root.joinpath('upload').rglob('*.php'):
     for line_no, line in enumerate(p.read_text(encoding='utf-8').splitlines(), 1):
