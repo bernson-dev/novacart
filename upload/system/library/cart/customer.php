@@ -62,6 +62,8 @@ class Customer {
 				}
 
 				if ($rehash) {
+					$this->ensurePasswordColumn();
+
 					$this->db->query("UPDATE " . DB_PREFIX . "customer SET password = '" . $this->db->escape(password_hash($password, PASSWORD_DEFAULT)) . "' WHERE customer_id = '" . (int)$customer_query->row['customer_id'] . "'");
 				}
 			}
@@ -84,7 +86,6 @@ class Customer {
 			return false;
 		}
 	}
-
 
 	private function ensurePasswordColumn() {
 		$query = $this->db->query("SHOW COLUMNS FROM `" . DB_PREFIX . "customer` LIKE 'password'");
