@@ -32,6 +32,26 @@ class Request {
 		$this->server = $this->clean($_SERVER);
 	}
 
+
+	/**
+	 * Return an original scalar POST value without trim() or HTML encoding.
+	 *
+	 * Intended for passwords and other opaque credentials only.
+	 * Ordinary request data must continue to use $this->post.
+	 *
+	 * @param string $key
+	 * @param mixed  $default
+	 *
+	 * @return mixed
+	 */
+	public function getRawPost($key, $default = '') {
+		if (!array_key_exists($key, $_POST) || !is_string($_POST[$key])) {
+			return $default;
+		}
+
+		return $_POST[$key];
+	}
+
 	/**
 	 * @param	array	$data
 	 *

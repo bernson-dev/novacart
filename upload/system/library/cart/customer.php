@@ -41,15 +41,21 @@ class Customer {
 	}
 
 	public function login($email, $password, $override = false) {
+		$raw_password = $this->request->getRawPost('password', null);
+
+		if ($raw_password !== null) {
+			$password = $raw_password;
+		}
+
 		$customer_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "customer WHERE LOWER(email) = '" . $this->db->escape(utf8_strtolower($email)) . "' AND status = '1'");
 
 		if ($customer_query->row) {
 			if (!$override) {
 				if (password_verify($password, $customer_query->row['password'])) {
 					$rehash = password_needs_rehash($customer_query->row['password'], PASSWORD_DEFAULT);
-				} elseif (isset($customer_query->row['salt']) && $customer_query->row['password'] == sha1($customer_query->row['salt'] . sha1($customer_query->row['salt'] . sha1($password)))) {
+				} elseif (isset($customer_query->row['salt']) && hash_equals($customer_query->row['password'], sha1($customer_query->row['salt'] . sha1($customer_query->row['salt'] . sha1($password))))) {
 					$rehash = true;
-				} elseif ($customer_query->row['password'] == md5($password)) {
+				} elseif (hash_equals($customer_query->row['password'], md5($password))) {
 					$rehash = true;
 				} else {
 					return false;
@@ -76,6 +82,15 @@ class Customer {
 			return true;
 		} else {
 			return false;
+		}
+	}
+
+
+	private function ensurePasswordColumn() {
+		$query = $this->db->query("SHOW COLUMNS FROM `" . DB_PREFIX . "customer` LIKE 'password'");
+
+		if ($query->num_rows && isset($query->row['Type']) && preg_match('/^(?:var)?char\((\d+)\)$/i', $query->row['Type'], $matches) && (int)$matches[1] < 255) {
+			$this->db->query("ALTER TABLE `" . DB_PREFIX . "customer` MODIFY `password` VARCHAR(255) NOT NULL");
 		}
 	}
 

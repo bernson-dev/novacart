@@ -197,11 +197,11 @@ class ControllerCommonProfile extends Controller {
 		}
 
 		if ($this->request->post['password']) {
-			if ((utf8_strlen(html_entity_decode($this->request->post['password'], ENT_QUOTES, 'UTF-8')) < 4) || (utf8_strlen(html_entity_decode($this->request->post['password'], ENT_QUOTES, 'UTF-8')) > 40)) {
+			if (($this->request->getRawPost('password') !== trim($this->request->getRawPost('password'))) || (utf8_strlen($this->request->getRawPost('password')) < 4) || (utf8_strlen($this->request->getRawPost('password')) > 40)) {
 				$this->error['password'] = $this->language->get('error_password');
 			}
 
-			if ($this->request->post['password'] != $this->request->post['confirm']) {
+			if ($this->request->getRawPost('password') !== $this->request->getRawPost('confirm')) {
 				$this->error['confirm'] = $this->language->get('error_confirm');
 			}
 		}
