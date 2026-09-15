@@ -31,7 +31,7 @@ class ModelInstallInstall extends Model {
 					$data['db_driver'],
 					html_entity_decode($data['db_hostname'], ENT_QUOTES, 'UTF-8'),
 					html_entity_decode($data['db_username'], ENT_QUOTES, 'UTF-8'),
-					html_entity_decode($data['db_password'], ENT_QUOTES, 'UTF-8'),
+					$this->request->getRawPost('db_password', $data['db_password']),
 					html_entity_decode($data['db_database'], ENT_QUOTES, 'UTF-8'),
 					$data['db_port']
 				);
@@ -51,7 +51,7 @@ class ModelInstallInstall extends Model {
 		$data['db_driver'],
 		html_entity_decode($data['db_hostname'], ENT_QUOTES, 'UTF-8'),
 		html_entity_decode($data['db_username'], ENT_QUOTES, 'UTF-8'),
-		html_entity_decode($data['db_password'], ENT_QUOTES, 'UTF-8'),
+		$this->request->getRawPost('db_password', $data['db_password']),
 		html_entity_decode($data['db_database'], ENT_QUOTES, 'UTF-8'),
 		$data['db_port']
 		);
@@ -149,7 +149,7 @@ class ModelInstallInstall extends Model {
 		"DELETE FROM `" . $data['db_prefix'] . "user` WHERE `user_id` = '1'"
 		);
 
-		$password_hash = password_hash(html_entity_decode($data['password'], ENT_QUOTES, 'UTF-8'), PASSWORD_DEFAULT);
+		$password_hash = password_hash($this->request->getRawPost('password', $data['password']), PASSWORD_DEFAULT);
 
 		$db->query(
 		"INSERT INTO `" . $data['db_prefix'] . "user` SET
