@@ -68,9 +68,9 @@ class ControllerAccountAddress extends Controller {
 
 		$this->load->model('account/address');
 
-		$address_id = $address_id > 0 ? (int)$this->request->get['address_id'] : 0;
+		$address_id = isset($this->request->get['address_id']) ? (int)$this->request->get['address_id'] : 0;
 
-		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $address_id > 0 && $this->validateForm()) {
+		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $address_id > 0 && $this->model_account_address->getAddress($address_id) && $this->validateForm()) {
 			$this->model_account_address->editAddress($address_id, $this->request->post);
 
 			// Default Shipping Address
@@ -111,7 +111,7 @@ class ControllerAccountAddress extends Controller {
 
 		$this->load->model('account/address');
 
-		$address_id = $address_id > 0 ? (int)$this->request->get['address_id'] : 0;
+		$address_id = isset($this->request->get['address_id']) ? (int)$this->request->get['address_id'] : 0;
 
 		if ($address_id > 0 && $this->model_account_address->getAddress($address_id) && $this->validateDelete($address_id)) {
 			$this->model_account_address->deleteAddress($address_id);
@@ -226,7 +226,7 @@ class ControllerAccountAddress extends Controller {
 	}
 
 	protected function getForm() {
-		$address_id = $address_id > 0 ? (int)$this->request->get['address_id'] : 0;
+		$address_id = isset($this->request->get['address_id']) ? (int)$this->request->get['address_id'] : 0;
 
 		$data['breadcrumbs'] = array();
 
@@ -412,9 +412,9 @@ class ControllerAccountAddress extends Controller {
 		foreach ($custom_fields as $custom_field) {
 			if ($custom_field['location'] == 'address') {
 				if ($custom_field['type'] == 'file' && isset($data['address_custom_field'][$custom_field['custom_field_id']])) {
-					$code = $data['address_custom_field'][$custom_field['custom_field_id']];
+					$code = is_scalar($data['address_custom_field'][$custom_field['custom_field_id']]) ? (string)$data['address_custom_field'][$custom_field['custom_field_id']] : '';
 
-					$upload_result = $this->model_tool_upload->getUploadByCode($code);
+					$upload_result = $code !== '' ? $this->model_tool_upload->getUploadByCode($code) : array();
 
 					$data['address_custom_field'][$custom_field['custom_field_id']] = array();
 					if ($upload_result) {
@@ -433,7 +433,7 @@ class ControllerAccountAddress extends Controller {
 		}
 
 		if (isset($this->request->post['default'])) {
-			$data['default'] = $this->request->post['default'];
+			$data['default'] = !empty($this->request->post['default']);
 		} elseif ($address_id > 0) {
 			$data['default'] = $this->customer->getAddressId() == $address_id;
 		} else {
