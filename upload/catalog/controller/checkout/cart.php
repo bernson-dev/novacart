@@ -605,6 +605,7 @@ class ControllerCheckoutCart extends Controller {
 		$products = array();
 
 		$this->load->model('tool/image');
+		$this->load->model('tool/upload');
 
 		foreach ($this->cart->getProducts() as $product) {
 			if ($product['stock']) {
@@ -614,9 +615,16 @@ class ControllerCheckoutCart extends Controller {
 			$option_data = array();
 
 			foreach ($product['option'] as $option) {
+				if ($option['type'] == 'file') {
+					$upload_info = $this->model_tool_upload->getUploadByCode($option['value']);
+					$value = $upload_info ? $upload_info['name'] : '';
+				} else {
+					$value = $option['value'];
+				}
+
 				$option_data[] = array(
 					'name'  => $option['name'],
-					'value' => $option['value']
+					'value' => $value
 				);
 			}
 
