@@ -2345,7 +2345,7 @@
         // Add all products to the cart using the api
         $('#button-refresh').on('click', function() {
             $.ajax({
-                url: '{{ catalog }}index.php?route=api/cart/products&api_token={{ api_token }}&store_id=' + $('select[name=\'store_id\'] option:selected').val(),
+                url: '{{ catalog }}index.php?route=api/cart/products&api_token={{ api_token }}&store_id=' + $('select[name=\'store_id\'] option:selected').val() + '&order_id=' + $('input[name=\'order_id\']').val(),
                 dataType: 'json',
                 crossDomain: true,
                 beforeSend: function() {
