@@ -1184,21 +1184,19 @@ class ModelCatalogProduct extends Model {
 	}
 
 	/**
-	 * Calculate the product quantity from stock-managed selectable options.
+	 * Calculate the product quantity from stock-managed option values.
 	 *
-	 * Each option group is summed independently. If several stock-managed option
-	 * groups exist (for example Color and Size), the smallest group total is used
-	 * to avoid counting the same physical stock more than once.
-	 *
-	 * Groups containing values that do not subtract stock are ignored because
-	 * they do not provide a finite stock limit for the product.
+	 * When at least one selectable option value subtracts stock, the product's
+	 * total quantity is the sum of all such option value quantities.
+	 * Otherwise the manually entered product quantity is preserved.
 	 */
 	private function getProductOptionTotalQuantity($data, $fallback) {
 		if (empty($data['product_option']) || !is_array($data['product_option'])) {
 			return (int)$fallback;
 		}
 
-		$group_totals = array();
+		$total = 0;
+		$has_managed_values = false;
 
 		foreach ($data['product_option'] as $product_option) {
 			if (
@@ -1210,28 +1208,18 @@ class ModelCatalogProduct extends Model {
 				continue;
 			}
 
-			$total = 0;
-			$managed = true;
-			$has_values = false;
-
 			foreach ($product_option['product_option_value'] as $product_option_value) {
-				$has_values = true;
-
 				if (empty($product_option_value['subtract'])) {
-					$managed = false;
-					break;
+					continue;
 				}
 
+				$has_managed_values = true;
 				$quantity = isset($product_option_value['quantity']) ? (int)$product_option_value['quantity'] : 0;
 				$total += max(0, $quantity);
 			}
-
-			if ($managed && $has_values) {
-				$group_totals[] = $total;
-			}
 		}
 
-		return $group_totals ? min($group_totals) : (int)$fallback;
+		return $has_managed_values ? $total : (int)$fallback;
 	}
 
 	private function productExists($product_id) {
