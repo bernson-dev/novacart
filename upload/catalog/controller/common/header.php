@@ -157,6 +157,20 @@ class ControllerCommonHeader extends Controller {
 			? (string)$this->request->get['route']
 			: 'common/home';
 
+		$data['stock_popup_enabled'] = false;
+
+		if ($this->config->get('config_stock_popup_status')) {
+			$config_routes = trim((string)$this->config->get('config_stock_popup_routes'));
+
+			if ($config_routes === '') {
+				$data['stock_popup_enabled'] = true;
+			} else {
+				$routes = preg_split('/[\r\n,]+/', $config_routes, -1, PREG_SPLIT_NO_EMPTY);
+				$routes = array_map('trim', $routes);
+				$data['stock_popup_enabled'] = in_array($data['current_route'], $routes, true);
+			}
+		}
+
 		$data['language'] = $this->load->controller('common/language');
 		$data['currency'] = $this->load->controller('common/currency');
 
