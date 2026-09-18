@@ -79,8 +79,7 @@ class ControllerAccountLogin extends Controller {
 				}
 			}
 
-			// Added strpos check to pass McAfee PCI compliance test (http://forum.opencart.com/viewtopic.php?f=10&t=12043&p=151494#p151295)
-			if (isset($this->request->post['redirect']) && $this->request->post['redirect'] != $this->url->link('account/logout', '', true) && (strpos($this->request->post['redirect'], $this->config->get('config_url')) !== false || strpos($this->request->post['redirect'], $this->config->get('config_ssl')) !== false)) {
+			if (isset($this->request->post['redirect']) && $this->request->post['redirect'] != $this->url->link('account/logout', '', true) && $this->isSafeRedirect($this->request->post['redirect'])) {
 				$this->response->redirect(str_replace('&amp;', '&', $this->request->post['redirect']));
 			} else {
 				$this->response->redirect($this->url->link('account/account', '', true));
@@ -118,8 +117,7 @@ class ControllerAccountLogin extends Controller {
 		$data['register'] = $this->url->link('account/register', '', true);
 		$data['forgotten'] = $this->url->link('account/forgotten', '', true);
 
-		// Added strpos check to pass McAfee PCI compliance test (http://forum.opencart.com/viewtopic.php?f=10&t=12043&p=151494#p151295)
-		if (isset($this->request->post['redirect']) && (strpos($this->request->post['redirect'], $this->config->get('config_url')) !== false || strpos($this->request->post['redirect'], $this->config->get('config_ssl')) !== false)) {
+		if (isset($this->request->post['redirect']) && $this->isSafeRedirect($this->request->post['redirect'])) {
 			$data['redirect'] = $this->request->post['redirect'];
 		} elseif (isset($this->session->data['redirect'])) {
 			$data['redirect'] = $this->session->data['redirect'];
@@ -160,30 +158,81 @@ class ControllerAccountLogin extends Controller {
 	}
 
 	protected function validate() {
+		$email = isset($this->request->post['email']) ? trim($this->request->post['email']) : '';
+		$password = $this->request->getRawPost('password');
+
+		if (!$email || !$password) {
+			$this->error['warning'] = $this->language->get('error_login');
+
+			return false;
+		}
+
+		$this->request->post['email'] = $email;
+
 		// Check how many login attempts have been made.
-		$login_info = $this->model_account_customer->getLoginAttempts($this->request->post['email']);
+		$login_info = $this->model_account_customer->getLoginAttempts($email);
 
 		if ($login_info && ($login_info['total'] >= $this->config->get('config_login_attempts')) && strtotime('-1 hour') < strtotime($login_info['date_modified'])) {
 			$this->error['warning'] = $this->language->get('error_attempts');
 		}
 
 		// Check if customer has been approved.
-		$customer_info = $this->model_account_customer->getCustomerByEmail($this->request->post['email']);
+		$customer_info = $this->model_account_customer->getCustomerByEmail($email);
 
 		if ($customer_info && !$customer_info['status']) {
 			$this->error['warning'] = $this->language->get('error_approved');
 		}
 
 		if (!$this->error) {
-			if (!$this->customer->login($this->request->post['email'], $this->request->post['password'])) {
+			if (!$this->customer->login($email, $password)) {
 				$this->error['warning'] = $this->language->get('error_login');
 
-				$this->model_account_customer->addLoginAttempt($this->request->post['email']);
+				$this->model_account_customer->addLoginAttempt($email);
 			} else {
-				$this->model_account_customer->deleteLoginAttempts($this->request->post['email']);
+				$this->model_account_customer->deleteLoginAttempts($email);
 			}
 		}
 
 		return !$this->error;
+	}
+
+	protected function isSafeRedirect($url) {
+		if (!is_string($url) || $url === '') {
+			return false;
+		}
+
+		$url = html_entity_decode($url, ENT_QUOTES, 'UTF-8');
+		$target = parse_url($url);
+
+		if ($target === false) {
+			return false;
+		}
+
+		// Relative internal URL.
+		if (empty($target['host'])) {
+			return isset($url[0]) && $url[0] === '/' && (!isset($url[1]) || $url[1] !== '/');
+		}
+
+		if (!empty($target['user']) || !empty($target['pass'])) {
+			return false;
+		}
+
+		$scheme = isset($target['scheme']) ? strtolower($target['scheme']) : '';
+
+		if ($scheme !== 'http' && $scheme !== 'https') {
+			return false;
+		}
+
+		$allowed_hosts = array();
+
+		foreach (array($this->config->get('config_url'), $this->config->get('config_ssl')) as $store_url) {
+			$store_host = parse_url($store_url, PHP_URL_HOST);
+
+			if ($store_host) {
+				$allowed_hosts[] = strtolower($store_host);
+			}
+		}
+
+		return in_array(strtolower($target['host']), array_unique($allowed_hosts), true);
 	}
 }
