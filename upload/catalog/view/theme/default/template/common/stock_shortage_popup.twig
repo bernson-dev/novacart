@@ -12,6 +12,10 @@
         <div class="list-group stock-shortage-list">
           {% for product in products %}
           <div class="list-group-item stock-shortage-item">
+            {% if show_image and product.thumb %}
+            <a href="{{ product.href }}" class="stock-shortage-thumb"><img src="{{ product.thumb }}" alt="{{ product.name }}" class="img-thumbnail" /></a>
+            {% endif %}
+            <div class="stock-shortage-info">
             <div class="stock-shortage-name">
               <a href="{{ product.href }}">{{ product.name }}</a>
             </div>
@@ -29,6 +33,7 @@
               {% if show_quantity %}
               <span><strong>{{ text_quantity }}:</strong> {{ product.quantity }}</span>
               {% endif %}
+            </div>
             </div>
           </div>
           {% endfor %}
