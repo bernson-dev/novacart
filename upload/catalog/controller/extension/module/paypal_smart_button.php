@@ -162,7 +162,7 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 					$option = array();
 				}
 
-				$product_options = $this->model_catalog_product->getProductOptions($this->request->post['product_id']);
+				$product_options = $this->model_catalog_product->getProductOptions($product_id);
 
 				foreach ($product_options as $product_option) {
 					if ($product_option['required'] && empty($option[$product_option['product_option_id']])) {
@@ -171,7 +171,7 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 				}
 
 				if (isset($this->request->post['recurring_id'])) {
-					$recurring_id = $this->request->post['recurring_id'];
+					$recurring_id = (int)$this->request->post['recurring_id'];
 				} else {
 					$recurring_id = 0;
 				}
@@ -182,17 +182,17 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 					$recurring_ids = array();
 
 					foreach ($recurrings as $recurring) {
-						$recurring_ids[] = $recurring['recurring_id'];
+						$recurring_ids[] = (int)$recurring['recurring_id'];
 					}
 
-					if (!in_array($recurring_id, $recurring_ids)) {
+					if (!in_array($recurring_id, $recurring_ids, true)) {
 						$errors[] = $this->language->get('error_recurring_required');
 					}
 				}
 
 				if (!$errors) {
-					if (!$this->model_extension_module_paypal_smart_button->hasProductInCart($this->request->post['product_id'], $option, $recurring_id)) {
-						$this->cart->add($this->request->post['product_id'], $quantity, $option, $recurring_id);
+					if (!$this->model_extension_module_paypal_smart_button->hasProductInCart($product_id, $option, $recurring_id)) {
+						$this->cart->add($product_id, $quantity, $option, $recurring_id);
 					}
 					
 					// Unset all shipping and payment methods
