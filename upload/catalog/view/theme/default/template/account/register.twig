@@ -282,16 +282,17 @@
                 </fieldset>
                 {{ captcha }}
                 <div class="buttons">
-                    <div class="pull-right">
+                    <div class="pull-right agreement-actions">
                         {% if text_agree %}
-                        {% if agree %}
-                        <input type="checkbox" name="agree" value="1" checked="checked" />
-                        {% else %}
-                        <input type="checkbox" name="agree" value="1" />
+                        <label class="agreement-control">
+                            {% if agree %}
+                            <input type="checkbox" name="agree" value="1" checked="checked" />
+                            {% else %}
+                            <input type="checkbox" name="agree" value="1" />
+                            {% endif %}
+                            <span>{{ text_agree }}</span>
+                        </label>
                         {% endif %}
-                        {{ text_agree }}
-                        {% endif %}
-                        &nbsp;
                         <button type="submit" class="btn btn-primary">{{ button_continue }}</button>
                     </div>
                 </div>

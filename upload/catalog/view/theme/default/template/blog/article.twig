@@ -185,7 +185,7 @@
                 {% if articles %}
                 <hr>
                 <h3>{{ text_related }}</h3>
-                <div class="row">
+                <div class="row blog-article-list">
                     {% set i = 0 %}
                     {% for article in articles %}
                     {% if column_left and column_right %}
@@ -196,7 +196,7 @@
                     {% set class = 'col-lg-3 col-md-3 col-sm-6 col-xs-12' %}
                     {% endif %}
                     <div class="{{ class }}">
-                        <div class="product-thumb transition">
+                        <div class="product-thumb transition blog-article-card">
                             <div class="image">
                                 <a href="{{ article.href }}"><img src="{{ article.thumb }}" alt="{{ article.name }}" title="{{ article.name }}" class="img-responsive" /></a>
                             </div>
@@ -219,12 +219,12 @@
                                 {% endif %}
                             </div>
                             <div class="button-group">
-                                <button type="button" onclick="location='{{ article.href }}'">
-                                    <i class="fa fa-share"></i> <span class="hidden-xs hidden-sm hidden-md">{{ button_more }}</span></button>
+                                <button type="button" class="blog-more" onclick="location='{{ article.href }}'">
+                                    <i class="fa fa-arrow-right"></i> <span class="hidden-xs hidden-sm hidden-md">{{ button_more }}</span></button>
                                 <button type="button" data-toggle="tooltip" title="{{ article.date_added }}">
                                     <i class="fa fa-clock-o"></i></button>
                                 <button type="button" data-toggle="tooltip" title="{{ text_views }} {{ article.viewed }}">
-                                    <i class="fa fa-eye"></i></button>
+                                    <i class="fa fa-eye blog-view-icon"></i></button>
                             </div>
                         </div>
                     </div>
@@ -284,15 +284,16 @@
                         {{ captcha }}
 
                         <div class="buttons clearfix">
-                            <div class="pull-right">
+                            <div class="pull-right agreement-actions">
                                 {% if text_agree %}
-                                {% if agree %}
-                                <input type="checkbox" name="agree" value="1" checked="checked" />
-                                {% else %}
-                                <input type="checkbox" name="agree" value="1" />
-                                {% endif %}
-                                {{ text_agree }}
-                                &nbsp;
+                                <label class="agreement-control">
+                                    {% if agree %}
+                                    <input type="checkbox" name="agree" value="1" checked="checked" />
+                                    {% else %}
+                                    <input type="checkbox" name="agree" value="1" />
+                                    {% endif %}
+                                    <span>{{ text_agree }}</span>
+                                </label>
                                 {% endif %}
                                 <button type="button" id="button-review" data-loading-text="{{ text_loading }}" class="btn btn-primary">{{ button_continue }}</button>
                             </div>
