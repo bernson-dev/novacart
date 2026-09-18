@@ -2075,7 +2075,7 @@
             if (hasManagedValues) {
                 $('#input-quantity').val(total).prop('readonly', true);
                 $('#option-quantity-note')
-                    .text('Количество рассчитывается автоматически как сумма остатков опций.')
+                    .text('{{ help_option_quantity_auto|escape('js') }}')
                     .show();
             } else {
                 $('#input-quantity').prop('readonly', false);
