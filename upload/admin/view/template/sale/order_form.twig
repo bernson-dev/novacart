@@ -974,6 +974,23 @@
             </div>
         </div>
     </div>
+    <style>
+        #tab-cart #cart tr.cart-stock-invalid > td {
+            background-color: #fff4f4;
+        }
+
+        #tab-cart #cart .cart-stock-invalid-quantity .form-control {
+            background-color: #fbe9e9;
+            border-color: #d9534f;
+            color: #a94442;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 4px rgba(217, 83, 79, .35);
+        }
+
+        #tab-cart #cart .cart-stock-invalid-quantity .form-control:focus {
+            border-color: #c9302c;
+            box-shadow: 0 0 6px rgba(217, 83, 79, .55);
+        }
+    </style>
     <script type="text/javascript">
         // Disable the tabs
         $('#order a[data-toggle=\'tab\']').on('click', function(e) {
@@ -1137,6 +1154,8 @@
 
                     if (json['error']) {
                         if (json['error']['warning']) {
+                            cartValidationError = true;
+                            cartValidationMessage = json['error']['warning'];
                             $('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + json['error']['warning'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
                         }
 
@@ -1590,6 +1609,24 @@
         });
 
         $('#button-cart').on('click', function() {
+            if (cartValidationError) {
+                if (!$('.alert-danger').length && cartValidationMessage) {
+                    $('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + cartValidationMessage + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+                }
+
+                var invalidQuantity = $('#cart .cart-stock-invalid-quantity .form-control:first');
+
+                if (invalidQuantity.length) {
+                    invalidQuantity.focus();
+                }
+
+                $('html, body').animate({
+                    scrollTop: $('#tab-cart').offset().top - 20
+                }, 200);
+
+                return;
+            }
+
             $('a[href=\'#tab-payment\']').tab('show');
         });
 
@@ -2342,6 +2379,9 @@
             }
         });
 
+        var cartValidationError = false;
+        var cartValidationMessage = '';
+
         // Add all products to the cart using the api
         $('#button-refresh').on('click', function() {
             $.ajax({
@@ -2357,6 +2397,9 @@
                 success: function(json) {
                     $('.alert-dismissible').remove();
 
+                    cartValidationError = false;
+                    cartValidationMessage = '';
+
                     // Check for errors
                     if (json['error']) {
                         if (json['error']['warning']) {
@@ -2364,11 +2407,19 @@
                         }
 
                         if (json['error']['stock']) {
-                            $('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + json['error']['stock'] + '</div>');
+                            cartValidationError = true;
+                            cartValidationMessage = json['error']['stock'];
+                            $('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + json['error']['stock'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
                         }
 
                         if (json['error']['minimum']) {
+                            cartValidationError = true;
+
                             for (i in json['error']['minimum']) {
+                                if (!cartValidationMessage) {
+                                    cartValidationMessage = json['error']['minimum'][i];
+                                }
+
                                 $('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + json['error']['minimum'][i] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
                             }
                         }
@@ -2382,7 +2433,7 @@
                         for (i = 0; i < json['products'].length; i++) {
                             product = json['products'][i];
 
-                            html += '<tr>';
+                            html += '<tr' + (!product['stock'] ? ' class="cart-stock-invalid"' : '') + '>';
                             html += '  <td class="text-left">' + product['name'] + ' ' + (!product['stock'] ? '<span class="text-danger">***</span>' : '') + '<br />';
                             html += '  <input type="hidden" name="product[' + i + '][product_id]" value="' + product['product_id'] + '" />';
 
@@ -2408,7 +2459,7 @@
 
                             html += '</td>';
                             html += '  <td class="text-left">' + product['model'] + '</td>';
-                            html += '  <td class="text-right"><div class="input-group btn-block" style="max-width: 200px;"><input type="text" name="product[' + i + '][quantity]" value="' + product['quantity'] + '" class="form-control" /><span class="input-group-btn"><button type="button" data-toggle="tooltip" title="{{ button_refresh }}" data-loading-text="{{ text_loading }}" class="btn btn-primary"><i class="fa fa-refresh"></i></button></span></div></td>';
+                            html += '  <td class="text-right"><div class="input-group btn-block' + (!product['stock'] ? ' cart-stock-invalid-quantity' : '') + '" style="max-width: 200px;"><input type="text" name="product[' + i + '][quantity]" value="' + product['quantity'] + '" class="form-control" /><span class="input-group-btn"><button type="button" data-toggle="tooltip" title="{{ button_refresh }}" data-loading-text="{{ text_loading }}" class="btn btn-primary"><i class="fa fa-refresh"></i></button></span></div></td>';
                             html += '  <td class="text-right">' + product['price'] + '</td>';
                             html += '  <td class="text-right">' + product['total'] + '</td>';
                             html += '  <td class="text-center" style="width: 3px;"><button type="button" value="' + product['cart_id'] + '" data-toggle="tooltip" title="{{ button_remove }}" data-loading-text="{{ text_loading }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td>';
