@@ -3,7 +3,8 @@ class ControllerCommonCurrency extends Controller {
 	public function index() {
 		$this->load->language('common/currency');
 
-		$data['action'] = $this->url->link('common/currency/currency', '', $this->request->server['HTTPS']);
+		$is_secure = !empty($this->request->server['HTTPS']) && strtolower((string)$this->request->server['HTTPS']) !== 'off';
+		$data['action'] = $this->url->link('common/currency/currency', '', $is_secure);
 
 		$data['code'] = $this->session->data['currency'];
 
@@ -31,9 +32,14 @@ class ControllerCommonCurrency extends Controller {
 
 			unset($url_data['_route_']);
 
-			$route = $url_data['route'];
+			$route = isset($url_data['route']) && is_scalar($url_data['route']) ? (string)$url_data['route'] : 'common/home';
 
 			unset($url_data['route']);
+
+			if (!preg_match('/^[a-zA-Z0-9_\/]+$/', $route)) {
+				$route = 'common/home';
+				$url_data = array();
+			}
 
 			$url = '';
 
@@ -41,20 +47,20 @@ class ControllerCommonCurrency extends Controller {
 				$url = '&' . urldecode(http_build_query($url_data, '', '&'));
 			}
 
-			$data['redirect'] = $this->url->link($route, $url, $this->request->server['HTTPS']);
+			$data['redirect'] = $this->url->link($route, $url, $is_secure);
 		}
 
 		return $this->load->view('common/currency', $data);
 	}
 
 	public function currency() {
-		if (isset($this->request->post['code'])) {
+		if (isset($this->request->post['code']) && is_scalar($this->request->post['code'])) {
 			$this->load->model('localisation/currency');
 
 			$currencies = $this->model_localisation_currency->getCurrencies();
-			$code = $this->request->post['code'];
+			$code = (string)$this->request->post['code'];
 
-			if (isset($currencies[$code])) {
+			if (isset($currencies[$code]) && !empty($currencies[$code]['status'])) {
 				$this->session->data['currency'] = $code;
 
 				unset($this->session->data['shipping_method']);
