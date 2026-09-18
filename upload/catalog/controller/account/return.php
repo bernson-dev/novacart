@@ -315,14 +315,18 @@ class ControllerAccountReturn extends Controller {
 
 		$this->load->model('account/order');
 
-		if (isset($this->request->get['order_id'])) {
-			$order_info = $this->model_account_order->getOrder($this->request->get['order_id']);
+		$order_id = isset($this->request->get['order_id']) ? (int)$this->request->get['order_id'] : 0;
+
+		if ($order_id > 0) {
+			$order_info = $this->model_account_order->getOrder($order_id);
 		}
 
 		$this->load->model('catalog/product');
 
-		if (isset($this->request->get['return_product_id'])) {
-			$product_info = $this->model_catalog_product->getProduct($this->request->get['return_product_id']);
+		$return_product_id = isset($this->request->get['return_product_id']) ? (int)$this->request->get['return_product_id'] : 0;
+
+		if ($return_product_id > 0) {
+			$product_info = $this->model_catalog_product->getProduct($return_product_id);
 		}
 
 		if (isset($this->request->post['order_id'])) {
@@ -466,7 +470,8 @@ class ControllerAccountReturn extends Controller {
 
 	protected function validate() {
 		$defaults = array(
-			'order_id' => '',
+			'order_id' => 0,
+			'product_id' => 0,
 			'firstname' => '',
 			'lastname' => '',
 			'email' => '',
@@ -474,7 +479,10 @@ class ControllerAccountReturn extends Controller {
 			'product' => '',
 			'model' => '',
 			'quantity' => 1,
-			'return_reason_id' => 0
+			'opened' => 0,
+			'return_reason_id' => 0,
+			'comment' => '',
+			'date_ordered' => ''
 		);
 
 		foreach ($defaults as $key => $value) {
@@ -483,12 +491,26 @@ class ControllerAccountReturn extends Controller {
 			}
 		}
 
-		if (!empty($this->request->post['order_id'])) {
-			if (!$this->request->post['order_id']) {
+		$integer_fields = array('order_id', 'product_id', 'quantity', 'opened', 'return_reason_id');
+
+		foreach ($integer_fields as $key) {
+			$this->request->post[$key] = is_scalar($this->request->post[$key]) ? (int)$this->request->post[$key] : (int)$defaults[$key];
+		}
+
+		$string_fields = array('firstname', 'lastname', 'email', 'telephone', 'product', 'model', 'comment', 'date_ordered');
+
+		foreach ($string_fields as $key) {
+			$this->request->post[$key] = is_scalar($this->request->post[$key]) ? (string)$this->request->post[$key] : '';
+		}
+
+		if ($this->request->post['order_id'] < 1) {
+			$this->error['order_id'] = $this->language->get('error_order_id');
+		} elseif ($this->customer->isLogged()) {
+			$this->load->model('account/order');
+
+			if (!$this->model_account_order->getOrder($this->request->post['order_id'])) {
 				$this->error['order_id'] = $this->language->get('error_order_id');
 			}
-		} else {
-			$this->error['order_id'] = $this->language->get('error_order_id');
 		}
 
 		if (!empty($this->request->post['firstname'])) {
