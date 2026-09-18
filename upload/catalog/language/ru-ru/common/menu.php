@@ -3,5 +3,6 @@
 // *	@license	GNU General Public License version 3; see LICENSE.txt
 
 // Text
-$_['text_all'] = 'Смотреть Все';$_['text_category'] = 'Категории';
+$_['text_all']      = 'Смотреть Все';
+$_['text_category'] = 'Категории';
 
