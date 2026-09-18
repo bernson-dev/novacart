@@ -93,10 +93,10 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="row blog-article-list">
                 {% for article in articles %}
                 <div class="product-layout product-list col-xs-12">
-                    <div class="product-thumb">
+                    <div class="product-thumb blog-article-card">
                         <div class="image">
                             <a href="{{ article.href }}">
                             <img src="{{ article.thumb }}" alt="{{ article.name }}" title="{{ article.name }}" class="img-responsive" />
@@ -125,8 +125,8 @@
                             </div>
                             {% endif %}
                             <div class="button-group">
-                                <button type="button" onclick="location.href='{{ article.href }}';">
-                                    <i class="fa fa-share"></i>
+                                <button type="button" class="blog-more" onclick="location.href='{{ article.href }}';">
+                                    <i class="fa fa-arrow-right"></i>
                                     <span class="hidden-xs hidden-sm hidden-md">{{ button_more }}</span>
                                 </button>
 
@@ -135,7 +135,7 @@
                                 </button>
 
                                 <button type="button" data-toggle="tooltip" title="{{ text_views }} {{ article.viewed }}">
-                                    <i class="fa fa-eye"></i>
+                                    <i class="fa fa-eye blog-view-icon"></i>
                                 </button>
                             </div>
                         </div>
