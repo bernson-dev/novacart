@@ -142,6 +142,7 @@ $_['entry_stock_popup_status']          = 'Popup при нестачі';
 $_['entry_stock_popup_routes']          = 'Маршрути показу';
 $_['entry_stock_popup_title']           = 'Заголовок вікна';
 $_['entry_stock_popup_message']         = 'Текст повідомлення';
+$_['entry_stock_popup_show_image']      = 'Показувати зображення';
 $_['entry_stock_popup_show_model']      = 'Показувати модель';
 $_['entry_stock_popup_show_quantity']   = 'Показувати кількість';
 $_['entry_stock_checkout']              = 'Замовлення при нестачі на складі';
