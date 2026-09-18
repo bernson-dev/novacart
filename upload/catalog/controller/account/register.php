@@ -118,32 +118,32 @@ class ControllerAccountRegister extends Controller {
 			}
 		}
 
-		if (isset($this->request->post['customer_group_id'])) {
-			$data['customer_group_id'] = $this->request->post['customer_group_id'];
+		if (isset($this->request->post['customer_group_id']) && is_scalar($this->request->post['customer_group_id'])) {
+			$data['customer_group_id'] = (int)$this->request->post['customer_group_id'];
 		} else {
 			$data['customer_group_id'] = $this->config->get('config_customer_group_id');
 		}
 
-		if (isset($this->request->post['firstname'])) {
-			$data['firstname'] = $this->request->post['firstname'];
+		if (isset($this->request->post['firstname']) && is_scalar($this->request->post['firstname'])) {
+			$data['firstname'] = (string)$this->request->post['firstname'];
 		} else {
 			$data['firstname'] = '';
 		}
 
-		if (isset($this->request->post['lastname'])) {
-			$data['lastname'] = $this->request->post['lastname'];
+		if (isset($this->request->post['lastname']) && is_scalar($this->request->post['lastname'])) {
+			$data['lastname'] = (string)$this->request->post['lastname'];
 		} else {
 			$data['lastname'] = '';
 		}
 
-		if (isset($this->request->post['email'])) {
-			$data['email'] = $this->request->post['email'];
+		if (isset($this->request->post['email']) && is_scalar($this->request->post['email'])) {
+			$data['email'] = (string)$this->request->post['email'];
 		} else {
 			$data['email'] = '';
 		}
 
-		if (isset($this->request->post['telephone'])) {
-			$data['telephone'] = $this->request->post['telephone'];
+		if (isset($this->request->post['telephone']) && is_scalar($this->request->post['telephone'])) {
+			$data['telephone'] = (string)$this->request->post['telephone'];
 		} else {
 			$data['telephone'] = '';
 		}
@@ -161,7 +161,7 @@ class ControllerAccountRegister extends Controller {
 			}
 		}
 
-		if (isset($this->request->post['custom_field']['account'])) {
+		if (isset($this->request->post['custom_field']['account']) && is_array($this->request->post['custom_field']['account'])) {
 			$data['register_custom_field'] = $this->request->post['custom_field']['account'];
 		} else {
 			$data['register_custom_field'] = array();
@@ -223,6 +223,33 @@ class ControllerAccountRegister extends Controller {
 	}
 
 	protected function validate() {
+		$defaults = array(
+			'firstname' => '',
+			'lastname' => '',
+			'email' => '',
+			'telephone' => '',
+			'customer_group_id' => (int)$this->config->get('config_customer_group_id'),
+			'newsletter' => 0,
+			'confirm' => ''
+		);
+
+		foreach ($defaults as $key => $value) {
+			if (!isset($this->request->post[$key]) || !is_scalar($this->request->post[$key])) {
+				$this->request->post[$key] = $value;
+			}
+		}
+
+		$this->request->post['firstname'] = (string)$this->request->post['firstname'];
+		$this->request->post['lastname'] = (string)$this->request->post['lastname'];
+		$this->request->post['email'] = trim((string)$this->request->post['email']);
+		$this->request->post['telephone'] = trim((string)$this->request->post['telephone']);
+		$this->request->post['customer_group_id'] = (int)$this->request->post['customer_group_id'];
+		$this->request->post['newsletter'] = !empty($this->request->post['newsletter']) ? 1 : 0;
+
+		if (!isset($this->request->post['custom_field']) || !is_array($this->request->post['custom_field'])) {
+			$this->request->post['custom_field'] = array();
+		}
+
 		if ((utf8_strlen(trim($this->request->post['firstname'])) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
 			$this->error['firstname'] = $this->language->get('error_firstname');
 		}
@@ -231,7 +258,7 @@ class ControllerAccountRegister extends Controller {
 			$this->error['lastname'] = $this->language->get('error_lastname');
 		}
 
-		$email = isset($this->request->post['email']) ? trim($this->request->post['email']) : '';
+		$email = $this->request->post['email'];
 
 		if (!$email || (utf8_strlen($email) > 96) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 			$this->error['email'] = $this->language->get('error_email');
@@ -239,7 +266,7 @@ class ControllerAccountRegister extends Controller {
 			$this->error['warning'] = $this->language->get('error_exists');
 		}
 
-		$telephone = isset($this->request->post['telephone']) ? trim($this->request->post['telephone']) : '';
+		$telephone = $this->request->post['telephone'];
 
 		if ((utf8_strlen($telephone) < 3) || (utf8_strlen($telephone) > 32)) {
 			$this->error['telephone'] = $this->language->get('error_telephone');
@@ -259,9 +286,17 @@ class ControllerAccountRegister extends Controller {
 
 		foreach ($custom_fields as $custom_field) {
 			if ($custom_field['location'] == 'account') {
-				if ($custom_field['required'] && empty($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])) {
+				$custom_field_value = isset($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])
+					? $this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']]
+					: '';
+
+				if ($custom_field['type'] == 'text' && !is_scalar($custom_field_value)) {
+					$custom_field_value = '';
+				}
+
+				if ($custom_field['required'] && empty($custom_field_value)) {
 					$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
-				} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && !filter_var($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
+				} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && $custom_field_value !== '' && !filter_var($custom_field_value, FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
 					$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
 				}
 			}
