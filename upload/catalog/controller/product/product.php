@@ -573,6 +573,11 @@ class ControllerProductProduct extends Controller {
 	public function review() {
 		$this->load->language('product/product');
 
+		if (!$this->config->get('config_review_status')) {
+			$this->response->setOutput('');
+			return;
+		}
+
 		$this->load->model('catalog/review');
 
 		if (isset($this->request->get['page'])) {
@@ -626,30 +631,30 @@ class ControllerProductProduct extends Controller {
 
 			if (!$product_info) {
 				$json['error'] = $this->language->get('error_product');
-			}
+			} else {
+				$name = isset($this->request->post['name']) ? $this->request->post['name'] : '';
+				$text = isset($this->request->post['text']) ? $this->request->post['text'] : '';
+				$rating = isset($this->request->post['rating']) ? (int)$this->request->post['rating'] : 0;
 
-			$name = isset($this->request->post['name']) ? $this->request->post['name'] : '';
-			$text = isset($this->request->post['text']) ? $this->request->post['text'] : '';
-			$rating = isset($this->request->post['rating']) ? (int)$this->request->post['rating'] : 0;
+				if ((utf8_strlen($name) < 3) || (utf8_strlen($name) > 25)) {
+					$json['error'] = $this->language->get('error_name');
+				}
 
-			if ((utf8_strlen($name) < 3) || (utf8_strlen($name) > 25)) {
-				$json['error'] = $this->language->get('error_name');
-			}
+				if ((utf8_strlen($text) < 25) || (utf8_strlen($text) > 1000)) {
+					$json['error'] = $this->language->get('error_text');
+				}
 
-			if ((utf8_strlen($text) < 25) || (utf8_strlen($text) > 1000)) {
-				$json['error'] = $this->language->get('error_text');
-			}
+				if ($rating < 1 || $rating > 5) {
+					$json['error'] = $this->language->get('error_rating');
+				}
 
-			if ($rating < 1 || $rating > 5) {
-				$json['error'] = $this->language->get('error_rating');
-			}
+				// Captcha
+				if ($this->config->get('captcha_' . $this->config->get('config_captcha') . '_status') && in_array('review', (array)$this->config->get('config_captcha_page'))) {
+					$captcha = $this->load->controller('extension/captcha/' . $this->config->get('config_captcha') . '/validate');
 
-			// Captcha
-			if ($this->config->get('captcha_' . $this->config->get('config_captcha') . '_status') && in_array('review', (array)$this->config->get('config_captcha_page'))) {
-				$captcha = $this->load->controller('extension/captcha/' . $this->config->get('config_captcha') . '/validate');
-
-				if ($captcha) {
-					$json['error'] = $captcha;
+					if ($captcha) {
+						$json['error'] = $captcha;
+					}
 				}
 			}
 
