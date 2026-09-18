@@ -241,7 +241,7 @@ class SeoPro {
 				return array($url, $data, $postfix);
 		}
 
-		$queries = array();
+		$queries = [];
 		$route = '';
 
 		if (isset($data['route'])) {
@@ -310,7 +310,7 @@ class SeoPro {
 
 			$data['route'] = $route;
 		} else {
-			$rows = array();
+			$rows = [];
 
 			foreach ($queries as $query) {
 				$keyword = $this->getKeywordByQuery($query, $language_id);
@@ -329,12 +329,12 @@ class SeoPro {
 			}
 		}
 
-		return array($url, $data, $postfix);
+		return [$url, $data, $postfix];
 	}
 
 	private function getPath($categories, $category_id, $current_path = []) {
 		if (!$current_path) {
-			$current_path = array((int)$category_id);
+			$current_path = [(int)$category_id];
 		}
 
 		$path = $current_path;
@@ -345,7 +345,7 @@ class SeoPro {
 		}
 
 		if ($parent_id > 0) {
-			$new_path = array_merge(array($parent_id), $current_path);
+			$new_path = array_merge([$parent_id], $current_path);
 			$path = $this->getPath($categories, $parent_id, $new_path);
 		}
 
@@ -362,7 +362,7 @@ class SeoPro {
 		}
 
 		if (!$this->cat_tree || empty($this->cat_tree)) {
-			$this->cat_tree = array();
+			$this->cat_tree = [];
 			$all_cat_query = $this->db->query("SELECT category_id, parent_id FROM " . DB_PREFIX . "category ORDER BY parent_id");
 			$allcats = [];
 			$categories = [];
@@ -388,7 +388,7 @@ class SeoPro {
 			$this->queries = $this->cache->get('seopro.queries');
 
 			if (!$this->keywords || !is_array($this->keywords)) {
-				$this->keywords = array();
+				$this->keywords = [];
 			}
 
 			if (!$this->queries || !is_array($this->queries)) {
@@ -495,13 +495,13 @@ class SeoPro {
 		}
 
 		if (isset($this->request->get['route'])) {
-			$break_routes = array(
+			$break_routes = [
 				'error/not_found',
 				'extension/feed/google_sitemap',
 				'extension/feed/google_base',
 				'extension/feed/sitemap_pro',
 				'extension/feed/yandex_feed'
-			);
+			];
 
 			if (in_array($this->request->get['route'], $break_routes)) {
 				return;
@@ -630,7 +630,7 @@ class SeoPro {
 				$this->product_categories = $this->cache->get('seopro.product_categories');
 
 				if (!is_array($this->product_categories)) {
-					$this->product_categories = array();
+					$this->product_categories = [];
 				}
 			}
 
@@ -648,7 +648,7 @@ class SeoPro {
 
 		if ($this->config->get('config_seo_url_cache')) {
 			if (!is_array($this->product_categories)) {
-				$this->product_categories = array();
+				$this->product_categories = [];
 			}
 
 			$this->product_categories[$product_id] = $category_id;
@@ -693,15 +693,15 @@ class SeoPro {
 			return false;
 		}
 
-		static $blog_path = array();
+		static $blog_path = [];
 		$cache = 'seopro.blog_category.seopath';
 
 		if (!is_array($blog_path)) {
 			if ($this->config->get('config_seo_url_cache')) {
 				$cached = $this->cache->get($cache);
-				$blog_path = is_array($cached) ? $cached : array();
+				$blog_path = is_array($cached) ? $cached : [];
 			} else {
-				$blog_path = array();
+				$blog_path = [];
 			}
 		}
 
@@ -745,9 +745,9 @@ class SeoPro {
 		}
 	}
 
-	private function getQueryString($exclude = array()) {
+	private function getQueryString($exclude = []) {
 		if (!is_array($exclude)) {
-			$exclude = array();
+			$exclude = [];
 		}
 
 		return urldecode(http_build_query(array_diff_key($this->request->get, array_flip($exclude))));

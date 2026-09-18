@@ -51,7 +51,7 @@ $_['tab_design']             = 'Design';
 $_['help_related']           = '(Autocomplete)';
 
 // Error
-$_['error_warning']     = 'Warning: Please check the form carefully for errors!';
+$_['error_warning']          = 'Warning: Please check the form carefully for errors!';
 $_['error_permission']       = 'Warning: You do not have permission to modify manufacturers!';
 $_['error_name']             = 'Manufacturer Name must be between 1 and 64 characters!';
 $_['error_keyword']          = 'SEO URL already in use!';
