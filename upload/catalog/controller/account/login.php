@@ -26,7 +26,8 @@ class ControllerAccountLogin extends Controller {
 			unset($this->session->data['voucher']);
 			unset($this->session->data['vouchers']);
 
-			$customer_info = $this->model_account_customer->getCustomerByToken($this->request->get['token']);
+			$token = is_scalar($this->request->get['token']) ? (string)$this->request->get['token'] : '';
+			$customer_info = $token !== '' ? $this->model_account_customer->getCustomerByToken($token) : array();
 
 			if ($customer_info && $this->customer->login($customer_info['email'], '', true)) {
 				// Default Addresses
@@ -135,8 +136,8 @@ class ControllerAccountLogin extends Controller {
 			$data['success'] = '';
 		}
 
-		if (isset($this->request->post['email'])) {
-			$data['email'] = $this->request->post['email'];
+		if (isset($this->request->post['email']) && is_scalar($this->request->post['email'])) {
+			$data['email'] = (string)$this->request->post['email'];
 		} else {
 			$data['email'] = '';
 		}
@@ -158,7 +159,7 @@ class ControllerAccountLogin extends Controller {
 	}
 
 	protected function validate() {
-		$email = isset($this->request->post['email']) ? trim($this->request->post['email']) : '';
+		$email = isset($this->request->post['email']) && is_scalar($this->request->post['email']) ? trim((string)$this->request->post['email']) : '';
 		$password = $this->request->getRawPost('password');
 
 		if (!$email || !$password) {

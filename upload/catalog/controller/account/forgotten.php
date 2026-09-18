@@ -54,8 +54,8 @@ class ControllerAccountForgotten extends Controller {
 
 		$data['back'] = $this->url->link('account/login', '', true);
 
-		if (isset($this->request->post['email'])) {
-			$data['email'] = $this->request->post['email'];
+		if (isset($this->request->post['email']) && is_scalar($this->request->post['email'])) {
+			$data['email'] = (string)$this->request->post['email'];
 		} else {
 			$data['email'] = '';
 		}
@@ -71,7 +71,7 @@ class ControllerAccountForgotten extends Controller {
 	}
 
 	protected function validate() {
-		$email = isset($this->request->post['email']) ? trim($this->request->post['email']) : '';
+		$email = isset($this->request->post['email']) && is_scalar($this->request->post['email']) ? trim((string)$this->request->post['email']) : '';
 
 		if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 			$this->error['warning'] = $this->language->get('error_email');

@@ -182,9 +182,15 @@ class ControllerAccountEdit extends Controller {
 		);
 
 		foreach ($defaults as $key => $value) {
-			if (!isset($this->request->post[$key])) {
+			if (!isset($this->request->post[$key]) || !is_scalar($this->request->post[$key])) {
 				$this->request->post[$key] = $value;
+			} else {
+				$this->request->post[$key] = (string)$this->request->post[$key];
 			}
+		}
+
+		if (!isset($this->request->post['custom_field']) || !is_array($this->request->post['custom_field'])) {
+			$this->request->post['custom_field'] = array();
 		}
 
 		if ((utf8_strlen(trim($this->request->post['firstname'])) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
@@ -217,6 +223,10 @@ class ControllerAccountEdit extends Controller {
 				$custom_field_value = isset($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])
 					? $this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']]
 					: '';
+
+				if ($custom_field['type'] == 'text' && !is_scalar($custom_field_value)) {
+					$custom_field_value = '';
+				}
 
 				if ($custom_field['required'] && empty($custom_field_value)) {
 					$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
