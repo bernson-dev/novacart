@@ -68,20 +68,22 @@ class ControllerAccountAddress extends Controller {
 
 		$this->load->model('account/address');
 
-		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm()) {
-			$this->model_account_address->editAddress($this->request->get['address_id'], $this->request->post);
+		$address_id = $address_id > 0 ? (int)$this->request->get['address_id'] : 0;
+
+		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $address_id > 0 && $this->validateForm()) {
+			$this->model_account_address->editAddress($address_id, $this->request->post);
 
 			// Default Shipping Address
-			if (isset($this->session->data['shipping_address']['address_id']) && ($this->request->get['address_id'] == $this->session->data['shipping_address']['address_id'])) {
-				$this->session->data['shipping_address'] = $this->model_account_address->getAddress($this->request->get['address_id']);
+			if (isset($this->session->data['shipping_address']['address_id']) && ($address_id == $this->session->data['shipping_address']['address_id'])) {
+				$this->session->data['shipping_address'] = $this->model_account_address->getAddress($address_id);
 
 				unset($this->session->data['shipping_method']);
 				unset($this->session->data['shipping_methods']);
 			}
 
 			// Default Payment Address
-			if (isset($this->session->data['payment_address']['address_id']) && ($this->request->get['address_id'] == $this->session->data['payment_address']['address_id'])) {
-				$this->session->data['payment_address'] = $this->model_account_address->getAddress($this->request->get['address_id']);
+			if (isset($this->session->data['payment_address']['address_id']) && ($address_id == $this->session->data['payment_address']['address_id'])) {
+				$this->session->data['payment_address'] = $this->model_account_address->getAddress($address_id);
 
 				unset($this->session->data['payment_method']);
 				unset($this->session->data['payment_methods']);
@@ -109,18 +111,20 @@ class ControllerAccountAddress extends Controller {
 
 		$this->load->model('account/address');
 
-		if (isset($this->request->get['address_id']) && $this->validateDelete()) {
-			$this->model_account_address->deleteAddress($this->request->get['address_id']);
+		$address_id = $address_id > 0 ? (int)$this->request->get['address_id'] : 0;
+
+		if ($address_id > 0 && $this->model_account_address->getAddress($address_id) && $this->validateDelete($address_id)) {
+			$this->model_account_address->deleteAddress($address_id);
 
 			// Default Shipping Address
-			if (isset($this->session->data['shipping_address']['address_id']) && ($this->request->get['address_id'] == $this->session->data['shipping_address']['address_id'])) {
+			if (isset($this->session->data['shipping_address']['address_id']) && ($address_id == $this->session->data['shipping_address']['address_id'])) {
 				unset($this->session->data['shipping_address']);
 				unset($this->session->data['shipping_method']);
 				unset($this->session->data['shipping_methods']);
 			}
 
 			// Default Payment Address
-			if (isset($this->session->data['payment_address']['address_id']) && ($this->request->get['address_id'] == $this->session->data['payment_address']['address_id'])) {
+			if (isset($this->session->data['payment_address']['address_id']) && ($address_id == $this->session->data['payment_address']['address_id'])) {
 				unset($this->session->data['payment_address']);
 				unset($this->session->data['payment_method']);
 				unset($this->session->data['payment_methods']);
@@ -222,6 +226,8 @@ class ControllerAccountAddress extends Controller {
 	}
 
 	protected function getForm() {
+		$address_id = $address_id > 0 ? (int)$this->request->get['address_id'] : 0;
+
 		$data['breadcrumbs'] = array();
 
 		$data['breadcrumbs'][] = array(
@@ -239,7 +245,7 @@ class ControllerAccountAddress extends Controller {
 			'href' => $this->url->link('account/address', '', true)
 		);
 
-		if (!isset($this->request->get['address_id'])) {
+		if ($address_id < 1) {
 			$data['breadcrumbs'][] = array(
 				'text' => $this->language->get('text_address_add'),
 				'href' => $this->url->link('account/address/add', '', true)
@@ -247,11 +253,11 @@ class ControllerAccountAddress extends Controller {
 		} else {
 			$data['breadcrumbs'][] = array(
 				'text' => $this->language->get('text_address_edit'),
-				'href' => $this->url->link('account/address/edit', 'address_id=' . $this->request->get['address_id'], true)
+				'href' => $this->url->link('account/address/edit', 'address_id=' . $address_id, true)
 			);
 		}
 
-		$data['text_address'] = !isset($this->request->get['address_id']) ? $this->language->get('text_address_add') : $this->language->get('text_address_edit');
+		$data['text_address'] = $address_id < 1 ? $this->language->get('text_address_add') : $this->language->get('text_address_edit');
 
 		if (isset($this->error['firstname'])) {
 			$data['error_firstname'] = $this->error['firstname'];
@@ -301,66 +307,66 @@ class ControllerAccountAddress extends Controller {
 			$data['error_custom_field'] = array();
 		}
 
-		if (!isset($this->request->get['address_id'])) {
+		if ($address_id < 1) {
 			$data['action'] = $this->url->link('account/address/add', '', true);
 		} else {
-			$data['action'] = $this->url->link('account/address/edit', 'address_id=' . $this->request->get['address_id'], true);
+			$data['action'] = $this->url->link('account/address/edit', 'address_id=' . $address_id, true);
 		}
 
-		if (isset($this->request->get['address_id']) && ($this->request->server['REQUEST_METHOD'] != 'POST')) {
-			$address_info = $this->model_account_address->getAddress($this->request->get['address_id']);
+		if ($address_id > 0 && ($this->request->server['REQUEST_METHOD'] != 'POST')) {
+			$address_info = $this->model_account_address->getAddress($address_id);
 		}
 
-		if (isset($this->request->post['firstname'])) {
-			$data['firstname'] = $this->request->post['firstname'];
+		if (isset($this->request->post['firstname']) && is_scalar($this->request->post['firstname'])) {
+			$data['firstname'] = (string)$this->request->post['firstname'];
 		} elseif (!empty($address_info)) {
 			$data['firstname'] = $address_info['firstname'];
 		} else {
 			$data['firstname'] = '';
 		}
 
-		if (isset($this->request->post['lastname'])) {
-			$data['lastname'] = $this->request->post['lastname'];
+		if (isset($this->request->post['lastname']) && is_scalar($this->request->post['lastname'])) {
+			$data['lastname'] = (string)$this->request->post['lastname'];
 		} elseif (!empty($address_info)) {
 			$data['lastname'] = $address_info['lastname'];
 		} else {
 			$data['lastname'] = '';
 		}
 
-		if (isset($this->request->post['company'])) {
-			$data['company'] = $this->request->post['company'];
+		if (isset($this->request->post['company']) && is_scalar($this->request->post['company'])) {
+			$data['company'] = (string)$this->request->post['company'];
 		} elseif (!empty($address_info)) {
 			$data['company'] = $address_info['company'];
 		} else {
 			$data['company'] = '';
 		}
 
-		if (isset($this->request->post['address_1'])) {
-			$data['address_1'] = $this->request->post['address_1'];
+		if (isset($this->request->post['address_1']) && is_scalar($this->request->post['address_1'])) {
+			$data['address_1'] = (string)$this->request->post['address_1'];
 		} elseif (!empty($address_info)) {
 			$data['address_1'] = $address_info['address_1'];
 		} else {
 			$data['address_1'] = '';
 		}
 
-		if (isset($this->request->post['address_2'])) {
-			$data['address_2'] = $this->request->post['address_2'];
+		if (isset($this->request->post['address_2']) && is_scalar($this->request->post['address_2'])) {
+			$data['address_2'] = (string)$this->request->post['address_2'];
 		} elseif (!empty($address_info)) {
 			$data['address_2'] = $address_info['address_2'];
 		} else {
 			$data['address_2'] = '';
 		}
 
-		if (isset($this->request->post['postcode'])) {
-			$data['postcode'] = $this->request->post['postcode'];
+		if (isset($this->request->post['postcode']) && is_scalar($this->request->post['postcode'])) {
+			$data['postcode'] = (string)$this->request->post['postcode'];
 		} elseif (!empty($address_info)) {
 			$data['postcode'] = $address_info['postcode'];
 		} else {
 			$data['postcode'] = '';
 		}
 
-		if (isset($this->request->post['city'])) {
-			$data['city'] = $this->request->post['city'];
+		if (isset($this->request->post['city']) && is_scalar($this->request->post['city'])) {
+			$data['city'] = (string)$this->request->post['city'];
 		} elseif (!empty($address_info)) {
 			$data['city'] = $address_info['city'];
 		} else {
@@ -383,7 +389,7 @@ class ControllerAccountAddress extends Controller {
 			$data['zone_id'] = '';
 		}
 
-		if (isset($this->request->post['custom_field']['address'])) {
+		if (isset($this->request->post['custom_field']['address']) && is_array($this->request->post['custom_field']['address'])) {
 			$data['address_custom_field'] = $this->request->post['custom_field']['address'];
 		} elseif (isset($address_info['custom_field'])) {
 			$data['address_custom_field'] = $address_info['custom_field'];
@@ -428,8 +434,8 @@ class ControllerAccountAddress extends Controller {
 
 		if (isset($this->request->post['default'])) {
 			$data['default'] = $this->request->post['default'];
-		} elseif (isset($this->request->get['address_id'])) {
-			$data['default'] = $this->customer->getAddressId() == $this->request->get['address_id'];
+		} elseif ($address_id > 0) {
+			$data['default'] = $this->customer->getAddressId() == $address_id;
 		} else {
 			$data['default'] = false;
 		}
@@ -450,17 +456,28 @@ class ControllerAccountAddress extends Controller {
 		$defaults = array(
 			'firstname' => '',
 			'lastname' => '',
+			'company' => '',
 			'address_1' => '',
+			'address_2' => '',
 			'postcode' => '',
 			'city' => '',
 			'country_id' => 0,
-			'zone_id' => 0
+			'zone_id' => 0,
+			'default' => 0
 		);
 
-		foreach ($defaults as $key => $value) {
-			if (!isset($this->request->post[$key])) {
-				$this->request->post[$key] = $value;
-			}
+		$string_fields = array('firstname', 'lastname', 'company', 'address_1', 'address_2', 'postcode', 'city');
+
+		foreach ($string_fields as $key) {
+			$this->request->post[$key] = isset($this->request->post[$key]) && is_scalar($this->request->post[$key]) ? (string)$this->request->post[$key] : '';
+		}
+
+		$this->request->post['country_id'] = isset($this->request->post['country_id']) && is_scalar($this->request->post['country_id']) ? (int)$this->request->post['country_id'] : 0;
+		$this->request->post['zone_id'] = isset($this->request->post['zone_id']) && is_scalar($this->request->post['zone_id']) ? (int)$this->request->post['zone_id'] : 0;
+		$this->request->post['default'] = !empty($this->request->post['default']) ? 1 : 0;
+
+		if (!isset($this->request->post['custom_field']) || !is_array($this->request->post['custom_field'])) {
+			$this->request->post['custom_field'] = array();
 		}
 
 		if ((utf8_strlen(trim($this->request->post['firstname'])) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
@@ -517,6 +534,10 @@ class ControllerAccountAddress extends Controller {
 					? $this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']]
 					: '';
 
+				if ($custom_field['type'] == 'text' && !is_scalar($custom_field_value)) {
+					$custom_field_value = '';
+				}
+
 				if ($custom_field['required'] && empty($custom_field_value)) {
 					$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
 				} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && $custom_field_value !== '' && !filter_var($custom_field_value, FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
@@ -528,12 +549,12 @@ class ControllerAccountAddress extends Controller {
 		return !$this->error;
 	}
 
-	protected function validateDelete() {
+	protected function validateDelete($address_id) {
 		if ($this->model_account_address->getTotalAddresses() == 1) {
 			$this->error['warning'] = $this->language->get('error_delete');
 		}
 
-		if ($this->customer->getAddressId() == $this->request->get['address_id']) {
+		if ($this->customer->getAddressId() == $address_id) {
 			$this->error['warning'] = $this->language->get('error_default');
 		}
 
