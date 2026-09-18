@@ -7,6 +7,7 @@ class ModelCatalogProduct extends Model {
 		$comment = isset($data['comment']) ? $data['comment'] : '';
 		$cost_price = isset($data['cost_price']) ? (float)$data['cost_price'] : 0;
 		$image = isset($data['image']) ? $data['image'] : '';
+		$data['quantity'] = $this->getProductOptionTotalQuantity($data, isset($data['quantity']) ? (int)$data['quantity'] : 0);
 
 		$this->db->query("INSERT INTO " . DB_PREFIX . "product SET
 		model = '" . $this->db->escape($data['model']) . "',
@@ -218,6 +219,7 @@ class ModelCatalogProduct extends Model {
 		$comment = isset($data['comment']) ? $data['comment'] : '';
 		$cost_price = isset($data['cost_price']) ? (float)$data['cost_price'] : 0;
 		$image = isset($data['image']) ? $data['image'] : '';
+		$data['quantity'] = $this->getProductOptionTotalQuantity($data, isset($data['quantity']) ? (int)$data['quantity'] : 0);
 
 		if (isset($data['date_added']) && $data['date_added'] !== '') {
 			$this->db->query("UPDATE " . DB_PREFIX . "product SET date_added = '" . $this->db->escape($data['date_added']) . "' WHERE product_id = '" . (int)$product_id . "'");
@@ -1179,6 +1181,57 @@ class ModelCatalogProduct extends Model {
 		'copied' => !empty($formatted_copied_fields),
 		'filled_languages_stats' => $filled_languages_stats
 		);
+	}
+
+	/**
+	 * Calculate the product quantity from stock-managed selectable options.
+	 *
+	 * Each option group is summed independently. If several stock-managed option
+	 * groups exist (for example Color and Size), the smallest group total is used
+	 * to avoid counting the same physical stock more than once.
+	 *
+	 * Groups containing values that do not subtract stock are ignored because
+	 * they do not provide a finite stock limit for the product.
+	 */
+	private function getProductOptionTotalQuantity($data, $fallback) {
+		if (empty($data['product_option']) || !is_array($data['product_option'])) {
+			return (int)$fallback;
+		}
+
+		$group_totals = array();
+
+		foreach ($data['product_option'] as $product_option) {
+			if (
+				empty($product_option['product_option_value']) ||
+				!is_array($product_option['product_option_value']) ||
+				!isset($product_option['type']) ||
+				!in_array($product_option['type'], array('select', 'radio', 'checkbox', 'image'), true)
+			) {
+				continue;
+			}
+
+			$total = 0;
+			$managed = true;
+			$has_values = false;
+
+			foreach ($product_option['product_option_value'] as $product_option_value) {
+				$has_values = true;
+
+				if (empty($product_option_value['subtract'])) {
+					$managed = false;
+					break;
+				}
+
+				$quantity = isset($product_option_value['quantity']) ? (int)$product_option_value['quantity'] : 0;
+				$total += max(0, $quantity);
+			}
+
+			if ($managed && $has_values) {
+				$group_totals[] = $total;
+			}
+		}
+
+		return $group_totals ? min($group_totals) : (int)$fallback;
 	}
 
 	private function productExists($product_id) {
