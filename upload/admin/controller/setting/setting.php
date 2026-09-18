@@ -184,6 +184,11 @@ class ControllerSettingSetting extends Controller {
 			$data['error_file_max_size'] = '';
 		}
 
+		$data['error_mail_smtp_hostname'] = isset($this->error['mail_smtp_hostname']) ? $this->error['mail_smtp_hostname'] : '';
+		$data['error_mail_smtp_port'] = isset($this->error['mail_smtp_port']) ? $this->error['mail_smtp_port'] : '';
+		$data['error_mail_smtp_timeout'] = isset($this->error['mail_smtp_timeout']) ? $this->error['mail_smtp_timeout'] : '';
+		$data['error_mail_smtp_credentials'] = isset($this->error['mail_smtp_credentials']) ? $this->error['mail_smtp_credentials'] : '';
+
 		$data['breadcrumbs'] = array();
 
 		$data['breadcrumbs'][] = array(
@@ -1293,6 +1298,30 @@ class ControllerSettingSetting extends Controller {
 
 		if ((utf8_strlen($this->request->post['config_encryption']) < 32) || (utf8_strlen($this->request->post['config_encryption']) > 1024)) {
 			$this->error['encryption'] = $this->language->get('error_encryption');
+		}
+
+		if (isset($this->request->post['config_mail_engine']) && $this->request->post['config_mail_engine'] === 'smtp') {
+			$hostname = isset($this->request->post['config_mail_smtp_hostname']) ? trim((string)$this->request->post['config_mail_smtp_hostname']) : '';
+			$username = isset($this->request->post['config_mail_smtp_username']) ? trim((string)$this->request->post['config_mail_smtp_username']) : '';
+			$password = isset($this->request->post['config_mail_smtp_password']) ? (string)$this->request->post['config_mail_smtp_password'] : '';
+			$port = isset($this->request->post['config_mail_smtp_port']) ? (int)$this->request->post['config_mail_smtp_port'] : 0;
+			$timeout = isset($this->request->post['config_mail_smtp_timeout']) ? (int)$this->request->post['config_mail_smtp_timeout'] : 0;
+
+			if ($hostname === '') {
+				$this->error['mail_smtp_hostname'] = $this->language->get('error_smtp_test_hostname');
+			}
+
+			if ($port < 1 || $port > 65535) {
+				$this->error['mail_smtp_port'] = $this->language->get('error_smtp_test_port');
+			}
+
+			if ($timeout < 1 || $timeout > 300) {
+				$this->error['mail_smtp_timeout'] = $this->language->get('error_smtp_test_timeout');
+			}
+
+			if (($username === '') xor ($password === '')) {
+				$this->error['mail_smtp_credentials'] = $this->language->get('error_smtp_test_credentials');
+			}
 		}
 
 		if ($this->error && !isset($this->error['warning'])) {
