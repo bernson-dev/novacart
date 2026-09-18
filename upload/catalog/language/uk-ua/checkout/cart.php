@@ -41,6 +41,7 @@ $_['text_stock_popup_title']    = 'Недостатньо товару на ск
 $_['text_stock_popup_message']  = 'Наступних товарів немає у необхідній кількості:';
 $_['text_stock_popup_model']    = 'Модель';
 $_['text_stock_popup_quantity'] = 'У кошику';
+$_['text_stock_popup_available'] = 'Доступно';
 $_['button_stock_popup_close']  = 'Зрозуміло';
 
 $_['error_stock']                             = 'Товари, що відмічені *** відсутні в достатній кількості або їх немає в наявності';
