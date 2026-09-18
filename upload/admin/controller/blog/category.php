@@ -507,6 +507,15 @@ class ControllerBlogCategory extends Controller {
 		$this->response->setOutput($this->load->view('blog/category_form', $data));
 	}
 
+
+	protected function validateModifyPermission() {
+		if (!$this->user->hasPermission('modify', 'blog/category')) {
+			$this->error['warning'] = $this->language->get('error_permission');
+		}
+
+		return !$this->error;
+	}
+
 	protected function validateForm() {
 		if (!$this->user->hasPermission('modify', 'blog/category')) {
 			$this->error['warning'] = $this->language->get('error_permission');
@@ -564,8 +573,7 @@ class ControllerBlogCategory extends Controller {
 
 		$this->load->model('blog/category');
 
-		if (isset($this->request->post['selected'])) {
-
+		if (isset($this->request->post['selected']) && $this->validateModifyPermission()) {
 			foreach ($this->request->post['selected'] as $blog_category_id) {
 				$this->model_blog_category->editCategoryStatus($blog_category_id, 1);
 			}
@@ -599,8 +607,7 @@ class ControllerBlogCategory extends Controller {
 
 		$this->load->model('blog/category');
 
-		if (isset($this->request->post['selected'])) {
-
+		if (isset($this->request->post['selected']) && $this->validateModifyPermission()) {
 			foreach ($this->request->post['selected'] as $blog_category_id) {
 				$this->model_blog_category->editCategoryStatus($blog_category_id, 0);
 			}
