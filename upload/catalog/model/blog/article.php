@@ -367,13 +367,11 @@ class ModelBlogArticle extends Model {
 	}
 
 	public function getDownload($article_id, $download_id) {
-		$download = '';
-
-		if ($download_id != 0) {
-			$download = " AND d.download_id = " . (int)$download_id;
+		if ((int)$article_id < 1 || (int)$download_id < 1) {
+			return array();
 		}
 
-		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "article_to_download pd LEFT JOIN " . DB_PREFIX . "download d ON(pd.download_id=d.download_id) LEFT JOIN " . DB_PREFIX . "download_description dd ON(pd.download_id=dd.download_id) WHERE article_id = '" . (int)$article_id . "'" . $download . " AND dd.language_id = '" . (int)$this->config->get('config_language_id') . "'");
+		$query = $this->db->query("SELECT d.*, dd.name FROM " . DB_PREFIX . "article_to_download a2d LEFT JOIN " . DB_PREFIX . "download d ON (a2d.download_id = d.download_id) LEFT JOIN " . DB_PREFIX . "download_description dd ON (d.download_id = dd.download_id) LEFT JOIN " . DB_PREFIX . "article a ON (a2d.article_id = a.article_id) LEFT JOIN " . DB_PREFIX . "article_to_store a2s ON (a.article_id = a2s.article_id) WHERE a2d.article_id = '" . (int)$article_id . "' AND d.download_id = '" . (int)$download_id . "' AND dd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND a.status = '1' AND a.date_available <= NOW() AND a2s.store_id = '" . (int)$this->config->get('config_store_id') . "' LIMIT 1");
 
 		return $query->row;
 	}
