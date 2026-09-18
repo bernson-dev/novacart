@@ -21,20 +21,22 @@ class ControllerApiReward extends Controller {
 				}
 			}
 
-			if (empty($this->request->post['reward'])) {
+			$reward = isset($this->request->post['reward']) && is_scalar($this->request->post['reward']) ? (int)$this->request->post['reward'] : 0;
+
+			if ($reward <= 0) {
 				$json['error'] = $this->language->get('error_reward');
 			}
 
-			if ($this->request->post['reward'] > $points) {
-				$json['error'] = sprintf($this->language->get('error_points'), $this->request->post['reward']);
+			if ($reward > $points) {
+				$json['error'] = sprintf($this->language->get('error_points'), $reward);
 			}
 
-			if ($this->request->post['reward'] > $points_total) {
+			if ($reward > $points_total) {
 				$json['error'] = sprintf($this->language->get('error_maximum'), $points_total);
 			}
 
 			if (!$json) {
-				$this->session->data['reward'] = abs($this->request->post['reward']);
+				$this->session->data['reward'] = $reward;
 
 				$json['success'] = $this->language->get('text_success');
 			}
