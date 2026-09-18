@@ -22,6 +22,7 @@ class ControllerCheckoutSuccess extends Controller {
 			unset($this->session->data['voucher']);
 			unset($this->session->data['vouchers']);
 			unset($this->session->data['totals']);
+			unset($this->session->data['agree']);
 		}
 
 		if (!empty($this->session->data['last_order_id'])) {
@@ -61,7 +62,7 @@ class ControllerCheckoutSuccess extends Controller {
 		}
 
 		if ($this->customer->isLogged() && !empty($this->session->data['last_order_id'])) {
-			$data['text_message'] = sprintf($this->language->get('text_customer'), $this->url->link('account/order/info&order_id=' . $this->session->data['last_order_id'], '', true), $this->url->link('account/account', '', true), $this->url->link('account/order', '', true), $this->url->link('information/contact'), $this->url->link('product/special'), $this->session->data['last_order_id'], $this->url->link('account/download', '', true));
+			$data['text_message'] = sprintf($this->language->get('text_customer'), $this->url->link('account/order/info', 'order_id=' . (int)$this->session->data['last_order_id'], true), $this->url->link('account/account', '', true), $this->url->link('account/order', '', true), $this->url->link('information/contact'), $this->url->link('product/special'), $this->session->data['last_order_id'], $this->url->link('account/download', '', true));
 		} else {
 			$data['text_message'] = sprintf($this->language->get('text_guest'), $this->url->link('information/contact'));
 		}
