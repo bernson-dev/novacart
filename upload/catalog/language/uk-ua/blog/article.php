@@ -17,6 +17,8 @@ $_['text_tax']             = 'Без податку:';
 $_['text_related']         = 'Схожі статті';
 $_['text_related_product'] = 'Супутні товари';
 
+$_['text_agree']           = 'Я ознайомлений та погоджуюся з <a href="%s" class="agree"><b>%s</b></a>';
+
 // Entry
 $_['entry_name']           = 'Ваше ім’я:';
 $_['entry_review']         = 'Ваш відгук:';
