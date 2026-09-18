@@ -24,13 +24,15 @@
 </p>
 {% if text_agree %}
 <div class="buttons">
-  <div class="pull-right">{{ text_agree }}
-    {% if agree %}
-    <input type="checkbox" name="agree" value="1" checked="checked" />
-    {% else %}
-    <input type="checkbox" name="agree" value="1" />
-    {% endif %}
-    &nbsp;
+  <div class="pull-right agreement-actions">
+    <label class="agreement-control">
+      {% if agree %}
+      <input type="checkbox" name="agree" value="1" checked="checked" />
+      {% else %}
+      <input type="checkbox" name="agree" value="1" />
+      {% endif %}
+      <span>{{ text_agree }}</span>
+    </label>
     <input type="button" value="{{ button_continue }}" id="button-payment-method" data-loading-text="{{ text_loading }}" class="btn btn-primary" />
   </div>
 </div>
