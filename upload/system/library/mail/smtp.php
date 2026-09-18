@@ -13,9 +13,11 @@ class Smtp extends \stdClass {
 
 	public function send() {
 		if (is_array($this->to)) {
-			$to = implode(',', $this->to);
+			$to = implode(', ', array_map(function($email) {
+				return '<' . trim($email) . '>';
+			}, $this->to));
 		} else {
-			$to = $this->to;
+			$to = '<' . trim($this->to) . '>';
 		}
 
 		$eol = "\r\n";
@@ -23,7 +25,7 @@ class Smtp extends \stdClass {
 
 		// --- Сборка заголовков ---
 		$header = 'MIME-Version: 1.0' . $eol;
-		$header .= 'To: <' . $to . '>' . $eol;
+		$header .= 'To: ' . $to . $eol;
 		$header .= 'Subject: =?UTF-8?B?' . base64_encode($this->subject) . '?=' . $eol;
 		$header .= 'Date: ' . date('D, d M Y H:i:s O') . $eol;
 		$header .= 'From: =?UTF-8?B?' . base64_encode($this->sender) . '?= <' . $this->from . '>' . $eol;
@@ -58,9 +60,11 @@ class Smtp extends \stdClass {
 		if (!empty($this->attachments) && is_array($this->attachments)) {
 			foreach ($this->attachments as $attachment) {
 				if (file_exists($attachment)) {
-					$handle = fopen($attachment, 'r');
-					$content = fread($handle, filesize($attachment));
-					fclose($handle);
+					$content = file_get_contents($attachment);
+
+					if ($content === false) {
+						continue;
+					}
 
 					$message .= '--' . $boundary . $eol;
 					$message .= 'Content-Type: application/octet-stream; name="' . basename($attachment) . '"' . $eol;
@@ -86,6 +90,8 @@ class Smtp extends \stdClass {
 		if (!$handle) {
 			throw new \Exception('Error: ' . $errstr . ' (' . $errno . ')');
 		}
+
+		stream_set_timeout($handle, (int)$this->smtp_timeout);
 
 		$this->handleReply($handle, 220, 'Connection Start');
 
