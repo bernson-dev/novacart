@@ -53,10 +53,10 @@ class ControllerProductSearch extends Controller {
 			$limit = 100;
 		}
 
-		if (isset($this->request->get['search'])) {
-			$this->document->setTitle($this->language->get('heading_title') .  ' - ' . $this->request->get['search']);
-		} elseif (isset($this->request->get['tag'])) {
-			$this->document->setTitle($this->language->get('heading_title') .  ' - ' . $this->language->get('heading_tag') . $this->request->get['tag']);
+		if ($search !== '') {
+			$this->document->setTitle($this->language->get('heading_title') . ' - ' . $search);
+		} elseif ($tag !== '') {
+			$this->document->setTitle($this->language->get('heading_title') . ' - ' . $this->language->get('heading_tag') . $tag);
 		} else {
 			$this->document->setTitle($this->language->get('heading_title'));
 		}
@@ -72,16 +72,16 @@ class ControllerProductSearch extends Controller {
 
 		$url = '';
 
-		if (isset($this->request->get['search'])) {
-			$url .= '&search=' . urlencode(html_entity_decode($this->request->get['search'], ENT_QUOTES, 'UTF-8'));
+		if ($search !== '') {
+			$url .= '&search=' . urlencode(html_entity_decode($search, ENT_QUOTES, 'UTF-8'));
 		}
 
-		if (isset($this->request->get['tag'])) {
-			$url .= '&tag=' . urlencode(html_entity_decode(trim($this->request->get['tag']), ENT_QUOTES, 'UTF-8'));
+		if ($tag !== '') {
+			$url .= '&tag=' . urlencode(html_entity_decode(trim($tag), ENT_QUOTES, 'UTF-8'));
 		}
 
-		if (isset($this->request->get['description'])) {
-			$url .= '&description=' . $this->request->get['description'];
+		if ($description !== '') {
+			$url .= '&description=' . urlencode($description);
 		}
 
 		if (isset($this->request->get['category_id'])) {
@@ -113,8 +113,8 @@ class ControllerProductSearch extends Controller {
 			'href' => $this->url->link('product/search', $url)
 		);
 
-		if (isset($this->request->get['search'])) {
-			$data['heading_title'] = $this->language->get('heading_title') .  ' - ' . $this->request->get['search'];
+		if ($search !== '') {
+			$data['heading_title'] = $this->language->get('heading_title') . ' - ' . $search;
 		} else {
 			$data['heading_title'] = $this->language->get('heading_title');
 		}
@@ -399,7 +399,7 @@ class ControllerProductSearch extends Controller {
 
 			$data['results'] = sprintf($this->language->get('text_pagination'), ($product_total) ? (($page - 1) * $limit) + 1 : 0, ((($page - 1) * $limit) > ($product_total - $limit)) ? $product_total : ((($page - 1) * $limit) + $limit), $product_total, ceil($product_total / $limit));
 
-			if (isset($this->request->get['search']) && $this->config->get('config_customer_search')) {
+			if ($search !== '' && $this->config->get('config_customer_search')) {
 				$this->load->model('account/search');
 
 				if ($this->customer->isLogged()) {
