@@ -66,6 +66,8 @@ class ControllerProductManufacturer extends Controller {
 			$manufacturer_id = 0;
 		}
 
+		$disallow_params = array();
+
 		if ($this->config->get('config_noindex_disallow_params')) {
 			$params = explode("\r\n", $this->config->get('config_noindex_disallow_params'));
 			if (!empty($params)) {
@@ -237,7 +239,7 @@ class ControllerProductManufacturer extends Controller {
 					'special'     => $special,
 					'tax'         => $tax,
 					'minimum'     => $result['minimum'] > 0 ? $result['minimum'] : 1,
-					'rating'      => $result['rating'],
+					'rating'      => $rating,
 					'href'        => $this->url->link('product/product', 'manufacturer_id=' . $result['manufacturer_id'] . '&product_id=' . $result['product_id'] . $url)
 				);
 			}

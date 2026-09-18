@@ -6,6 +6,8 @@ class ControllerProductSpecial extends Controller {
 		$this->load->model('catalog/product');
 		$this->load->model('tool/image');
 
+		$disallow_params = array();
+
 		if ($this->config->get('config_noindex_disallow_params')) {
 			$params = explode("\r\n", $this->config->get('config_noindex_disallow_params'));
 			if (!empty($params)) {
@@ -140,7 +142,7 @@ class ControllerProductSpecial extends Controller {
 				'special'     => $special,
 				'tax'         => $tax,
 				'minimum'     => $result['minimum'] > 0 ? $result['minimum'] : 1,
-				'rating'      => $result['rating'],
+				'rating'      => $rating,
 				'href'        => $this->url->link('product/product', 'product_id=' . $result['product_id'] . $url)
 			);
 		}
