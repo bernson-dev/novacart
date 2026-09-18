@@ -308,9 +308,11 @@
 {% endif %}
 {% if text_agree %}
 <div class="buttons clearfix">
-  <div class="pull-right">{{ text_agree }} 
-    &nbsp;
-    <input type="checkbox" name="agree" value="1" />
+  <div class="pull-right agreement-actions">
+    <label class="agreement-control">
+      <input type="checkbox" name="agree" value="1" />
+      <span>{{ text_agree }}</span>
+    </label>
     <input type="button" value="{{ button_continue }}" id="button-register" data-loading-text="{{ text_loading }}" class="btn btn-primary" />
   </div>
 </div>
