@@ -14,16 +14,26 @@ class ControllerStartupStartup extends Controller {
 
 	public function index() {
 		// Store
-		if ($this->request->server['HTTPS']) {
-			$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "store WHERE REPLACE(`ssl`, 'www.', '') = '" . $this->db->escape('https://' . str_replace('www.', '', $_SERVER['HTTP_HOST']) . rtrim(dirname($_SERVER['PHP_SELF']), '/.\\') . '/') . "'");
-		} else {
-			$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "store WHERE REPLACE(`url`, 'www.', '') = '" . $this->db->escape('http://' . str_replace('www.', '', $_SERVER['HTTP_HOST']) . rtrim(dirname($_SERVER['PHP_SELF']), '/.\\') . '/') . "'");
+		$is_https = false;
+
+		if (isset($this->request->server['HTTPS'])) {
+			$https = strtolower((string)$this->request->server['HTTPS']);
+			$is_https = ($https === 'on' || $https === '1');
+		} elseif (!empty($this->request->server['HTTP_X_FORWARDED_PROTO'])) {
+			$forwarded_proto = explode(',', (string)$this->request->server['HTTP_X_FORWARDED_PROTO']);
+			$is_https = (strtolower(trim($forwarded_proto[0])) === 'https');
 		}
 
-		if (isset($this->request->get['store_id'])) {
-			$this->config->set('config_store_id', (int)$this->request->get['store_id']);
-		} else if ($query->num_rows) {
-			$this->config->set('config_store_id', $query->row['store_id']);
+		$host = isset($this->request->server['HTTP_HOST']) ? (string)$this->request->server['HTTP_HOST'] : '';
+		$php_self = isset($this->request->server['PHP_SELF']) ? (string)$this->request->server['PHP_SELF'] : '';
+		$base_path = rtrim(dirname($php_self), '/.\\');
+		$store_url = ($is_https ? 'https://' : 'http://') . str_replace('www.', '', $host) . $base_path . '/';
+		$url_column = $is_https ? 'ssl' : 'url';
+
+		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "store WHERE REPLACE(`" . $url_column . "`, 'www.', '') = '" . $this->db->escape($store_url) . "'");
+
+		if ($query->num_rows) {
+			$this->config->set('config_store_id', (int)$query->row['store_id']);
 		} else {
 			$this->config->set('config_store_id', 0);
 		}
