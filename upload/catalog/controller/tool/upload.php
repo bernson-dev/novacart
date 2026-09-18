@@ -22,10 +22,16 @@ class ControllerToolUpload extends Controller {
 			$filetypes = explode("\n", $extension_allowed);
 
 			foreach ($filetypes as $filetype) {
-				$allowed[] = trim($filetype);
+				$filetype = strtolower(trim($filetype));
+
+				if ($filetype !== '') {
+					$allowed[] = $filetype;
+				}
 			}
 
-			if (!in_array(strtolower(substr(strrchr($filename, '.'), 1)), $allowed)) {
+			$extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+			if (!$extension || !in_array($extension, $allowed, true)) {
 				$json['error'] = $this->language->get('error_filetype');
 			}
 
@@ -37,10 +43,29 @@ class ControllerToolUpload extends Controller {
 			$filetypes = explode("\n", $mime_allowed);
 
 			foreach ($filetypes as $filetype) {
-				$allowed[] = trim($filetype);
+				$filetype = strtolower(trim($filetype));
+
+				if ($filetype !== '') {
+					$allowed[] = $filetype;
+				}
 			}
 
-			if (!in_array($this->request->files['file']['type'], $allowed)) {
+			$mime = '';
+
+			if (function_exists('finfo_open')) {
+				$finfo = finfo_open(FILEINFO_MIME_TYPE);
+
+				if ($finfo) {
+					$mime = finfo_file($finfo, $this->request->files['file']['tmp_name']);
+					finfo_close($finfo);
+				}
+			} elseif (function_exists('mime_content_type')) {
+				$mime = mime_content_type($this->request->files['file']['tmp_name']);
+			}
+
+			$mime = strtolower((string)$mime);
+
+			if (!$mime || !in_array($mime, $allowed, true)) {
 				$json['error'] = $this->language->get('error_filetype');
 			}
 
@@ -62,14 +87,15 @@ class ControllerToolUpload extends Controller {
 		if (!$json) {
 			$file = $filename . '.' . token(32);
 
-			move_uploaded_file($this->request->files['file']['tmp_name'], DIR_UPLOAD . $file);
+			if (!move_uploaded_file($this->request->files['file']['tmp_name'], DIR_UPLOAD . $file)) {
+				$json['error'] = $this->language->get('error_upload');
+			} else {
+				// Hide the uploaded file name so people can not link to it directly.
+				$this->load->model('tool/upload');
 
-			// Hide the uploaded file name so people can not link to it directly.
-			$this->load->model('tool/upload');
-
-			$json['code'] = $this->model_tool_upload->addUpload($filename, $file);
-
-			$json['success'] = $this->language->get('text_upload');
+				$json['code'] = $this->model_tool_upload->addUpload($filename, $file);
+				$json['success'] = $this->language->get('text_upload');
+			}
 		}
 
 		$this->response->addHeader('Content-Type: application/json');

@@ -258,6 +258,20 @@ class ControllerAccountAffiliate extends Controller {
 	}
 
 	protected function validate() {
+		$defaults = array(
+			'payment' => '',
+			'cheque' => '',
+			'paypal' => '',
+			'bank_account_name' => '',
+			'bank_account_number' => ''
+		);
+
+		foreach ($defaults as $key => $value) {
+			if (!isset($this->request->post[$key])) {
+				$this->request->post[$key] = $value;
+			}
+		}
+
 		if ($this->request->post['payment'] == 'cheque' && !$this->request->post['cheque']) {
 			$this->error['cheque'] = $this->language->get('error_cheque');
 		} elseif (($this->request->post['payment'] == 'paypal') && ((utf8_strlen($this->request->post['paypal']) > 96) || !filter_var($this->request->post['paypal'], FILTER_VALIDATE_EMAIL))) {
@@ -279,9 +293,13 @@ class ControllerAccountAffiliate extends Controller {
 
 		foreach ($custom_fields as $custom_field) {
 			if ($custom_field['location'] == 'affiliate') {
-				if ($custom_field['required'] && empty($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])) {
+				$custom_field_value = isset($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])
+					? $this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']]
+					: '';
+
+				if ($custom_field['required'] && empty($custom_field_value)) {
 					$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
-				} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && !filter_var($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
+				} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && $custom_field_value !== '' && !filter_var($custom_field_value, FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
 					$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
 				}
 			}
