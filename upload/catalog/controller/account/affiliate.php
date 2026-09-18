@@ -319,6 +319,10 @@ class ControllerAccountAffiliate extends Controller {
 					? $this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']]
 					: '';
 
+				if ($custom_field['type'] == 'text' && !is_scalar($custom_field_value)) {
+					$custom_field_value = '';
+				}
+
 				if ($custom_field['required'] && empty($custom_field_value)) {
 					$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
 				} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && $custom_field_value !== '' && !filter_var($custom_field_value, FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
