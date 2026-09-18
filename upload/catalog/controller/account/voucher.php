@@ -222,8 +222,15 @@ class ControllerAccountVoucher extends Controller {
 			$this->error['from_email'] = $this->language->get('error_email');
 		}
 
-		if (!isset($this->request->post['voucher_theme_id'])) {
+		$this->load->model('extension/total/voucher_theme');
+
+		$voucher_theme_id = isset($this->request->post['voucher_theme_id']) ? (int)$this->request->post['voucher_theme_id'] : 0;
+		$voucher_theme_info = $this->model_extension_total_voucher_theme->getVoucherTheme($voucher_theme_id);
+
+		if (!$voucher_theme_info) {
 			$this->error['theme'] = $this->language->get('error_theme');
+		} else {
+			$this->request->post['voucher_theme_id'] = $voucher_theme_id;
 		}
 
 		if ((!isset($this->request->post['amount'])) || (!is_numeric($this->request->post['amount'])) || ($this->currency->convert($this->request->post['amount'], $this->session->data['currency'], $this->config->get('config_currency')) < $this->config->get('config_voucher_min')) || ($this->currency->convert($this->request->post['amount'], $this->session->data['currency'], $this->config->get('config_currency')) > $this->config->get('config_voucher_max'))) {
