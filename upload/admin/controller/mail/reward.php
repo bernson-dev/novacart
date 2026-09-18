@@ -53,16 +53,17 @@ class ControllerMailReward extends Controller {
 				$language_code = $this->config->get('config_language');
 			}
 
-			$this->language->load($language_code, 'mail', $language_code);
-			$this->language->load('mail/reward', 'mail', $language_code);
-			$subject = sprintf($this->language->get('text_subject'), $store_name);
-			$data['text_received'] = sprintf($this->language->get('text_received'), $points);
-			$data['text_total'] = sprintf($this->language->get('text_total'), $this->model_customer_customer->getRewardTotal($customer_id));
+			$language = new Language($language_code);
+			$language->load($language_code);
+			$language->load('mail/reward');
+
+			$subject = sprintf($language->get('text_subject'), $store_name);
+			$data['text_received'] = sprintf($language->get('text_received'), $points);
+			$data['text_total'] = sprintf($language->get('text_total'), $this->model_customer_customer->getRewardTotal($customer_id));
 			$data['store'] = $store_name;
 			$data['store_url'] = $store_url;
 
 			$mail = new \Mail($this->config->get('config_mail_engine'));
-			$mail->protocol = $this->config->get('config_mail_protocol');
 			$mail->parameter = $this->config->get('config_mail_parameter');
 			$mail->smtp_hostname = $this->config->get('config_mail_smtp_hostname');
 			$mail->smtp_username = $this->config->get('config_mail_smtp_username');
