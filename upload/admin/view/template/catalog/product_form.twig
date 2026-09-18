@@ -2051,55 +2051,31 @@
     <script type="text/javascript">
     (function() {
         function recalculateProductQuantity() {
-            var groups = {};
-            var groupManaged = {};
-            var groupHasValues = {};
+            var total = 0;
+            var hasManagedValues = false;
 
             $('#tab-option input[name^="product_option"][name$="[quantity]"]').each(function() {
-                var match = this.name.match(/^product_option\[(\d+)\]\[product_option_value\]\[\d+\]\[quantity\]$/);
+                var row = $(this).closest('tr');
+                var subtract = row.find('select[name$="[subtract]"]').val();
 
-                if (!match) {
+                if (subtract != '1') {
                     return;
                 }
 
-                var optionRow = match[1];
-                var row = $(this).closest('tr');
-                var subtract = row.find('select[name$="[subtract]"]').val();
                 var quantity = parseInt($(this).val(), 10);
 
                 if (isNaN(quantity) || quantity < 0) {
                     quantity = 0;
                 }
 
-                if (typeof groups[optionRow] === 'undefined') {
-                    groups[optionRow] = 0;
-                    groupManaged[optionRow] = true;
-                    groupHasValues[optionRow] = false;
-                }
-
-                groupHasValues[optionRow] = true;
-
-                if (subtract != '1') {
-                    groupManaged[optionRow] = false;
-                }
-
-                groups[optionRow] += quantity;
+                hasManagedValues = true;
+                total += quantity;
             });
 
-            var totals = [];
-
-            $.each(groups, function(optionRow, total) {
-                if (groupManaged[optionRow] && groupHasValues[optionRow]) {
-                    totals.push(total);
-                }
-            });
-
-            if (totals.length) {
-                var quantity = Math.min.apply(Math, totals);
-
-                $('#input-quantity').val(quantity).prop('readonly', true);
+            if (hasManagedValues) {
+                $('#input-quantity').val(total).prop('readonly', true);
                 $('#option-quantity-note')
-                    .text('Количество рассчитывается автоматически по остаткам опций.')
+                    .text('Количество рассчитывается автоматически как сумма остатков опций.')
                     .show();
             } else {
                 $('#input-quantity').prop('readonly', false);
