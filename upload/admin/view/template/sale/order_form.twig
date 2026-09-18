@@ -1575,6 +1575,8 @@
         $('#cart').on('click', '.btn-primary', function() {
             var node = this;
 
+            $('#button-cart').prop('disabled', true);
+
             // Refresh products, vouchers and totals
             $.ajax({
                 url: '{{ catalog }}index.php?route=api/cart/add&api_token={{ api_token }}&store_id=' + $('select[name=\'store_id\'] option:selected').val(),
@@ -2382,6 +2384,10 @@
         var cartValidationError = false;
         var cartValidationMessage = '';
 
+        function updateCartContinueButton() {
+            $('#button-cart').prop('disabled', cartValidationError);
+        }
+
         // Add all products to the cart using the api
         $('#button-refresh').on('click', function() {
             $.ajax({
@@ -2390,6 +2396,7 @@
                 crossDomain: true,
                 beforeSend: function() {
                     $('#button-refresh').button('loading');
+                    $('#button-cart').prop('disabled', true);
                 },
                 complete: function() {
                     $('#button-refresh').button('reset');
@@ -2512,6 +2519,7 @@
                     }
 
                     $('#cart').html(html);
+                    updateCartContinueButton();
 
                     // Totals
                     html = '';
@@ -2574,9 +2582,17 @@
                     $('#total').html(html);
                 },
                 error: function(xhr, ajaxOptions, thrownError) {
+                    $('#button-cart').prop('disabled', false);
                     alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
                 }
             });
+        });
+
+        // Recalculate a product automatically after its quantity was changed
+        // and the field loses focus. The existing row refresh handler performs
+        // the API update and then re-validates the whole cart.
+        $('#cart').on('change', 'input[name^=\'product\'][name$=\'[quantity]\']', function() {
+            $(this).closest('.input-group').find('.btn-primary').trigger('click');
         });
     </script>
 </div>
