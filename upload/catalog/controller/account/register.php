@@ -231,15 +231,17 @@ class ControllerAccountRegister extends Controller {
 			$this->error['lastname'] = $this->language->get('error_lastname');
 		}
 
-		if ($this->request->post['email'] && ((utf8_strlen($this->request->post['email']) > 96) || !filter_var($this->request->post['email'], FILTER_VALIDATE_EMAIL))) {
-			$this->error['email'] = $this->language->get('error_email');
-		}
+		$email = isset($this->request->post['email']) ? trim($this->request->post['email']) : '';
 
-		if ($this->request->post['email'] && $this->model_account_customer->getTotalCustomersByEmail($this->request->post['email'])) {
+		if (!$email || (utf8_strlen($email) > 96) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			$this->error['email'] = $this->language->get('error_email');
+		} elseif ($this->model_account_customer->getTotalCustomersByEmail($email)) {
 			$this->error['warning'] = $this->language->get('error_exists');
 		}
 
-		if ($this->request->post['telephone'] && ((utf8_strlen($this->request->post['telephone']) < 3) || (utf8_strlen($this->request->post['telephone']) > 32))) {
+		$telephone = isset($this->request->post['telephone']) ? trim($this->request->post['telephone']) : '';
+
+		if ((utf8_strlen($telephone) < 3) || (utf8_strlen($telephone) > 32)) {
 			$this->error['telephone'] = $this->language->get('error_telephone');
 		}
 
