@@ -11,14 +11,18 @@ class ControllerApiCart extends Controller {
 			if (isset($this->request->post['product'])) {
 				$this->cart->clear();
 
-				foreach ($this->request->post['product'] as $product) {
-					if (isset($product['option'])) {
-						$option = $product['option'];
-					} else {
-						$option = array();
+				foreach ((array)$this->request->post['product'] as $product) {
+					if (!is_array($product) || !isset($product['product_id'])) {
+						continue;
 					}
 
-					$this->cart->add($product['product_id'], $product['quantity'], $option);
+					$product_id = (int)$product['product_id'];
+					$quantity = isset($product['quantity']) ? max(1, (int)$product['quantity']) : 1;
+					$option = (isset($product['option']) && is_array($product['option'])) ? $product['option'] : array();
+
+					if ($product_id > 0) {
+						$this->cart->add($product_id, $quantity, $option);
+					}
 				}
 
 				$json['success'] = $this->language->get('text_success');
@@ -33,17 +37,8 @@ class ControllerApiCart extends Controller {
 				$product_info = $this->model_catalog_product->getProduct($this->request->post['product_id']);
 
 				if ($product_info) {
-					if (isset($this->request->post['quantity'])) {
-						$quantity = $this->request->post['quantity'];
-					} else {
-						$quantity = 1;
-					}
-
-					if (isset($this->request->post['option'])) {
-						$option = array_filter($this->request->post['option']);
-					} else {
-						$option = array();
-					}
+					$quantity = isset($this->request->post['quantity']) ? max(1, (int)$this->request->post['quantity']) : 1;
+					$option = (isset($this->request->post['option']) && is_array($this->request->post['option'])) ? array_filter($this->request->post['option']) : array();
 
 					$product_options = $this->model_catalog_product->getProductOptions($this->request->post['product_id']);
 
@@ -81,9 +76,13 @@ class ControllerApiCart extends Controller {
 		if (!isset($this->session->data['api_id'])) {
 			$json['error'] = $this->language->get('error_permission');
 		} else {
-			$this->cart->update($this->request->post['key'], $this->request->post['quantity']);
+			$key = isset($this->request->post['key']) && is_scalar($this->request->post['key']) ? (string)$this->request->post['key'] : '';
+			$quantity = isset($this->request->post['quantity']) ? max(0, (int)$this->request->post['quantity']) : 0;
 
-			$json['success'] = $this->language->get('text_success');
+			if ($key !== '') {
+				$this->cart->update($key, $quantity);
+				$json['success'] = $this->language->get('text_success');
+			}
 
 			unset($this->session->data['shipping_method']);
 			unset($this->session->data['shipping_methods']);
@@ -105,10 +104,12 @@ class ControllerApiCart extends Controller {
 			$json['error'] = $this->language->get('error_permission');
 		} else {
 			// Remove
-			if (isset($this->request->post['key'])) {
-				$this->cart->remove($this->request->post['key']);
+			$key = isset($this->request->post['key']) && is_scalar($this->request->post['key']) ? (string)$this->request->post['key'] : '';
 
-				unset($this->session->data['vouchers'][$this->request->post['key']]);
+			if ($key !== '') {
+				$this->cart->remove($key);
+
+				unset($this->session->data['vouchers'][$key]);
 
 				$json['success'] = $this->language->get('text_success');
 
