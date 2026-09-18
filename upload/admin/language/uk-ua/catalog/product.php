@@ -78,6 +78,7 @@ $_['entry_store']               = 'Магазини';
 $_['entry_date_available']      = 'Дата надходження';
 $_['entry_date_added']          = 'Дата створення';
 $_['entry_quantity']            = 'Кількість';
+$_['help_option_quantity_auto']     = 'Кількість розраховується автоматично як сума залишків опцій.';
 $_['entry_minimum']             = 'Мінімальна кількість';
 $_['entry_stock_status']        = 'Відсутність на складі';
 $_['entry_cost_price']          = 'Закупівельна ціна';
