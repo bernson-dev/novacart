@@ -463,6 +463,24 @@ class ControllerAccountReturn extends Controller {
 	}
 
 	protected function validate() {
+		$defaults = array(
+			'order_id' => '',
+			'firstname' => '',
+			'lastname' => '',
+			'email' => '',
+			'telephone' => '',
+			'product' => '',
+			'model' => '',
+			'quantity' => 1,
+			'return_reason_id' => 0
+		);
+
+		foreach ($defaults as $key => $value) {
+			if (!isset($this->request->post[$key])) {
+				$this->request->post[$key] = $value;
+			}
+		}
+
 		if (!empty($this->request->post['order_id'])) {
 			if (!$this->request->post['order_id']) {
 				$this->error['order_id'] = $this->language->get('error_order_id');
@@ -519,7 +537,19 @@ class ControllerAccountReturn extends Controller {
 			$this->error['model'] = $this->language->get('error_model');
 		}
 
-		if (empty($this->request->post['return_reason_id'])) {
+		if ((int)$this->request->post['quantity'] < 1) {
+			$this->error['product'] = $this->language->get('error_product');
+		}
+
+		$this->load->model('localisation/return_reason');
+
+		$return_reason_ids = array();
+
+		foreach ($this->model_localisation_return_reason->getReturnReasons() as $return_reason) {
+			$return_reason_ids[] = (int)$return_reason['return_reason_id'];
+		}
+
+		if (!in_array((int)$this->request->post['return_reason_id'], $return_reason_ids, true)) {
 			$this->error['reason'] = $this->language->get('error_reason');
 		}
 
