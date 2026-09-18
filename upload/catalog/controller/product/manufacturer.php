@@ -93,22 +93,23 @@ class ControllerProductManufacturer extends Controller {
 			$order = 'ASC';
 		}
 
-		if (isset($this->request->get['page'])) {
-			$page = (int)$this->request->get['page'];
-			if (!in_array('page', $disallow_params, true) && $this->config->get('config_noindex_status')) {
-				$this->document->setRobots('noindex,follow');
-			}
-		} else {
-			$page = 1;
+		$page = isset($this->request->get['page']) ? max(1, (int)$this->request->get['page']) : 1;
+
+		if (isset($this->request->get['page']) && !in_array('page', $disallow_params, true) && $this->config->get('config_noindex_status')) {
+			$this->document->setRobots('noindex,follow');
 		}
 
-		if (isset($this->request->get['limit']) && (int)$this->request->get['limit'] > 0) {
-			$limit = (int)$this->request->get['limit'];
-			if (!in_array('limit', $disallow_params, true) && $this->config->get('config_noindex_status')) {
-				$this->document->setRobots('noindex,follow');
-			}
-		} else {
-			$limit = (int)$this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit');
+		$default_limit = max(1, (int)$this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit'));
+		$limit = isset($this->request->get['limit']) ? (int)$this->request->get['limit'] : $default_limit;
+
+		if ($limit < 1) {
+			$limit = $default_limit;
+		} elseif ($limit > 100) {
+			$limit = 100;
+		}
+
+		if (isset($this->request->get['limit']) && !in_array('limit', $disallow_params, true) && $this->config->get('config_noindex_status')) {
+			$this->document->setRobots('noindex,follow');
 		}
 
 		$data['breadcrumbs'] = array();
