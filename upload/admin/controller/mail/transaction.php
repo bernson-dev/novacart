@@ -54,11 +54,14 @@ class ControllerMailTransaction extends Controller {
 				$language_code = $this->config->get('config_language');
 			}
 
-			$this->language->load($language_code, 'mail', $language_code);
-			$this->language->load('mail/transaction', 'mail', $language_code);
-			$subject = sprintf($this->language->get('text_subject'), $store_name);
-			$data['text_received'] = sprintf($this->language->get('text_received'), $this->currency->format($amount, $this->config->get('config_currency')));
-			$data['text_total'] = sprintf($this->language->get('text_total'), $this->currency->format($this->model_customer_customer->getTransactionTotal($customer_id), $this->config->get('config_currency')));
+			$language = new Language($language_code);
+			$language->load($language_code);
+			$language->load('mail/transaction');
+
+			$subject = sprintf($language->get('text_subject'), $store_name);
+			$data['text_received'] = sprintf($language->get('text_received'), $this->currency->format($amount, $this->config->get('config_currency')));
+			$data['text_total'] = sprintf($language->get('text_total'), $this->currency->format($this->model_customer_customer->getTransactionTotal($customer_id), $this->config->get('config_currency')));
+			$data['text_credit'] = $language->get('text_credit');
 			
 			$data['store'] = $store_name;
 			$data['store_url'] = $store_url;
