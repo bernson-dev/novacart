@@ -9,10 +9,12 @@ class ControllerProductCompare extends Controller {
 
 		if (!isset($this->session->data['compare'])) {
 			$this->session->data['compare'] = array();
+		} else {
+			$this->session->data['compare'] = array_values(array_unique(array_map('intval', $this->session->data['compare'])));
 		}
 
 		if (isset($this->request->get['remove'])) {
-			$key = array_search($this->request->get['remove'], $this->session->data['compare']);
+			$key = array_search((int)$this->request->get['remove'], $this->session->data['compare'], true);
 
 			if ($key !== false) {
 				unset($this->session->data['compare'][$key]);
@@ -144,6 +146,8 @@ class ControllerProductCompare extends Controller {
 
 		if (!isset($this->session->data['compare'])) {
 			$this->session->data['compare'] = array();
+		} else {
+			$this->session->data['compare'] = array_values(array_unique(array_map('intval', $this->session->data['compare'])));
 		}
 
 		if (isset($this->request->post['product_id'])) {
@@ -157,15 +161,15 @@ class ControllerProductCompare extends Controller {
 		$product_info = $this->model_catalog_product->getProduct($product_id);
 
 		if ($product_info) {
-			if (!in_array($this->request->post['product_id'], $this->session->data['compare'])) {
+			if (!in_array($product_id, $this->session->data['compare'], true)) {
 				if (count($this->session->data['compare']) >= 4) {
 					array_shift($this->session->data['compare']);
 				}
 
-				$this->session->data['compare'][] = $this->request->post['product_id'];
+				$this->session->data['compare'][] = $product_id;
 			}
 
-			$json['success'] = sprintf($this->language->get('text_success'), $this->url->link('product/product', 'product_id=' . $this->request->post['product_id']), $product_info['name'], $this->url->link('product/compare'));
+			$json['success'] = sprintf($this->language->get('text_success'), $this->url->link('product/product', 'product_id=' . $product_id), $product_info['name'], $this->url->link('product/compare'));
 
 			$json['total'] = sprintf($this->language->get('text_compare'), (isset($this->session->data['compare']) ? count($this->session->data['compare']) : 0));
 		}

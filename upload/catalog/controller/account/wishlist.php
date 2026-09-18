@@ -20,7 +20,7 @@ class ControllerAccountWishList extends Controller {
 
 		if (isset($this->request->get['remove'])) {
 			// Remove Wishlist
-			$this->model_account_wishlist->deleteWishlist($this->request->get['remove']);
+			$this->model_account_wishlist->deleteWishlist((int)$this->request->get['remove']);
 
 			$this->session->data['success'] = $this->language->get('text_remove');
 
@@ -83,7 +83,7 @@ class ControllerAccountWishList extends Controller {
 					$price = false;
 				}
 
-				if ((float)$product_info['special']) {
+				if (!is_null($product_info['special']) && (float)$product_info['special'] >= 0) {
 					$special = $this->currency->format($this->tax->calculate($product_info['special'], $product_info['tax_class_id'], $this->config->get('config_tax')), $this->session->data['currency']);
 				} else {
 					$special = false;
@@ -123,7 +123,7 @@ class ControllerAccountWishList extends Controller {
 		$json = array();
 
 		if (isset($this->request->post['product_id'])) {
-			$product_id = $this->request->post['product_id'];
+			$product_id = (int)$this->request->post['product_id'];
 		} else {
 			$product_id = 0;
 		}
@@ -137,9 +137,9 @@ class ControllerAccountWishList extends Controller {
 				// Edit customers cart
 				$this->load->model('account/wishlist');
 
-				$this->model_account_wishlist->addWishlist($this->request->post['product_id']);
+				$this->model_account_wishlist->addWishlist($product_id);
 
-				$json['success'] = sprintf($this->language->get('text_success'), $this->url->link('product/product', 'product_id=' . (int)$this->request->post['product_id']), $product_info['name'], $this->url->link('account/wishlist'));
+				$json['success'] = sprintf($this->language->get('text_success'), $this->url->link('product/product', 'product_id=' . $product_id), $product_info['name'], $this->url->link('account/wishlist'));
 
 				$json['total'] = sprintf($this->language->get('text_wishlist'), $this->model_account_wishlist->getTotalWishlist());
 			} else {
@@ -147,11 +147,11 @@ class ControllerAccountWishList extends Controller {
 					$this->session->data['wishlist'] = array();
 				}
 
-				$this->session->data['wishlist'][] = $this->request->post['product_id'];
+				$this->session->data['wishlist'][] = $product_id;
 
 				$this->session->data['wishlist'] = array_unique($this->session->data['wishlist']);
 
-				$json['success'] = sprintf($this->language->get('text_login'), $this->url->link('account/login', '', true), $this->url->link('account/register', '', true), $this->url->link('product/product', 'product_id=' . (int)$this->request->post['product_id']), $product_info['name'], $this->url->link('account/wishlist'));
+				$json['success'] = sprintf($this->language->get('text_login'), $this->url->link('account/login', '', true), $this->url->link('account/register', '', true), $this->url->link('product/product', 'product_id=' . $product_id), $product_info['name'], $this->url->link('account/wishlist'));
 
 				$json['total'] = sprintf($this->language->get('text_wishlist'), (isset($this->session->data['wishlist']) ? count($this->session->data['wishlist']) : 0));
 			}
