@@ -77,4 +77,4 @@ $_['error_curl']            = 'CURL: Error Code(%s): %s';
 // Datepicker
 $_['datepicker']            = 'en-gb';
 
-$_['error_agree']           = 'You must agree with <b>%s</b></a>';
+$_['error_agree']           = 'You must agree with <b>%s</b>!';
