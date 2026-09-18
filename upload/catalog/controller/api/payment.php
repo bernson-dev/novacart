@@ -56,11 +56,22 @@ class ControllerApiPayment extends Controller {
 				$json['error']['postcode'] = $this->language->get('error_postcode');
 			}
 
-			if ($this->request->post['country_id'] == '') {
+			if (!$country_info) {
 				$json['error']['country'] = $this->language->get('error_country');
 			}
 
-			if (!isset($this->request->post['zone_id']) || $this->request->post['zone_id'] == '') {
+			$this->load->model('localisation/zone');
+
+			$zones = $country_info ? $this->model_localisation_zone->getZonesByCountryId((int)$this->request->post['country_id']) : array();
+			$zone_ids = array();
+
+			foreach ($zones as $zone) {
+				$zone_ids[] = (int)$zone['zone_id'];
+			}
+
+			$zone_id = (int)$this->request->post['zone_id'];
+
+			if (($zone_ids && !in_array($zone_id, $zone_ids, true)) || (!$zone_ids && $zone_id !== 0)) {
 				$json['error']['zone'] = $this->language->get('error_zone');
 			}
 
@@ -71,9 +82,13 @@ class ControllerApiPayment extends Controller {
 
 			foreach ($custom_fields as $custom_field) {
 				if ($custom_field['location'] == 'address') {
-					if ($custom_field['required'] && empty($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])) {
+					$custom_field_value = isset($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])
+						? $this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']]
+						: '';
+
+					if ($custom_field['required'] && empty($custom_field_value)) {
 						$json['error']['custom_field' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
-					} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && !filter_var($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
+					} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && $custom_field_value !== '' && !filter_var($custom_field_value, FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
 						$json['error']['custom_field' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
 					}
 				}
@@ -263,14 +278,15 @@ class ControllerApiPayment extends Controller {
 			// Payment Method
 			if (empty($this->session->data['payment_methods'])) {
 				$json['error'] = $this->language->get('error_no_payment');
-			} elseif (!isset($this->request->post['payment_method'])) {
+			} elseif (!isset($this->request->post['payment_method']) || !is_scalar($this->request->post['payment_method'])) {
 				$json['error'] = $this->language->get('error_method');
-			} elseif (!isset($this->session->data['payment_methods'][$this->request->post['payment_method']])) {
+			} elseif (!isset($this->session->data['payment_methods'][(string)$this->request->post['payment_method']])) {
 				$json['error'] = $this->language->get('error_method');
 			}
 
 			if (!$json) {
-				$this->session->data['payment_method'] = $this->session->data['payment_methods'][$this->request->post['payment_method']];
+				$payment_method = (string)$this->request->post['payment_method'];
+				$this->session->data['payment_method'] = $this->session->data['payment_methods'][$payment_method];
 
 				$json['success'] = $this->language->get('text_method');
 			}
