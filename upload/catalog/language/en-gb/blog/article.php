@@ -34,3 +34,6 @@ $_['error_text']           = 'Warning: Review Text must be between 25 and 1000 c
 $_['error_rating']         = 'Warning: Please select a review rating!';
 $_['error_captcha']        = 'Warning: Verification code does not match the image!';
 $_['error_agree']          = 'You must agree with <b>%s</b></a>';
+$_['error_review_disabled'] = 'Article reviews are disabled.';
+$_['error_review_login']    = 'You must be logged in to write a review.';
+$_['error_article']         = 'Article not found or unavailable.';

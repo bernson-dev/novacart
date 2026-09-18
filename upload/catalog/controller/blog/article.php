@@ -315,7 +315,7 @@ class ControllerBlogArticle extends Controller {
 			$data['download_status'] = $this->config->get('configblog_article_download');
 			$data['downloads'] = array();
 
-			$results = $this->model_blog_article->getDownloads($article_id);
+			$results = $data['download_status'] ? $this->model_blog_article->getDownloads($article_id) : array();
 
 			foreach ($results as $result) {
 				$file = DIR_DOWNLOAD . $result['filename'];
@@ -326,15 +326,15 @@ class ControllerBlogArticle extends Controller {
 
 					$suffix = array('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
 
-					while (($size / 1024) > 1 && $i < count($suffix) - 1) {
-						$size = $size / 1024;
+					while ($size >= 1024 && $i < count($suffix) - 1) {
+						$size /= 1024;
 						$i++;
 					}
 
 					$data['downloads'][] = array(
 					'date_added' => date($this->language->get('date_format_short'), strtotime($result['date_added'])),
 					'name'       => $result['name'],
-					'size'       => round($size, 2) . $suffix[$i],
+					'size'       => round($size, 2) . ' ' . $suffix[$i],
 					'href'       => $this->url->link('blog/article/download', 'article_id=' . $article_id . '&download_id=' . $result['download_id'])
 					);
 				}
@@ -396,6 +396,11 @@ class ControllerBlogArticle extends Controller {
 	}
 
 	public function download() {
+		if (!$this->config->get('configblog_article_download')) {
+			$this->response->addHeader($this->request->server['SERVER_PROTOCOL'] . ' 404 Not Found');
+			return;
+		}
+
 		$this->load->model('blog/article');
 
 		$download_id = isset($this->request->get['download_id']) ? (int)$this->request->get['download_id'] : 0;
@@ -421,13 +426,15 @@ class ControllerBlogArticle extends Controller {
 					readfile($file);
 					exit;
 				} else {
-					exit('Error: Could not find file ' . $file . '!');
+					$this->response->addHeader($this->request->server['SERVER_PROTOCOL'] . ' 404 Not Found');
+					return;
 				}
 			} else {
-				exit('Error: Headers already sent out!');
+				$this->response->addHeader($this->request->server['SERVER_PROTOCOL'] . ' 500 Internal Server Error');
+				return;
 			}
 		} else {
-			$this->response->redirect($this->url->link('account/download', '', true));
+			$this->response->addHeader($this->request->server['SERVER_PROTOCOL'] . ' 404 Not Found');
 		}
 	}
 
@@ -480,11 +487,22 @@ class ControllerBlogArticle extends Controller {
 
 		$json = array();
 
-		if ($this->request->server['REQUEST_METHOD'] == 'POST') {
+		if (!$this->config->get('configblog_review_status')) {
+			$json['error'] = $this->language->get('error_review_disabled');
+		} elseif (!$this->config->get('configblog_review_guest') && !$this->customer->isLogged()) {
+			$json['error'] = $this->language->get('error_review_login');
+		} elseif ($this->request->server['REQUEST_METHOD'] == 'POST') {
 			$name = isset($this->request->post['name']) ? $this->request->post['name'] : '';
 			$text = isset($this->request->post['text']) ? $this->request->post['text'] : '';
 			$rating = isset($this->request->post['rating']) ? (int)$this->request->post['rating'] : 0;
 			$article_id = isset($this->request->get['article_id']) ? (int)$this->request->get['article_id'] : 0;
+
+			$this->load->model('blog/article');
+			$article_info = $this->model_blog_article->getArticle($article_id);
+
+			if (!$article_info) {
+				$json['error'] = $this->language->get('error_article');
+			}
 
 			if ((utf8_strlen($name) < 3) || (utf8_strlen($name) > 25)) {
 				$json['error'] = $this->language->get('error_name');

@@ -32,17 +32,22 @@ class ModelBlogReview extends Model {
 				$mail->setSender(html_entity_decode($this->config->get('config_name'), ENT_QUOTES, 'UTF-8'));
 				$mail->setSubject($subject);
 				$mail->setText($message);
-				$mail->send();
 
-				$emails = explode(',', $this->config->get('config_alert_email'));
+				try {
+					$mail->send();
 
-				foreach ($emails as $email) {
-					$email = trim($email);
+					$emails = explode(',', (string)$this->config->get('config_mail_alert_email'));
 
-					if ($email && preg_match('/^[^\@]+@[^@]+\.[a-z]{2,15}$/i', $email)) {
-						$mail->setTo($email);
-						$mail->send();
+					foreach ($emails as $email) {
+						$email = trim($email);
+
+						if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+							$mail->setTo($email);
+							$mail->send();
+						}
 					}
+				} catch (\Exception $e) {
+					$this->log->write('Blog review mail error: ' . $e->getMessage());
 				}
 			}
 		}

@@ -119,7 +119,7 @@ class ModelBlogCategory extends Model {
 			}
 		}
 
-		$this->cache->delete('category');
+		$this->cache->delete('blog_category');
 
 		if ($this->config->get('config_seo_pro')) {
 			$this->cache->delete('seopro');
@@ -130,7 +130,7 @@ class ModelBlogCategory extends Model {
 	public function editCategoryStatus($blog_category_id, $status) {
 		$this->db->query("UPDATE " . DB_PREFIX . "blog_category SET status = '" . (int)$status . "', date_modified = NOW() WHERE blog_category_id = '" . (int)$blog_category_id . "'");
 
-		$this->cache->delete('category');
+		$this->cache->delete('blog_category');
 
 		if ($this->config->get('config_seo_pro')) {
 			$this->cache->delete('seopro');

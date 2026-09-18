@@ -162,6 +162,16 @@ class ControllerBlogArticle extends Controller {
 		$order = isset($this->request->get['order']) ? $this->request->get['order'] : 'ASC';
 		$page = isset($this->request->get['page']) ? (int)$this->request->get['page'] : 1;
 
+		$limit = (int)$this->config->get('configblog_limit_admin');
+
+		if ($limit < 1) {
+			$limit = (int)$this->config->get('config_limit_admin');
+		}
+
+		if ($limit < 1) {
+			$limit = 20;
+		}
+
 		if ($page < 1) {
 			$page = 1;
 		}
@@ -194,8 +204,8 @@ class ControllerBlogArticle extends Controller {
 			'filter_noindex' => $filter_noindex,
 			'sort'           => $sort,
 			'order'          => $order,
-			'start'          => ($page - 1) * (int)$this->config->get('config_limit_admin'),
-			'limit'          => (int)$this->config->get('config_limit_admin')
+			'start'          => ($page - 1) * $limit,
+			'limit'          => $limit
 		);
 
 		$this->load->model('tool/image');
@@ -305,17 +315,17 @@ class ControllerBlogArticle extends Controller {
 		$pagination = new Pagination();
 		$pagination->total = $article_total;
 		$pagination->page = $page;
-		$pagination->limit = (int)$this->config->get('config_limit_admin');
+		$pagination->limit = $limit;
 		$pagination->url = $this->url->link('blog/article', 'user_token=' . $this->session->data['user_token'] . $pagination_url . '&page={page}', true);
 
 		$data['pagination'] = $pagination->render();
 
 		$data['results'] = sprintf(
 			$this->language->get('text_pagination'),
-			($article_total) ? (($page - 1) * (int)$this->config->get('config_limit_admin')) + 1 : 0,
-			((($page - 1) * (int)$this->config->get('config_limit_admin')) > ($article_total - (int)$this->config->get('config_limit_admin'))) ? $article_total : ((($page - 1) * (int)$this->config->get('config_limit_admin')) + (int)$this->config->get('config_limit_admin')),
+			($article_total) ? (($page - 1) * $limit) + 1 : 0,
+			((($page - 1) * $limit) > ($article_total - $limit)) ? $article_total : ((($page - 1) * $limit) + $limit),
 			$article_total,
-			ceil($article_total / (int)$this->config->get('config_limit_admin'))
+			ceil($article_total / $limit)
 		);
 
 		$data['filter_name'] = $filter_name;
