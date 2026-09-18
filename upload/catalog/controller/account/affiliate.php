@@ -68,7 +68,9 @@ class ControllerAccountAffiliate extends Controller {
 			'href' => $this->url->link('account/account', '', true)
 		);
 
-		if ($this->request->get['route'] == 'account/affiliate/add') {
+		$route = isset($this->request->get['route']) && is_scalar($this->request->get['route']) ? (string)$this->request->get['route'] : 'account/affiliate/add';
+
+		if ($route == 'account/affiliate/add') {
 			$data['breadcrumbs'][] = array(
 				'text' => $this->language->get('text_affiliate'),
 				'href' => $this->url->link('account/affiliate/add', '', true)
@@ -116,9 +118,9 @@ class ControllerAccountAffiliate extends Controller {
 			$data['error_custom_field'] = array();
 		}
 
-		$data['action'] = $this->url->link($this->request->get['route'], '', true);
+		$data['action'] = $this->url->link($route == 'account/affiliate/edit' ? 'account/affiliate/edit' : 'account/affiliate/add', '', true);
 
-		if ($this->request->get['route'] == 'account/affiliate/edit' && $this->request->server['REQUEST_METHOD'] != 'POST') {
+		if ($route == 'account/affiliate/edit' && $this->request->server['REQUEST_METHOD'] != 'POST') {
 			$affiliate_info = $this->model_account_customer->getAffiliate($this->customer->getId());
 		}
 
@@ -215,7 +217,7 @@ class ControllerAccountAffiliate extends Controller {
 
 		$data['custom_fields'] = $this->model_account_custom_field->getCustomFields($this->config->get('config_customer_group_id'));
 
-		if (isset($this->request->post['custom_field'])) {
+		if (isset($this->request->post['custom_field']) && is_array($this->request->post['custom_field'])) {
 			$data['affiliate_custom_field'] = $this->request->post['custom_field'];
 		} elseif (isset($affiliate_info)) {
 			$data['affiliate_custom_field'] = json_decode($affiliate_info['custom_field'], true);
@@ -259,20 +261,40 @@ class ControllerAccountAffiliate extends Controller {
 
 	protected function validate() {
 		$defaults = array(
+			'company' => '',
+			'website' => '',
+			'tax' => '',
 			'payment' => '',
 			'cheque' => '',
 			'paypal' => '',
+			'bank_name' => '',
+			'bank_branch_number' => '',
+			'bank_swift_code' => '',
 			'bank_account_name' => '',
 			'bank_account_number' => ''
 		);
 
 		foreach ($defaults as $key => $value) {
-			if (!isset($this->request->post[$key])) {
+			if (!isset($this->request->post[$key]) || !is_scalar($this->request->post[$key])) {
 				$this->request->post[$key] = $value;
+			} else {
+				$this->request->post[$key] = (string)$this->request->post[$key];
 			}
 		}
 
-		if ($this->request->post['payment'] == 'cheque' && !$this->request->post['cheque']) {
+		if (!isset($this->request->post['custom_field']) || !is_array($this->request->post['custom_field'])) {
+			$this->request->post['custom_field'] = array();
+		}
+
+		$payment_methods = array('cheque', 'paypal', 'bank');
+
+		if (!in_array($this->request->post['payment'], $payment_methods, true)) {
+			$this->request->post['payment'] = '';
+		}
+
+		if ($this->request->post['payment'] === '') {
+			$this->error['warning'] = $this->language->get('error_payment');
+		} elseif ($this->request->post['payment'] == 'cheque' && $this->request->post['cheque'] === '') {
 			$this->error['cheque'] = $this->language->get('error_cheque');
 		} elseif (($this->request->post['payment'] == 'paypal') && ((utf8_strlen($this->request->post['paypal']) > 96) || !filter_var($this->request->post['paypal'], FILTER_VALIDATE_EMAIL))) {
 			$this->error['paypal'] = $this->language->get('error_paypal');
