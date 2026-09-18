@@ -142,6 +142,7 @@ $_['entry_stock_popup_status']          = 'Stock shortage popup';
 $_['entry_stock_popup_routes']          = 'Display routes';
 $_['entry_stock_popup_title']           = 'Popup title';
 $_['entry_stock_popup_message']         = 'Popup message';
+$_['entry_stock_popup_show_image']      = 'Show image';
 $_['entry_stock_popup_show_model']      = 'Show model';
 $_['entry_stock_popup_show_quantity']   = 'Show quantity';
 $_['entry_stock_checkout']              = 'Stock Checkout';
