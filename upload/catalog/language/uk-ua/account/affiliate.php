@@ -29,6 +29,7 @@ $_['entry_bank_account_number'] = 'Номер рахунку';
 
 // Error
 $_['error_agree']               = 'Необхідно прийняти %s!';
+$_['error_payment']             = 'Оберіть спосіб оплати!';
 $_['error_cheque']              = 'Невірно вказане ім’я отримувача';
 $_['error_paypal']              = 'Недійсна адреса електронної пошти PayPal';
 $_['error_bank_account_name']   = 'Назва рахунку обов’язкова';
