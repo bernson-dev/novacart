@@ -145,16 +145,17 @@
                     {{ captcha }}
                 </fieldset>
                 <div class="buttons clearfix">
-                    <div class="pull-right">
+                    <div class="pull-right agreement-actions">
                         {% if text_agree %}
-                        {% if agree %}
-                        <input type="checkbox" name="agree" value="1" checked="checked" />
-                        {% else %}
-                        <input type="checkbox" name="agree" value="1" />
+                        <label class="agreement-control">
+                            {% if agree %}
+                            <input type="checkbox" name="agree" value="1" checked="checked" />
+                            {% else %}
+                            <input type="checkbox" name="agree" value="1" />
+                            {% endif %}
+                            <span>{{ text_agree }}</span>
+                        </label>
                         {% endif %}
-                        {{ text_agree }}
-                        {% endif %}
-                        &nbsp;
                         <input class="btn btn-primary" type="submit" value="{{ button_submit }}" />
                     </div>
                 </div>
