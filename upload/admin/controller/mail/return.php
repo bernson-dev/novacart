@@ -44,6 +44,11 @@ class ControllerMailReturn extends Controller {
 					$store_url = HTTP_CATALOG;
 				}
 				$subject = sprintf($this->language->get('text_subject'), $store_name, $return_id);
+				$data['text_return_id'] = $this->language->get('text_return_id');
+				$data['text_date_added'] = $this->language->get('text_date_added');
+				$data['text_return_status'] = $this->language->get('text_return_status');
+				$data['text_comment'] = $this->language->get('text_comment');
+				$data['text_footer'] = $this->language->get('text_footer');
 				$data['return_id'] = $return_id;
 				$data['date_added'] = date($this->language->get('datetime_format'), strtotime($return_info['date_modified']));
 				$data['return_status'] = $return_info['return_status'];
