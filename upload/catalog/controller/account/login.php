@@ -223,16 +223,27 @@ class ControllerAccountLogin extends Controller {
 			return false;
 		}
 
-		$allowed_hosts = array();
+		$target_port = isset($target['port']) ? (int)$target['port'] : ($scheme === 'https' ? 443 : 80);
+		$target_origin = $scheme . '://' . strtolower($target['host']) . ':' . $target_port;
+		$allowed_origins = array();
 
 		foreach (array($this->config->get('config_url'), $this->config->get('config_ssl')) as $store_url) {
-			$store_host = parse_url($store_url, PHP_URL_HOST);
+			$store = parse_url($store_url);
 
-			if ($store_host) {
-				$allowed_hosts[] = strtolower($store_host);
+			if (!$store || empty($store['host']) || empty($store['scheme'])) {
+				continue;
 			}
+
+			$store_scheme = strtolower($store['scheme']);
+
+			if ($store_scheme !== 'http' && $store_scheme !== 'https') {
+				continue;
+			}
+
+			$store_port = isset($store['port']) ? (int)$store['port'] : ($store_scheme === 'https' ? 443 : 80);
+			$allowed_origins[] = $store_scheme . '://' . strtolower($store['host']) . ':' . $store_port;
 		}
 
-		return in_array(strtolower($target['host']), array_unique($allowed_hosts), true);
+		return in_array($target_origin, array_unique($allowed_origins), true);
 	}
 }
