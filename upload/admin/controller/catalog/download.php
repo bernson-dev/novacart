@@ -50,6 +50,10 @@ class ControllerCatalogDownload extends Controller {
 				$url .= '&page=' . $this->request->get['page'];
 			}
 
+			if (isset($this->request->post['apply'])) {
+				$this->response->redirect($this->url->link('catalog/download/edit', 'user_token=' . $this->session->data['user_token'] . '&download_id=' . (int)$download_id . $url, true));
+			}
+
 			$this->response->redirect($this->url->link('catalog/download', 'user_token=' . $this->session->data['user_token'] . $url, true));
 		}
 
@@ -90,6 +94,10 @@ class ControllerCatalogDownload extends Controller {
 
 			if (isset($this->request->get['page'])) {
 				$url .= '&page=' . $this->request->get['page'];
+			}
+
+			if (isset($this->request->post['apply'])) {
+				$this->response->redirect($this->url->link('catalog/download/edit', 'user_token=' . $this->session->data['user_token'] . '&download_id=' . (int)$this->request->get['download_id'] . $url, true));
 			}
 
 			$this->response->redirect($this->url->link('catalog/download', 'user_token=' . $this->session->data['user_token'] . $url, true));
@@ -345,10 +353,14 @@ class ControllerCatalogDownload extends Controller {
 	protected function getForm() {
 		$data['text_form'] = !isset($this->request->get['download_id']) ? $this->language->get('text_add') : $this->language->get('text_edit');
 
-		// Use the ini_get('upload_max_filesize') for the max file size
-		$upload_max_filesize = (int)preg_filter('/[^0-9]/', '', ini_get('upload_max_filesize'));
+		$file_max_size = (int)$this->config->get('config_file_max_size');
 
-		$data['error_upload_size'] = sprintf($this->language->get('error_upload_size'), $upload_max_filesize);
+		if ($file_max_size < 1) {
+			$file_max_size = 20;
+		}
+
+		$data['config_file_max_size_bytes'] = $file_max_size * 1024 * 1024;
+		$data['error_upload_size'] = sprintf($this->language->get('error_upload_size'), $file_max_size);
 		$data['user_token'] = $this->session->data['user_token'];
 
 		if (isset($this->error['warning'])) {
@@ -483,7 +495,7 @@ class ControllerCatalogDownload extends Controller {
 			foreach ($this->request->post['download_description'] as $language_id => $value) {
 				$name = $value['name'] ?? '';
 
-				if ((utf8_strlen($name) < 3) || (utf8_strlen($name) > 512)) {
+				if ((utf8_strlen($name) < 3) || (utf8_strlen($name) > 64)) {
 					$this->error['name'][$language_id] = $this->language->get('error_name');
 				}
 			}
@@ -492,13 +504,13 @@ class ControllerCatalogDownload extends Controller {
 		$filename = $this->request->post['filename'] ?? '';
 		$mask = $this->request->post['mask'] ?? '';
 
-		if ((utf8_strlen($filename) < 3) || (utf8_strlen($filename) > 512)) {
+		if ((utf8_strlen($filename) < 3) || (utf8_strlen($filename) > 160)) {
 			$this->error['filename'] = $this->language->get('error_filename');
 		} elseif (!is_file(DIR_DOWNLOAD . basename($filename))) {
 			$this->error['filename'] = $this->language->get('error_exists');
 		}
 
-		if ((utf8_strlen($mask) < 3) || (utf8_strlen($mask) > 512)) {
+		if ((utf8_strlen($mask) < 3) || (utf8_strlen($mask) > 128)) {
 			$this->error['mask'] = $this->language->get('error_mask');
 		}
 
@@ -584,7 +596,7 @@ class ControllerCatalogDownload extends Controller {
 		$pagination->total = $report_total;
 		$pagination->page = $page;
 		$pagination->limit = $limit;
-		$pagination->url = $this->url->link('catalog/download_report', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}', true);
+		$pagination->url = $this->url->link('catalog/download/report', 'user_token=' . $this->session->data['user_token'] . '&download_id=' . $download_id . $url . '&page={page}', true);
 
 		$data['pagination'] = $pagination->render();
 
@@ -609,8 +621,18 @@ class ControllerCatalogDownload extends Controller {
 				$filename = basename(html_entity_decode($this->request->files['file']['name'], ENT_QUOTES, 'UTF-8'));
 
 				// Validate the filename length
-				if ((utf8_strlen($filename) < 3) || (utf8_strlen($filename) > 128)) {
-					$json['error'] = $this->language->get('error_filename');
+				if ((utf8_strlen($filename) < 3) || (utf8_strlen($filename) > 127)) {
+					$json['error'] = $this->language->get('error_upload_filename');
+				}
+
+				$file_max_size = (int)$this->config->get('config_file_max_size');
+
+				if ($file_max_size < 1) {
+					$file_max_size = 20;
+				}
+
+				if ((int)$this->request->files['file']['size'] > ($file_max_size * 1024 * 1024)) {
+					$json['error'] = sprintf($this->language->get('error_upload_size'), $file_max_size);
 				}
 
 				// Allowed file extension types
