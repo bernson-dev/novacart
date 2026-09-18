@@ -15,3 +15,7 @@ $_['column_order_id']   = '№ Заказа';
 $_['column_name']       = 'Название';
 $_['column_size']       = 'Размер';
 $_['column_date_added'] = 'Дата добавления';
+
+// Error
+$_['error_not_found']    = 'Ошибка: файл %s не найден!';
+$_['error_headers_sent'] = 'Ошибка: HTTP-заголовки уже были отправлены!';

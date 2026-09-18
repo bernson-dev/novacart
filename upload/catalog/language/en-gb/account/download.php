@@ -12,3 +12,7 @@ $_['column_order_id']   = 'Order ID';
 $_['column_name']       = 'Name';
 $_['column_size']       = 'Size';
 $_['column_date_added'] = 'Date Added';
+
+// Error
+$_['error_not_found']    = 'Error: File %s could not be found!';
+$_['error_headers_sent'] = 'Error: HTTP headers have already been sent!';
