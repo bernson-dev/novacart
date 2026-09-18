@@ -426,13 +426,15 @@ class ControllerBlogArticle extends Controller {
 					readfile($file);
 					exit;
 				} else {
-					exit('Error: Could not find file ' . $file . '!');
+					$this->response->addHeader($this->request->server['SERVER_PROTOCOL'] . ' 404 Not Found');
+					return;
 				}
 			} else {
-				exit('Error: Headers already sent out!');
+				$this->response->addHeader($this->request->server['SERVER_PROTOCOL'] . ' 500 Internal Server Error');
+				return;
 			}
 		} else {
-			$this->response->redirect($this->url->link('account/download', '', true));
+			$this->response->addHeader($this->request->server['SERVER_PROTOCOL'] . ' 404 Not Found');
 		}
 	}
 
