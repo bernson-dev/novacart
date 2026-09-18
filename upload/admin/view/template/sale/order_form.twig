@@ -23,11 +23,11 @@
             <div class="panel-body">
                 <form class="form-horizontal">
                     <ul id="order" class="nav nav-tabs nav-justified">
-                        <li class="disabled active"><a href="#tab-customer" data-toggle="tab">1. {{ tab_customer }}</a></li>
-                        <li class="disabled"><a href="#tab-cart" data-toggle="tab">2. {{ tab_product }}</a></li>
-                        <li class="disabled"><a href="#tab-payment" data-toggle="tab">3. {{ tab_payment }}</a></li>
-                        <li class="disabled"><a href="#tab-shipping" data-toggle="tab">4. {{ tab_shipping }}</a></li>
-                        <li class="disabled"><a href="#tab-total" data-toggle="tab">5. {{ tab_total }}</a></li>
+                        <li class="{% if not order_id %}disabled {% endif %}active"><a href="#tab-customer" data-toggle="tab">1. {{ tab_customer }}</a></li>
+                        <li class="{% if not order_id %}disabled{% endif %}"><a href="#tab-cart" data-toggle="tab">2. {{ tab_product }}</a></li>
+                        <li class="{% if not order_id %}disabled{% endif %}"><a href="#tab-payment" data-toggle="tab">3. {{ tab_payment }}</a></li>
+                        <li class="{% if not order_id %}disabled{% endif %}"><a href="#tab-shipping" data-toggle="tab">4. {{ tab_shipping }}</a></li>
+                        <li class="{% if not order_id %}disabled{% endif %}"><a href="#tab-total" data-toggle="tab">5. {{ tab_total }}</a></li>
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane active" id="tab-customer">
@@ -1437,6 +1437,8 @@
         });
 
         $('#button-product-add').on('click', function() {
+            cartValidationChecked = false;
+
             $.ajax({
                 url: '{{ catalog }}index.php?route=api/cart/add&api_token={{ api_token }}&store_id=' + $('select[name=\'store_id\'] option:selected').val(),
                 type: 'post',
@@ -1543,6 +1545,8 @@
         $('#cart').on('click', '.btn-danger', function() {
             var node = this;
 
+            cartValidationChecked = false;
+
             $.ajax({
                 url: '{{ catalog }}index.php?route=api/cart/remove&api_token={{ api_token }}&store_id=' + $('select[name=\'store_id\'] option:selected').val(),
                 type: 'post',
@@ -1575,6 +1579,7 @@
         $('#cart').on('click', '.btn-primary', function() {
             var node = this;
 
+            cartValidationChecked = false;
             $('#button-cart').prop('disabled', true);
 
             // Refresh products, vouchers and totals
@@ -1612,9 +1617,7 @@
 
         $('#button-cart').on('click', function() {
             if (cartValidationError) {
-                if (!$('.alert-danger').length && cartValidationMessage) {
-                    $('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + cartValidationMessage + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
-                }
+                showCartValidationError();
 
                 var invalidQuantity = $('#cart .cart-stock-invalid-quantity .form-control:first');
 
@@ -2383,10 +2386,49 @@
 
         var cartValidationError = false;
         var cartValidationMessage = '';
+        var cartValidationChecked = false;
+        var pendingOrderTab = '';
 
         function updateCartContinueButton() {
             $('#button-cart').prop('disabled', cartValidationError);
         }
+
+        function showCartValidationError() {
+            if (!$('.alert-danger').length && cartValidationMessage) {
+                $('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + cartValidationMessage + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+            }
+        }
+
+        {% if order_id %}
+        $('#order a[data-toggle=\'tab\']').on('show.bs.tab', function(e) {
+            var target = $(e.target).attr('href');
+
+            if (target == '#tab-customer' || target == '#tab-cart') {
+                return;
+            }
+
+            if (!cartValidationChecked) {
+                e.preventDefault();
+                pendingOrderTab = target;
+                $('#button-refresh').trigger('click');
+                return;
+            }
+
+            if (cartValidationError) {
+                e.preventDefault();
+                pendingOrderTab = '';
+                showCartValidationError();
+
+                $('a[href=\'#tab-cart\']').tab('show');
+
+                var invalidQuantity = $('#cart .cart-stock-invalid-quantity .form-control:first');
+
+                if (invalidQuantity.length) {
+                    invalidQuantity.focus();
+                }
+            }
+        });
+        {% endif %}
 
         // Add all products to the cart using the api
         $('#button-refresh').on('click', function() {
@@ -2395,6 +2437,7 @@
                 dataType: 'json',
                 crossDomain: true,
                 beforeSend: function() {
+                    cartValidationChecked = false;
                     $('#button-refresh').button('loading');
                     $('#button-cart').prop('disabled', true);
                 },
@@ -2530,7 +2573,19 @@
                     }
 
                     $('#cart').html(html);
+                    cartValidationChecked = true;
                     updateCartContinueButton();
+
+                    if (pendingOrderTab) {
+                        var targetTab = pendingOrderTab;
+                        pendingOrderTab = '';
+
+                        if (!cartValidationError) {
+                            $('a[href="' + targetTab + '"]').tab('show');
+                        } else {
+                            showCartValidationError();
+                        }
+                    }
 
                     // Totals
                     html = '';
