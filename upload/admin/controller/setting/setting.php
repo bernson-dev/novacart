@@ -1390,6 +1390,69 @@ class ControllerSettingSetting extends Controller {
 		}
 	}
 
+
+	public function testSmtp() {
+		$this->load->language('setting/setting');
+
+		$json = array();
+
+		if (!$this->user->hasPermission('modify', 'setting/setting')) {
+			$json['error'] = $this->language->get('error_permission');
+		} elseif ($this->request->server['REQUEST_METHOD'] != 'POST') {
+			$json['error'] = $this->language->get('error_smtp_test_method');
+		} else {
+			$hostname = isset($this->request->post['config_mail_smtp_hostname']) ? trim((string)$this->request->post['config_mail_smtp_hostname']) : '';
+			$username = isset($this->request->post['config_mail_smtp_username']) ? trim((string)$this->request->post['config_mail_smtp_username']) : '';
+			$password = isset($this->request->post['config_mail_smtp_password']) ? (string)$this->request->post['config_mail_smtp_password'] : '';
+			$port = isset($this->request->post['config_mail_smtp_port']) ? (int)$this->request->post['config_mail_smtp_port'] : 25;
+			$timeout = isset($this->request->post['config_mail_smtp_timeout']) ? (int)$this->request->post['config_mail_smtp_timeout'] : 5;
+			$email = isset($this->request->post['config_email']) ? trim((string)$this->request->post['config_email']) : (string)$this->config->get('config_email');
+			$store_name = isset($this->request->post['config_name']) ? trim((string)$this->request->post['config_name']) : (string)$this->config->get('config_name');
+
+			if ($hostname === '') {
+				$json['error'] = $this->language->get('error_smtp_test_hostname');
+			} elseif ($port < 1 || $port > 65535) {
+				$json['error'] = $this->language->get('error_smtp_test_port');
+			} elseif ($timeout < 1 || $timeout > 300) {
+				$json['error'] = $this->language->get('error_smtp_test_timeout');
+			} elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+				$json['error'] = $this->language->get('error_smtp_test_email');
+			} elseif (($username === '') xor ($password === '')) {
+				$json['error'] = $this->language->get('error_smtp_test_credentials');
+			} else {
+				try {
+					$mail = new \Mail('smtp');
+					$mail->smtp_hostname = $hostname;
+					$mail->smtp_username = $username;
+					$mail->smtp_password = html_entity_decode($password, ENT_QUOTES, 'UTF-8');
+					$mail->smtp_port = $port;
+					$mail->smtp_timeout = $timeout;
+
+					$mail->setTo($email);
+					$mail->setFrom($email);
+					$mail->setSender($store_name !== '' ? html_entity_decode($store_name, ENT_QUOTES, 'UTF-8') : $email);
+					$mail->setSubject($this->language->get('text_smtp_test_subject'));
+					$mail->setText(sprintf($this->language->get('text_smtp_test_message'), $hostname, $port));
+
+					$result = $mail->test(true);
+
+					$json['success'] = sprintf($this->language->get('text_smtp_test_success'), $email);
+					$json['details'] = array(
+						'hostname' => $result['hostname'],
+						'port'     => $result['port'],
+						'tls'      => !empty($result['tls']),
+						'steps'    => $result['steps']
+					);
+				} catch (\Exception $e) {
+					$json['error'] = sprintf($this->language->get('error_smtp_test_failed'), $e->getMessage());
+				}
+			}
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
 	public function maintenance() {
 		$json = array();
 
