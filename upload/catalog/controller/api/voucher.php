@@ -13,16 +13,12 @@ class ControllerApiVoucher extends Controller {
 		} else {
 			$this->load->model('extension/total/voucher');
 
-			if (isset($this->request->post['voucher'])) {
-				$voucher = $this->request->post['voucher'];
-			} else {
-				$voucher = '';
-			}
+			$voucher = isset($this->request->post['voucher']) && is_scalar($this->request->post['voucher']) ? trim((string)$this->request->post['voucher']) : '';
 
 			$voucher_info = $this->model_extension_total_voucher->getVoucher($voucher);
 
 			if ($voucher_info) {
-				$this->session->data['voucher'] = $this->request->post['voucher'];
+				$this->session->data['voucher'] = $voucher;
 
 				$json['success'] = $this->language->get('text_success');
 			} else {
