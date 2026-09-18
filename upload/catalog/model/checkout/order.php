@@ -118,6 +118,174 @@ class ModelCheckoutOrder extends Model {
 		}
 	}
 
+
+	/**
+	 * Validate cart stock while editing an existing order.
+	 *
+	 * Stock already reserved by the current order is treated as available to that
+	 * same order. Only the quantity above the original reservation must exist in
+	 * the live stock. The same rule is applied to subtracting option values.
+	 *
+	 * @param int   $order_id
+	 * @param array $products Cart::getProducts() result
+	 *
+	 * @return array
+	 */
+	public function getOrderEditStockStatus($order_id, $products) {
+		$status = array(
+			'valid'    => true,
+			'products' => array()
+		);
+
+		if (!$products) {
+			return $status;
+		}
+
+		$order_id = (int)$order_id;
+
+		$product_requested = array();
+		$product_cart_ids = array();
+		$option_requested = array();
+		$option_cart_ids = array();
+
+		foreach ($products as $product) {
+			$cart_id = (int)$product['cart_id'];
+			$product_id = (int)$product['product_id'];
+			$quantity = (int)$product['quantity'];
+
+			$status['products'][$cart_id] = true;
+
+			if (!isset($product_requested[$product_id])) {
+				$product_requested[$product_id] = 0;
+				$product_cart_ids[$product_id] = array();
+			}
+
+			$product_requested[$product_id] += $quantity;
+			$product_cart_ids[$product_id][$cart_id] = $cart_id;
+
+			foreach ($product['option'] as $option) {
+				$product_option_value_id = isset($option['product_option_value_id']) ? (int)$option['product_option_value_id'] : 0;
+
+				if ($product_option_value_id <= 0) {
+					continue;
+				}
+
+				if (!isset($option_requested[$product_option_value_id])) {
+					$option_requested[$product_option_value_id] = 0;
+					$option_cart_ids[$product_option_value_id] = array();
+				}
+
+				$option_requested[$product_option_value_id] += $quantity;
+				$option_cart_ids[$product_option_value_id][$cart_id] = $cart_id;
+			}
+		}
+
+		$product_stock = array();
+
+		if ($product_requested) {
+			$product_ids = array_map('intval', array_keys($product_requested));
+			$query = $this->db->query("SELECT product_id, quantity, subtract FROM " . DB_PREFIX . "product WHERE product_id IN (" . implode(',', $product_ids) . ")");
+
+			foreach ($query->rows as $row) {
+				$product_stock[(int)$row['product_id']] = array(
+					'quantity' => (int)$row['quantity'],
+					'subtract' => (int)$row['subtract']
+				);
+			}
+		}
+
+		$option_stock = array();
+
+		if ($option_requested) {
+			$option_ids = array_map('intval', array_keys($option_requested));
+			$query = $this->db->query("SELECT product_option_value_id, quantity, subtract FROM " . DB_PREFIX . "product_option_value WHERE product_option_value_id IN (" . implode(',', $option_ids) . ")");
+
+			foreach ($query->rows as $row) {
+				$option_stock[(int)$row['product_option_value_id']] = array(
+					'quantity' => (int)$row['quantity'],
+					'subtract' => (int)$row['subtract']
+				);
+			}
+		}
+
+		$reserved_products = array();
+		$reserved_options = array();
+
+		$order_info = $this->getOrder($order_id);
+		$reserved_statuses = array_unique(array_merge(
+			(array)$this->config->get('config_processing_status'),
+			(array)$this->config->get('config_complete_status')
+		));
+
+		if ($order_info && in_array((int)$order_info['order_status_id'], array_map('intval', $reserved_statuses), true)) {
+			$query = $this->db->query("SELECT product_id, quantity FROM " . DB_PREFIX . "order_product WHERE order_id = '" . $order_id . "'");
+
+			foreach ($query->rows as $row) {
+				$product_id = (int)$row['product_id'];
+
+				if (isset($product_stock[$product_id]) && $product_stock[$product_id]['subtract']) {
+					if (!isset($reserved_products[$product_id])) {
+						$reserved_products[$product_id] = 0;
+					}
+
+					$reserved_products[$product_id] += (int)$row['quantity'];
+				}
+			}
+
+			$query = $this->db->query("SELECT op.quantity, oo.product_option_value_id FROM " . DB_PREFIX . "order_product op INNER JOIN " . DB_PREFIX . "order_option oo ON (oo.order_product_id = op.order_product_id AND oo.order_id = op.order_id) WHERE op.order_id = '" . $order_id . "' AND oo.product_option_value_id > '0'");
+
+			foreach ($query->rows as $row) {
+				$product_option_value_id = (int)$row['product_option_value_id'];
+
+				if (isset($option_stock[$product_option_value_id]) && $option_stock[$product_option_value_id]['subtract']) {
+					if (!isset($reserved_options[$product_option_value_id])) {
+						$reserved_options[$product_option_value_id] = 0;
+					}
+
+					$reserved_options[$product_option_value_id] += (int)$row['quantity'];
+				}
+			}
+		}
+
+		foreach ($product_requested as $product_id => $requested) {
+			$available = isset($product_stock[$product_id]) ? $product_stock[$product_id]['quantity'] : 0;
+
+			if (isset($reserved_products[$product_id])) {
+				$available += $reserved_products[$product_id];
+			}
+
+			if ($requested > $available) {
+				$status['valid'] = false;
+
+				foreach ($product_cart_ids[$product_id] as $cart_id) {
+					$status['products'][$cart_id] = false;
+				}
+			}
+		}
+
+		foreach ($option_requested as $product_option_value_id => $requested) {
+			if (!isset($option_stock[$product_option_value_id]) || !$option_stock[$product_option_value_id]['subtract']) {
+				continue;
+			}
+
+			$available = $option_stock[$product_option_value_id]['quantity'];
+
+			if (isset($reserved_options[$product_option_value_id])) {
+				$available += $reserved_options[$product_option_value_id];
+			}
+
+			if ($requested > $available) {
+				$status['valid'] = false;
+
+				foreach ($option_cart_ids[$product_option_value_id] as $cart_id) {
+					$status['products'][$cart_id] = false;
+				}
+			}
+		}
+
+		return $status;
+	}
+
 	public function deleteOrder($order_id) {
 		// Void the order first
 		$this->addOrderHistory($order_id, 0);
