@@ -10,13 +10,16 @@ class ControllerApiCurrency extends Controller {
 		} else {
 			$this->load->model('localisation/currency');
 
-			$currency_info = $this->model_localisation_currency->getCurrencyByCode($this->request->post['currency']);
+			$currency = isset($this->request->post['currency']) && is_scalar($this->request->post['currency']) ? (string)$this->request->post['currency'] : '';
+			$currency_info = $currency !== '' ? $this->model_localisation_currency->getCurrencyByCode($currency) : array();
 
-			if ($currency_info) {
-				$this->session->data['currency'] = $this->request->post['currency'];
+			if ($currency_info && !empty($currency_info['status'])) {
+				$this->session->data['currency'] = $currency;
 
 				unset($this->session->data['shipping_method']);
 				unset($this->session->data['shipping_methods']);
+				unset($this->session->data['payment_method']);
+				unset($this->session->data['payment_methods']);
 
 				$json['success'] = $this->language->get('text_success');
 			} else {
