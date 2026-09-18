@@ -32,7 +32,7 @@ class ControllerAccountReturn extends Controller {
 		$url = '';
 
 		if (isset($this->request->get['page'])) {
-			$url .= '&page=' . $this->request->get['page'];
+			$url .= '&page=' . max(1, (int)$this->request->get['page']);
 		}
 
 		$data['breadcrumbs'][] = array(
@@ -42,11 +42,7 @@ class ControllerAccountReturn extends Controller {
 
 		$this->load->model('account/return');
 
-		if (isset($this->request->get['page'])) {
-			$page = (int)$this->request->get['page'];
-		} else {
-			$page = 1;
-		}
+		$page = isset($this->request->get['page']) ? max(1, (int)$this->request->get['page']) : 1;
 
 		$limit = 10;
 		$data['returns'] = array();
@@ -125,7 +121,7 @@ class ControllerAccountReturn extends Controller {
 			$url = '';
 
 			if (isset($this->request->get['page'])) {
-				$url .= '&page=' . $this->request->get['page'];
+				$url .= '&page=' . max(1, (int)$this->request->get['page']);
 			}
 
 			$data['breadcrumbs'][] = array(
@@ -135,7 +131,7 @@ class ControllerAccountReturn extends Controller {
 
 			$data['breadcrumbs'][] = array(
 				'text' => $this->language->get('text_return'),
-				'href' => $this->url->link('account/return/info', 'return_id=' . $this->request->get['return_id'] . $url, true)
+				'href' => $this->url->link('account/return/info', 'return_id=' . $return_id . $url, true)
 			);
 
 			$data['return_id'] = $return_info['return_id'];
@@ -156,7 +152,7 @@ class ControllerAccountReturn extends Controller {
 
 			$data['histories'] = array();
 
-			$results = $this->model_account_return->getReturnHistories($this->request->get['return_id']);
+			$results = $this->model_account_return->getReturnHistories($return_id);
 
 			foreach ($results as $result) {
 				$data['histories'][] = array(
@@ -199,7 +195,7 @@ class ControllerAccountReturn extends Controller {
 			$url = '';
 
 			if (isset($this->request->get['page'])) {
-				$url .= '&page=' . $this->request->get['page'];
+				$url .= '&page=' . max(1, (int)$this->request->get['page']);
 			}
 
 			$data['breadcrumbs'][] = array(
