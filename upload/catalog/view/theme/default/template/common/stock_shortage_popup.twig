@@ -30,6 +30,7 @@
               {% if show_model and product.model %}
               <span><strong>{{ text_model }}:</strong> {{ product.model }}</span>
               {% endif %}
+              <span class="stock-shortage-available"><strong>{{ text_available }}:</strong> {{ product.available }}</span>
               {% if show_quantity %}
               <span><strong>{{ text_quantity }}:</strong> {{ product.quantity }}</span>
               {% endif %}
