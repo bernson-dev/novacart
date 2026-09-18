@@ -3873,7 +3873,25 @@ html[dir="rtl"] #cart .dropdown-menu {
 }
 
 #stock-shortage-modal .stock-shortage-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
 	border-left: 3px solid #d9534f;
+}
+
+#stock-shortage-modal .stock-shortage-thumb {
+	flex: 0 0 auto;
+}
+
+#stock-shortage-modal .stock-shortage-thumb img {
+	width: 64px;
+	height: 64px;
+	object-fit: contain;
+}
+
+#stock-shortage-modal .stock-shortage-info {
+	min-width: 0;
+	flex: 1 1 auto;
 }
 
 #stock-shortage-modal .stock-shortage-name {
