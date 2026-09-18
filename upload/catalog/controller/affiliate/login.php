@@ -72,14 +72,14 @@ class ControllerAffiliateLogin extends Controller {
 			$data['success'] = '';
 		}
 
-		if (isset($email)) {
-			$data['email'] = $email;
+		if (isset($this->request->post['email']) && is_scalar($this->request->post['email'])) {
+			$data['email'] = (string)$this->request->post['email'];
 		} else {
 			$data['email'] = '';
 		}
 
-		if (isset($password)) {
-			$data['password'] = $password;
+		if (isset($this->request->post['password']) && is_scalar($this->request->post['password'])) {
+			$data['password'] = (string)$this->request->post['password'];
 		} else {
 			$data['password'] = '';
 		}
@@ -95,7 +95,7 @@ class ControllerAffiliateLogin extends Controller {
 	}
 
 	protected function validate() {
-		$email = isset($email) && is_scalar($email) ? trim((string)$email) : '';
+		$email = isset($this->request->post['email']) && is_scalar($this->request->post['email']) ? trim((string)$this->request->post['email']) : '';
 		$password = $this->request->getRawPost('password');
 
 		if ($email === '' || $password === '') {
