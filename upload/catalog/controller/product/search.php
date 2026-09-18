@@ -12,25 +12,15 @@ class ControllerProductSearch extends Controller {
 
 		$this->load->model('tool/image');
 
-		if (isset($this->request->get['search'])) {
-			$search = $this->request->get['search'];
+		$search = isset($this->request->get['search']) && is_scalar($this->request->get['search']) ? (string)$this->request->get['search'] : '';
+
+		if (isset($this->request->get['tag']) && is_scalar($this->request->get['tag'])) {
+			$tag = (string)$this->request->get['tag'];
 		} else {
-			$search = '';
+			$tag = $search;
 		}
 
-		if (isset($this->request->get['tag'])) {
-			$tag = $this->request->get['tag'];
-		} elseif (isset($this->request->get['search'])) {
-			$tag = $this->request->get['search'];
-		} else {
-			$tag = '';
-		}
-
-		if (isset($this->request->get['description'])) {
-			$description = $this->request->get['description'];
-		} else {
-			$description = '';
-		}
+		$description = isset($this->request->get['description']) && is_scalar($this->request->get['description']) ? (string)$this->request->get['description'] : '';
 
 		if (isset($this->request->get['category_id'])) {
 			$category_id = (int)$this->request->get['category_id'];
@@ -38,11 +28,7 @@ class ControllerProductSearch extends Controller {
 			$category_id = 0;
 		}
 
-		if (isset($this->request->get['sub_category'])) {
-			$sub_category = $this->request->get['sub_category'];
-		} else {
-			$sub_category = '';
-		}
+		$sub_category = !empty($this->request->get['sub_category']) ? 1 : 0;
 
 		if (isset($this->request->get['sort'])) {
 			$sort = $this->request->get['sort'];
@@ -56,16 +42,15 @@ class ControllerProductSearch extends Controller {
 			$order = 'ASC';
 		}
 
-		if (isset($this->request->get['page'])) {
-			$page = (int)$this->request->get['page'];
-		} else {
-			$page = 1;
-		}
+		$page = isset($this->request->get['page']) ? max(1, (int)$this->request->get['page']) : 1;
 
-		if (isset($this->request->get['limit']) && (int)$this->request->get['limit'] > 0) {
-			$limit = (int)$this->request->get['limit'];
-		} else {
-			$limit = $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit');
+		$default_limit = max(1, (int)$this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit'));
+		$limit = isset($this->request->get['limit']) ? (int)$this->request->get['limit'] : $default_limit;
+
+		if ($limit < 1) {
+			$limit = $default_limit;
+		} elseif ($limit > 100) {
+			$limit = 100;
 		}
 
 		if (isset($this->request->get['search'])) {
