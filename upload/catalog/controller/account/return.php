@@ -303,6 +303,12 @@ class ControllerAccountReturn extends Controller {
 			$data['error_model'] = '';
 		}
 
+		if (isset($this->error['quantity'])) {
+			$data['error_quantity'] = $this->error['quantity'];
+		} else {
+			$data['error_quantity'] = '';
+		}
+
 		if (isset($this->error['reason'])) {
 			$data['error_reason'] = $this->error['reason'];
 		} else {
