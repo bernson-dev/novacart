@@ -9,6 +9,8 @@ class ControllerProductCompare extends Controller {
 
 		if (!isset($this->session->data['compare'])) {
 			$this->session->data['compare'] = array();
+		} else {
+			$this->session->data['compare'] = array_values(array_unique(array_map('intval', $this->session->data['compare'])));
 		}
 
 		if (isset($this->request->get['remove'])) {
@@ -144,6 +146,8 @@ class ControllerProductCompare extends Controller {
 
 		if (!isset($this->session->data['compare'])) {
 			$this->session->data['compare'] = array();
+		} else {
+			$this->session->data['compare'] = array_values(array_unique(array_map('intval', $this->session->data['compare'])));
 		}
 
 		if (isset($this->request->post['product_id'])) {
