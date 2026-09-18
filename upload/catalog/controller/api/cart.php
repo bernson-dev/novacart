@@ -104,10 +104,12 @@ class ControllerApiCart extends Controller {
 			$json['error'] = $this->language->get('error_permission');
 		} else {
 			// Remove
-			if (isset($this->request->post['key'])) {
-				$this->cart->remove($this->request->post['key']);
+			$key = isset($this->request->post['key']) && is_scalar($this->request->post['key']) ? (string)$this->request->post['key'] : '';
 
-				unset($this->session->data['vouchers'][$this->request->post['key']]);
+			if ($key !== '') {
+				$this->cart->remove($key);
+
+				unset($this->session->data['vouchers'][$key]);
 
 				$json['success'] = $this->language->get('text_success');
 
