@@ -26,5 +26,6 @@ $_['text_rating_desc']  = 'Рейтинг (за зменшенням)';
 $_['text_model_asc']    = 'Модель (А - Я)';
 $_['text_model_desc']   = 'Модель (Я - А)';
 $_['text_limit']        = 'Показати:';
-$_['text_benefits']     = 'Переваги:';$_['text_no_results']   = 'Виробників не знайдено.';
+$_['text_benefits']     = 'Переваги:';
+$_['text_no_results']   = 'Виробників не знайдено.';
 
