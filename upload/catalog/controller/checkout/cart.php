@@ -396,21 +396,27 @@ class ControllerCheckoutCart extends Controller {
 
 		// Update
 		$updated = false;
+		$invalid_quantity = false;
+		$is_ajax = isset($this->request->post['key']);
 
 		if (isset($this->request->post['quantity']) && is_array($this->request->post['quantity'])) {
 			// Standard cart form: quantity[cart_id] = value
 			foreach ($this->request->post['quantity'] as $key => $value) {
 				if (!is_scalar($key) || !is_scalar($value)) {
+					$invalid_quantity = true;
 					continue;
 				}
 
 				$cart_id = (int)$key;
 				$quantity = (int)$value;
 
-				if ($cart_id > 0 && $quantity > 0) {
-					$this->cart->update($cart_id, $quantity);
-					$updated = true;
+				if ($cart_id < 1 || $quantity < 1) {
+					$invalid_quantity = true;
+					continue;
 				}
+
+				$this->cart->update($cart_id, $quantity);
+				$updated = true;
 			}
 		} elseif (
 			isset($this->request->post['key'], $this->request->post['quantity']) &&
@@ -421,13 +427,27 @@ class ControllerCheckoutCart extends Controller {
 			$cart_id = (int)$this->request->post['key'];
 			$quantity = (int)$this->request->post['quantity'];
 
-			if ($cart_id > 0 && $quantity > 0) {
+			if ($cart_id < 1 || $quantity < 1) {
+				$invalid_quantity = true;
+			} else {
 				$this->cart->update($cart_id, $quantity);
 				$updated = true;
 			}
+		} else {
+			$invalid_quantity = true;
 		}
 
-		if ($updated) {
+		if ($invalid_quantity) {
+			unset($this->session->data['success']);
+
+			if ($is_ajax) {
+				$json['error'] = $this->language->get('error_quantity');
+			} else {
+				$this->session->data['error'] = $this->language->get('error_quantity');
+				$this->response->redirect($this->url->link('checkout/cart'));
+				return;
+			}
+		} elseif ($updated) {
 			$this->session->data['success'] = $this->language->get('text_remove');
 
 			unset($this->session->data['shipping_method']);
