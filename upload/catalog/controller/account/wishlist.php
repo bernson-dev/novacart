@@ -20,7 +20,7 @@ class ControllerAccountWishList extends Controller {
 
 		if (isset($this->request->get['remove'])) {
 			// Remove Wishlist
-			$this->model_account_wishlist->deleteWishlist($this->request->get['remove']);
+			$this->model_account_wishlist->deleteWishlist((int)$this->request->get['remove']);
 
 			$this->session->data['success'] = $this->language->get('text_remove');
 
