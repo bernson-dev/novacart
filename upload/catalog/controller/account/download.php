@@ -31,11 +31,7 @@ class ControllerAccountDownload extends Controller {
 
 		$this->load->model('account/download');
 
-		if (isset($this->request->get['page'])) {
-			$page = (int)$this->request->get['page'];
-		} else {
-			$page = 1;
-		}
+		$page = isset($this->request->get['page']) ? max(1, (int)$this->request->get['page']) : 1;
 
 		$limit = 10;
 
@@ -136,7 +132,8 @@ class ControllerAccountDownload extends Controller {
 
 					readfile($file);
 
-					$this->model_account_download->addDownloadReport($download_id, $this->request->server['REMOTE_ADDR']);
+					$remote_addr = isset($this->request->server['REMOTE_ADDR']) ? (string)$this->request->server['REMOTE_ADDR'] : '';
+					$this->model_account_download->addDownloadReport($download_id, $remote_addr);
 
 					exit();
 				} else {
