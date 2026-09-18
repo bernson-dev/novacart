@@ -33,6 +33,7 @@ $_['button_wishlist']       = 'В закладки';
 $_['button_checkout']       = 'Оформлення замовлення';
 $_['button_confirm']        = 'Підтвердження замовлення';
 $_['button_coupon']         = 'Застосування купона';
+$_['button_remove_coupon']  = 'Видалити купон';
 $_['button_delete']         = 'Видалити';
 $_['button_download']       = 'Завантажити';
 $_['button_edit']           = 'Редагувати';

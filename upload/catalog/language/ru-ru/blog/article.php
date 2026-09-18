@@ -19,6 +19,8 @@ $_['text_tax']             = 'Без НДС:';
 $_['text_related']         = 'Похожие статьи';
 $_['text_related_product'] = 'Сопутствующие Товары';
 
+$_['text_agree']           = 'Я прочитал(а) и согласен(на) с условиями <a href="%s" class="agree"><b>%s</b></a>';
+
 // Entry
 $_['entry_name']           = 'Ваше Имя:';
 $_['entry_review']         = 'Ваш отзыв:';
