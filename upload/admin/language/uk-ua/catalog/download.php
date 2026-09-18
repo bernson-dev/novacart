@@ -16,7 +16,6 @@ $_['column_name']       = 'Назва';
 $_['column_ip']         = 'IP';
 $_['column_account']    = 'Облікові записи';
 $_['column_store']      = 'Магазин';
-$_['column_country']    = 'Країна';
 $_['column_date_added'] = 'Дата додавання';
 $_['column_action']     = 'Дія';
 
