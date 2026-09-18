@@ -33,6 +33,7 @@ $_['column_price']             = 'Unit Price';
 $_['column_total']             = 'Total';
 
 // Error
+$_['error_quantity']           = 'Product quantity must be at least 1. Use the remove button to delete the product.';
 $_['error_stock']              = 'Products marked with *** are not available in the desired quantity or not in stock!';
 $_['error_minimum']            = 'Minimum order amount for %s is %s!';
 $_['error_required']           = '%s required!';
