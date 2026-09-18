@@ -2987,20 +2987,23 @@ body > .container + .container > .row > #content > h2 {
 /* Blog storefront */
 #blog-latest .blog-article-list,
 #blog-category .blog-article-list,
-#blog-article .blog-article-list {
+#blog-article .blog-article-list,
+.blog-article-list {
     display: flex;
     flex-wrap: wrap;
 }
 
 #blog-latest .blog-article-list > .product-layout,
 #blog-category .blog-article-list > .product-layout,
-#blog-article .blog-article-list > [class*="col-"] {
+#blog-article .blog-article-list > [class*="col-"],
+.blog-article-list > .product-layout {
     display: flex;
 }
 
 #blog-latest .blog-article-card,
 #blog-category .blog-article-card,
-#blog-article .blog-article-card {
+#blog-article .blog-article-card,
+.blog-article-card {
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
@@ -3009,7 +3012,8 @@ body > .container + .container > .row > #content > h2 {
 
 #blog-latest .blog-article-card .caption,
 #blog-category .blog-article-card .caption,
-#blog-article .blog-article-card .caption {
+#blog-article .blog-article-card .caption,
+.blog-article-card .caption {
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
@@ -3017,7 +3021,8 @@ body > .container + .container > .row > #content > h2 {
 
 #blog-latest .blog-article-card .button-group,
 #blog-category .blog-article-card .button-group,
-#blog-article .blog-article-card .button-group {
+#blog-article .blog-article-card .button-group,
+.blog-article-card .button-group {
     margin-top: auto;
 }
 
@@ -3037,15 +3042,15 @@ body > .container + .container > .row > #content > h2 {
 
 /* Keep the same animated first-button behaviour as product cards,
    but use a "read more" arrow instead of the cart SVG. */
-.product-thumb .button-group .blog-more .fa {
-    background: none;
+.product-thumb .button-group button.blog-more:first-child .fa {
+    background: none !important;
     width: 17px;
     height: 17px;
     text-align: center;
 }
 
-.product-thumb .button-group .blog-more .fa:before {
-    content: "\f061";
+.product-thumb .button-group button.blog-more:first-child .fa:before {
+    content: "\f061" !important;
     display: inline-block;
     width: auto;
     height: auto;
