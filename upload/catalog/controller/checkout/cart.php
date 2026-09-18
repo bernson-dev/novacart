@@ -280,7 +280,7 @@ class ControllerCheckoutCart extends Controller {
 
 		if ($product_info) {
 			if (isset($this->request->post['quantity'])) {
-				$quantity = (int)$this->request->post['quantity'];
+				$quantity = max(1, (int)$this->request->post['quantity']);
 			} else {
 				$quantity = 1;
 			}
@@ -392,7 +392,13 @@ class ControllerCheckoutCart extends Controller {
 		// Update
 		if (!empty($this->request->post['quantity'])) {
 			foreach ($this->request->post['quantity'] as $key => $value) {
-				$this->cart->update($key, $value);
+				$quantity = (int)$value;
+
+				if ($quantity > 0) {
+					$this->cart->update((int)$key, $quantity);
+				} else {
+					$this->cart->remove((int)$key);
+				}
 			}
 
 			$this->session->data['success'] = $this->language->get('text_remove');
