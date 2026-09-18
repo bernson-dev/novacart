@@ -604,6 +604,8 @@ class ControllerCheckoutCart extends Controller {
 
 		$products = array();
 
+		$this->load->model('tool/image');
+
 		foreach ($this->cart->getProducts() as $product) {
 			if ($product['stock']) {
 				continue;
@@ -618,11 +620,22 @@ class ControllerCheckoutCart extends Controller {
 				);
 			}
 
+			if ($product['image']) {
+				$thumb = $this->model_tool_image->resize(
+					$product['image'],
+					$this->config->get('theme_' . $this->config->get('config_theme') . '_image_cart_width'),
+					$this->config->get('theme_' . $this->config->get('config_theme') . '_image_cart_height')
+				);
+			} else {
+				$thumb = '';
+			}
+
 			$products[] = array(
 				'name'     => $product['name'],
 				'model'    => $product['model'],
 				'quantity' => (int)$product['quantity'],
 				'option'   => $option_data,
+				'thumb'    => $thumb,
 				'href'     => $this->url->link('product/product', 'product_id=' . (int)$product['product_id'])
 			);
 		}
@@ -641,6 +654,7 @@ class ControllerCheckoutCart extends Controller {
 				: $this->language->get('text_stock_popup_message');
 
 			$data['products'] = $products;
+			$data['show_image'] = (bool)$this->config->get('config_stock_popup_show_image');
 			$data['show_model'] = (bool)$this->config->get('config_stock_popup_show_model');
 			$data['show_quantity'] = (bool)$this->config->get('config_stock_popup_show_quantity');
 			$data['text_model'] = $this->language->get('text_stock_popup_model');
