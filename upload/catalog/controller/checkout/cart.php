@@ -22,7 +22,11 @@ class ControllerCheckoutCart extends Controller {
 		);
 
 		if ($this->cart->hasProducts() || !empty($this->session->data['vouchers'])) {
-			if (!$this->cart->hasStock() && (!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning'))) {
+			if (
+				!$this->cart->hasStock() &&
+				(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')) &&
+				!$this->isStockPopupEnabledForRoute('checkout/cart')
+			) {
 				$data['error_warning'] = $this->language->get('error_stock');
 			} elseif (isset($this->session->data['error'])) {
 				$data['error_warning'] = $this->session->data['error'];
@@ -579,27 +583,14 @@ class ControllerCheckoutCart extends Controller {
 			'html' => ''
 		);
 
-		if (!$this->config->get('config_stock_popup_status')) {
-			$this->response->addHeader('Content-Type: application/json');
-			$this->response->setOutput(json_encode($json));
-			return;
-		}
-
 		$current_route = isset($this->request->post['current_route']) && is_scalar($this->request->post['current_route'])
 			? trim((string)$this->request->post['current_route'])
 			: '';
 
-		$config_routes = trim((string)$this->config->get('config_stock_popup_routes'));
-
-		if ($config_routes !== '') {
-			$routes = preg_split('/[\r\n,]+/', $config_routes, -1, PREG_SPLIT_NO_EMPTY);
-			$routes = array_map('trim', $routes);
-
-			if (!in_array($current_route, $routes, true)) {
-				$this->response->addHeader('Content-Type: application/json');
-				$this->response->setOutput(json_encode($json));
-				return;
-			}
+		if (!$this->isStockPopupEnabledForRoute($current_route)) {
+			$this->response->addHeader('Content-Type: application/json');
+			$this->response->setOutput(json_encode($json));
+			return;
 		}
 
 		$products = array();
@@ -612,6 +603,9 @@ class ControllerCheckoutCart extends Controller {
 				continue;
 			}
 
+			$product_stock_query = $this->db->query("SELECT quantity FROM " . DB_PREFIX . "product WHERE product_id = '" . (int)$product['product_id'] . "' LIMIT 1");
+			$available = $product_stock_query->num_rows ? max(0, (int)$product_stock_query->row['quantity']) : 0;
+
 			$option_data = array();
 
 			foreach ($product['option'] as $option) {
@@ -620,6 +614,10 @@ class ControllerCheckoutCart extends Controller {
 					$value = $upload_info ? $upload_info['name'] : '';
 				} else {
 					$value = $option['value'];
+				}
+
+				if (!empty($option['subtract']) && $option['quantity'] !== '') {
+					$available = min($available, max(0, (int)$option['quantity']));
 				}
 
 				$option_data[] = array(
@@ -641,8 +639,9 @@ class ControllerCheckoutCart extends Controller {
 			$products[] = array(
 				'name'     => $product['name'],
 				'model'    => $product['model'],
-				'quantity' => (int)$product['quantity'],
-				'option'   => $option_data,
+				'quantity'  => (int)$product['quantity'],
+				'available' => $available,
+				'option'    => $option_data,
 				'thumb'    => $thumb,
 				'href'     => $this->url->link('product/product', 'product_id=' . (int)$product['product_id'])
 			);
@@ -667,6 +666,7 @@ class ControllerCheckoutCart extends Controller {
 			$data['show_quantity'] = (bool)$this->config->get('config_stock_popup_show_quantity');
 			$data['text_model'] = $this->language->get('text_stock_popup_model');
 			$data['text_quantity'] = $this->language->get('text_stock_popup_quantity');
+			$data['text_available'] = $this->language->get('text_stock_popup_available');
 			$data['button_close'] = $this->language->get('button_stock_popup_close');
 
 			$json['show'] = true;
@@ -675,6 +675,24 @@ class ControllerCheckoutCart extends Controller {
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
+	}
+
+
+	private function isStockPopupEnabledForRoute($route) {
+		if (!$this->config->get('config_stock_popup_status')) {
+			return false;
+		}
+
+		$config_routes = trim((string)$this->config->get('config_stock_popup_routes'));
+
+		if ($config_routes === '') {
+			return true;
+		}
+
+		$routes = preg_split('/[\r\n,]+/', $config_routes, -1, PREG_SPLIT_NO_EMPTY);
+		$routes = array_map('trim', $routes);
+
+		return in_array((string)$route, $routes, true);
 	}
 
 }
