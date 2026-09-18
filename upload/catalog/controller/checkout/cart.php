@@ -570,4 +570,89 @@ class ControllerCheckoutCart extends Controller {
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
 	}
+
+	public function stockPopup() {
+		$this->load->language('checkout/cart');
+
+		$json = array(
+			'show' => false,
+			'html' => ''
+		);
+
+		if (!$this->config->get('config_stock_popup_status')) {
+			$this->response->addHeader('Content-Type: application/json');
+			$this->response->setOutput(json_encode($json));
+			return;
+		}
+
+		$current_route = isset($this->request->post['current_route']) && is_scalar($this->request->post['current_route'])
+			? trim((string)$this->request->post['current_route'])
+			: '';
+
+		$config_routes = trim((string)$this->config->get('config_stock_popup_routes'));
+
+		if ($config_routes !== '') {
+			$routes = preg_split('/[\r\n,]+/', $config_routes, -1, PREG_SPLIT_NO_EMPTY);
+			$routes = array_map('trim', $routes);
+
+			if (!in_array($current_route, $routes, true)) {
+				$this->response->addHeader('Content-Type: application/json');
+				$this->response->setOutput(json_encode($json));
+				return;
+			}
+		}
+
+		$products = array();
+
+		foreach ($this->cart->getProducts() as $product) {
+			if ($product['stock']) {
+				continue;
+			}
+
+			$option_data = array();
+
+			foreach ($product['option'] as $option) {
+				$option_data[] = array(
+					'name'  => $option['name'],
+					'value' => $option['value']
+				);
+			}
+
+			$products[] = array(
+				'name'     => $product['name'],
+				'model'    => $product['model'],
+				'quantity' => (int)$product['quantity'],
+				'option'   => $option_data,
+				'href'     => $this->url->link('product/product', 'product_id=' . (int)$product['product_id'])
+			);
+		}
+
+		if ($products) {
+			$language_id = (int)$this->config->get('config_language_id');
+			$titles = (array)$this->config->get('config_stock_popup_title');
+			$messages = (array)$this->config->get('config_stock_popup_message');
+
+			$data['title'] = !empty($titles[$language_id])
+				? (string)$titles[$language_id]
+				: $this->language->get('text_stock_popup_title');
+
+			$data['message'] = !empty($messages[$language_id])
+				? (string)$messages[$language_id]
+				: $this->language->get('text_stock_popup_message');
+
+			$data['products'] = $products;
+			$data['show_model'] = (bool)$this->config->get('config_stock_popup_show_model');
+			$data['show_quantity'] = (bool)$this->config->get('config_stock_popup_show_quantity');
+			$data['text_model'] = $this->language->get('text_stock_popup_model');
+			$data['text_quantity'] = $this->language->get('text_stock_popup_quantity');
+			$data['button_close'] = $this->language->get('button_stock_popup_close');
+
+			$json['show'] = true;
+			$json['html'] = $this->load->view('common/stock_shortage_popup', $data);
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
 }
