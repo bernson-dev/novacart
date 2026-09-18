@@ -153,6 +153,9 @@ class ControllerCommonHeader extends Controller {
 		$data['checkout'] = $this->url->link('checkout/checkout', '', true);
 		$data['contact'] = $this->url->link('information/contact');
 		$data['telephone'] = $this->config->get('config_telephone');
+		$data['current_route'] = isset($this->request->get['route']) && is_scalar($this->request->get['route'])
+			? (string)$this->request->get['route']
+			: 'common/home';
 
 		$data['language'] = $this->load->controller('common/language');
 		$data['currency'] = $this->load->controller('common/currency');
