@@ -138,6 +138,10 @@ $(document).ready(function() {
 // Stock shortage popup
 var stockShortagePopup = {
 	'refresh': function() {
+		if (typeof window.NovaCartStockPopupEnabled !== 'undefined' && !window.NovaCartStockPopupEnabled) {
+			return;
+		}
+
 		$.ajax({
 			url: 'index.php?route=checkout/cart/stockPopup',
 			type: 'post',
