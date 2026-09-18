@@ -12,25 +12,15 @@ class ControllerProductSearch extends Controller {
 
 		$this->load->model('tool/image');
 
-		if (isset($this->request->get['search'])) {
-			$search = $this->request->get['search'];
+		$search = isset($this->request->get['search']) && is_scalar($this->request->get['search']) ? (string)$this->request->get['search'] : '';
+
+		if (isset($this->request->get['tag']) && is_scalar($this->request->get['tag'])) {
+			$tag = (string)$this->request->get['tag'];
 		} else {
-			$search = '';
+			$tag = $search;
 		}
 
-		if (isset($this->request->get['tag'])) {
-			$tag = $this->request->get['tag'];
-		} elseif (isset($this->request->get['search'])) {
-			$tag = $this->request->get['search'];
-		} else {
-			$tag = '';
-		}
-
-		if (isset($this->request->get['description'])) {
-			$description = $this->request->get['description'];
-		} else {
-			$description = '';
-		}
+		$description = isset($this->request->get['description']) && is_scalar($this->request->get['description']) ? (string)$this->request->get['description'] : '';
 
 		if (isset($this->request->get['category_id'])) {
 			$category_id = (int)$this->request->get['category_id'];
@@ -38,11 +28,7 @@ class ControllerProductSearch extends Controller {
 			$category_id = 0;
 		}
 
-		if (isset($this->request->get['sub_category'])) {
-			$sub_category = $this->request->get['sub_category'];
-		} else {
-			$sub_category = '';
-		}
+		$sub_category = !empty($this->request->get['sub_category']) ? 1 : 0;
 
 		if (isset($this->request->get['sort'])) {
 			$sort = $this->request->get['sort'];
@@ -56,22 +42,21 @@ class ControllerProductSearch extends Controller {
 			$order = 'ASC';
 		}
 
-		if (isset($this->request->get['page'])) {
-			$page = (int)$this->request->get['page'];
-		} else {
-			$page = 1;
+		$page = isset($this->request->get['page']) ? max(1, (int)$this->request->get['page']) : 1;
+
+		$default_limit = max(1, (int)$this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit'));
+		$limit = isset($this->request->get['limit']) ? (int)$this->request->get['limit'] : $default_limit;
+
+		if ($limit < 1) {
+			$limit = $default_limit;
+		} elseif ($limit > 100) {
+			$limit = 100;
 		}
 
-		if (isset($this->request->get['limit']) && (int)$this->request->get['limit'] > 0) {
-			$limit = (int)$this->request->get['limit'];
-		} else {
-			$limit = $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit');
-		}
-
-		if (isset($this->request->get['search'])) {
-			$this->document->setTitle($this->language->get('heading_title') .  ' - ' . $this->request->get['search']);
-		} elseif (isset($this->request->get['tag'])) {
-			$this->document->setTitle($this->language->get('heading_title') .  ' - ' . $this->language->get('heading_tag') . $this->request->get['tag']);
+		if ($search !== '') {
+			$this->document->setTitle($this->language->get('heading_title') . ' - ' . $search);
+		} elseif ($tag !== '') {
+			$this->document->setTitle($this->language->get('heading_title') . ' - ' . $this->language->get('heading_tag') . $tag);
 		} else {
 			$this->document->setTitle($this->language->get('heading_title'));
 		}
@@ -87,16 +72,16 @@ class ControllerProductSearch extends Controller {
 
 		$url = '';
 
-		if (isset($this->request->get['search'])) {
-			$url .= '&search=' . urlencode(html_entity_decode($this->request->get['search'], ENT_QUOTES, 'UTF-8'));
+		if ($search !== '') {
+			$url .= '&search=' . urlencode(html_entity_decode($search, ENT_QUOTES, 'UTF-8'));
 		}
 
-		if (isset($this->request->get['tag'])) {
-			$url .= '&tag=' . urlencode(html_entity_decode(trim($this->request->get['tag']), ENT_QUOTES, 'UTF-8'));
+		if ($tag !== '') {
+			$url .= '&tag=' . urlencode(html_entity_decode(trim($tag), ENT_QUOTES, 'UTF-8'));
 		}
 
-		if (isset($this->request->get['description'])) {
-			$url .= '&description=' . $this->request->get['description'];
+		if ($description !== '') {
+			$url .= '&description=' . urlencode($description);
 		}
 
 		if (isset($this->request->get['category_id'])) {
@@ -128,8 +113,8 @@ class ControllerProductSearch extends Controller {
 			'href' => $this->url->link('product/search', $url)
 		);
 
-		if (isset($this->request->get['search'])) {
-			$data['heading_title'] = $this->language->get('heading_title') .  ' - ' . $this->request->get['search'];
+		if ($search !== '') {
+			$data['heading_title'] = $this->language->get('heading_title') . ' - ' . $search;
 		} else {
 			$data['heading_title'] = $this->language->get('heading_title');
 		}
@@ -414,7 +399,7 @@ class ControllerProductSearch extends Controller {
 
 			$data['results'] = sprintf($this->language->get('text_pagination'), ($product_total) ? (($page - 1) * $limit) + 1 : 0, ((($page - 1) * $limit) > ($product_total - $limit)) ? $product_total : ((($page - 1) * $limit) + $limit), $product_total, ceil($product_total / $limit));
 
-			if (isset($this->request->get['search']) && $this->config->get('config_customer_search')) {
+			if ($search !== '' && $this->config->get('config_customer_search')) {
 				$this->load->model('account/search');
 
 				if ($this->customer->isLogged()) {
