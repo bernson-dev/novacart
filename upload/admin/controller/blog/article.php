@@ -165,7 +165,7 @@ class ControllerBlogArticle extends Controller {
 		$limit = (int)$this->config->get('configblog_limit_admin');
 
 		if ($limit < 1) {
-			$limit = $limit;
+			$limit = (int)$this->config->get('config_limit_admin');
 		}
 
 		if ($limit < 1) {
