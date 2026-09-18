@@ -3057,7 +3057,7 @@ body > .container + .container > .row > #content > h2 {
 }
 
 /* Agreement controls: checkbox, text and action button stay vertically aligned. */
-#blog-article .agreement-actions {
+.agreement-actions {
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -3065,7 +3065,7 @@ body > .container + .container > .row > #content > h2 {
     gap: 12px;
 }
 
-#blog-article .agreement-control {
+.agreement-control {
     display: inline-flex;
     align-items: center;
     gap: 9px;
@@ -3074,12 +3074,12 @@ body > .container + .container > .row > #content > h2 {
     line-height: 1.4;
 }
 
-#blog-article .agreement-control input[type="checkbox"] {
+.agreement-control input[type="checkbox"] {
     margin: 0;
     flex: 0 0 auto;
 }
 
-#blog-article .agreement-control span {
+.agreement-control span {
     display: inline-block;
 }
 
