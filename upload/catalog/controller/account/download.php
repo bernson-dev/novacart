@@ -63,7 +63,7 @@ class ControllerAccountDownload extends Controller {
 					'YB'
 				);
 
-				while (($size / 1024) > 1) {
+				while ($size >= 1024 && $i < count($suffix) - 1) {
 					$size /= 1024;
 					$i++;
 				}
@@ -72,7 +72,7 @@ class ControllerAccountDownload extends Controller {
 					'order_id'   => $result['order_id'],
 					'date_added' => date($this->language->get('datetime_format'), strtotime($result['date_added'])),
 					'name'       => $result['name'],
-					'size'       => round(substr($size, 0, strpos($size, '.') + 4), 2) . $suffix[$i],
+					'size'       => round($size, 2) . ' ' . $suffix[$i],
 					'href'       => $this->url->link('account/download/download', 'download_id=' . $result['download_id'], true)
 				);
 			}
@@ -134,7 +134,7 @@ class ControllerAccountDownload extends Controller {
 						ob_end_clean();
 					}
 
-					readfile($file, 'rb');
+					readfile($file);
 
 					$this->model_account_download->addDownloadReport($download_id, $this->request->server['REMOTE_ADDR']);
 
