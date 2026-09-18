@@ -18,7 +18,7 @@ class ControllerAccountRecurring extends Controller {
 		$url = '';
 
 		if (isset($this->request->get['page'])) {
-			$url .= '&page=' . $this->request->get['page'];
+			$url .= '&page=' . max(1, (int)$this->request->get['page']);
 		}
 
 		$data['breadcrumbs'] = array();
@@ -38,11 +38,7 @@ class ControllerAccountRecurring extends Controller {
 			'href' => $this->url->link('account/recurring', $url, true)
 		);
 
-		if (isset($this->request->get['page'])) {
-			$page = (int)$this->request->get['page'];
-		} else {
-			$page = 1;
-		}
+		$page = isset($this->request->get['page']) ? max(1, (int)$this->request->get['page']) : 1;
 
 		$limit = 10;
 		$data['recurrings'] = array();
@@ -114,7 +110,7 @@ class ControllerAccountRecurring extends Controller {
 			$url = '';
 
 			if (isset($this->request->get['page'])) {
-				$url .= '&page=' . $this->request->get['page'];
+				$url .= '&page=' . max(1, (int)$this->request->get['page']);
 			}
 
 			$data['breadcrumbs'] = array();
@@ -136,10 +132,10 @@ class ControllerAccountRecurring extends Controller {
 
 			$data['breadcrumbs'][] = array(
 				'text' => $this->language->get('text_recurring'),
-				'href' => $this->url->link('account/recurring/info', 'order_recurring_id=' . $this->request->get['order_recurring_id'] . $url, true),
+				'href' => $this->url->link('account/recurring/info', 'order_recurring_id=' . $order_recurring_id . $url, true),
 			);
 
-			$data['order_recurring_id'] = (int)$this->request->get['order_recurring_id'];
+			$data['order_recurring_id'] = $order_recurring_id;
 			$data['date_added'] = date($this->language->get('date_format_short'), strtotime($recurring_info['date_added']));
 
 			if ($recurring_info['status']) {
@@ -159,7 +155,7 @@ class ControllerAccountRecurring extends Controller {
 			// Transactions
 			$data['transactions'] = array();
 
-			$results = $this->model_account_recurring->getOrderRecurringTransactions($this->request->get['order_recurring_id']);
+			$results = $this->model_account_recurring->getOrderRecurringTransactions($order_recurring_id);
 
 			foreach ($results as $result) {
 				$data['transactions'][] = array(
