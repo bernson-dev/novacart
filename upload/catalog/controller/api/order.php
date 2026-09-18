@@ -432,12 +432,15 @@ class ControllerApiOrder extends Controller {
 				}
 
 				// Cart
-				if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || (!$this->cart->hasStock() && !$this->config->get('config_stock_checkout'))) {
+				$products = $this->cart->getProducts();
+
+				$stock_status = $this->model_checkout_order->getOrderEditStockStatus($order_id, $products);
+
+				if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || (!$stock_status['valid'] && !$this->config->get('config_stock_checkout'))) {
 					$json['error'] = $this->language->get('error_stock');
 				}
 
 				// Validate minimum quantity requirements.
-				$products = $this->cart->getProducts();
 
 				foreach ($products as $product) {
 					$product_total = 0;
