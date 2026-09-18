@@ -10,11 +10,7 @@ class ControllerAccountReset extends Controller {
 			$this->response->redirect($this->url->link('account/account', '', true));
 		}
 
-		if (isset($this->request->get['code'])) {
-			$code = $this->request->get['code'];
-		} else {
-			$code = '';
-		}
+		$code = isset($this->request->get['code']) && is_scalar($this->request->get['code']) ? (string)$this->request->get['code'] : '';
 
 		$this->load->model('account/customer');
 
@@ -70,14 +66,14 @@ class ControllerAccountReset extends Controller {
 
 			$data['back'] = $this->url->link('account/login', '', true);
 
-			if (isset($this->request->post['password'])) {
-				$data['password'] = $this->request->post['password'];
+			if (isset($this->request->post['password']) && is_scalar($this->request->post['password'])) {
+				$data['password'] = (string)$this->request->post['password'];
 			} else {
 				$data['password'] = '';
 			}
 
-			if (isset($this->request->post['confirm'])) {
-				$data['confirm'] = $this->request->post['confirm'];
+			if (isset($this->request->post['confirm']) && is_scalar($this->request->post['confirm'])) {
+				$data['confirm'] = (string)$this->request->post['confirm'];
 			} else {
 				$data['confirm'] = '';
 			}
