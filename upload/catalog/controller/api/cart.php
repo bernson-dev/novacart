@@ -138,12 +138,14 @@ class ControllerApiCart extends Controller {
 
 			// Stock
 			$stock_status = array(
-				'valid'    => true,
-				'products' => array()
+				'valid'     => true,
+				'products'  => array(),
+				'available' => array()
 			);
 
 			foreach ($products as $product) {
 				$stock_status['products'][(int)$product['cart_id']] = (bool)$product['stock'];
+				$stock_status['available'][(int)$product['cart_id']] = null;
 
 				if (!$product['stock']) {
 					$stock_status['valid'] = false;
@@ -197,6 +199,7 @@ class ControllerApiCart extends Controller {
 					'option'     => $option_data,
 					'quantity'   => $product['quantity'],
 					'stock'      => !empty($stock_status['products'][(int)$product['cart_id']]) ? true : !(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')),
+					'available'  => array_key_exists((int)$product['cart_id'], $stock_status['available']) ? $stock_status['available'][(int)$product['cart_id']] : null,
 					'shipping'   => $product['shipping'],
 					'price'      => $this->currency->format($this->tax->calculate($product['price'], $product['tax_class_id'], $this->config->get('config_tax')), $this->session->data['currency']),
 					'total'      => $this->currency->format($this->tax->calculate($product['price'], $product['tax_class_id'], $this->config->get('config_tax')) * $product['quantity'], $this->session->data['currency']),

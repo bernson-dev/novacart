@@ -2466,7 +2466,18 @@
 
                             html += '</td>';
                             html += '  <td class="text-left">' + product['model'] + '</td>';
-                            html += '  <td class="text-right"><div class="input-group btn-block' + (!product['stock'] ? ' cart-stock-invalid-quantity' : '') + '" style="max-width: 200px;"><input type="text" name="product[' + i + '][quantity]" value="' + product['quantity'] + '" class="form-control" /><span class="input-group-btn"><button type="button" data-toggle="tooltip" title="{{ button_refresh }}" data-loading-text="{{ text_loading }}" class="btn btn-primary"><i class="fa fa-refresh"></i></button></span></div></td>';
+                            html += '  <td class="text-right">';
+                            html += '    <div class="input-group btn-block' + (!product['stock'] ? ' cart-stock-invalid-quantity' : '') + '" style="max-width: 200px;"><input type="text" name="product[' + i + '][quantity]" value="' + product['quantity'] + '" class="form-control" /><span class="input-group-btn"><button type="button" data-toggle="tooltip" title="{{ button_refresh }}" data-loading-text="{{ text_loading }}" class="btn btn-primary"><i class="fa fa-refresh"></i></button></span></div>';
+                            if (product['available'] !== null && typeof product['available'] !== 'undefined') {
+                                var over_limit = parseInt(product['quantity'], 10) - parseInt(product['available'], 10);
+
+                                if (over_limit > 0) {
+                                    html += '    <small class="text-danger" style="display:block; margin-top:4px;">{{ text_available|escape('js') }}: ' + product['available'] + ' · {{ text_over_limit|escape('js') }} ' + over_limit + '</small>';
+                                } else {
+                                    html += '    <small class="text-muted" style="display:block; margin-top:4px;">{{ text_available|escape('js') }}: ' + product['available'] + '</small>';
+                                }
+                            }
+                            html += '  </td>';
                             html += '  <td class="text-right">' + product['price'] + '</td>';
                             html += '  <td class="text-right">' + product['total'] + '</td>';
                             html += '  <td class="text-center" style="width: 3px;"><button type="button" value="' + product['cart_id'] + '" data-toggle="tooltip" title="{{ button_remove }}" data-loading-text="{{ text_loading }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td>';
