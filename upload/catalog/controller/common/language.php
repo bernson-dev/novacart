@@ -26,8 +26,13 @@ class ControllerCommonLanguage extends Controller {
 			$url_data = $this->request->get;
 			unset($url_data['_route_']);
 
-			$route = $url_data['route'];
+			$route = isset($url_data['route']) && is_scalar($url_data['route']) ? (string)$url_data['route'] : 'common/home';
 			unset($url_data['route']);
+
+			if (!preg_match('/^[a-zA-Z0-9_\/]+$/', $route)) {
+				$route = 'common/home';
+				$url_data = array();
+			}
 
 			$params = '';
 			if ($url_data) {
@@ -45,9 +50,17 @@ class ControllerCommonLanguage extends Controller {
 	public function language() {
 		$this->load->model('localisation/language');
 		$languages = $this->model_localisation_language->getLanguages();
+		$code = '';
 
-		if (isset($this->request->post['code']) && isset($languages[$this->request->post['code']])) {
-			$code = $this->request->post['code'];
+		if (isset($this->request->post['code']) && is_scalar($this->request->post['code'])) {
+			$code = (string)$this->request->post['code'];
+
+			if (!isset($languages[$code]) || empty($languages[$code]['status'])) {
+				$code = '';
+			}
+		}
+
+		if ($code !== '') {
 
 			$this->session->data['language'] = $code;
 			$this->config->set('config_language_id', $languages[$code]['language_id']);
@@ -82,6 +95,6 @@ class ControllerCommonLanguage extends Controller {
 
 	// Вспомогательный метод для проверки HTTPS
 	private function isSecure() {
-		return (!empty($this->request->server['HTTPS']) && $this->request->server['HTTPS'] !== 'off');
+		return (!empty($this->request->server['HTTPS']) && strtolower((string)$this->request->server['HTTPS']) !== 'off');
 	}
 }
