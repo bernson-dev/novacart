@@ -62,7 +62,7 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 
 				if ($product_info) {
 					if ($this->customer->isLogged() || !$this->config->get('config_customer_price')) {
-						if ((float)$product_info['special']) {
+						if (!is_null($product_info['special']) && (float)$product_info['special'] >= 0) {
 							$product_price = $this->tax->calculate($product_info['special'], $product_info['tax_class_id'], $this->config->get('config_tax'));
 						} else {
 							$product_price = $this->tax->calculate($product_info['price'], $product_info['tax_class_id'], $this->config->get('config_tax'));
@@ -151,7 +151,7 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 
 			if ($product_info) {
 				if (isset($this->request->post['quantity'])) {
-					$quantity = (int)$this->request->post['quantity'];
+					$quantity = max(1, (int)$this->request->post['quantity']);
 				} else {
 					$quantity = 1;
 				}
@@ -1461,7 +1461,9 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 	}
 	
 	public function confirmShipping() {
-		$this->validateShipping($this->request->post['shipping_method']);
+		$shipping_method = isset($this->request->post['shipping_method']) ? $this->request->post['shipping_method'] : '';
+
+		$this->validateShipping($shipping_method);
 
 		$this->response->redirect($this->url->link('extension/module/paypal_smart_button/confirmOrder', '', true));
 	}
