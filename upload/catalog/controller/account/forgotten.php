@@ -71,15 +71,19 @@ class ControllerAccountForgotten extends Controller {
 	}
 
 	protected function validate() {
-		if (!isset($this->request->post['email'])) {
+		$email = isset($this->request->post['email']) ? trim($this->request->post['email']) : '';
+
+		if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 			$this->error['warning'] = $this->language->get('error_email');
-		} elseif (!$this->model_account_customer->getTotalCustomersByEmail($this->request->post['email'])) {
+		} elseif (!$this->model_account_customer->getTotalCustomersByEmail($email)) {
 			$this->error['warning'] = $this->language->get('error_email');
+		} else {
+			$this->request->post['email'] = $email;
 		}
 
 		// Check if customer has been approved.
 		if (!$this->error) {
-			$customer_info = $this->model_account_customer->getCustomerByEmail($this->request->post['email']);
+			$customer_info = $this->model_account_customer->getCustomerByEmail($email);
 
 			if ($customer_info && !$customer_info['status']) {
 				$this->error['warning'] = $this->language->get('error_approved');

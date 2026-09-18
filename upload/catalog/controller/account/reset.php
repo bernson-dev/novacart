@@ -100,11 +100,14 @@ class ControllerAccountReset extends Controller {
 	}
 
 	protected function validate() {
-		if (($this->request->getRawPost('password') !== trim($this->request->getRawPost('password'))) || (utf8_strlen($this->request->getRawPost('password')) < 4) || (utf8_strlen($this->request->getRawPost('password')) > 40)) {
+		$password = $this->request->getRawPost('password');
+		$confirm = $this->request->getRawPost('confirm');
+
+		if (($password !== trim($password)) || (utf8_strlen($password) < 4) || (utf8_strlen($password) > 40)) {
 			$this->error['password'] = $this->language->get('error_password');
 		}
 
-		if ($this->request->post['confirm'] != $this->request->post['password']) {
+		if ($confirm !== $password) {
 			$this->error['confirm'] = $this->language->get('error_confirm');
 		}
 
