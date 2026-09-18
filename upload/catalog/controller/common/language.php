@@ -50,6 +50,7 @@ class ControllerCommonLanguage extends Controller {
 	public function language() {
 		$this->load->model('localisation/language');
 		$languages = $this->model_localisation_language->getLanguages();
+		$code = '';
 
 		if (isset($this->request->post['code']) && is_scalar($this->request->post['code'])) {
 			$code = (string)$this->request->post['code'];
@@ -94,6 +95,6 @@ class ControllerCommonLanguage extends Controller {
 
 	// Вспомогательный метод для проверки HTTPS
 	private function isSecure() {
-		return (!empty($this->request->server['HTTPS']) && $this->request->server['HTTPS'] !== 'off');
+		return (!empty($this->request->server['HTTPS']) && strtolower((string)$this->request->server['HTTPS']) !== 'off');
 	}
 }
