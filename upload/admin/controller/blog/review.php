@@ -39,6 +39,10 @@ class ControllerBlogReview extends Controller {
 		$this->document->setTitle($this->language->get('heading_title'));
 		$this->load->model('blog/review');
 
+		if (!isset($this->request->get['review_article_id'])) {
+			$this->response->redirect($this->url->link('blog/review', 'user_token=' . $this->session->data['user_token'], true));
+		}
+
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateForm()) {
 			$this->model_blog_review->editReview((int)$this->request->get['review_article_id'], $this->request->post);
 
@@ -86,6 +90,16 @@ class ControllerBlogReview extends Controller {
 		$sort = isset($this->request->get['sort']) ? $this->request->get['sort'] : 'r.date_added';
 		$page = isset($this->request->get['page']) ? (int)$this->request->get['page'] : 1;
 
+		$limit = (int)$this->config->get('configblog_limit_admin');
+
+		if ($limit < 1) {
+			$limit = $limit;
+		}
+
+		if ($limit < 1) {
+			$limit = 20;
+		}
+
 		$url = $this->buildUrl();
 
 		$data['breadcrumbs'] = array();
@@ -114,8 +128,8 @@ class ControllerBlogReview extends Controller {
 		'filter_date_added' => $filter_date_added,
 		'sort'              => $sort,
 		'order'             => $order,
-		'start'             => ($page - 1) * (int)$this->config->get('config_limit_admin'),
-		'limit'             => (int)$this->config->get('config_limit_admin')
+		'start'             => ($page - 1) * $limit,
+		'limit'             => $limit
 		);
 
 		$review_total = $this->model_blog_review->getTotalReviews($filter_data);
@@ -204,17 +218,17 @@ class ControllerBlogReview extends Controller {
 		$pagination = new Pagination();
 		$pagination->total = $review_total;
 		$pagination->page = $page;
-		$pagination->limit = (int)$this->config->get('config_limit_admin');
+		$pagination->limit = $limit;
 		$pagination->url = $this->url->link('blog/review', 'user_token=' . $this->session->data['user_token'] . $page_url . '&page={page}', true);
 
 		$data['pagination'] = $pagination->render();
 
 		$data['results'] = sprintf(
 		$this->language->get('text_pagination'),
-		($review_total) ? (($page - 1) * (int)$this->config->get('config_limit_admin')) + 1 : 0,
-		((($page - 1) * (int)$this->config->get('config_limit_admin')) > ($review_total - (int)$this->config->get('config_limit_admin'))) ? $review_total : ((($page - 1) * (int)$this->config->get('config_limit_admin')) + (int)$this->config->get('config_limit_admin')),
+		($review_total) ? (($page - 1) * $limit) + 1 : 0,
+		((($page - 1) * $limit) > ($review_total - $limit)) ? $review_total : ((($page - 1) * $limit) + $limit),
 		$review_total,
-		ceil($review_total / (int)$this->config->get('config_limit_admin'))
+		ceil($review_total / $limit)
 		);
 
 		$data['filter_article'] = $filter_article;
