@@ -4,14 +4,16 @@ class ControllerApiLogin extends Controller {
 		$this->load->language('api/login');
 
 		$json = $api_info = array();
+		$remote_addr = isset($this->request->server['REMOTE_ADDR']) ? (string)$this->request->server['REMOTE_ADDR'] : '';
 
 		$this->load->model('account/api');
 
 		// Login with API Key
-		if (isset($this->request->post['username'])) {
-			$api_info = $this->model_account_api->login($this->request->post['username'], $this->request->post['key']);
-		} elseif (isset($this->request->post['key'])) {
-			$api_info = $this->model_account_api->login('Default', $this->request->post['key']);
+		$username = isset($this->request->post['username']) && is_scalar($this->request->post['username']) ? (string)$this->request->post['username'] : 'Default';
+		$key = isset($this->request->post['key']) && is_scalar($this->request->post['key']) ? (string)$this->request->post['key'] : '';
+
+		if ($key !== '') {
+			$api_info = $this->model_account_api->login($username, $key);
 		}
 
 		if ($api_info) {
@@ -24,8 +26,8 @@ class ControllerApiLogin extends Controller {
 				$ip_data[] = trim($result['ip']);
 			}
 
-			if (!in_array($this->request->server['REMOTE_ADDR'], $ip_data)) {
-				$json['error']['ip'] = sprintf($this->language->get('error_ip'), $this->request->server['REMOTE_ADDR']);
+			if (!in_array($remote_addr, $ip_data)) {
+				$json['error']['ip'] = sprintf($this->language->get('error_ip'), $remote_addr);
 			}
 
 			if (!$json) {
@@ -35,7 +37,7 @@ class ControllerApiLogin extends Controller {
 
 				$session->start();
 
-				$this->model_account_api->addApiSession($api_info['api_id'], $session->getId(), $this->request->server['REMOTE_ADDR']);
+				$this->model_account_api->addApiSession($api_info['api_id'], $session->getId(), $remote_addr);
 
 				$session->data['api_id'] = $api_info['api_id'];
 
