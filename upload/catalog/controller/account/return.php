@@ -538,7 +538,7 @@ class ControllerAccountReturn extends Controller {
 		}
 
 		if ((int)$this->request->post['quantity'] < 1) {
-			$this->error['product'] = $this->language->get('error_product');
+			$this->error['quantity'] = $this->language->get('error_quantity');
 		}
 
 		$this->load->model('localisation/return_reason');
