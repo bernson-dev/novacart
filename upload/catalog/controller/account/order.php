@@ -18,7 +18,7 @@ class ControllerAccountOrder extends Controller {
 		$url = '';
 
 		if (isset($this->request->get['page'])) {
-			$url .= '&page=' . $this->request->get['page'];
+			$url .= '&page=' . max(1, (int)$this->request->get['page']);
 		}
 
 		$data['breadcrumbs'] = array();
@@ -38,11 +38,7 @@ class ControllerAccountOrder extends Controller {
 			'href' => $this->url->link('account/order', $url, true)
 		);
 
-		if (isset($this->request->get['page'])) {
-			$page = (int)$this->request->get['page'];
-		} else {
-			$page = 1;
-		}
+		$page = isset($this->request->get['page']) ? max(1, (int)$this->request->get['page']) : 1;
 
 		$limit = 10;
 		$data['orders'] = array();
@@ -94,7 +90,7 @@ class ControllerAccountOrder extends Controller {
 		$this->load->language('account/order');
 
 		if (isset($this->request->get['order_id'])) {
-			$order_id = $this->request->get['order_id'];
+			$order_id = (int)$this->request->get['order_id'];
 		} else {
 			$order_id = 0;
 		}
@@ -115,7 +111,7 @@ class ControllerAccountOrder extends Controller {
 			$url = '';
 
 			if (isset($this->request->get['page'])) {
-				$url .= '&page=' . $this->request->get['page'];
+				$url .= '&page=' . max(1, (int)$this->request->get['page']);
 			}
 
 			$data['breadcrumbs'] = array();
@@ -137,7 +133,7 @@ class ControllerAccountOrder extends Controller {
 
 			$data['breadcrumbs'][] = array(
 				'text' => $this->language->get('text_order'),
-				'href' => $this->url->link('account/order/info', 'order_id=' . $this->request->get['order_id'] . $url, true)
+				'href' => $this->url->link('account/order/info', 'order_id=' . $order_id . $url, true)
 			);
 
 			if (isset($this->session->data['error'])) {
@@ -162,7 +158,7 @@ class ControllerAccountOrder extends Controller {
 				$data['invoice_no'] = '';
 			}
 
-			$data['order_id'] = (int)$this->request->get['order_id'];
+			$data['order_id'] = $order_id;
 			$data['date_added'] = date($this->language->get('date_format_short'), strtotime($order_info['date_added']));
 
 			if ($order_info['payment_address_format']) {
@@ -243,12 +239,12 @@ class ControllerAccountOrder extends Controller {
 			// Products
 			$data['products'] = array();
 
-			$products = $this->model_account_order->getOrderProducts($this->request->get['order_id']);
+			$products = $this->model_account_order->getOrderProducts($order_id);
 
 			foreach ($products as $product) {
 				$option_data = array();
 
-				$options = $this->model_account_order->getOrderOptions($this->request->get['order_id'], $product['order_product_id']);
+				$options = $this->model_account_order->getOrderOptions($order_id, $product['order_product_id']);
 
 				foreach ($options as $option) {
 					if ($option['type'] != 'file') {
@@ -292,7 +288,7 @@ class ControllerAccountOrder extends Controller {
 			// Voucher
 			$data['vouchers'] = array();
 
-			$vouchers = $this->model_account_order->getOrderVouchers($this->request->get['order_id']);
+			$vouchers = $this->model_account_order->getOrderVouchers($order_id);
 
 			foreach ($vouchers as $voucher) {
 				$data['vouchers'][] = array(
@@ -304,7 +300,7 @@ class ControllerAccountOrder extends Controller {
 			// Totals
 			$data['totals'] = array();
 
-			$totals = $this->model_account_order->getOrderTotals($this->request->get['order_id']);
+			$totals = $this->model_account_order->getOrderTotals($order_id);
 
 			foreach ($totals as $total) {
 				$data['totals'][] = array(
@@ -318,7 +314,7 @@ class ControllerAccountOrder extends Controller {
 			// History
 			$data['histories'] = array();
 
-			$results = $this->model_account_order->getOrderHistories($this->request->get['order_id']);
+			$results = $this->model_account_order->getOrderHistories($order_id);
 
 			foreach ($results as $result) {
 				$data['histories'][] = array(
@@ -347,7 +343,7 @@ class ControllerAccountOrder extends Controller {
 		$this->load->language('account/order');
 
 		if (isset($this->request->get['order_id'])) {
-			$order_id = $this->request->get['order_id'];
+			$order_id = (int)$this->request->get['order_id'];
 		} else {
 			$order_id = 0;
 		}
