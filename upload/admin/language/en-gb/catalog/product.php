@@ -71,6 +71,7 @@ $_['entry_manufacturer']       = 'Manufacturer';
 $_['entry_date_available']     = 'Date Available';
 $_['entry_date_added']         = 'Date Added';
 $_['entry_quantity']           = 'Quantity';
+$_['help_option_quantity_auto']    = 'Quantity is calculated automatically as the sum of option stock.';
 $_['entry_minimum']            = 'Minimum Quantity';
 $_['entry_stock_status']       = 'Out Of Stock Status';
 $_['entry_cost_price']         = 'Cost Price';
