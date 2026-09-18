@@ -133,15 +133,36 @@ class ControllerApiCart extends Controller {
 		if (!isset($this->session->data['api_id'])) {
 			$json['error']['warning'] = $this->language->get('error_permission');
 		} else {
+			// Products
+			$products = $this->cart->getProducts();
+
 			// Stock
-			if (!$this->cart->hasStock() && (!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning'))) {
+			$stock_status = array(
+				'valid'    => true,
+				'products' => array()
+			);
+
+			foreach ($products as $product) {
+				$stock_status['products'][(int)$product['cart_id']] = (bool)$product['stock'];
+
+				if (!$product['stock']) {
+					$stock_status['valid'] = false;
+				}
+			}
+
+			$order_id = isset($this->request->get['order_id']) ? (int)$this->request->get['order_id'] : 0;
+
+			if ($order_id > 0 && $products) {
+				$this->load->model('checkout/order');
+
+				$stock_status = $this->model_checkout_order->getOrderEditStockStatus($order_id, $products);
+			}
+
+			if (!$stock_status['valid'] && (!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning'))) {
 				$json['error']['stock'] = $this->language->get('error_stock');
 			}
 
-			// Products
 			$json['products'] = array();
-
-			$products = $this->cart->getProducts();
 
 			foreach ($products as $product) {
 				$product_total = 0;
@@ -175,7 +196,7 @@ class ControllerApiCart extends Controller {
 					'model'      => $product['model'],
 					'option'     => $option_data,
 					'quantity'   => $product['quantity'],
-					'stock'      => $product['stock'] ? true : !(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')),
+					'stock'      => !empty($stock_status['products'][(int)$product['cart_id']]) ? true : !(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')),
 					'shipping'   => $product['shipping'],
 					'price'      => $this->currency->format($this->tax->calculate($product['price'], $product['tax_class_id'], $this->config->get('config_tax')), $this->session->data['currency']),
 					'total'      => $this->currency->format($this->tax->calculate($product['price'], $product['tax_class_id'], $this->config->get('config_tax')) * $product['quantity'], $this->session->data['currency']),
