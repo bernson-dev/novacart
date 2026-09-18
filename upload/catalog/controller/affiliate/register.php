@@ -142,38 +142,38 @@ class ControllerAffiliateRegister extends Controller {
 			}
 		}
 
-		if (isset($this->request->post['customer_group_id'])) {
-			$data['customer_group_id'] = $this->request->post['customer_group_id'];
+		if (isset($this->request->post['customer_group_id']) && is_scalar($this->request->post['customer_group_id'])) {
+			$data['customer_group_id'] = (int)$this->request->post['customer_group_id'];
 		} else {
 			$data['customer_group_id'] = $this->config->get('config_affiliate_group_id');
 		}
 
-		if (isset($this->request->post['firstname'])) {
-			$data['firstname'] = $this->request->post['firstname'];
+		if (isset($this->request->post['firstname']) && is_scalar($this->request->post['firstname'])) {
+			$data['firstname'] = (string)$this->request->post['firstname'];
 		} else {
 			$data['firstname'] = '';
 		}
 
-		if (isset($this->request->post['lastname'])) {
-			$data['lastname'] = $this->request->post['lastname'];
+		if (isset($this->request->post['lastname']) && is_scalar($this->request->post['lastname'])) {
+			$data['lastname'] = (string)$this->request->post['lastname'];
 		} else {
 			$data['lastname'] = '';
 		}
 
-		if (isset($this->request->post['email'])) {
-			$data['email'] = $this->request->post['email'];
+		if (isset($this->request->post['email']) && is_scalar($this->request->post['email'])) {
+			$data['email'] = (string)$this->request->post['email'];
 		} else {
 			$data['email'] = '';
 		}
 
-		if (isset($this->request->post['telephone'])) {
-			$data['telephone'] = $this->request->post['telephone'];
+		if (isset($this->request->post['telephone']) && is_scalar($this->request->post['telephone'])) {
+			$data['telephone'] = (string)$this->request->post['telephone'];
 		} else {
 			$data['telephone'] = '';
 		}
 
-		if (isset($this->request->post['company'])) {
-			$data['company'] = $this->request->post['company'];
+		if (isset($this->request->post['company']) && is_scalar($this->request->post['company'])) {
+			$data['company'] = (string)$this->request->post['company'];
 		} else {
 			$data['company'] = '';
 		}
@@ -183,14 +183,14 @@ class ControllerAffiliateRegister extends Controller {
 
 		$data['custom_fields'] = $this->model_account_custom_field->getCustomFields();
 
-		if (isset($this->request->post['custom_field'])) {
-			if (isset($this->request->post['custom_field']['account'])) {
+		if (isset($this->request->post['custom_field']) && is_array($this->request->post['custom_field'])) {
+			if (isset($this->request->post['custom_field']['account']) && is_array($this->request->post['custom_field']['account'])) {
 				$account_custom_field = $this->request->post['custom_field']['account'];
 			} else {
 				$account_custom_field = array();
 			}
 
-			if (isset($this->request->post['custom_field']['affiliate'])) {
+			if (isset($this->request->post['custom_field']['affiliate']) && is_array($this->request->post['custom_field']['affiliate'])) {
 				$affiliate_custom_field = $this->request->post['custom_field']['affiliate'];
 			} else {
 				$affiliate_custom_field = array();
@@ -201,74 +201,74 @@ class ControllerAffiliateRegister extends Controller {
 			$data['register_custom_field'] = array();
 		}
 
-		if (isset($this->request->post['website'])) {
-			$data['website'] = $this->request->post['website'];
+		if (isset($this->request->post['website']) && is_scalar($this->request->post['website'])) {
+			$data['website'] = (string)$this->request->post['website'];
 		} else {
 			$data['website'] = '';
 		}
 
-		if (isset($this->request->post['tax'])) {
-			$data['tax'] = $this->request->post['tax'];
+		if (isset($this->request->post['tax']) && is_scalar($this->request->post['tax'])) {
+			$data['tax'] = (string)$this->request->post['tax'];
 		} else {
 			$data['tax'] = '';
 		}
 
-		if (isset($this->request->post['payment'])) {
-			$data['payment'] = $this->request->post['payment'];
+		if (isset($this->request->post['payment']) && is_scalar($this->request->post['payment'])) {
+			$data['payment'] = (string)$this->request->post['payment'];
 		} else {
 			$data['payment'] = 'cheque';
 		}
 
-		if (isset($this->request->post['cheque'])) {
-			$data['cheque'] = $this->request->post['cheque'];
+		if (isset($this->request->post['cheque']) && is_scalar($this->request->post['cheque'])) {
+			$data['cheque'] = (string)$this->request->post['cheque'];
 		} else {
 			$data['cheque'] = '';
 		}
 
-		if (isset($this->request->post['paypal'])) {
-			$data['paypal'] = $this->request->post['paypal'];
+		if (isset($this->request->post['paypal']) && is_scalar($this->request->post['paypal'])) {
+			$data['paypal'] = (string)$this->request->post['paypal'];
 		} else {
 			$data['paypal'] = '';
 		}
 
-		if (isset($this->request->post['bank_name'])) {
-			$data['bank_name'] = $this->request->post['bank_name'];
+		if (isset($this->request->post['bank_name']) && is_scalar($this->request->post['bank_name'])) {
+			$data['bank_name'] = (string)$this->request->post['bank_name'];
 		} else {
 			$data['bank_name'] = '';
 		}
 
-		if (isset($this->request->post['bank_branch_number'])) {
-			$data['bank_branch_number'] = $this->request->post['bank_branch_number'];
+		if (isset($this->request->post['bank_branch_number']) && is_scalar($this->request->post['bank_branch_number'])) {
+			$data['bank_branch_number'] = (string)$this->request->post['bank_branch_number'];
 		} else {
 			$data['bank_branch_number'] = '';
 		}
 
-		if (isset($this->request->post['bank_swift_code'])) {
-			$data['bank_swift_code'] = $this->request->post['bank_swift_code'];
+		if (isset($this->request->post['bank_swift_code']) && is_scalar($this->request->post['bank_swift_code'])) {
+			$data['bank_swift_code'] = (string)$this->request->post['bank_swift_code'];
 		} else {
 			$data['bank_swift_code'] = '';
 		}
 
-		if (isset($this->request->post['bank_account_name'])) {
-			$data['bank_account_name'] = $this->request->post['bank_account_name'];
+		if (isset($this->request->post['bank_account_name']) && is_scalar($this->request->post['bank_account_name'])) {
+			$data['bank_account_name'] = (string)$this->request->post['bank_account_name'];
 		} else {
 			$data['bank_account_name'] = '';
 		}
 
-		if (isset($this->request->post['bank_account_number'])) {
-			$data['bank_account_number'] = $this->request->post['bank_account_number'];
+		if (isset($this->request->post['bank_account_number']) && is_scalar($this->request->post['bank_account_number'])) {
+			$data['bank_account_number'] = (string)$this->request->post['bank_account_number'];
 		} else {
 			$data['bank_account_number'] = '';
 		}
 
-		if (isset($this->request->post['password'])) {
-			$data['password'] = $this->request->post['password'];
+		if (isset($this->request->post['password']) && is_scalar($this->request->post['password'])) {
+			$data['password'] = (string)$this->request->post['password'];
 		} else {
 			$data['password'] = '';
 		}
 
-		if (isset($this->request->post['confirm'])) {
-			$data['confirm'] = $this->request->post['confirm'];
+		if (isset($this->request->post['confirm']) && is_scalar($this->request->post['confirm'])) {
+			$data['confirm'] = (string)$this->request->post['confirm'];
 		} else {
 			$data['confirm'] = '';
 		}
@@ -311,6 +311,57 @@ class ControllerAffiliateRegister extends Controller {
 	}
 
 	protected function validate() {
+		$defaults = array(
+			'firstname' => '',
+			'lastname' => '',
+			'email' => '',
+			'telephone' => '',
+			'company' => '',
+			'website' => '',
+			'tax' => '',
+			'payment' => '',
+			'cheque' => '',
+			'paypal' => '',
+			'bank_name' => '',
+			'bank_branch_number' => '',
+			'bank_swift_code' => '',
+			'bank_account_name' => '',
+			'bank_account_number' => '',
+			'customer_group_id' => (int)$this->config->get('config_affiliate_group_id'),
+			'password' => '',
+			'confirm' => ''
+		);
+
+		foreach ($defaults as $key => $value) {
+			if (!isset($this->request->post[$key]) || !is_scalar($this->request->post[$key])) {
+				$this->request->post[$key] = $value;
+			} else {
+				$this->request->post[$key] = (string)$this->request->post[$key];
+			}
+		}
+
+		$this->request->post['email'] = trim($this->request->post['email']);
+		$this->request->post['telephone'] = trim($this->request->post['telephone']);
+		$this->request->post['customer_group_id'] = (int)$this->request->post['customer_group_id'];
+
+		if (!isset($this->request->post['custom_field']) || !is_array($this->request->post['custom_field'])) {
+			$this->request->post['custom_field'] = array();
+		}
+
+		if (!isset($this->request->post['custom_field']['account']) || !is_array($this->request->post['custom_field']['account'])) {
+			$this->request->post['custom_field']['account'] = array();
+		}
+
+		if (!isset($this->request->post['custom_field']['affiliate']) || !is_array($this->request->post['custom_field']['affiliate'])) {
+			$this->request->post['custom_field']['affiliate'] = array();
+		}
+
+		$payment_methods = array('cheque', 'paypal', 'bank');
+
+		if (!in_array($this->request->post['payment'], $payment_methods, true)) {
+			$this->request->post['payment'] = '';
+		}
+
 		if (!empty($this->request->post['firstname'])) {
 			if ((utf8_strlen(trim($this->request->post['firstname'])) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
 				$this->error['firstname'] = $this->language->get('error_firstname');
@@ -360,9 +411,17 @@ class ControllerAffiliateRegister extends Controller {
 		$custom_fields = $this->model_account_custom_field->getCustomFields($customer_group_id);
 
 		foreach ($custom_fields as $custom_field) {
-			if ($custom_field['required'] && empty($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])) {
+			$custom_field_value = isset($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])
+				? $this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']]
+				: '';
+
+			if ($custom_field['type'] == 'text' && !is_scalar($custom_field_value)) {
+				$custom_field_value = '';
+			}
+
+			if ($custom_field['required'] && empty($custom_field_value)) {
 				$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
-			} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && !filter_var($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
+			} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && $custom_field_value !== '' && !filter_var($custom_field_value, FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
 				$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
 			}
 		}
@@ -379,7 +438,9 @@ class ControllerAffiliateRegister extends Controller {
 			$this->error['confirm'] = $this->language->get('error_confirm');
 		}
 
-		if (($this->request->post['payment'] == 'cheque') && !$this->request->post['cheque']) {
+		if ($this->request->post['payment'] === '') {
+			$this->error['warning'] = $this->language->get('error_payment');
+		} elseif (($this->request->post['payment'] == 'cheque') && !$this->request->post['cheque']) {
 			$this->error['cheque'] = $this->language->get('error_cheque');
 		} elseif (($this->request->post['payment'] == 'paypal') && ((utf8_strlen($this->request->post['paypal']) > 96) || !filter_var($this->request->post['paypal'], FILTER_VALIDATE_EMAIL))) {
 			$this->error['paypal'] = $this->language->get('error_paypal');

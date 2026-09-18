@@ -67,6 +67,7 @@ https://translator.codeguild.com.ua/
 $_['text_your_affiliate']       = "Информация о вашем партнере";
 $_['entry_customer_group']      = "Группа клиентов";
 $_['error_custom_field']        = "%s требуется!";
+$_['error_payment']             = 'Выберите способ оплаты!';
 $_['error_cheque']              = "Требуется имя получателя чека!";
 $_['error_paypal']              = "Адрес электронной почты PayPal, по всей видимости, недействителен!";
 $_['error_bank_account_name']   = "Требуется имя учетной записи!";
