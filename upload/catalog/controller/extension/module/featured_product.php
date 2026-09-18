@@ -21,10 +21,10 @@ class ControllerExtensionModuleFeaturedProduct extends Controller {
 
 			$results = $this->model_catalog_cms->getProductRelatedByManufacturer($filter_data);
 
-		} else {
+		} elseif (isset($this->request->get['path'])) {
 			$parts = explode('_', (string)$this->request->get['path']);
 
-			if (!empty($parts) && is_array($parts)) {
+			if (!empty($parts)) {
 				$filter_data = array(
 					'category_id' => array_pop($parts),
 					'limit'       => $setting['limit']
@@ -56,14 +56,16 @@ class ControllerExtensionModuleFeaturedProduct extends Controller {
 						$price = false;
 					}
 
-					if ((float)$product['special']) {
+					if (!is_null($product['special']) && (float)$product['special'] >= 0) {
 						$special = $this->currency->format($this->tax->calculate($product['special'], $product['tax_class_id'], $this->config->get('config_tax')), $this->session->data['currency']);
+						$tax_price = (float)$product['special'];
 					} else {
 						$special = false;
+						$tax_price = (float)$product['price'];
 					}
 
 					if ($this->config->get('config_tax')) {
-						$tax = $this->currency->format((float)$product['special'] ? $product['special'] : $product['price'], $this->session->data['currency']);
+						$tax = $this->currency->format($tax_price, $this->session->data['currency']);
 					} else {
 						$tax = false;
 					}
