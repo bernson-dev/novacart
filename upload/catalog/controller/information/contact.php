@@ -67,6 +67,12 @@ class ControllerInformationContact extends Controller {
 			$data['error_enquiry'] = '';
 		}
 
+		if (isset($this->error['agree'])) {
+			$data['error_agree'] = $this->error['agree'];
+		} else {
+			$data['error_agree'] = '';
+		}
+
 		$data['button_submit'] = $this->language->get('button_submit');
 
 		$data['action'] = $this->url->link('information/contact', '', true);
@@ -132,6 +138,37 @@ class ControllerInformationContact extends Controller {
 			$data['enquiry'] = $this->request->post['enquiry'];
 		} else {
 			$data['enquiry'] = '';
+		}
+
+		if ($this->config->get('config_account_id')) {
+			$this->load->model('catalog/information');
+
+			$information_info = $this->model_catalog_information->getInformation($this->config->get('config_account_id'));
+
+			if ($information_info) {
+				$data['text_agree'] = sprintf(
+					$this->language->get('text_agree'),
+					$this->url->link('information/information/agree', 'information_id=' . (int)$this->config->get('config_account_id'), true),
+					$information_info['title']
+				);
+			} else {
+				$data['text_agree'] = '';
+			}
+		} else {
+			$data['text_agree'] = '';
+		}
+
+		$data['agree'] = isset($this->request->post['agree']);
+
+		// Agree to terms
+		if ($this->config->get('config_account_id')) {
+			$this->load->model('catalog/information');
+
+			$information_info = $this->model_catalog_information->getInformation($this->config->get('config_account_id'));
+
+			if ($information_info && !isset($this->request->post['agree'])) {
+				$this->error['agree'] = sprintf($this->language->get('error_agree'), $information_info['title']);
+			}
 		}
 
 		// Captcha
