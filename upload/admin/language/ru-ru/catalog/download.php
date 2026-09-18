@@ -18,7 +18,6 @@ $_['column_name']       = 'Название';
 $_['column_ip']         = 'IP';
 $_['column_account']    = 'Аккаунты';
 $_['column_store']      = 'Магазин';
-$_['column_country']    = 'Страна';
 $_['column_date_added'] = 'Дата добавления';
 $_['column_action']     = 'Действие';
 
