@@ -248,7 +248,11 @@ class ModelCheckoutOrder extends Model {
 		}
 
 		foreach ($product_requested as $product_id => $requested) {
-			$available = isset($product_stock[$product_id]) ? $product_stock[$product_id]['quantity'] : 0;
+			if (!isset($product_stock[$product_id]) || !$product_stock[$product_id]['subtract']) {
+				continue;
+			}
+
+			$available = $product_stock[$product_id]['quantity'];
 
 			if (isset($reserved_products[$product_id])) {
 				$available += $reserved_products[$product_id];
