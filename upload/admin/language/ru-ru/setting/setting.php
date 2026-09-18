@@ -141,6 +141,7 @@ $_['entry_stock_popup_status']          = 'Popup при нехватке';
 $_['entry_stock_popup_routes']          = 'Маршруты показа';
 $_['entry_stock_popup_title']           = 'Заголовок окна';
 $_['entry_stock_popup_message']         = 'Текст сообщения';
+$_['entry_stock_popup_show_image']      = 'Показывать изображение';
 $_['entry_stock_popup_show_model']      = 'Показывать модель';
 $_['entry_stock_popup_show_quantity']   = 'Показывать количество';
 $_['entry_stock_checkout']              = 'Заказ при нехватке на складе';
