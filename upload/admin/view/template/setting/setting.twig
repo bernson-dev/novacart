@@ -1345,7 +1345,12 @@
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label" for="input-mail-smtp-password"><span data-toggle="tooltip" title="{{ help_mail_smtp_password }}">{{ entry_mail_smtp_password }}</span></label>
                                     <div class="col-sm-10">
-                                        <input type="text" name="config_mail_smtp_password" value="{{ config_mail_smtp_password }}" placeholder="{{ entry_mail_smtp_password }}" id="input-mail-smtp-password" class="form-control" />
+                                        <div class="input-group">
+                                            <input type="password" name="config_mail_smtp_password" value="{{ config_mail_smtp_password }}" placeholder="{{ entry_mail_smtp_password }}" id="input-mail-smtp-password" class="form-control" autocomplete="new-password" />
+                                            <span class="input-group-btn">
+                                                <button type="button" id="button-toggle-smtp-password" class="btn btn-default" data-toggle="tooltip" title="{{ button_show_password }}"><i class="fa fa-eye"></i></button>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -1358,6 +1363,16 @@
                                     <label class="col-sm-2 control-label" for="input-mail-smtp-timeout">{{ entry_mail_smtp_timeout }}</label>
                                     <div class="col-sm-10">
                                         <input type="text" name="config_mail_smtp_timeout" value="{{ config_mail_smtp_timeout }}" placeholder="{{ entry_mail_smtp_timeout }}" id="input-mail-smtp-timeout" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_smtp_test }}</label>
+                                    <div class="col-sm-10">
+                                        <button type="button" id="button-test-smtp" class="btn btn-info">
+                                            <i class="fa fa-envelope-o"></i> {{ button_test_smtp }}
+                                        </button>
+                                        <span class="help-block">{{ help_smtp_test }}</span>
+                                        <div id="smtp-test-result"></div>
                                     </div>
                                 </div>
                             </fieldset>
@@ -2086,4 +2101,56 @@
         });
     </script>
 </div>
+
+<script type="text/javascript">
+$('#button-toggle-smtp-password').on('click', function() {
+    var input = $('#input-mail-smtp-password');
+    var show = input.attr('type') === 'password';
+
+    input.attr('type', show ? 'text' : 'password');
+    $(this).find('i').toggleClass('fa-eye', !show).toggleClass('fa-eye-slash', show);
+});
+
+$('#button-test-smtp').on('click', function() {
+    var button = $(this);
+    var result = $('#smtp-test-result');
+
+    result.html('');
+
+    $.ajax({
+        url: 'index.php?route=setting/setting/testSmtp&user_token={{ user_token }}',
+        type: 'post',
+        dataType: 'json',
+        data: $('#form-setting').serialize(),
+        beforeSend: function() {
+            button.prop('disabled', true).find('i').addClass('fa-spin');
+        },
+        complete: function() {
+            button.prop('disabled', false).find('i').removeClass('fa-spin');
+        },
+        success: function(json) {
+            if (json.error) {
+                result.html('<div class="alert alert-danger" style="margin-top:10px;"><i class="fa fa-exclamation-circle"></i> ' + $('<div/>').text(json.error).html() + '</div>');
+            } else if (json.success) {
+                var details = '';
+
+                if (json.details) {
+                    details = '<br><small>' +
+                        $('<div/>').text(json.details.hostname + ':' + json.details.port).html() +
+                        (json.details.tls ? ' · TLS' : '') +
+                        ' · ' + $('<div/>').text(json.details.steps.join(' → ')).html() +
+                        '</small>';
+                }
+
+                result.html('<div class="alert alert-success" style="margin-top:10px;"><i class="fa fa-check-circle"></i> ' + $('<div/>').text(json.success).html() + details + '</div>');
+            }
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            result.html('<div class="alert alert-danger" style="margin-top:10px;"><i class="fa fa-exclamation-circle"></i> ' +
+                $('<div/>').text(thrownError + ': ' + xhr.statusText).html() + '</div>');
+        }
+    });
+});
+</script>
+
 {{ footer }}
