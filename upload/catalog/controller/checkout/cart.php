@@ -392,22 +392,11 @@ class ControllerCheckoutCart extends Controller {
 		// Update
 		if (!empty($this->request->post['quantity']) && is_array($this->request->post['quantity'])) {
 			foreach ($this->request->post['quantity'] as $key => $value) {
-				if (!is_scalar($key) || !is_scalar($value)) {
+				if (!is_scalar($value)) {
 					continue;
 				}
 
-				$key = (string)$key;
-				$quantity = (int)$value;
-
-				if ($key === '') {
-					continue;
-				}
-
-				if ($quantity > 0) {
-					$this->cart->update($key, $quantity);
-				} else {
-					$this->cart->remove($key);
-				}
+				$this->cart->update($key, (int)$value);
 			}
 
 			$this->session->data['success'] = $this->language->get('text_remove');
