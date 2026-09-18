@@ -31,10 +31,11 @@ $_['help_mask']         = 'It is recommended that the filename and the mask are 
 // Error
 $_['error_warning']     = 'Warning: Please check the form carefully for errors!';
 $_['error_permission']  = 'Warning: You do not have permission to modify downloads!';
-$_['error_name']        = 'Download Name must be between 3 and 512 characters!';
+$_['error_name']        = 'Download Name must be between 3 and 64 characters!';
 $_['error_upload']      = 'Upload required!';
-$_['error_filename']    = 'Filename must be between 3 and 512 characters!';
+$_['error_filename']    = 'Stored filename must be between 3 and 160 characters!';
+$_['error_upload_filename'] = 'Uploaded filename must be between 3 and 127 characters!';
 $_['error_exists']      = 'File does not exist!';
-$_['error_mask']        = 'Mask must be between 3 and 512 characters!';
+$_['error_mask']        = 'Mask must be between 3 and 128 characters!';
 $_['error_filetype']    = 'Invalid file type!';
 $_['error_product']     = 'Warning: This download cannot be deleted as it is currently assigned to %s products!';
