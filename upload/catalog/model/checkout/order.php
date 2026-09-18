@@ -534,6 +534,8 @@ class ModelCheckoutOrder extends Model {
 					foreach ($order_options as $order_option) {
 						$this->db->query("UPDATE " . DB_PREFIX . "product_option_value SET quantity = (quantity - " . (int)$order_product['quantity'] . ") WHERE product_option_value_id = '" . (int)$order_option['product_option_value_id'] . "' AND subtract = '1'");
 					}
+
+					$this->recalculateProductOptionQuantity($order_product['product_id']);
 				}
 
 				// Add commission if sale is linked to affiliate referral.
@@ -564,6 +566,8 @@ class ModelCheckoutOrder extends Model {
 					foreach ($order_options as $order_option) {
 						$this->db->query("UPDATE " . DB_PREFIX . "product_option_value SET quantity = (quantity + " . (int)$order_product['quantity'] . ") WHERE product_option_value_id = '" . (int)$order_option['product_option_value_id'] . "' AND subtract = '1'");
 					}
+
+					$this->recalculateProductOptionQuantity($order_product['product_id']);
 				}
 
 				// Remove coupon, vouchers and reward points history
@@ -586,6 +590,27 @@ class ModelCheckoutOrder extends Model {
 			}
 
 			$this->cache->delete('product');
+		}
+	}
+
+	/**
+	 * Keep product.quantity synchronized with stock-managed option values.
+	 *
+	 * Only products that actually have option values with subtract = 1 are
+	 * recalculated. Products without stock-managed option values keep their
+	 * normal product-level quantity behavior.
+	 */
+	private function recalculateProductOptionQuantity($product_id) {
+		$product_id = (int)$product_id;
+
+		if ($product_id < 1) {
+			return;
+		}
+
+		$query = $this->db->query("SELECT SUM(quantity) AS quantity FROM " . DB_PREFIX . "product_option_value WHERE product_id = '" . $product_id . "' AND subtract = '1'");
+
+		if ($query->num_rows && $query->row['quantity'] !== null) {
+			$this->db->query("UPDATE " . DB_PREFIX . "product SET quantity = '" . (int)$query->row['quantity'] . "' WHERE product_id = '" . $product_id . "'");
 		}
 	}
 }
