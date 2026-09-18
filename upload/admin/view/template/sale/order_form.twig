@@ -2453,6 +2453,8 @@
                     // Check for errors
                     if (json['error']) {
                         if (json['error']['warning']) {
+                            cartValidationError = true;
+                            cartValidationMessage = json['error']['warning'];
                             $('#content > .container-fluid').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + json['error']['warning'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
                         }
 
@@ -2584,6 +2586,13 @@
                             $('a[href="' + targetTab + '"]').tab('show');
                         } else {
                             showCartValidationError();
+                            $('a[href=\'#tab-cart\']').tab('show');
+
+                            var invalidQuantity = $('#cart .cart-stock-invalid-quantity .form-control:first');
+
+                            if (invalidQuantity.length) {
+                                invalidQuantity.focus();
+                            }
                         }
                     }
 
