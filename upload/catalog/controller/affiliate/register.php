@@ -184,13 +184,13 @@ class ControllerAffiliateRegister extends Controller {
 		$data['custom_fields'] = $this->model_account_custom_field->getCustomFields();
 
 		if (isset($this->request->post['custom_field']) && is_array($this->request->post['custom_field'])) {
-			if (isset($this->request->post['custom_field']['account'])) {
+			if (isset($this->request->post['custom_field']['account']) && is_array($this->request->post['custom_field']['account'])) {
 				$account_custom_field = $this->request->post['custom_field']['account'];
 			} else {
 				$account_custom_field = array();
 			}
 
-			if (isset($this->request->post['custom_field']['affiliate'])) {
+			if (isset($this->request->post['custom_field']['affiliate']) && is_array($this->request->post['custom_field']['affiliate'])) {
 				$affiliate_custom_field = $this->request->post['custom_field']['affiliate'];
 			} else {
 				$affiliate_custom_field = array();
@@ -261,14 +261,14 @@ class ControllerAffiliateRegister extends Controller {
 			$data['bank_account_number'] = '';
 		}
 
-		if (isset($this->request->post['password'])) {
-			$data['password'] = $this->request->post['password'];
+		if (isset($this->request->post['password']) && is_scalar($this->request->post['password'])) {
+			$data['password'] = (string)$this->request->post['password'];
 		} else {
 			$data['password'] = '';
 		}
 
-		if (isset($this->request->post['confirm'])) {
-			$data['confirm'] = $this->request->post['confirm'];
+		if (isset($this->request->post['confirm']) && is_scalar($this->request->post['confirm'])) {
+			$data['confirm'] = (string)$this->request->post['confirm'];
 		} else {
 			$data['confirm'] = '';
 		}
@@ -328,6 +328,7 @@ class ControllerAffiliateRegister extends Controller {
 			'bank_account_name' => '',
 			'bank_account_number' => '',
 			'customer_group_id' => (int)$this->config->get('config_affiliate_group_id'),
+			'password' => '',
 			'confirm' => ''
 		);
 
@@ -345,6 +346,14 @@ class ControllerAffiliateRegister extends Controller {
 
 		if (!isset($this->request->post['custom_field']) || !is_array($this->request->post['custom_field'])) {
 			$this->request->post['custom_field'] = array();
+		}
+
+		if (!isset($this->request->post['custom_field']['account']) || !is_array($this->request->post['custom_field']['account'])) {
+			$this->request->post['custom_field']['account'] = array();
+		}
+
+		if (!isset($this->request->post['custom_field']['affiliate']) || !is_array($this->request->post['custom_field']['affiliate'])) {
+			$this->request->post['custom_field']['affiliate'] = array();
 		}
 
 		$payment_methods = array('cheque', 'paypal', 'bank');
