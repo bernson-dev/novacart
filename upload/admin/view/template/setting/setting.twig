@@ -1334,6 +1334,7 @@
                                     <label class="col-sm-2 control-label" for="input-mail-smtp-hostname"><span data-toggle="tooltip" title="{{ help_mail_smtp_hostname }}">{{ entry_mail_smtp_hostname }}</span></label>
                                     <div class="col-sm-10">
                                         <input type="text" name="config_mail_smtp_hostname" value="{{ config_mail_smtp_hostname }}" placeholder="{{ entry_mail_smtp_hostname }}" id="input-mail-smtp-hostname" class="form-control" />
+                                        {% if error_mail_smtp_hostname %}<div class="text-danger">{{ error_mail_smtp_hostname }}</div>{% endif %}
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -1351,18 +1352,21 @@
                                                 <button type="button" id="button-toggle-smtp-password" class="btn btn-default" data-toggle="tooltip" title="{{ button_show_password }}"><i class="fa fa-eye"></i></button>
                                             </span>
                                         </div>
+                                        {% if error_mail_smtp_credentials %}<div class="text-danger">{{ error_mail_smtp_credentials }}</div>{% endif %}
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label" for="input-mail-smtp-port">{{ entry_mail_smtp_port }}</label>
                                     <div class="col-sm-10">
-                                        <input type="text" name="config_mail_smtp_port" value="{{ config_mail_smtp_port }}" placeholder="{{ entry_mail_smtp_port }}" id="input-mail-smtp-port" class="form-control" />
+                                        <input type="number" min="1" max="65535" name="config_mail_smtp_port" value="{{ config_mail_smtp_port }}" placeholder="{{ entry_mail_smtp_port }}" id="input-mail-smtp-port" class="form-control" />
+                                        {% if error_mail_smtp_port %}<div class="text-danger">{{ error_mail_smtp_port }}</div>{% endif %}
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label" for="input-mail-smtp-timeout">{{ entry_mail_smtp_timeout }}</label>
                                     <div class="col-sm-10">
-                                        <input type="text" name="config_mail_smtp_timeout" value="{{ config_mail_smtp_timeout }}" placeholder="{{ entry_mail_smtp_timeout }}" id="input-mail-smtp-timeout" class="form-control" />
+                                        <input type="number" min="1" max="300" name="config_mail_smtp_timeout" value="{{ config_mail_smtp_timeout }}" placeholder="{{ entry_mail_smtp_timeout }}" id="input-mail-smtp-timeout" class="form-control" />
+                                        {% if error_mail_smtp_timeout %}<div class="text-danger">{{ error_mail_smtp_timeout }}</div>{% endif %}
                                     </div>
                                 </div>
                                 <div class="form-group">
