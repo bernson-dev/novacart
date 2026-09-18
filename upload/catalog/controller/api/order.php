@@ -19,7 +19,7 @@ class ControllerApiOrder extends Controller {
 			}
 
 			// Payment Method
-			if (!$json && !empty($this->request->post['payment_method'])) {
+			if (!$json && isset($this->request->post['payment_method']) && is_scalar($this->request->post['payment_method']) && (string)$this->request->post['payment_method'] !== '') {
 				if (empty($this->session->data['payment_methods'])) {
 					$json['error'] = $this->language->get('error_no_payment');
 				} elseif (!isset($this->session->data['payment_methods'][$this->request->post['payment_method']])) {
@@ -43,7 +43,7 @@ class ControllerApiOrder extends Controller {
 				}
 
 				// Shipping Method
-				if (!$json && !empty($this->request->post['shipping_method'])) {
+				if (!$json && isset($this->request->post['shipping_method']) && is_scalar($this->request->post['shipping_method']) && (string)$this->request->post['shipping_method'] !== '') {
 					if (empty($this->session->data['shipping_methods'])) {
 						$json['error'] = $this->language->get('error_no_shipping');
 					} else {
@@ -343,11 +343,7 @@ class ControllerApiOrder extends Controller {
 				$json['order_id'] = $this->model_checkout_order->addOrder($order_data);
 
 				// Set the order history
-				if (isset($this->request->post['order_status_id'])) {
-					$order_status_id = $this->request->post['order_status_id'];
-				} else {
-					$order_status_id = $this->config->get('config_order_status_id');
-				}
+				$order_status_id = isset($this->request->post['order_status_id']) ? (int)$this->request->post['order_status_id'] : (int)$this->config->get('config_order_status_id');
 
 				$this->model_checkout_order->addOrderHistory($json['order_id'], $order_status_id);
 
@@ -370,11 +366,7 @@ class ControllerApiOrder extends Controller {
 		} else {
 			$this->load->model('checkout/order');
 
-			if (isset($this->request->get['order_id'])) {
-				$order_id = $this->request->get['order_id'];
-			} else {
-				$order_id = 0;
-			}
+			$order_id = isset($this->request->get['order_id']) ? (int)$this->request->get['order_id'] : 0;
 
 			$order_info = $this->model_checkout_order->getOrder($order_id);
 
@@ -390,7 +382,7 @@ class ControllerApiOrder extends Controller {
 				}
 
 				// Payment Method
-				if (!$json && !empty($this->request->post['payment_method'])) {
+				if (!$json && isset($this->request->post['payment_method']) && is_scalar($this->request->post['payment_method']) && (string)$this->request->post['payment_method'] !== '') {
 					if (empty($this->session->data['payment_methods'])) {
 						$json['error'] = $this->language->get('error_no_payment');
 					} elseif (!isset($this->session->data['payment_methods'][$this->request->post['payment_method']])) {
@@ -414,7 +406,7 @@ class ControllerApiOrder extends Controller {
 					}
 
 					// Shipping Method
-					if (!$json && !empty($this->request->post['shipping_method'])) {
+					if (!$json && isset($this->request->post['shipping_method']) && is_scalar($this->request->post['shipping_method']) && (string)$this->request->post['shipping_method'] !== '') {
 						if (empty($this->session->data['shipping_methods'])) {
 							$json['error'] = $this->language->get('error_no_shipping');
 						} else {
@@ -711,11 +703,7 @@ class ControllerApiOrder extends Controller {
 		} else {
 			$this->load->model('checkout/order');
 
-			if (isset($this->request->get['order_id'])) {
-				$order_id = $this->request->get['order_id'];
-			} else {
-				$order_id = 0;
-			}
+			$order_id = isset($this->request->get['order_id']) ? (int)$this->request->get['order_id'] : 0;
 
 			$order_info = $this->model_checkout_order->getOrder($order_id);
 
@@ -742,11 +730,7 @@ class ControllerApiOrder extends Controller {
 		} else {
 			$this->load->model('checkout/order');
 
-			if (isset($this->request->get['order_id'])) {
-				$order_id = $this->request->get['order_id'];
-			} else {
-				$order_id = 0;
-			}
+			$order_id = isset($this->request->get['order_id']) ? (int)$this->request->get['order_id'] : 0;
 
 			$order_info = $this->model_checkout_order->getOrder($order_id);
 
@@ -787,16 +771,17 @@ class ControllerApiOrder extends Controller {
 
 			$this->load->model('checkout/order');
 
-			if (isset($this->request->get['order_id'])) {
-				$order_id = $this->request->get['order_id'];
-			} else {
-				$order_id = 0;
-			}
+			$order_id = isset($this->request->get['order_id']) ? (int)$this->request->get['order_id'] : 0;
 
 			$order_info = $this->model_checkout_order->getOrder($order_id);
 
 			if ($order_info) {
-				$this->model_checkout_order->addOrderHistory($order_id, $this->request->post['order_status_id'], $this->request->post['comment'], $this->request->post['notify'], $this->request->post['override']);
+				$order_status_id = (int)$this->request->post['order_status_id'];
+				$comment = is_scalar($this->request->post['comment']) ? (string)$this->request->post['comment'] : '';
+				$notify = !empty($this->request->post['notify']) ? 1 : 0;
+				$override = !empty($this->request->post['override']) ? 1 : 0;
+
+				$this->model_checkout_order->addOrderHistory($order_id, $order_status_id, $comment, $notify, $override);
 
 				$json['success'] = $this->language->get('text_success');
 			} else {
