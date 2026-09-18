@@ -6,7 +6,7 @@ class Mail extends \stdClass {
         // Проверка обязательных полей
         if (!$this->to) return;
 
-        $to = is_array($this->to) ? implode(',', $this->to) : $this->to;
+        $to = is_array($this->to) ? implode(', ', array_map('trim', $this->to)) : trim($this->to);
 
         // Определяем перевод строки
         $eol = (version_compare(PHP_VERSION, '8.0', '>=') || strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') ? "\r\n" : PHP_EOL;
