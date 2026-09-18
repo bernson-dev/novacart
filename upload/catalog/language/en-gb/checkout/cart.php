@@ -38,6 +38,7 @@ $_['text_stock_popup_title']    = 'Insufficient stock';
 $_['text_stock_popup_message']  = 'The following products are not available in the requested quantity:';
 $_['text_stock_popup_model']    = 'Model';
 $_['text_stock_popup_quantity'] = 'In cart';
+$_['text_stock_popup_available'] = 'Available';
 $_['button_stock_popup_close']  = 'OK';
 
 $_['error_stock']              = 'Products marked with *** are not available in the desired quantity or not in stock!';
