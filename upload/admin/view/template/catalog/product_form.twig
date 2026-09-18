@@ -280,6 +280,7 @@
                                 <label class="col-sm-2 control-label" for="input-quantity">{{ entry_quantity }}</label>
                                 <div class="col-sm-10">
                                     <input type="text" name="quantity" value="{{ quantity }}" placeholder="{{ entry_quantity }}" id="input-quantity" class="form-control"/>
+                                    <div id="option-quantity-note" class="help-block" style="display:none;"></div>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -1689,6 +1690,9 @@
             html += '  <td class="text-left"><button type="button" onclick="$(this).tooltip(\'destroy\');$(\'#option-value-row' + option_value_row + '\').remove();" data-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td>';
             html += '</tr>';
             $('#option-value' + option_row + ' tbody').append(html);
+            if (typeof window.recalculateProductQuantity === 'function') {
+                window.recalculateProductQuantity();
+            }
             $('[data-toggle=\'tooltip\']').tooltip({
                 container: 'body',
                 html: true
@@ -2043,6 +2047,75 @@
             // стартовый пересчёт
             $(recalcStats);
         })();
+    </script>
+    <script type="text/javascript">
+    (function() {
+        function recalculateProductQuantity() {
+            var groups = {};
+            var groupManaged = {};
+            var groupHasValues = {};
+
+            $('#tab-option input[name^="product_option"][name$="[quantity]"]').each(function() {
+                var match = this.name.match(/^product_option\[(\d+)\]\[product_option_value\]\[\d+\]\[quantity\]$/);
+
+                if (!match) {
+                    return;
+                }
+
+                var optionRow = match[1];
+                var row = $(this).closest('tr');
+                var subtract = row.find('select[name$="[subtract]"]').val();
+                var quantity = parseInt($(this).val(), 10);
+
+                if (isNaN(quantity) || quantity < 0) {
+                    quantity = 0;
+                }
+
+                if (typeof groups[optionRow] === 'undefined') {
+                    groups[optionRow] = 0;
+                    groupManaged[optionRow] = true;
+                    groupHasValues[optionRow] = false;
+                }
+
+                groupHasValues[optionRow] = true;
+
+                if (subtract != '1') {
+                    groupManaged[optionRow] = false;
+                }
+
+                groups[optionRow] += quantity;
+            });
+
+            var totals = [];
+
+            $.each(groups, function(optionRow, total) {
+                if (groupManaged[optionRow] && groupHasValues[optionRow]) {
+                    totals.push(total);
+                }
+            });
+
+            if (totals.length) {
+                var quantity = Math.min.apply(Math, totals);
+
+                $('#input-quantity').val(quantity).prop('readonly', true);
+                $('#option-quantity-note')
+                    .text('Количество рассчитывается автоматически по остаткам опций.')
+                    .show();
+            } else {
+                $('#input-quantity').prop('readonly', false);
+                $('#option-quantity-note').hide();
+            }
+        }
+
+        $(document).on('input change', '#tab-option input[name^="product_option"][name$="[quantity]"], #tab-option select[name^="product_option"][name$="[subtract]"]', recalculateProductQuantity);
+
+        $(document).on('click', '#tab-option .btn-danger, #option .fa-minus-circle', function() {
+            setTimeout(recalculateProductQuantity, 0);
+        });
+
+        window.recalculateProductQuantity = recalculateProductQuantity;
+        $(recalculateProductQuantity);
+    })();
     </script>
     <script type="text/javascript">
     function updateProductUnits() {
