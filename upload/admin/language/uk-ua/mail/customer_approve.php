@@ -7,4 +7,4 @@ $_['text_service'] = 'Як зареєстрований покупець ви м
 $_['text_thanks']  = 'Дякуємо,';
 
 // Button
-$_['button_login'] = 'Login';
+$_['button_login'] = 'Увійти';

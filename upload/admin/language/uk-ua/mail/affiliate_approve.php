@@ -7,4 +7,4 @@ $_['text_service'] = 'Після входу ви зможете генерува
 $_['text_thanks']  = 'Дякуємо,';
 
 // Button
-$_['button_login'] = 'Логін,';
+$_['button_login'] = 'Увійти';

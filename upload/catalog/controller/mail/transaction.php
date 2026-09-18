@@ -18,7 +18,7 @@ class ControllerMailTransaction extends Controller {
 				$store_url = $store_info['url'];
 			} else {
 				$store_name = html_entity_decode($this->config->get('config_name'), ENT_QUOTES, 'UTF-8');
-				$store_url = HTTP_SERVER;
+				$store_url = $this->config->get('config_url');
 			}
 
 			$this->load->model('localisation/language');
@@ -31,16 +31,9 @@ class ControllerMailTransaction extends Controller {
 				$language_code = $this->config->get('config_language');
 			}
 
-			// Load the language for any mails using a different country code and prefixing it so it does not pollute the main data pool.
-			$this->language->load($language_code, 'mail', $language_code);
-			$this->language->load('mail/transaction', 'mail', $language_code);
-
-			// Add language vars to the template folder
-			$results = $this->language->all('mail');
-
-			foreach ($results as $key => $value) {
-				$data[$key] = $value;
-			}
+			$language = new Language($language_code);
+			$language->load($language_code);
+			$language->load('mail/transaction');
 
 			$this->load->model('tool/image');
 
@@ -50,17 +43,12 @@ class ControllerMailTransaction extends Controller {
 				$data['logo'] = '';
 			}
 
-			$store_name = html_entity_decode($this->config->get('config_name'), ENT_QUOTES, 'UTF-8');
-			$subject = html_entity_decode(
-			sprintf($this->language->get('mail_text_subject'), $store_name),
-			ENT_QUOTES,
-			'UTF-8'
-			);
+			$subject = html_entity_decode(sprintf($language->get('text_subject'), $store_name), ENT_QUOTES, 'UTF-8');
 
-			$data['text_received'] = sprintf($this->language->get('text_received'), $this->config->get('config_name'));
-
-			$data['text_amount'] = $this->language->get('text_amount');
-			$data['text_total'] = $this->language->get('text_total');
+			$data['title'] = $subject;
+			$data['text_received'] = sprintf($language->get('text_received'), $store_name);
+			$data['text_amount'] = $language->get('text_amount');
+			$data['text_total'] = $language->get('text_total');
 
 			$data['amount'] = $this->currency->format($args[2], $this->config->get('config_currency'));
 			$data['total'] = $this->currency->format($this->model_account_customer->getTransactionTotal($args[0]), $this->config->get('config_currency'));

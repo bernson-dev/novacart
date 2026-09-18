@@ -10,4 +10,4 @@ $_['text_service'] = 'После регистрации на сайте Вы с�
 $_['text_thanks']  = 'Спасибо,';
 
 // Button
-$_['button_login'] = 'Login';
+$_['button_login'] = 'Войти';

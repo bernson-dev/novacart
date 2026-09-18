@@ -12,6 +12,7 @@ class ControllerMailAffiliate extends Controller {
 			$data['logo'] = '';
 		}
 
+		$data['title'] = html_entity_decode(sprintf($this->language->get('text_subject'), $this->config->get('config_name')), ENT_QUOTES, 'UTF-8');
 		$data['text_welcome'] = sprintf($this->language->get('text_welcome'), html_entity_decode($this->config->get('config_name'), ENT_QUOTES, 'UTF-8'));
 		$data['text_login'] = $this->language->get('text_login');
 		$data['text_approval'] = $this->language->get('text_approval');
@@ -76,6 +77,7 @@ class ControllerMailAffiliate extends Controller {
 
 			$data['text_signup'] = $this->language->get('text_signup');
 			$data['text_website'] = $this->language->get('text_website');
+			$data['text_company'] = $this->language->get('text_company');
 			$data['text_firstname'] = $this->language->get('text_firstname');
 			$data['text_lastname'] = $this->language->get('text_lastname');
 			$data['text_customer_group'] = $this->language->get('text_customer_group');

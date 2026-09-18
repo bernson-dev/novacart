@@ -13,9 +13,11 @@ class Smtp extends \stdClass {
 
 	public function send() {
 		if (is_array($this->to)) {
-			$to = implode(',', $this->to);
+			$to = implode(', ', array_map(function($email) {
+				return '<' . trim($email) . '>';
+			}, $this->to));
 		} else {
-			$to = $this->to;
+			$to = '<' . trim($this->to) . '>';
 		}
 
 		$eol = "\r\n";
@@ -23,7 +25,7 @@ class Smtp extends \stdClass {
 
 		// --- Сборка заголовков ---
 		$header = 'MIME-Version: 1.0' . $eol;
-		$header .= 'To: <' . $to . '>' . $eol;
+		$header .= 'To: ' . $to . $eol;
 		$header .= 'Subject: =?UTF-8?B?' . base64_encode($this->subject) . '?=' . $eol;
 		$header .= 'Date: ' . date('D, d M Y H:i:s O') . $eol;
 		$header .= 'From: =?UTF-8?B?' . base64_encode($this->sender) . '?= <' . $this->from . '>' . $eol;
@@ -58,9 +60,11 @@ class Smtp extends \stdClass {
 		if (!empty($this->attachments) && is_array($this->attachments)) {
 			foreach ($this->attachments as $attachment) {
 				if (file_exists($attachment)) {
-					$handle = fopen($attachment, 'r');
-					$content = fread($handle, filesize($attachment));
-					fclose($handle);
+					$content = file_get_contents($attachment);
+
+					if ($content === false) {
+						continue;
+					}
 
 					$message .= '--' . $boundary . $eol;
 					$message .= 'Content-Type: application/octet-stream; name="' . basename($attachment) . '"' . $eol;
@@ -86,6 +90,8 @@ class Smtp extends \stdClass {
 		if (!$handle) {
 			throw new \Exception('Error: ' . $errstr . ' (' . $errno . ')');
 		}
+
+		stream_set_timeout($handle, (int)$this->smtp_timeout);
 
 		$this->handleReply($handle, 220, 'Connection Start');
 
@@ -152,6 +158,97 @@ class Smtp extends \stdClass {
 		$this->handleReply($handle, 221, 'QUIT Command');
 
 		fclose($handle);
+	}
+
+
+	public function test($send_test_email = false) {
+		$result = array(
+			'hostname' => (string)$this->smtp_hostname,
+			'port'     => (int)$this->smtp_port,
+			'tls'      => (strpos((string)$this->smtp_hostname, 'tls://') === 0),
+			'steps'    => array()
+		);
+
+		$eol = "\r\n";
+		$hostname = (string)$this->smtp_hostname;
+
+		if ($result['tls']) {
+			$hostname = substr($hostname, 6);
+		}
+
+		if ($hostname === '') {
+			throw new \Exception('SMTP hostname is required.');
+		}
+
+		$handle = @fsockopen($hostname, (int)$this->smtp_port, $errno, $errstr, (int)$this->smtp_timeout);
+
+		if (!$handle) {
+			throw new \Exception('SMTP connection failed: ' . $errstr . ' (' . $errno . ')');
+		}
+
+		stream_set_timeout($handle, (int)$this->smtp_timeout);
+
+		try {
+			$this->handleReply($handle, 220, 'Connection Start');
+			$result['steps'][] = 'connection';
+
+			$server_name = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+
+			fputs($handle, 'EHLO ' . $server_name . $eol);
+			$this->handleReply($handle, 250, 'EHLO Command');
+			$result['steps'][] = 'ehlo';
+
+			if ($result['tls']) {
+				fputs($handle, 'STARTTLS' . $eol);
+				$this->handleReply($handle, 220, 'STARTTLS Command');
+
+				$crypto_method = STREAM_CRYPTO_METHOD_TLS_CLIENT;
+
+				if (defined('STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT')) {
+					$crypto_method |= STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT;
+				}
+
+				if (!stream_socket_enable_crypto($handle, true, $crypto_method)) {
+					throw new \Exception('TLS negotiation failed.');
+				}
+
+				$result['steps'][] = 'tls';
+
+				fputs($handle, 'EHLO ' . $server_name . $eol);
+				$this->handleReply($handle, 250, 'EHLO after TLS');
+				$result['steps'][] = 'ehlo_tls';
+			}
+
+			if (!empty($this->smtp_username) || !empty($this->smtp_password)) {
+				if (empty($this->smtp_username) || empty($this->smtp_password)) {
+					throw new \Exception('SMTP username and password must both be specified.');
+				}
+
+				fputs($handle, 'AUTH LOGIN' . $eol);
+				$this->handleReply($handle, 334, 'AUTH LOGIN Command');
+				fputs($handle, base64_encode($this->smtp_username) . $eol);
+				$this->handleReply($handle, 334, 'SMTP Username');
+				fputs($handle, base64_encode($this->smtp_password) . $eol);
+				$this->handleReply($handle, 235, 'SMTP Password');
+				$result['steps'][] = 'auth';
+			}
+
+			fputs($handle, 'QUIT' . $eol);
+			$this->handleReply($handle, 221, 'QUIT Command');
+		} finally {
+			if (is_resource($handle)) {
+				fclose($handle);
+			}
+		}
+
+		if ($send_test_email) {
+			$this->send();
+			$result['steps'][] = 'message';
+		}
+
+		$result['success'] = true;
+
+		return $result;
 	}
 
 	private function handleReply($handle, $status_code = false, $error_label = '', $counter = 0) {

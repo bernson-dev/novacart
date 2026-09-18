@@ -1,8 +1,7 @@
 <?php
 /**
-
-* Mail class
-*/
+ * Mail class
+ */
 class Mail extends \stdClass {
 	protected $to;
 	protected $from;
@@ -12,26 +11,23 @@ class Mail extends \stdClass {
 	protected $text;
 	protected $html;
 	protected $attachments = array();
-	protected $data = array(); // Массив для динамических свойств (smtp_hostname, debug и т.д.)
+	protected $data = array();
 	public $parameter;
 
 	public function __construct($adaptor = 'mail') {
 		$class = 'Mail\\' . $adaptor;
-		
+
 		if (class_exists($class)) {
 			$this->adaptor = new $class();
 		} else {
-			trigger_error('Error: Could not load mail adaptor ' . $adaptor . '!');
-			exit();
+			throw new \Exception('Error: Could not load mail adaptor ' . $adaptor . '!');
 		}
 	}
-	
-	// Магический метод для записи динамических свойств (например, $mail->debug = true)
+
 	public function __set($key, $value) {
 		$this->data[$key] = $value;
 	}
 
-	// Магический метод для чтения
 	public function __get($key) {
 		return isset($this->data[$key]) ? $this->data[$key] : null;
 	}
@@ -55,15 +51,15 @@ class Mail extends \stdClass {
 	public function setSubject($subject) {
 		$this->subject = $subject;
 	}
-	
+
 	public function setText($text) {
 		$this->text = $text;
 	}
-	
+
 	public function setHtml($html) {
 		$this->html = $html;
 	}
-	
+
 	public function addAttachment($filename) {
 		$this->attachments[] = $filename;
 	}
@@ -89,7 +85,32 @@ class Mail extends \stdClass {
 			throw new \Exception('Error: E-Mail message required!');
 		}
 
-		// Передаем основные защищенные свойства
+		$this->syncAdaptor();
+
+		return $this->adaptor->send();
+	}
+
+	/**
+	 * Run adaptor-specific diagnostics.
+	 *
+	 * Currently implemented by the SMTP adaptor. The caller may set a recipient
+	 * and pass true to also send a real test message after connection/auth checks.
+	 *
+	 * @param bool $send_test_email
+	 * @return array
+	 * @throws \Exception
+	 */
+	public function test($send_test_email = false) {
+		if (!method_exists($this->adaptor, 'test')) {
+			throw new \Exception('Error: Mail adaptor does not support diagnostics!');
+		}
+
+		$this->syncAdaptor();
+
+		return $this->adaptor->test((bool)$send_test_email);
+	}
+
+	private function syncAdaptor() {
 		$this->adaptor->to = $this->to;
 		$this->adaptor->from = $this->from;
 		$this->adaptor->sender = $this->sender;
@@ -99,15 +120,9 @@ class Mail extends \stdClass {
 		$this->adaptor->html = $this->html;
 		$this->adaptor->attachments = $this->attachments;
 		$this->adaptor->parameter = $this->parameter;
-		// Передаем все динамические свойства (smtp_hostname, debug и т.д.)
+
 		foreach ($this->data as $key => $value) {
 			$this->adaptor->{$key} = $value;
 		}
-		
-		return $this->adaptor->send();
-	}
-
-	private function error($text) {
-		return user_error($text, E_USER_WARNING);
 	}
 }
