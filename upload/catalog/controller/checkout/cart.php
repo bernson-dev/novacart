@@ -390,15 +390,39 @@ class ControllerCheckoutCart extends Controller {
 		$json = array();
 
 		// Update
-		if (!empty($this->request->post['quantity']) && is_array($this->request->post['quantity'])) {
+		$updated = false;
+
+		if (isset($this->request->post['quantity']) && is_array($this->request->post['quantity'])) {
+			// Standard cart form: quantity[cart_id] = value
 			foreach ($this->request->post['quantity'] as $key => $value) {
-				if (!is_scalar($value)) {
+				if (!is_scalar($key) || !is_scalar($value)) {
 					continue;
 				}
 
-				$this->cart->update($key, (int)$value);
-			}
+				$cart_id = (int)$key;
+				$quantity = (int)$value;
 
+				if ($cart_id > 0 && $quantity > 0) {
+					$this->cart->update($cart_id, $quantity);
+					$updated = true;
+				}
+			}
+		} elseif (
+			isset($this->request->post['key'], $this->request->post['quantity']) &&
+			is_scalar($this->request->post['key']) &&
+			is_scalar($this->request->post['quantity'])
+		) {
+			// AJAX cart.update(): key = cart_id, quantity = value
+			$cart_id = (int)$this->request->post['key'];
+			$quantity = (int)$this->request->post['quantity'];
+
+			if ($cart_id > 0 && $quantity > 0) {
+				$this->cart->update($cart_id, $quantity);
+				$updated = true;
+			}
+		}
+
+		if ($updated) {
 			$this->session->data['success'] = $this->language->get('text_remove');
 
 			unset($this->session->data['shipping_method']);
@@ -407,7 +431,45 @@ class ControllerCheckoutCart extends Controller {
 			unset($this->session->data['payment_methods']);
 			unset($this->session->data['reward']);
 
-			$this->response->redirect($this->url->link('checkout/cart'));
+			if (isset($this->request->post['key'])) {
+				// AJAX update
+				$totals = array();
+				$taxes = $this->cart->getTaxes();
+				$total = 0;
+
+				$this->load->model('setting/extension');
+
+				$total_data = array(
+					'totals' => &$totals,
+					'taxes'  => &$taxes,
+					'total'  => &$total
+				);
+
+				$sort_order = array();
+				$results = $this->model_setting_extension->getExtensions('total');
+
+				foreach ($results as $key => $value) {
+					$sort_order[$key] = $this->config->get('total_' . $value['code'] . '_sort_order');
+				}
+
+				array_multisort($sort_order, SORT_ASC, $results);
+
+				foreach ($results as $result) {
+					if ($this->config->get('total_' . $result['code'] . '_status')) {
+						$this->load->model('extension/total/' . $result['code']);
+						$this->{'model_extension_total_' . $result['code']}->getTotal($total_data);
+					}
+				}
+
+				$json['total'] = sprintf(
+					$this->language->get('text_items'),
+					$this->cart->countProducts() + (isset($this->session->data['vouchers']) ? count($this->session->data['vouchers']) : 0),
+					$this->currency->format($total, $this->session->data['currency'])
+				);
+			} else {
+				// Standard cart form
+				$this->response->redirect($this->url->link('checkout/cart'));
+			}
 		}
 
 		$this->response->addHeader('Content-Type: application/json');
