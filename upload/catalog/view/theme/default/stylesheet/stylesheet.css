@@ -1173,12 +1173,38 @@ header + .container {
     background-color: var(--main-color) !important;
 }
 @keyframes signup-response{
-    from {opacity :1;}
-    to {opacity :0;}
+    0% {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+    99% {
+        opacity: 0;
+        visibility: visible;
+        pointer-events: auto;
+    }
+    100% {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
 }
 @-webkit-keyframes signup-response{
-    from {opacity :1;}
-    to {opacity :0;}
+    0% {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+    99% {
+        opacity: 0;
+        visibility: visible;
+        pointer-events: auto;
+    }
+    100% {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
 }
 .alert {
     padding: 30px;

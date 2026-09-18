@@ -150,6 +150,11 @@ class ControllerCheckoutCart extends Controller {
 				);
 			}
 
+			// Do not show a success notification together with a cart validation error.
+			if ($data['error_warning']) {
+				$data['success'] = '';
+			}
+
 			// Gift Voucher
 			$data['vouchers'] = array();
 
