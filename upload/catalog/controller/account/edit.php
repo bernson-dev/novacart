@@ -174,6 +174,19 @@ class ControllerAccountEdit extends Controller {
 	}
 
 	protected function validate() {
+		$defaults = array(
+			'firstname' => '',
+			'lastname' => '',
+			'email' => '',
+			'telephone' => ''
+		);
+
+		foreach ($defaults as $key => $value) {
+			if (!isset($this->request->post[$key])) {
+				$this->request->post[$key] = $value;
+			}
+		}
+
 		if ((utf8_strlen(trim($this->request->post['firstname'])) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
 			$this->error['firstname'] = $this->language->get('error_firstname');
 		}
@@ -197,13 +210,17 @@ class ControllerAccountEdit extends Controller {
 		// Custom field validation
 		$this->load->model('account/custom_field');
 
-		$custom_fields = $this->model_account_custom_field->getCustomFields('account', $this->config->get('config_customer_group_id'));
+		$custom_fields = $this->model_account_custom_field->getCustomFields($this->config->get('config_customer_group_id'));
 
 		foreach ($custom_fields as $custom_field) {
 			if ($custom_field['location'] == 'account') {
-				if ($custom_field['required'] && empty($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])) {
+				$custom_field_value = isset($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])
+					? $this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']]
+					: '';
+
+				if ($custom_field['required'] && empty($custom_field_value)) {
 					$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
-				} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && !filter_var($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
+				} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && $custom_field_value !== '' && !filter_var($custom_field_value, FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
 					$this->error['custom_field'][$custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
 				}
 			}
