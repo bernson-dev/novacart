@@ -13,16 +13,12 @@ class ControllerApiCoupon extends Controller {
 		} else {
 			$this->load->model('extension/total/coupon');
 
-			if (isset($this->request->post['coupon'])) {
-				$coupon = $this->request->post['coupon'];
-			} else {
-				$coupon = '';
-			}
+			$coupon = isset($this->request->post['coupon']) && is_scalar($this->request->post['coupon']) ? trim((string)$this->request->post['coupon']) : '';
 
 			$coupon_info = $this->model_extension_total_coupon->getCoupon($coupon);
 
 			if ($coupon_info) {
-				$this->session->data['coupon'] = $this->request->post['coupon'];
+				$this->session->data['coupon'] = $coupon;
 
 				$json['success'] = $this->language->get('text_success');
 			} else {
