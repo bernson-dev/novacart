@@ -25,6 +25,7 @@ class ModelCatalogDownload extends Model {
 	public function deleteDownload($download_id) {
 		$this->db->query("DELETE FROM " . DB_PREFIX . "download WHERE download_id = '" . (int)$download_id . "'");
 		$this->db->query("DELETE FROM " . DB_PREFIX . "download_description WHERE download_id = '" . (int)$download_id . "'");
+		$this->db->query("DELETE FROM " . DB_PREFIX . "download_report WHERE download_id = '" . (int)$download_id . "'");
 	}
 
 	public function getDownload($download_id) {
@@ -138,8 +139,8 @@ class ModelCatalogDownload extends Model {
 	}
 
 	public function getDownloadByFilename($filename) {
-	$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "download WHERE filename = '" . $this->db->escape($filename) . "' LIMIT 1");
+		$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "download WHERE filename = '" . $this->db->escape($filename) . "' LIMIT 1");
 
-	return $query->row;
+		return $query->row;
 	}
 }
