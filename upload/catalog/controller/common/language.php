@@ -43,31 +43,41 @@ class ControllerCommonLanguage extends Controller {
 	}
 
 	public function language() {
-		if (isset($this->request->post['code']) && $this->request->post['code']) {
-			$this->session->data['language'] = $this->request->post['code'];
+		$this->load->model('localisation/language');
+		$languages = $this->model_localisation_language->getLanguages();
 
-			$this->load->model('localisation/language');
-			$languages = $this->model_localisation_language->getLanguages();
+		if (isset($this->request->post['code']) && isset($languages[$this->request->post['code']])) {
+			$code = $this->request->post['code'];
 
-			if (isset($languages[$this->request->post['code']])) {
-				$this->config->set('config_language_id', $languages[$this->request->post['code']]['language_id']);
+			$this->session->data['language'] = $code;
+			$this->config->set('config_language_id', $languages[$code]['language_id']);
+		}
+
+		$redirect_data = array();
+
+		if (isset($this->request->post['redirect'])) {
+			$decoded = base64_decode($this->request->post['redirect'], true);
+
+			if ($decoded !== false) {
+				$redirect_data = json_decode($decoded, true);
+
+				if (!is_array($redirect_data)) {
+					$redirect_data = array();
+				}
 			}
 		}
 
-		if (isset($this->request->post['redirect'])) {
-			$redirect_data = json_decode(base64_decode($this->request->post['redirect']), true);
+		$route = isset($redirect_data['route']) ? $redirect_data['route'] : 'common/home';
+		$params = isset($redirect_data['params']) && is_string($redirect_data['params']) ? $redirect_data['params'] : '';
+		$protocol = isset($redirect_data['protocol']) ? (bool)$redirect_data['protocol'] : $this->isSecure();
 
-
-			$route    = $redirect_data['route'];
-			$params   = $redirect_data['params'];
-			$protocol = $redirect_data['protocol'];
-
-			// теперь язык уже обновлён, и url->link отдаст правильный SEO URL
-			$redirect_url = $this->url->link($route, $params, $protocol);
-			$this->response->redirect($redirect_url);
-		} else {
-			$this->response->redirect($this->url->link('common/home', '', $this->isSecure()));
+		if (!is_string($route) || !preg_match('/^[a-zA-Z0-9_\/]+$/', $route)) {
+			$route = 'common/home';
+			$params = '';
 		}
+
+		// теперь язык уже обновлён, и url->link отдаст правильный SEO URL
+		$this->response->redirect($this->url->link($route, $params, $protocol));
 	}
 
 	// Вспомогательный метод для проверки HTTPS
