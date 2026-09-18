@@ -3859,8 +3859,7 @@ html[dir="rtl"] #cart .dropdown-menu {
 #stock-shortage-modal .modal-header {
 	background: #f7f7f7;
 	border-bottom: 1px solid #e5e5e5;
-	padding-top: 0;
-	padding-bottom: 0;
+	padding: 15px;
 }
 
 #stock-shortage-modal .modal-title {
