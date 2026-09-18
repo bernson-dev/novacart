@@ -43,6 +43,7 @@ $_['text_stock_popup_title']    = 'Недостаточно товара на с
 $_['text_stock_popup_message']  = 'Следующих товаров нет в необходимом количестве:';
 $_['text_stock_popup_model']    = 'Модель';
 $_['text_stock_popup_quantity'] = 'В корзине';
+$_['text_stock_popup_available'] = 'Доступно';
 $_['button_stock_popup_close']  = 'Понятно';
 
 $_['error_stock']                             = 'Товары, отмеченные ***, недоступны в нужном количестве или отсутствуют на складе!';
