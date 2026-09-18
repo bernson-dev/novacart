@@ -162,7 +162,7 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 					$option = array();
 				}
 
-				$product_options = $this->model_catalog_product->getProductOptions($this->request->post['product_id']);
+				$product_options = $this->model_catalog_product->getProductOptions($product_id);
 
 				foreach ($product_options as $product_option) {
 					if ($product_option['required'] && empty($option[$product_option['product_option_id']])) {
@@ -171,7 +171,7 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 				}
 
 				if (isset($this->request->post['recurring_id'])) {
-					$recurring_id = $this->request->post['recurring_id'];
+					$recurring_id = (int)$this->request->post['recurring_id'];
 				} else {
 					$recurring_id = 0;
 				}
@@ -182,17 +182,17 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 					$recurring_ids = array();
 
 					foreach ($recurrings as $recurring) {
-						$recurring_ids[] = $recurring['recurring_id'];
+						$recurring_ids[] = (int)$recurring['recurring_id'];
 					}
 
-					if (!in_array($recurring_id, $recurring_ids)) {
+					if (!in_array($recurring_id, $recurring_ids, true)) {
 						$errors[] = $this->language->get('error_recurring_required');
 					}
 				}
 
 				if (!$errors) {
-					if (!$this->model_extension_module_paypal_smart_button->hasProductInCart($this->request->post['product_id'], $option, $recurring_id)) {
-						$this->cart->add($this->request->post['product_id'], $quantity, $option, $recurring_id);
+					if (!$this->model_extension_module_paypal_smart_button->hasProductInCart($product_id, $option, $recurring_id)) {
+						$this->cart->add($product_id, $quantity, $option, $recurring_id);
 					}
 					
 					// Unset all shipping and payment methods
@@ -1580,7 +1580,7 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 				$this->session->data['shipping_address']['zone_code'] = '';
 			}
 
-			if (isset($this->request->post['custom_field'])) {
+			if (isset($this->request->post['custom_field']['address'])) {
 				$this->session->data['shipping_address']['custom_field'] = $this->request->post['custom_field']['address'];
 			} else {
 				$this->session->data['shipping_address']['custom_field'] = array();
@@ -1620,6 +1620,26 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 	}
 
 	private function validatePaymentAddress() {
+		$defaults = array(
+			'firstname' => '',
+			'lastname' => '',
+			'email' => '',
+			'telephone' => '',
+			'company' => '',
+			'address_1' => '',
+			'address_2' => '',
+			'postcode' => '',
+			'city' => '',
+			'country_id' => 0,
+			'zone_id' => 0
+		);
+
+		foreach ($defaults as $key => $value) {
+			if (!isset($this->request->post[$key])) {
+				$this->request->post[$key] = $value;
+			}
+		}
+
 		if ((utf8_strlen(trim($this->request->post['firstname'])) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
 			$this->error['firstname'] = $this->language->get('error_firstname');
 		}
@@ -1646,36 +1666,53 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 
 		$this->load->model('localisation/country');
 
-		$country_info = $this->model_localisation_country->getCountry($this->request->post['country_id']);
+		$country_info = $this->model_localisation_country->getCountry((int)$this->request->post['country_id']);
 
 		if ($country_info && $country_info['postcode_required'] && (utf8_strlen(trim($this->request->post['postcode'])) < 2 || utf8_strlen(trim($this->request->post['postcode'])) > 10)) {
 			$this->error['postcode'] = $this->language->get('error_postcode');
 		}
 
-		if ($this->request->post['country_id'] == '') {
+		if (!$country_info) {
 			$this->error['country'] = $this->language->get('error_country');
 		}
 
-		if (!isset($this->request->post['zone_id']) || $this->request->post['zone_id'] == '' || !is_numeric($this->request->post['zone_id'])) {
+		$this->load->model('localisation/zone');
+
+		$zones = $country_info ? $this->model_localisation_zone->getZonesByCountryId((int)$this->request->post['country_id']) : array();
+		$zone_ids = array();
+
+		foreach ($zones as $zone) {
+			$zone_ids[] = (int)$zone['zone_id'];
+		}
+
+		$zone_id = (int)$this->request->post['zone_id'];
+
+		if (($zone_ids && !in_array($zone_id, $zone_ids, true)) || (!$zone_ids && $zone_id !== 0)) {
 			$this->error['zone'] = $this->language->get('error_zone');
 		}
 
-		// Customer Group
 		if (isset($this->request->post['customer_group_id']) && is_array($this->config->get('config_customer_group_display')) && in_array($this->request->post['customer_group_id'], $this->config->get('config_customer_group_display'))) {
-			$customer_group_id = $this->request->post['customer_group_id'];
+			$customer_group_id = (int)$this->request->post['customer_group_id'];
 		} else {
-			$customer_group_id = $this->config->get('config_customer_group_id');
+			$customer_group_id = (int)$this->config->get('config_customer_group_id');
 		}
 
-		// Custom field validation
 		$this->load->model('account/custom_field');
 
 		$custom_fields = $this->model_account_custom_field->getCustomFields($customer_group_id);
 
 		foreach ($custom_fields as $custom_field) {
-			if ($custom_field['required'] && empty($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])) {
+			if ($custom_field['location'] == 'affiliate') {
+				continue;
+			}
+
+			$custom_field_value = isset($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])
+				? $this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']]
+				: '';
+
+			if ($custom_field['required'] && empty($custom_field_value)) {
 				$this->error['custom_field' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
-			} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && !filter_var($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
+			} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && $custom_field_value !== '' && !filter_var($custom_field_value, FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
 				$this->error['custom_field' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
 			}
 		}
@@ -1684,6 +1721,24 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 	}
 
 	private function validateShippingAddress() {
+		$defaults = array(
+			'firstname' => '',
+			'lastname' => '',
+			'company' => '',
+			'address_1' => '',
+			'address_2' => '',
+			'postcode' => '',
+			'city' => '',
+			'country_id' => 0,
+			'zone_id' => 0
+		);
+
+		foreach ($defaults as $key => $value) {
+			if (!isset($this->request->post[$key])) {
+				$this->request->post[$key] = $value;
+			}
+		}
+
 		if ((utf8_strlen(trim($this->request->post['firstname'])) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
 			$this->error['firstname'] = $this->language->get('error_firstname');
 		}
@@ -1702,37 +1757,50 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 
 		$this->load->model('localisation/country');
 
-		$country_info = $this->model_localisation_country->getCountry($this->request->post['country_id']);
+		$country_info = $this->model_localisation_country->getCountry((int)$this->request->post['country_id']);
 
 		if ($country_info && $country_info['postcode_required'] && (utf8_strlen(trim($this->request->post['postcode'])) < 2 || utf8_strlen(trim($this->request->post['postcode'])) > 10)) {
 			$this->error['postcode'] = $this->language->get('error_postcode');
 		}
 
-		if ($this->request->post['country_id'] == '') {
+		if (!$country_info) {
 			$this->error['country'] = $this->language->get('error_country');
 		}
 
-		if (!isset($this->request->post['zone_id']) || $this->request->post['zone_id'] == '' || !is_numeric($this->request->post['zone_id'])) {
+		$this->load->model('localisation/zone');
+
+		$zones = $country_info ? $this->model_localisation_zone->getZonesByCountryId((int)$this->request->post['country_id']) : array();
+		$zone_ids = array();
+
+		foreach ($zones as $zone) {
+			$zone_ids[] = (int)$zone['zone_id'];
+		}
+
+		$zone_id = (int)$this->request->post['zone_id'];
+
+		if (($zone_ids && !in_array($zone_id, $zone_ids, true)) || (!$zone_ids && $zone_id !== 0)) {
 			$this->error['zone'] = $this->language->get('error_zone');
 		}
 
-		// Customer Group
 		if (isset($this->request->post['customer_group_id']) && is_array($this->config->get('config_customer_group_display')) && in_array($this->request->post['customer_group_id'], $this->config->get('config_customer_group_display'))) {
-			$customer_group_id = $this->request->post['customer_group_id'];
+			$customer_group_id = (int)$this->request->post['customer_group_id'];
 		} else {
-			$customer_group_id = $this->config->get('config_customer_group_id');
+			$customer_group_id = (int)$this->config->get('config_customer_group_id');
 		}
 
-		// Custom field validation
 		$this->load->model('account/custom_field');
 
 		$custom_fields = $this->model_account_custom_field->getCustomFields($customer_group_id);
 
 		foreach ($custom_fields as $custom_field) {
 			if ($custom_field['location'] == 'address') {
-				if ($custom_field['required'] && empty($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])) {
+				$custom_field_value = isset($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']])
+					? $this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']]
+					: '';
+
+				if ($custom_field['required'] && empty($custom_field_value)) {
 					$this->error['custom_field' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
-				} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && !filter_var($this->request->post['custom_field'][$custom_field['location']][$custom_field['custom_field_id']], FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
+				} elseif (($custom_field['type'] == 'text') && !empty($custom_field['validation']) && $custom_field_value !== '' && !filter_var($custom_field_value, FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => $custom_field['validation'])))) {
 					$this->error['custom_field' . $custom_field['custom_field_id']] = sprintf($this->language->get('error_custom_field'), $custom_field['name']);
 				}
 			}
@@ -1770,36 +1838,33 @@ class ControllerExtensionModulePayPalSmartButton extends Controller {
 	}
 
 	private function validateReward() {
-		$points = $this->customer->getRewardPoints();
-
+		$points = (int)$this->customer->getRewardPoints();
 		$points_total = 0;
 
 		foreach ($this->cart->getProducts() as $product) {
 			if ($product['points']) {
-				$points_total += $product['points'];
+				$points_total += (int)$product['points'];
 			}
 		}
 
+		$reward = isset($this->request->post['reward']) ? (int)$this->request->post['reward'] : 0;
 		$error = '';
 
-		if (empty($this->request->post['reward'])) {
+		if ($reward < 1) {
 			$error = $this->language->get('error_reward');
-		}
-
-		if ($this->request->post['reward'] > $points) {
-			$error = sprintf($this->language->get('error_points'), $this->request->post['reward']);
-		}
-
-		if ($this->request->post['reward'] > $points_total) {
+		} elseif ($reward > $points) {
+			$error = sprintf($this->language->get('error_points'), $reward);
+		} elseif ($reward > $points_total) {
 			$error = sprintf($this->language->get('error_maximum'), $points_total);
 		}
 
 		if (!$error) {
+			$this->request->post['reward'] = $reward;
 			return true;
-		} else {
-			$this->session->data['error_warning'] = $error;
-			
-			return false;
 		}
+
+		$this->session->data['error_warning'] = $error;
+
+		return false;
 	}
 }
