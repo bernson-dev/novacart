@@ -3853,11 +3853,14 @@ html[dir="rtl"] #cart .dropdown-menu {
 #stock-shortage-modal .stock-shortage-modal-content {
 	border-radius: 6px;
 	overflow: hidden;
+	padding: 10px;
 }
 
 #stock-shortage-modal .modal-header {
 	background: #f7f7f7;
 	border-bottom: 1px solid #e5e5e5;
+	padding-top: 0;
+	padding-bottom: 0;
 }
 
 #stock-shortage-modal .modal-title {
