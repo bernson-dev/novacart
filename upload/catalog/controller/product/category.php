@@ -13,6 +13,8 @@ class ControllerProductCategory extends Controller {
 
 		$data['text_empty'] = $this->language->get('text_empty');
 
+		$disallow_params = array();
+
 		if ($this->config->get('config_noindex_disallow_params')) {
 			$params = explode("\r\n", $this->config->get('config_noindex_disallow_params'));
 			if (!empty($params)) {
@@ -250,7 +252,7 @@ class ControllerProductCategory extends Controller {
 					'special'     => $special,
 					'tax'         => $tax,
 					'minimum'     => $result['minimum'] > 0 ? $result['minimum'] : 1,
-					'rating'      => $result['rating'],
+					'rating'      => $rating,
 					'href'        => $this->url->link('product/product', 'path=' . $this->request->get['path'] . '&product_id=' . $result['product_id'] . $url)
 				);
 			}
