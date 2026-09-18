@@ -30,8 +30,8 @@ class ControllerInformationContact extends Controller {
 			$subject_email = filter_var($this->request->post['email'], FILTER_SANITIZE_EMAIL);
 			$mail->setSubject(html_entity_decode(sprintf($this->language->get('email_subject'), $subject_name . ' (' . $subject_email . ')'), ENT_QUOTES, 'UTF-8'));
 			// Sanitize enquiry text
-			$enquiry_text = strip_tags($this->request->post['enquiry']);
-			$mail->setText($enquiry_text);
+			$this->request->post['enquiry']_text = strip_tags($this->request->post['enquiry']);
+			$mail->setText($this->request->post['enquiry']_text);
 			$mail->send();
 
 			$this->response->redirect($this->url->link('information/contact/success'));
@@ -178,24 +178,32 @@ class ControllerInformationContact extends Controller {
 	}
 
 	protected function validate() {
-		if (!empty($this->request->post['name'])) {
-			if ((utf8_strlen($this->request->post['name']) < 3) || (utf8_strlen($this->request->post['name']) > 32)) {
+		$name = isset($name) && is_scalar($name) ? (string)$name : '';
+		$email = isset($email) && is_scalar($email) ? (string)$email : '';
+		$enquiry = isset($enquiry) && is_scalar($enquiry) ? (string)$enquiry : '';
+
+		$name = $name;
+		$email = $email;
+		$enquiry = $enquiry;
+
+		if ($name !== '') {
+			if ((utf8_strlen($name) < 3) || (utf8_strlen($name) > 32)) {
 				$this->error['name'] = $this->language->get('error_name');
 			}
 		} else {
 			$this->error['name'] = $this->language->get('error_name');
 		}
 
-		if (!empty($this->request->post['email'])) {
-			if (!filter_var($this->request->post['email'], FILTER_VALIDATE_EMAIL)) {
+		if (!empty($email)) {
+			if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 				$this->error['email'] = $this->language->get('error_email');
 			}
 		} else {
 			$this->error['email'] = $this->language->get('error_email');
 		}
 
-		if (!empty($this->request->post['enquiry'])) {
-			if ((utf8_strlen($this->request->post['enquiry']) < 10) || (utf8_strlen($this->request->post['enquiry']) > 3000)) {
+		if (!empty($enquiry)) {
+			if ((utf8_strlen($enquiry) < 10) || (utf8_strlen($enquiry) > 3000)) {
 				$this->error['enquiry'] = $this->language->get('error_enquiry');
 			}
 		} else {
