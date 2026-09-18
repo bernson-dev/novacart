@@ -28,6 +28,7 @@ $_['entry_bank_account_number'] = 'Account Number';
 
 // Error
 $_['error_agree']               = 'Warning: You must agree to the %s!';
+$_['error_payment']             = 'Payment method is required!';
 $_['error_cheque']              = 'Cheque Payee Name required!';
 $_['error_paypal']              = 'PayPal Email Address does not appear to be valid!';
 $_['error_bank_account_name']   = 'Account Name required!';
