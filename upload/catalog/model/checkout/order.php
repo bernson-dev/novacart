@@ -133,8 +133,9 @@ class ModelCheckoutOrder extends Model {
 	 */
 	public function getOrderEditStockStatus($order_id, $products) {
 		$status = array(
-			'valid'    => true,
-			'products' => array()
+			'valid'     => true,
+			'products'  => array(),
+			'available' => array()
 		);
 
 		if (!$products) {
@@ -154,6 +155,7 @@ class ModelCheckoutOrder extends Model {
 			$quantity = (int)$product['quantity'];
 
 			$status['products'][$cart_id] = true;
+			$status['available'][$cart_id] = null;
 
 			if (!isset($product_requested[$product_id])) {
 				$product_requested[$product_id] = 0;
@@ -258,6 +260,10 @@ class ModelCheckoutOrder extends Model {
 				$available += $reserved_products[$product_id];
 			}
 
+			foreach ($product_cart_ids[$product_id] as $cart_id) {
+				$status['available'][$cart_id] = $available;
+			}
+
 			if ($requested > $available) {
 				$status['valid'] = false;
 
@@ -276,6 +282,12 @@ class ModelCheckoutOrder extends Model {
 
 			if (isset($reserved_options[$product_option_value_id])) {
 				$available += $reserved_options[$product_option_value_id];
+			}
+
+			foreach ($option_cart_ids[$product_option_value_id] as $cart_id) {
+				if ($status['available'][$cart_id] === null || $available < $status['available'][$cart_id]) {
+					$status['available'][$cart_id] = $available;
+				}
 			}
 
 			if ($requested > $available) {
