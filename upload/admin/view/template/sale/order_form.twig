@@ -992,10 +992,12 @@
         }
     </style>
     <script type="text/javascript">
-        // Disable the tabs
+        {% if not order_id %}
+        // Keep the original step-by-step navigation only when creating a new order.
         $('#order a[data-toggle=\'tab\']').on('click', function(e) {
             return false;
         });
+        {% endif %}
 
         // Currency
         $('select[name=\'currency\']').on('change', function() {
