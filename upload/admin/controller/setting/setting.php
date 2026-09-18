@@ -815,7 +815,7 @@ class ControllerSettingSetting extends Controller {
 		} elseif ($this->config->has('config_stock_popup_routes')) {
 			$data['config_stock_popup_routes'] = (string)$this->config->get('config_stock_popup_routes');
 		} else {
-			$data['config_stock_popup_routes'] = "checkout/cart\ncheckout/checkout";
+			$data['config_stock_popup_routes'] = '';
 		}
 
 		if (isset($this->request->post['config_stock_popup_title']) && is_array($this->request->post['config_stock_popup_title'])) {
@@ -828,6 +828,14 @@ class ControllerSettingSetting extends Controller {
 			$data['config_stock_popup_message'] = $this->request->post['config_stock_popup_message'];
 		} else {
 			$data['config_stock_popup_message'] = (array)$this->config->get('config_stock_popup_message');
+		}
+
+		if (isset($this->request->post['config_stock_popup_show_image'])) {
+			$data['config_stock_popup_show_image'] = (int)$this->request->post['config_stock_popup_show_image'];
+		} elseif ($this->config->has('config_stock_popup_show_image')) {
+			$data['config_stock_popup_show_image'] = (int)$this->config->get('config_stock_popup_show_image');
+		} else {
+			$data['config_stock_popup_show_image'] = 1;
 		}
 
 		if (isset($this->request->post['config_stock_popup_show_model'])) {
