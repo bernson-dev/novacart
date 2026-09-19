@@ -59,3 +59,6 @@ https://translator.codeguild.com.ua/
 $_['text_payment_cancel']                     = "%s кожні %d %s до скасування";
 
 $_['text_stock_preorder_allowed'] = 'Товар доступний для замовлення за правилом передзамовлення, незважаючи на поточний залишок.';
+
+$_['text_stock_preorder_badge'] = 'Передзамовлення';
+$_['text_stock_preorder_cart'] = 'Товару зараз немає в наявності, але замовлення дозволено.';
