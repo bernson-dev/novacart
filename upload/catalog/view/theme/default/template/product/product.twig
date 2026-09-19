@@ -300,7 +300,7 @@
                             {% if stock_can_buy %}
                             <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block">{{ stock_button_text ?: button_cart }}</button>
                             {% elseif stock_button_mode != 'hide' %}
-                            <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-warning btn-lg btn-block stock-purchase-disabled stock-purchase-warning" disabled="disabled">{{ stock_button_mode == 'disable_status' ? stock_button_text : button_cart }}</button>
+                            <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-warning btn-lg btn-block stock-purchase-disabled" disabled="disabled" aria-disabled="true">{{ stock_button_mode == 'disable_status' ? stock_button_text : button_cart }}</button>
                             {% endif %}
                             <div id="stock-purchase-message" class="help-block stock-purchase-message"{% if stock_preorder_allowed %}>{{ text_stock_preorder_allowed }}{% else %} style="display:none;">{% endif %}</div>
                         </div>
@@ -361,7 +361,7 @@
                             <button type="button" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');">
                                 <i class="fa fa-shopping-cart"></i> <span class="hidden-xs hidden-sm hidden-md">{{ product.button_text ?: button_cart }}</span></button>
                             {% elseif product.stock_button != 'hide' %}
-                            <button type="button" disabled="disabled" class="stock-purchase-disabled stock-purchase-warning" title="{{ product.button_text }}">
+                            <button type="button" disabled="disabled" aria-disabled="true" tabindex="-1" class="stock-purchase-disabled" title="{{ product.button_text }}">
                                 <i class="fa fa-shopping-cart"></i> <span class="hidden-xs hidden-sm hidden-md">{{ product.stock_button == 'disable_status' ? product.button_text : button_cart }}</span></button>
                             {% endif %}
                             <button type="button" data-toggle="tooltip" title="{{ button_wishlist }}" onclick="wishlist.add('{{ product.product_id }}');">
