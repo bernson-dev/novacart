@@ -228,6 +228,8 @@ class ControllerProductSearch extends Controller {
 					'minimum'     => $result['minimum'] > 0 ? $result['minimum'] : 1,
 					'rating'      => $rating,
 					'can_buy'     => $stock_policy['can_buy'],
+					'in_cart'     => !empty($stock_policy['in_cart']),
+					'cart_button_text' => $stock_policy['cart_button_text'],
 					'button_text' => $stock_policy['button_text'],
 					'stock_action'=> $stock_policy['action'],
 					'stock_button'=> (string)$this->config->get('config_stock_purchase_button'),
