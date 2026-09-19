@@ -9,6 +9,8 @@ class ControllerExtensionModuleFeatured extends Controller {
 
 		$data['products'] = array();
 
+		$this->load->model('catalog/stock_policy');
+
 		if (!$setting['limit']) {
 			$setting['limit'] = 4;
 		}
@@ -52,7 +54,9 @@ class ControllerExtensionModuleFeatured extends Controller {
 						$rating = false;
 					}
 
-					$data['products'][] = array(
+										$stock_policy = $this->model_catalog_stock_policy->getListPolicy($product_info);
+
+$data['products'][] = array(
 						'product_id'  => $product_info['product_id'],
 						'thumb'       => $image,
 						'name'        => $product_info['name'],
@@ -61,6 +65,10 @@ class ControllerExtensionModuleFeatured extends Controller {
 						'special'     => $special,
 						'tax'         => $tax,
 						'rating'      => $rating,
+						'can_buy'     => $stock_policy['can_buy'],
+						'button_text' => $stock_policy['button_text'],
+						'stock_action'=> $stock_policy['action'],
+						'stock_button'=> (string)$this->config->get('config_stock_purchase_button'),
 						'href'        => $this->url->link('product/product', 'product_id=' . $product_info['product_id'])
 					);
 				}
