@@ -43,6 +43,7 @@
     <script>
         window.NovaCartRoute = '{{ current_route|escape('js') }}';
         window.NovaCartStockPopupEnabled = {{ stock_popup_enabled ? 'true' : 'false' }};
+        window.NovaCartStockPopupMode = '{{ stock_popup_mode|escape('js') }}';
     </script>
     <script src="catalog/view/javascript/common.js" type="text/javascript"> </script>
     {% for link in links %}
