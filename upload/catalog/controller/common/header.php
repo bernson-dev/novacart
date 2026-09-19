@@ -158,9 +158,14 @@ class ControllerCommonHeader extends Controller {
 			: 'common/home';
 
 		$data['stock_popup_enabled'] = false;
+		$data['stock_popup_mode'] = (string)$this->config->get('config_stock_popup_mode');
+
+		if (!$data['stock_popup_mode']) {
+			$data['stock_popup_mode'] = 'checkout';
+		}
 
 		if ($this->config->get('config_stock_popup_status')) {
-			$mode = (string)$this->config->get('config_stock_popup_mode');
+			$mode = $data['stock_popup_mode'];
 
 			if (!$mode) {
 				$mode = 'checkout';
