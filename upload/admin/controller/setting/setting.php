@@ -1410,13 +1410,17 @@ class ControllerSettingSetting extends Controller {
 			}
 		}
 
-		if (!$this->request->post['config_file_max_size']) {
+		if (empty($this->request->post['config_file_max_size']) || (int)$this->request->post['config_file_max_size'] < 1) {
 			$this->error['file_max_size'] = $this->language->get('error_file_max_size');
 		} else {
-			$upload_max_filesize = (int)preg_filter('/[^0-9]/', '', ini_get('upload_max_filesize'));
+			$config_file_max_size = (int)$this->request->post['config_file_max_size'];
+			$server_max_size = $this->getServerUploadMaxBytes();
 
-			if ($this->request->post['config_file_max_size'] > $upload_max_filesize) {
-				$this->error['file_max_size'] = sprintf($this->language->get('error_upload_size'), $upload_max_filesize);
+			if ($server_max_size > 0 && ($config_file_max_size * 1024 * 1024) > $server_max_size) {
+				$this->error['file_max_size'] = sprintf(
+					$this->language->get('error_upload_size'),
+					$this->formatBytesAsMegabytes($server_max_size)
+				);
 			}
 		}
 
@@ -1572,6 +1576,65 @@ class ControllerSettingSetting extends Controller {
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
+	}
+
+
+	/**
+	 * Convert a PHP shorthand size (for example 512K, 128M or 2G) to bytes.
+	 * A value of 0 means that the corresponding PHP limit is disabled/unlimited.
+	 */
+	private function iniSizeToBytes($value) {
+		$value = trim((string)$value);
+
+		if ($value === '') {
+			return 0;
+		}
+
+		$number = (float)$value;
+		$unit = strtolower(substr($value, -1));
+
+		switch ($unit) {
+			case 'g':
+				$number *= 1024;
+				// no break
+			case 'm':
+				$number *= 1024;
+				// no break
+			case 'k':
+				$number *= 1024;
+		}
+
+		return (int)round($number);
+	}
+
+	/**
+	 * Return the smallest active PHP request/file upload limit.
+	 */
+	private function getServerUploadMaxBytes() {
+		$limits = array();
+
+		$upload_max_filesize = $this->iniSizeToBytes(ini_get('upload_max_filesize'));
+		$post_max_size = $this->iniSizeToBytes(ini_get('post_max_size'));
+
+		if ($upload_max_filesize > 0) {
+			$limits[] = $upload_max_filesize;
+		}
+
+		if ($post_max_size > 0) {
+			$limits[] = $post_max_size;
+		}
+
+		return $limits ? min($limits) : 0;
+	}
+
+	private function formatBytesAsMegabytes($bytes) {
+		$megabytes = $bytes / 1024 / 1024;
+
+		if ((int)$megabytes == $megabytes) {
+			return (string)(int)$megabytes;
+		}
+
+		return rtrim(rtrim(number_format($megabytes, 2, '.', ''), '0'), '.');
 	}
 
 }
