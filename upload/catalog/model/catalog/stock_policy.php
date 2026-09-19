@@ -110,7 +110,7 @@ class ModelCatalogStockPolicy extends Model {
 				$button_text = $stock_status;
 			}
 		} else {
-			$button_text = $stock_status ? $stock_status : $this->language->get('text_out_of_stock');
+			$button_text = $stock_status ? $stock_status : $this->language->get('button_cart');
 		}
 
 		return array(
