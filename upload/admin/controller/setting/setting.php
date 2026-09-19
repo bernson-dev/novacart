@@ -862,6 +862,37 @@ class ControllerSettingSetting extends Controller {
 			$data['config_stock_popup_show_quantity'] = 1;
 		}
 
+		if (isset($this->request->post['config_stock_purchase_status'])) {
+			$data['config_stock_purchase_status'] = (int)$this->request->post['config_stock_purchase_status'];
+		} else {
+			$data['config_stock_purchase_status'] = (int)$this->config->get('config_stock_purchase_status');
+		}
+
+		if (isset($this->request->post['config_stock_purchase_excess'])) {
+			$data['config_stock_purchase_excess'] = (string)$this->request->post['config_stock_purchase_excess'];
+		} elseif ($this->config->has('config_stock_purchase_excess')) {
+			$data['config_stock_purchase_excess'] = (string)$this->config->get('config_stock_purchase_excess');
+		} else {
+			$data['config_stock_purchase_excess'] = 'block';
+		}
+
+		if (isset($this->request->post['config_stock_purchase_button'])) {
+			$data['config_stock_purchase_button'] = (string)$this->request->post['config_stock_purchase_button'];
+		} elseif ($this->config->has('config_stock_purchase_button')) {
+			$data['config_stock_purchase_button'] = (string)$this->config->get('config_stock_purchase_button');
+		} else {
+			$data['config_stock_purchase_button'] = 'disable_status';
+		}
+
+		if (isset($this->request->post['config_stock_purchase_status_action']) && is_array($this->request->post['config_stock_purchase_status_action'])) {
+			$data['config_stock_purchase_status_action'] = $this->request->post['config_stock_purchase_status_action'];
+		} else {
+			$data['config_stock_purchase_status_action'] = (array)$this->config->get('config_stock_purchase_status_action');
+		}
+
+		$this->load->model('localisation/stock_status');
+		$data['stock_statuses'] = $this->model_localisation_stock_status->getStockStatuses();
+
 		if (isset($this->request->post['config_affiliate_group_id'])) {
 			$data['config_affiliate_group_id'] = (int)$this->request->post['config_affiliate_group_id'];
 		} else {
