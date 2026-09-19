@@ -213,8 +213,17 @@ class ControllerCheckoutConfirm extends Controller {
 			}
 
 			$order_data['products'] = array();
+			$preorder_lines = array();
 
 			foreach ($this->cart->getProducts() as $product) {
+				$product_stock_state = $this->model_catalog_stock_policy->getCartProductState($product);
+				$is_preorder = (
+					!empty($product_stock_state['shortage']) &&
+					!empty($product_stock_state['can_checkout']) &&
+					!empty($product_stock_state['policy']) &&
+					isset($product_stock_state['policy']['stock_rule']) &&
+					$product_stock_state['policy']['stock_rule'] === 'allow'
+				);
 				$option_data = array();
 
 				foreach ($product['option'] as $option) {
@@ -240,8 +249,17 @@ class ControllerCheckoutConfirm extends Controller {
 					'price'      => $product['price'],
 					'total'      => $product['total'],
 					'tax'        => $this->tax->getTax($product['price'], $product['tax_class_id']),
-					'reward'     => $product['reward']
+					'reward'     => $product['reward'],
+					'preorder'   => $is_preorder
 				);
+
+				if ($is_preorder) {
+					$preorder_lines[] = sprintf(
+						$this->language->get('text_stock_preorder_order_line'),
+						$product['name'],
+						(int)$product['quantity']
+					);
+				}
 			}
 
 			// Gift Voucher
@@ -264,6 +282,17 @@ class ControllerCheckoutConfirm extends Controller {
 			}
 
 			$order_data['comment'] = isset($this->session->data['comment']) ? $this->session->data['comment'] : '';
+
+			if ($preorder_lines) {
+				$preorder_note = $this->language->get('text_stock_preorder_order_title') . "\n" . implode("\n", $preorder_lines);
+
+				if ($order_data['comment'] !== '') {
+					$order_data['comment'] .= "\n\n";
+				}
+
+				$order_data['comment'] .= $preorder_note;
+			}
+
 			$order_data['total'] = $total_data['total'];
 
 			if (isset($this->request->cookie['tracking'])) {
@@ -332,8 +361,18 @@ class ControllerCheckoutConfirm extends Controller {
 			$this->load->model('tool/upload');
 
 			$data['products'] = array();
+			$data['text_stock_preorder_badge'] = $this->language->get('text_stock_preorder_badge');
+			$data['text_stock_preorder_confirm'] = $this->language->get('text_stock_preorder_confirm');
 
 			foreach ($this->cart->getProducts() as $product) {
+				$product_stock_state = $this->model_catalog_stock_policy->getCartProductState($product);
+				$is_preorder = (
+					!empty($product_stock_state['shortage']) &&
+					!empty($product_stock_state['can_checkout']) &&
+					!empty($product_stock_state['policy']) &&
+					isset($product_stock_state['policy']['stock_rule']) &&
+					$product_stock_state['policy']['stock_rule'] === 'allow'
+				);
 				$option_data = array();
 
 				foreach ($product['option'] as $option) {
@@ -386,6 +425,7 @@ class ControllerCheckoutConfirm extends Controller {
 					'recurring'  => $recurring,
 					'quantity'   => $product['quantity'],
 					'subtract'   => $product['subtract'],
+					'preorder'   => $is_preorder,
 					'price'      => $this->currency->format($this->tax->calculate($product['price'], $product['tax_class_id'], $this->config->get('config_tax')), $this->session->data['currency']),
 					'total'      => $this->currency->format($this->tax->calculate($product['price'], $product['tax_class_id'], $this->config->get('config_tax')) * $product['quantity'], $this->session->data['currency']),
 					'href'       => $this->url->link('product/product', 'product_id=' . $product['product_id'])
