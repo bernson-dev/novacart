@@ -145,7 +145,7 @@ class ModelCatalogStockPolicy extends Model {
 	private function getExistingCartQuantity($product_id, array $option) {
 		$normalized_option = $this->normalizeOption($option);
 
-		$query = $this->db->query("SELECT option, quantity FROM " . DB_PREFIX . "cart WHERE api_id = '" . (isset($this->session->data['api_id']) ? (int)$this->session->data['api_id'] : 0) . "' AND customer_id = '" . (int)$this->customer->getId() . "' AND session_id = '" . $this->db->escape($this->session->getId()) . "' AND product_id = '" . (int)$product_id . "'");
+		$query = $this->db->query("SELECT `option`, quantity FROM " . DB_PREFIX . "cart WHERE api_id = '" . (isset($this->session->data['api_id']) ? (int)$this->session->data['api_id'] : 0) . "' AND customer_id = '" . (int)$this->customer->getId() . "' AND session_id = '" . $this->db->escape($this->session->getId()) . "' AND product_id = '" . (int)$product_id . "'");
 
 		$total = 0;
 
