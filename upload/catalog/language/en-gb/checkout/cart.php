@@ -50,3 +50,6 @@ $_['error_product']            = 'Warning: There are no products in your cart!';
 $_['error_recurring_required'] = 'Please select a payment recurring!';
 
 $_['text_stock_preorder_allowed'] = 'This product can be ordered under the preorder rule despite the current stock level.';
+
+$_['text_stock_preorder_badge'] = 'Preorder';
+$_['text_stock_preorder_cart'] = 'This product is currently out of stock, but ordering is allowed.';
