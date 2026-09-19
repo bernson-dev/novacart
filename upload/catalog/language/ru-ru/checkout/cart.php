@@ -59,3 +59,5 @@ Translated with
 https://translator.codeguild.com.ua/
 */
 $_['text_payment_cancel']                     = "%s каждые %d %s(s) до отмены";
+
+$_['text_stock_preorder_allowed'] = 'Товар доступен для заказа по правилу предзаказа, несмотря на текущий остаток.';
