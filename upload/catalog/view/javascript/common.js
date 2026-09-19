@@ -146,7 +146,10 @@ var stockShortagePopup = {
 	},
 
 	'storageKey': function() {
-		return 'novacart_stock_popup_dismissed:' + this.route();
+		var mode = (typeof window.NovaCartStockPopupMode !== 'undefined' ? window.NovaCartStockPopupMode : 'checkout');
+		var scope = (mode === 'checkout' ? 'checkout' : this.route());
+
+		return 'novacart_stock_popup_dismissed:' + scope;
 	},
 
 	'getDismissedSignature': function() {
