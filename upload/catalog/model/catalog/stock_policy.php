@@ -1,5 +1,6 @@
 <?php
 class ModelCatalogStockPolicy extends Model {
+	protected $cartProductSummary = null;
 	public function evaluate(array $product, $quantity = 1, array $option = array(), $include_cart = true) {
 		$this->load->model('catalog/product');
 
@@ -72,6 +73,9 @@ class ModelCatalogStockPolicy extends Model {
 				'stock_status'    => isset($product['stock_status']) ? (string)$product['stock_status'] : '',
 				'stock_rule'      => 'inherit',
 				'button_text'     => $this->language->get('button_cart'),
+				'in_cart'         => $existing_quantity > 0,
+				'cart_quantity'   => $existing_quantity,
+				'cart_button_text'=> $this->language->get('button_in_cart'),
 				'existing_quantity'=> $existing_quantity,
 				'requested_total' => $requested_total
 			);
@@ -137,6 +141,9 @@ class ModelCatalogStockPolicy extends Model {
 			'stock_status'    => $stock_status,
 			'stock_rule'      => $action,
 			'button_text'     => $button_text,
+			'in_cart'         => $existing_quantity > 0,
+			'cart_quantity'   => $existing_quantity,
+			'cart_button_text'=> $this->language->get('button_in_cart'),
 			'existing_quantity'=> $existing_quantity,
 			'requested_total' => $requested_total
 		);
@@ -287,12 +294,41 @@ class ModelCatalogStockPolicy extends Model {
 			}
 		}
 
-		return $this->evaluate(
+		$policy = $this->evaluate(
 			$product,
 			isset($product['minimum']) ? max(1, (int)$product['minimum']) : 1,
 			array(),
 			false
 		);
+
+		$summary = $this->getCartProductSummary();
+		$product_id = isset($product['product_id']) ? (int)$product['product_id'] : 0;
+
+		$policy['in_cart'] = $product_id > 0 && isset($summary[$product_id]);
+		$policy['cart_quantity'] = $policy['in_cart'] ? (int)$summary[$product_id] : 0;
+		$policy['cart_button_text'] = $this->language->get('button_in_cart');
+
+		return $policy;
+	}
+
+	private function getCartProductSummary() {
+		if ($this->cartProductSummary !== null) {
+			return $this->cartProductSummary;
+		}
+
+		$this->cartProductSummary = array();
+
+		foreach ($this->cart->getProducts() as $item) {
+			$product_id = (int)$item['product_id'];
+
+			if (!isset($this->cartProductSummary[$product_id])) {
+				$this->cartProductSummary[$product_id] = 0;
+			}
+
+			$this->cartProductSummary[$product_id] += (int)$item['quantity'];
+		}
+
+		return $this->cartProductSummary;
 	}
 
 	private function getExistingCartQuantity($product_id, array $option) {
