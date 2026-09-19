@@ -38,6 +38,7 @@ $_['error_exists']      = 'File does not exist!';
 $_['error_mask']        = 'Mask must be between 3 and 128 characters!';
 $_['error_filetype']    = 'Invalid file type!';
 $_['error_product']     = 'Warning: This download cannot be deleted as it is currently assigned to %s products!';
+$_['error_article']     = 'Warning: This download cannot be deleted as it is currently assigned to %s articles!';
 $_['error_upload_size'] = 'File size must not exceed %s MB!';
 $_['error_upload_post_max'] = 'Uploaded data exceeds the PHP post_max_size limit (%s MB)!';
 $_['error_upload_1'] = 'The file exceeds the server upload_max_filesize limit!';
