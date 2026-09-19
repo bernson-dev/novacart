@@ -332,6 +332,22 @@ class ControllerCheckoutCart extends Controller {
 				}
 			}
 
+			if (!$json && $this->config->get('config_stock_purchase_status')) {
+				$this->load->model('catalog/stock_policy');
+
+				$stock_policy = $this->model_catalog_stock_policy->evaluate($product_info, $quantity, $option);
+
+				if (!$stock_policy['can_buy']) {
+					if ($stock_policy['available'] !== null) {
+						$json['error']['stock'] = sprintf($this->language->get('error_stock_available'), (int)$stock_policy['available']);
+					} else {
+						$json['error']['stock'] = $this->language->get('error_stock_unavailable');
+					}
+
+					$json['stock'] = $stock_policy;
+				}
+			}
+
 			if (!$json) {
 				$this->cart->add($product_id, $quantity, $option, $recurring_id);
 
