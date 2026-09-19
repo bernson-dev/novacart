@@ -725,6 +725,9 @@ class ControllerProductProduct extends Controller {
 			$json['remaining'] = $policy['remaining'];
 			$json['button_text'] = $policy['button_text'];
 			$json['button_mode'] = (string)$this->config->get('config_stock_purchase_button');
+			$json['in_cart'] = !empty($policy['in_cart']);
+			$json['cart_quantity'] = isset($policy['cart_quantity']) ? (int)$policy['cart_quantity'] : 0;
+			$json['cart_button_text'] = $policy['cart_button_text'];
 			$json['reason'] = $policy['reason'];
 			$json['preorder_allowed'] = (
 				$policy['can_buy'] &&
