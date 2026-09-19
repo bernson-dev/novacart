@@ -343,6 +343,12 @@ var cart = {
 					location = 'index.php?route=checkout/cart';
 				} else {
 					$('#cart > ul').load('index.php?route=common/cart/info ul li');
+					cartButtonState.refresh();
+
+					if (typeof updateStockPurchaseState === 'function') {
+						updateStockPurchaseState();
+					}
+
 					stockShortagePopup.refresh();
 				}
 			},
@@ -373,6 +379,12 @@ var cart = {
 					location = 'index.php?route=checkout/cart';
 				} else {
 					$('#cart > ul').load('index.php?route=common/cart/info ul li');
+					cartButtonState.refresh();
+
+					if (typeof updateStockPurchaseState === 'function') {
+						updateStockPurchaseState();
+					}
+
 					stockShortagePopup.refresh();
 				}
 			},
