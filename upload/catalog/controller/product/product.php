@@ -281,6 +281,16 @@ class ControllerProductProduct extends Controller {
 				$data['stock'] = $this->language->get('text_instock');
 			}
 
+			$this->load->model('catalog/stock_policy');
+			$stock_policy = $this->model_catalog_stock_policy->evaluate(
+				$product_info,
+				isset($product_info['minimum']) && $product_info['minimum'] > 0 ? (int)$product_info['minimum'] : 1
+			);
+
+			$data['stock_can_buy'] = $stock_policy['can_buy'];
+			$data['stock_button_text'] = $stock_policy['button_text'];
+			$data['stock_button_mode'] = (string)$this->config->get('config_stock_purchase_button');
+
 			$this->load->model('tool/image');
 
 			if (is_file(DIR_IMAGE . html_entity_decode($product_info['image'], ENT_QUOTES, 'UTF-8'))) {
@@ -676,6 +686,43 @@ $data['products'][] = array(
 				$this->model_catalog_review->addReview($product_id, $this->request->post);
 
 				$json['success'] = $this->language->get('text_success');
+			}
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
+	public function stockCheck() {
+		$this->load->language('checkout/cart');
+		$this->load->model('catalog/product');
+		$this->load->model('catalog/stock_policy');
+
+		$json = array();
+
+		$product_id = isset($this->request->post['product_id']) ? (int)$this->request->post['product_id'] : 0;
+		$quantity = isset($this->request->post['quantity']) ? max(1, (int)$this->request->post['quantity']) : 1;
+		$option = isset($this->request->post['option']) && is_array($this->request->post['option']) ? $this->request->post['option'] : array();
+
+		$product_info = $this->model_catalog_product->getProduct($product_id);
+
+		if ($product_info) {
+			$policy = $this->model_catalog_stock_policy->evaluate($product_info, $quantity, $option);
+
+			$json['can_buy'] = $policy['can_buy'];
+			$json['available'] = $policy['available'];
+			$json['button_text'] = $policy['button_text'];
+			$json['button_mode'] = (string)$this->config->get('config_stock_purchase_button');
+			$json['reason'] = $policy['reason'];
+
+			if (!$policy['can_buy']) {
+				if ($policy['available'] !== null) {
+					$json['message'] = sprintf($this->language->get('error_stock_available'), (int)$policy['available']);
+				} else {
+					$json['message'] = $this->language->get('error_stock_unavailable');
+				}
+			} else {
+				$json['message'] = '';
 			}
 		}
 
