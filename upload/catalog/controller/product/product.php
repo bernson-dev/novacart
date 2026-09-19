@@ -711,13 +711,14 @@ class ControllerProductProduct extends Controller {
 
 			$json['can_buy'] = $policy['can_buy'];
 			$json['available'] = $policy['available'];
+			$json['remaining'] = $policy['remaining'];
 			$json['button_text'] = $policy['button_text'];
 			$json['button_mode'] = (string)$this->config->get('config_stock_purchase_button');
 			$json['reason'] = $policy['reason'];
 
 			if (!$policy['can_buy']) {
 				if ($policy['available'] !== null) {
-					$json['message'] = sprintf($this->language->get('error_stock_available'), (int)$policy['available']);
+					$json['message'] = sprintf($this->language->get('error_stock_available'), (int)$policy['remaining']);
 				} else {
 					$json['message'] = $this->language->get('error_stock_unavailable');
 				}
