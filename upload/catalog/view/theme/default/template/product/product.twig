@@ -298,7 +298,7 @@
                             <input type="hidden" name="product_id" value="{{ product_id }}" />
                             <br />
                             {% if stock_can_buy %}
-                            <button type="button" id="button-cart" data-product-id="{{ product_id }}" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block">{% if stock_in_cart %}<i class="fa fa-check"></i> {{ stock_cart_button_text }}{% else %}{{ stock_button_text ?: button_cart }}{% endif %}</button>
+                            <button type="button" id="button-cart" data-product-id="{{ product_id }}" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block stock-cart-button">{% if stock_in_cart %}<i class="fa fa-check"></i> {{ stock_cart_button_text }}{% else %}{{ stock_button_text ?: button_cart }}{% endif %}</button>
                             {% elseif stock_button_mode != 'hide' %}
                             <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-warning btn-lg btn-block stock-purchase-disabled" disabled="disabled" aria-disabled="true">{{ stock_button_mode == 'disable_status' ? stock_button_text : button_cart }}</button>
                             {% endif %}
