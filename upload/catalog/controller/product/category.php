@@ -198,7 +198,7 @@ class ControllerProductCategory extends Controller {
 			// Товары
 			$data['products'] = array();
 
-		$this->load->model('catalog/stock_policy');
+			$this->load->model('catalog/stock_policy');
 
 			$filter_data = array(
 				'filter_category_id' => $category_id,
@@ -246,9 +246,9 @@ class ControllerProductCategory extends Controller {
 					$rating = false;
 				}
 
-								$stock_policy = $this->model_catalog_stock_policy->getListPolicy($result);
+				$stock_policy = $this->model_catalog_stock_policy->getListPolicy($result);
 
-$data['products'][] = array(
+				$data['products'][] = array(
 					'product_id'  => $result['product_id'],
 					'thumb'       => $image,
 					'name'        => $result['name'],
