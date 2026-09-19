@@ -681,6 +681,10 @@ class ControllerCheckoutCart extends Controller {
 			$data['text_available'] = $this->language->get('text_stock_popup_available');
 			$data['button_close'] = $this->language->get('button_stock_popup_close');
 
+			usort($signature_data, function($a, $b) {
+				return $a['cart_id'] <=> $b['cart_id'];
+			});
+
 			$json['show'] = true;
 			$json['signature'] = sha1(json_encode($signature_data));
 			$json['html'] = $this->load->view('common/stock_shortage_popup', $data);
