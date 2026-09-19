@@ -15,7 +15,7 @@ class Action {
 	public function __construct($route) {
 		$this->id = $route;
 
-		$parts = explode('/', preg_replace('/[^a-zA-Z0-9_\/]/', '', (string)$route));
+		$parts = explode('/', preg_replace('/[^a-zA-Z0-9_\\/]/', '', (string)$route));
 
 		// Break apart the route
 		while ($parts) {
@@ -60,27 +60,20 @@ class Action {
 		$class = 'Controller' . preg_replace('/[^a-zA-Z0-9]/', '', (string)$this->route);
 
 		// Initialize the class
-		if (!is_file($file)) {
+		if (is_file($file)) {
+			include_once($file);
+
+			$controller = new $class($registry);
+		} else {
 			return new \Exception('Error: Could not call ' . $this->route . '/' . $this->method . '!');
 		}
 
-		include_once($file);
-
-		if (!class_exists($class, false)) {
-			return new \Exception('Error: Controller class ' . $class . ' not found in ' . $file . '!');
-		}
-
-		$controller = new $class($registry);
 		$reflection = new ReflectionClass($class);
 
-		if ($reflection->hasMethod($this->method)) {
-			$method = $reflection->getMethod($this->method);
-
-			if ($method->isPublic() && $method->getNumberOfRequiredParameters() <= count($args)) {
-				return call_user_func_array(array($controller, $this->method), $args);
-			}
+		if ($reflection->hasMethod($this->method) && $reflection->getMethod($this->method)->getNumberOfRequiredParameters() <= count($args)) {
+			return call_user_func_array(array($controller, $this->method), $args);
+		} else {
+			return new \Exception('Error: Could not call ' . $this->route . '/' . $this->method . '!');
 		}
-
-		return new \Exception('Error: Could not call ' . $this->route . '/' . $this->method . '!');
 	}
 }
