@@ -41,6 +41,8 @@ $_['text_stock_popup_quantity'] = 'In cart';
 $_['text_stock_popup_available'] = 'Available';
 $_['button_stock_popup_close']  = 'OK';
 
+$_['error_stock_available']   = 'Insufficient stock. Available: %s.';
+$_['error_stock_unavailable'] = 'This product is currently unavailable for purchase.';
 $_['error_stock']              = 'Products marked with *** are not available in the desired quantity or not in stock!';
 $_['error_minimum']            = 'Minimum order amount for %s is %s!';
 $_['error_required']           = '%s required!';
