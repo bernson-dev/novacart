@@ -297,7 +297,12 @@
                             <input type="text" name="quantity" value="{{ minimum }}" size="2" id="input-quantity" class="form-control" />
                             <input type="hidden" name="product_id" value="{{ product_id }}" />
                             <br />
-                            <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block">{{ button_cart }}</button>
+                            {% if stock_can_buy %}
+                            <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block">{{ stock_button_text ?: button_cart }}</button>
+                            {% elseif stock_button_mode != 'hide' %}
+                            <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block stock-purchase-disabled" disabled="disabled">{{ stock_button_mode == 'disable_status' ? stock_button_text : button_cart }}</button>
+                            {% endif %}
+                            <div id="stock-purchase-message" class="help-block text-danger" style="display:none;"></div>
                         </div>
                         {% if minimum > 1 %}
                         <div class="alert alert-info">
@@ -407,6 +412,53 @@
     });
     </script>
     <script type="text/javascript">
+    function updateStockPurchaseState() {
+        var button = $('#button-cart');
+
+        $.ajax({
+            url: 'index.php?route=product/product/stockCheck',
+            type: 'post',
+            data: $('#product input[type=\'text\'], #product input[type=\'hidden\'], #product input[type=\'radio\']:checked, #product input[type=\'checkbox\']:checked, #product select, #product textarea'),
+            dataType: 'json',
+            global: false,
+            success: function(json) {
+                var message = $('#stock-purchase-message');
+
+                if (!json || typeof json['can_buy'] === 'undefined') {
+                    return;
+                }
+
+                message.hide().text('');
+
+                if (json['can_buy']) {
+                    if (!button.length) {
+                        location.reload();
+                        return;
+                    }
+
+                    button.prop('disabled', false).removeClass('stock-purchase-disabled');
+                    button.text(json['button_text'] || '{{ button_cart|escape('js') }}');
+                } else {
+                    if (json['button_mode'] === 'hide') {
+                        button.hide();
+                    } else {
+                        button.show().prop('disabled', true).addClass('stock-purchase-disabled');
+                        button.text(json['button_mode'] === 'disable_status' && json['button_text'] ? json['button_text'] : '{{ button_cart|escape('js') }}');
+                    }
+
+                    if (json['message']) {
+                        message.text(json['message']).show();
+                    }
+                }
+            }
+        });
+    }
+
+    $(document).on('change input', '#product input[name="quantity"], #product input[type="radio"], #product input[type="checkbox"], #product select', function() {
+        updateStockPurchaseState();
+    });
+    </script>
+    <script type="text/javascript">
     $('#button-cart').on('click', function() {
         $.ajax({
             url: 'index.php?route=checkout/cart/add',
@@ -442,6 +494,18 @@
 
                     if (json['error']['quantity']) {
                         $('input[name=\'quantity\']').after('<div class="text-danger">' + json['error']['quantity'] + '</div>');
+                    }
+
+                    if (json['error']['stock']) {
+                        $('#stock-purchase-message').text(json['error']['stock']).show();
+
+                        if (json['stock'] && !json['stock']['can_buy']) {
+                            $('#button-cart').prop('disabled', true).addClass('stock-purchase-disabled');
+
+                            if ('{{ stock_button_mode|escape('js') }}' === 'disable_status' && json['stock']['button_text']) {
+                                $('#button-cart').text(json['stock']['button_text']);
+                            }
+                        }
                     }
 
                     // Highlight any found errors
