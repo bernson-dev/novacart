@@ -810,6 +810,14 @@ class ControllerSettingSetting extends Controller {
 			$data['config_stock_popup_status'] = (int)$this->config->get('config_stock_popup_status');
 		}
 
+		if (isset($this->request->post['config_stock_popup_mode'])) {
+			$data['config_stock_popup_mode'] = (string)$this->request->post['config_stock_popup_mode'];
+		} elseif ($this->config->has('config_stock_popup_mode')) {
+			$data['config_stock_popup_mode'] = (string)$this->config->get('config_stock_popup_mode');
+		} else {
+			$data['config_stock_popup_mode'] = 'checkout';
+		}
+
 		if (isset($this->request->post['config_stock_popup_routes'])) {
 			$data['config_stock_popup_routes'] = (string)$this->request->post['config_stock_popup_routes'];
 		} elseif ($this->config->has('config_stock_popup_routes')) {
