@@ -433,7 +433,7 @@ class ControllerProductProduct extends Controller {
 
 			$data['products'] = array();
 
-		$this->load->model('catalog/stock_policy');
+			$this->load->model('catalog/stock_policy');
 
 			$results = $this->model_catalog_product->getProductRelated($this->request->get['product_id']);
 
@@ -470,9 +470,9 @@ class ControllerProductProduct extends Controller {
 					$rating = false;
 				}
 
-								$stock_policy = $this->model_catalog_stock_policy->getListPolicy($result);
+				$stock_policy = $this->model_catalog_stock_policy->getListPolicy($result);
 
-$data['products'][] = array(
+				$data['products'][] = array(
 					'product_id'  => $result['product_id'],
 					'thumb'       => $image,
 					'name'        => $result['name'],
@@ -696,7 +696,7 @@ $data['products'][] = array(
 	public function stockCheck() {
 		$this->load->language('checkout/cart');
 		$this->load->model('catalog/product');
-		$this->load->model('catalog/stock_policy');
+			$this->load->model('catalog/stock_policy');
 
 		$json = array();
 
