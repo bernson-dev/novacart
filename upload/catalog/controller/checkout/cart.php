@@ -5,6 +5,9 @@
 class ControllerCheckoutCart extends Controller {
 	public function index() {
 		$this->load->language('checkout/cart');
+		$this->load->model('catalog/stock_policy');
+
+		$stock_state = $this->model_catalog_stock_policy->getCartStockState();
 
 		$this->document->setTitle($this->language->get('heading_title'));
 		$this->document->setRobots('noindex,follow');
@@ -23,8 +26,7 @@ class ControllerCheckoutCart extends Controller {
 
 		if ($this->cart->hasProducts() || !empty($this->session->data['vouchers'])) {
 			if (
-				!$this->cart->hasStock() &&
-				(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')) &&
+				$stock_state['warning'] &&
 				!$this->isStockPopupEnabledForRoute('checkout/cart')
 			) {
 				$data['error_warning'] = $this->language->get('error_stock');
@@ -43,7 +45,7 @@ class ControllerCheckoutCart extends Controller {
 			}
 
 			if (isset($this->session->data['success'])) {
-				if ($this->cart->hasStock()) {
+				if (!$stock_state['warning']) {
 					$data['success'] = $this->session->data['success'];
 				} else {
 					$data['success'] = '';
@@ -70,6 +72,7 @@ class ControllerCheckoutCart extends Controller {
 			$products = $this->cart->getProducts();
 
 			foreach ($products as $product) {
+				$product_stock_state = $this->model_catalog_stock_policy->getCartProductState($product);
 				$product_total = 0;
 
 				foreach ($products as $product_2) {
@@ -150,7 +153,7 @@ class ControllerCheckoutCart extends Controller {
 					'option'    => $option_data,
 					'recurring' => $recurring,
 					'quantity'  => $product['quantity'],
-					'stock'     => $product['stock'] ? true : !(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')),
+					'stock'     => !$product_stock_state['warning'],
 					'reward'    => ($product['reward'] ? sprintf($this->language->get('text_points'), $product['reward']) : ''),
 					'price'     => $price,
 					'total'     => $total,
@@ -618,9 +621,16 @@ class ControllerCheckoutCart extends Controller {
 
 		$this->load->model('tool/image');
 		$this->load->model('tool/upload');
+		$this->load->model('catalog/stock_policy');
 
 		foreach ($this->cart->getProducts() as $product) {
 			if ($product['stock']) {
+				continue;
+			}
+
+			$product_stock_state = $this->model_catalog_stock_policy->getCartProductState($product);
+
+			if (!$product_stock_state['warning']) {
 				continue;
 			}
 
