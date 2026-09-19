@@ -339,7 +339,7 @@ class ControllerCheckoutCart extends Controller {
 
 				if (!$stock_policy['can_buy']) {
 					if ($stock_policy['available'] !== null) {
-						$json['error']['stock'] = sprintf($this->language->get('error_stock_available'), (int)$stock_policy['remaining']);
+						$json['error']['stock'] = sprintf($this->language->get('error_stock_available'), (int)$stock_policy['available']);
 					} else {
 						$json['error']['stock'] = $this->language->get('error_stock_unavailable');
 					}
