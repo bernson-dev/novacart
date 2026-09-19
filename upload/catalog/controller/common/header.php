@@ -160,14 +160,24 @@ class ControllerCommonHeader extends Controller {
 		$data['stock_popup_enabled'] = false;
 
 		if ($this->config->get('config_stock_popup_status')) {
-			$config_routes = trim((string)$this->config->get('config_stock_popup_routes'));
+			$mode = (string)$this->config->get('config_stock_popup_mode');
 
-			if ($config_routes === '') {
+			if (!$mode) {
+				$mode = 'checkout';
+			}
+
+			if ($mode === 'all') {
 				$data['stock_popup_enabled'] = true;
-			} else {
-				$routes = preg_split('/[\r\n,]+/', $config_routes, -1, PREG_SPLIT_NO_EMPTY);
-				$routes = array_map('trim', $routes);
-				$data['stock_popup_enabled'] = in_array($data['current_route'], $routes, true);
+			} elseif ($mode === 'checkout') {
+				$data['stock_popup_enabled'] = (strpos($data['current_route'], 'checkout/') === 0);
+			} elseif ($mode === 'routes') {
+				$config_routes = trim((string)$this->config->get('config_stock_popup_routes'));
+
+				if ($config_routes !== '') {
+					$routes = preg_split('/[\r\n,]+/', $config_routes, -1, PREG_SPLIT_NO_EMPTY);
+					$routes = array_map('trim', $routes);
+					$data['stock_popup_enabled'] = in_array($data['current_route'], $routes, true);
+				}
 			}
 		}
 
