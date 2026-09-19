@@ -27,6 +27,7 @@ $_['button_address_add']    = 'Додати адресу';
 $_['button_back']           = 'Назад';
 $_['button_continue']       = 'Продовжити';
 $_['button_cart']           = 'Купити';
+$_['button_in_cart']        = 'У кошику';
 $_['button_cancel']         = 'Скасувати';
 $_['button_compare']        = 'До порівняння';
 $_['button_wishlist']       = 'В закладки';
