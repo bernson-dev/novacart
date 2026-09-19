@@ -268,7 +268,31 @@ class ModelCatalogStockPolicy extends Model {
 	}
 
 	public function getListPolicy(array $product) {
-		return $this->evaluate($product, isset($product['minimum']) ? max(1, (int)$product['minimum']) : 1, array(), false);
+		$required = array('product_id', 'quantity', 'subtract', 'stock_status_id', 'stock_status');
+		$complete = true;
+
+		foreach ($required as $key) {
+			if (!array_key_exists($key, $product)) {
+				$complete = false;
+				break;
+			}
+		}
+
+		if (!$complete && !empty($product['product_id'])) {
+			$this->load->model('catalog/product');
+			$product_info = $this->model_catalog_product->getProduct((int)$product['product_id']);
+
+			if ($product_info) {
+				$product = array_replace($product, $product_info);
+			}
+		}
+
+		return $this->evaluate(
+			$product,
+			isset($product['minimum']) ? max(1, (int)$product['minimum']) : 1,
+			array(),
+			false
+		);
 	}
 
 	private function getExistingCartQuantity($product_id, array $option) {
