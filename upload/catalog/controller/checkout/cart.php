@@ -68,6 +68,8 @@ class ControllerCheckoutCart extends Controller {
 			$this->load->model('tool/upload');
 
 			$data['products'] = array();
+			$data['text_stock_preorder_badge'] = $this->language->get('text_stock_preorder_badge');
+			$data['text_stock_preorder_cart'] = $this->language->get('text_stock_preorder_cart');
 
 			$products = $this->cart->getProducts();
 
@@ -154,6 +156,13 @@ class ControllerCheckoutCart extends Controller {
 					'recurring' => $recurring,
 					'quantity'  => $product['quantity'],
 					'stock'     => !$product_stock_state['warning'],
+					'preorder'  => (
+						!empty($product_stock_state['shortage']) &&
+						!empty($product_stock_state['can_checkout']) &&
+						!empty($product_stock_state['policy']) &&
+						isset($product_stock_state['policy']['stock_rule']) &&
+						$product_stock_state['policy']['stock_rule'] === 'allow'
+					),
 					'reward'    => ($product['reward'] ? sprintf($this->language->get('text_points'), $product['reward']) : ''),
 					'price'     => $price,
 					'total'     => $total,
