@@ -1225,7 +1225,46 @@
                         </div>
                         <div class="tab-pane" id="tab-stock-popup">
                             <fieldset>
-                                <legend>{{ text_stock_popup }}</legend>
+                                <legend style="background-color:#f5f5f5; padding:6px 10px; border-radius:4px; color:#337ab7;">
+                                    <i class="fa fa-code"></i> {{ text_stock_popup_integration }}
+                                </legend>
+
+                                <div class="alert alert-info">
+                                    <i class="fa fa-info-circle"></i> {{ help_stock_popup_integration_intro }}
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <h4>{{ text_stock_popup_integration_auto }}</h4>
+                                        <p>{{ help_stock_popup_integration_auto }}</p>
+
+                                        <h4>{{ text_stock_popup_integration_ajax_title }}</h4>
+                                        <p>{{ help_stock_popup_integration_ajax_intro }}</p>
+
+                                        <ol class="stock-popup-integration-steps">
+                                            <li>{{ help_stock_popup_integration_route }}</li>
+                                            <li>{{ help_stock_popup_integration_ajax }}</li>
+                                        </ol>
+
+                                        <div class="well well-sm">
+                                            <p><strong>{{ text_stock_popup_integration_code }}</strong></p>
+                                            <pre style="margin-bottom:8px;"><code>if (typeof stockShortagePopup !== 'undefined') {
+    stockShortagePopup.refresh();
+}</code></pre>
+                                            <p class="help-block" style="margin-bottom:0;">{{ help_stock_popup_integration_code }}</p>
+                                        </div>
+
+                                        <div class="alert alert-warning" style="margin-bottom:0;">
+                                            <i class="fa fa-exclamation-triangle"></i> {{ help_stock_popup_integration_note }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset>
+                                <legend style="background-color:#f5f5f5; padding:6px 10px; border-radius:4px; color:#337ab7;">
+                                    <i class="fa fa-exclamation-triangle"></i> {{ text_stock_popup }}
+                                </legend>
 
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label">{{ entry_stock_popup_status }}</label>
@@ -1314,38 +1353,12 @@
                                         <label class="radio-inline"><input type="radio" name="config_stock_popup_show_quantity" value="0" {{ not config_stock_popup_show_quantity ? 'checked="checked"' : '' }} /> {{ text_no }}</label>
                                     </div>
                                 </div>
+                            </fieldset>
 
-                                <div class="form-group">
-                                    <div class="col-sm-offset-2 col-sm-10">
-                                        <div class="panel panel-default stock-popup-integration-help">
-                                            <div class="panel-heading">
-                                                <h4 class="panel-title">
-                                                    <a href="#stock-popup-integration-help" data-toggle="collapse" class="collapsed">
-                                                        <i class="fa fa-code"></i> {{ text_stock_popup_integration }}
-                                                    </a>
-                                                </h4>
-                                            </div>
-                                            <div id="stock-popup-integration-help" class="panel-collapse collapse">
-                                                <div class="panel-body">
-                                                    <p>{{ help_stock_popup_integration_intro }}</p>
-                                                    <ol>
-                                                        <li>{{ help_stock_popup_integration_route }}</li>
-                                                        <li>{{ help_stock_popup_integration_ajax }}</li>
-                                                        <li>{{ help_stock_popup_integration_reload }}</li>
-                                                        <li>{{ help_stock_popup_integration_assets }}</li>
-                                                    </ol>
-                                                    <pre><code>if (typeof stockShortagePopup !== 'undefined') {
-    stockShortagePopup.refresh();
-}</code></pre>
-                                                    <p class="help-block">{{ help_stock_popup_integration_note }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <hr />
-                                <h4>{{ text_stock_purchase }}</h4>
+                            <fieldset>
+                                <legend style="background-color:#f5f5f5; padding:6px 10px; border-radius:4px; color:#337ab7;">
+                                    <i class="fa fa-shopping-cart"></i> {{ text_stock_purchase }}
+                                </legend>
 
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label">{{ entry_stock_purchase_status }}</label>
