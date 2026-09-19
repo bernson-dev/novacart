@@ -1239,21 +1239,23 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="form-group stock-popup-mode-group">
                                     <label class="col-sm-2 control-label">{{ entry_stock_popup_mode }}</label>
                                     <div class="col-sm-10">
-                                        <label class="radio">
-                                            <input type="radio" name="config_stock_popup_mode" value="checkout" {{ config_stock_popup_mode == 'checkout' ? 'checked="checked"' : '' }} />
-                                            {{ text_stock_popup_mode_checkout }}
-                                        </label>
-                                        <label class="radio">
-                                            <input type="radio" name="config_stock_popup_mode" value="routes" {{ config_stock_popup_mode == 'routes' ? 'checked="checked"' : '' }} />
-                                            {{ text_stock_popup_mode_routes }}
-                                        </label>
-                                        <label class="radio">
-                                            <input type="radio" name="config_stock_popup_mode" value="all" {{ config_stock_popup_mode == 'all' ? 'checked="checked"' : '' }} />
-                                            {{ text_stock_popup_mode_all }}
-                                        </label>
+                                        <div class="stock-popup-mode-options">
+                                            <label class="radio">
+                                                <input type="radio" name="config_stock_popup_mode" value="checkout" {{ config_stock_popup_mode == 'checkout' ? 'checked="checked"' : '' }} />
+                                                <span>{{ text_stock_popup_mode_checkout }}</span>
+                                            </label>
+                                            <label class="radio">
+                                                <input type="radio" name="config_stock_popup_mode" value="all" {{ config_stock_popup_mode == 'all' ? 'checked="checked"' : '' }} />
+                                                <span>{{ text_stock_popup_mode_all }}</span>
+                                            </label>
+                                            <label class="radio">
+                                                <input type="radio" name="config_stock_popup_mode" value="routes" {{ config_stock_popup_mode == 'routes' ? 'checked="checked"' : '' }} />
+                                                <span>{{ text_stock_popup_mode_routes }}</span>
+                                            </label>
+                                        </div>
                                         <p class="help-block">{{ help_stock_popup_mode }}</p>
                                     </div>
                                 </div>
@@ -2249,6 +2251,27 @@ $('#button-test-smtp').on('click', function() {
     });
 });
 </script>
+
+<style>
+#tab-stock-popup .stock-popup-mode-options .radio {
+    margin: 0 0 8px;
+    padding-left: 24px;
+    font-weight: 400;
+}
+
+#tab-stock-popup .stock-popup-mode-options .radio:last-child {
+    margin-bottom: 0;
+}
+
+#tab-stock-popup .stock-popup-mode-options .radio input[type="radio"] {
+    margin-left: -24px;
+    margin-top: 3px;
+}
+
+#tab-stock-popup .stock-popup-mode-options .radio span {
+    font-weight: 400;
+}
+</style>
 
 <script type="text/javascript">
 $(document).on('change', 'input[name="config_stock_popup_mode"]', function() {
