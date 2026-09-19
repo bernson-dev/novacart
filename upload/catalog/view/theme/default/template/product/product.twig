@@ -436,7 +436,11 @@
                         return;
                     }
 
-                    button.show().prop('disabled', false).removeClass('stock-purchase-disabled stock-purchase-warning');
+                    button.show()
+                        .prop('disabled', false)
+                        .removeAttr('aria-disabled')
+                        .removeClass('btn-warning stock-purchase-disabled stock-purchase-warning')
+                        .addClass('btn-primary');
                     button.text(json['button_text'] || '{{ button_cart|escape('js') }}');
 
                     if (json['preorder_allowed'] && json['preorder_message']) {
@@ -446,7 +450,11 @@
                     if (json['button_mode'] === 'hide') {
                         button.hide();
                     } else {
-                        button.show().prop('disabled', true).addClass('stock-purchase-disabled');
+                        button.show()
+                            .prop('disabled', true)
+                            .attr('aria-disabled', 'true')
+                            .removeClass('btn-primary')
+                            .addClass('btn-warning stock-purchase-disabled');
                         button.text(json['button_mode'] === 'disable_status' && json['button_text'] ? json['button_text'] : '{{ button_cart|escape('js') }}');
                     }
 
@@ -504,7 +512,11 @@
                         $('#stock-purchase-message').text(json['error']['stock']).show();
 
                         if (json['stock'] && !json['stock']['can_buy']) {
-                            $('#button-cart').prop('disabled', true).addClass('stock-purchase-disabled');
+                            $('#button-cart')
+                                .prop('disabled', true)
+                                .attr('aria-disabled', 'true')
+                                .removeClass('btn-primary')
+                                .addClass('btn-warning stock-purchase-disabled');
 
                             if ('{{ stock_button_mode|escape('js') }}' === 'disable_status' && json['stock']['button_text']) {
                                 $('#button-cart').text(json['stock']['button_text']);
