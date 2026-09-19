@@ -1,10 +1,10 @@
 <?php
 class ModelCatalogStockPolicy extends Model {
-	public function evaluate(array $product, $quantity = 1, array $option = array()) {
+	public function evaluate(array $product, $quantity = 1, array $option = array(), $include_cart = true) {
 		$this->load->model('catalog/product');
 
 		$quantity = max(1, (int)$quantity);
-		$existing_quantity = $this->getExistingCartQuantity((int)$product['product_id'], $option);
+		$existing_quantity = $include_cart ? $this->getExistingCartQuantity((int)$product['product_id'], $option) : 0;
 		$requested_total = $existing_quantity + $quantity;
 		$available = null;
 		$limited_by = '';
@@ -132,7 +132,7 @@ class ModelCatalogStockPolicy extends Model {
 	}
 
 	public function getListPolicy(array $product) {
-		return $this->evaluate($product, isset($product['minimum']) ? max(1, (int)$product['minimum']) : 1);
+		return $this->evaluate($product, isset($product['minimum']) ? max(1, (int)$product['minimum']) : 1, array(), false);
 	}
 
 	private function getExistingCartQuantity($product_id, array $option) {
