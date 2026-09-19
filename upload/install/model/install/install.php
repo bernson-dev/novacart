@@ -223,31 +223,58 @@ class ModelInstallInstall extends Model {
 			WHERE `key` = 'config_invoice_prefix'"
 		);
 
-		// --- исправление максимального размера загружаемого файла ---
-		$upload_max_filesize = ini_get('upload_max_filesize'); // например "64M"
-		$post_max_size       = ini_get('post_max_size');       // например "64M"
+		// Keep OpenCart's upload limit within the active PHP limits.
+		// PHP accepts shorthand values such as 512K, 128M and 2G; 0 means
+		// unlimited for directives that support it.
+		$ini_size_to_bytes = function($size) {
+			$size = trim((string)$size);
 
-		// Функция перевода php.ini значений в мегабайты
-		function parseSizeToMb($size) {
-			$unit  = strtolower(substr($size, -1));
-			$value = (int)$size;
+			if ($size === '') {
+				return 0;
+			}
+
+			$value = (float)$size;
+			$unit = strtolower(substr($size, -1));
+
 			switch ($unit) {
-				case 'g': return $value * 1024;
-				case 'm': return $value;
-				case 'k': return $value / 1024;
-				default:  return $value;
+				case 'g':
+					$value *= 1024;
+					// no break
+				case 'm':
+					$value *= 1024;
+					// no break
+				case 'k':
+					$value *= 1024;
+			}
+
+			return (int)round($value);
+		};
+
+		$limits = array();
+		$upload_max_filesize = $ini_size_to_bytes(ini_get('upload_max_filesize'));
+		$post_max_size = $ini_size_to_bytes(ini_get('post_max_size'));
+
+		if ($upload_max_filesize > 0) {
+			$limits[] = $upload_max_filesize;
+		}
+
+		if ($post_max_size > 0) {
+			$limits[] = $post_max_size;
+		}
+
+		$target = 20;
+		$value = $target;
+
+		if ($limits) {
+			$server_max_mb = (int)floor(min($limits) / 1024 / 1024);
+
+			// config_file_max_size is stored as whole megabytes. Extremely small
+			// PHP limits remain constrained later by the runtime byte-level check.
+			if ($server_max_mb > 0) {
+				$value = min($target, $server_max_mb);
 			}
 		}
 
-		$max_upload_mb = min(parseSizeToMb($upload_max_filesize), parseSizeToMb($post_max_size));
-
-		// Целевое значение — 20 МБ
-		$target = 20;
-
-		// Если PHP позволяет ≥ 20 МБ — ставим 20, иначе максимально доступное
-		$value = ($max_upload_mb >= $target) ? $target : $max_upload_mb;
-
-		// Обновляем настройку в таблице setting
 		$db->query("UPDATE `" . $data['db_prefix'] . "setting`
 				SET `value` = '" . (int)$value . "'
 				WHERE `key` = 'config_file_max_size'");
