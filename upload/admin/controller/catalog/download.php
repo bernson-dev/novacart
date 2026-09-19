@@ -531,12 +531,22 @@ class ControllerCatalogDownload extends Controller {
 		}
 
 		$this->load->model('catalog/product');
+		$this->load->model('blog/article');
 
 		foreach ($this->request->post['selected'] as $download_id) {
 			$product_total = $this->model_catalog_product->getTotalProductsByDownloadId((int)$download_id);
 
 			if ($product_total) {
 				$this->error['warning'] = sprintf($this->language->get('error_product'), $product_total);
+			}
+
+			// NovaCart also allows downloads to be attached to blog articles.
+			// Keep the same referential-safety behavior as for products and do not
+			// leave orphaned article_to_download rows after deleting a download.
+			$article_total = $this->model_blog_article->getTotalArticlesByDownloadId((int)$download_id);
+
+			if ($article_total) {
+				$this->error['warning'] = sprintf($this->language->get('error_article'), $article_total);
 			}
 		}
 
