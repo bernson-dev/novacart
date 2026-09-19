@@ -3966,3 +3966,9 @@ html[dir="rtl"] #cart .dropdown-menu {
 #stock-purchase-message.stock-purchase-info {
 	color: #31708f;
 }
+
+
+.stock-preorder-note {
+	margin-left: 5px;
+	color: #8a6d3b;
+}
