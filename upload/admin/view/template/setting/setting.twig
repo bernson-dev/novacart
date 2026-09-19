@@ -1314,6 +1314,72 @@
                                         <label class="radio-inline"><input type="radio" name="config_stock_popup_show_quantity" value="0" {{ not config_stock_popup_show_quantity ? 'checked="checked"' : '' }} /> {{ text_no }}</label>
                                     </div>
                                 </div>
+
+                                <hr />
+                                <h4>{{ text_stock_purchase }}</h4>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_purchase_status }}</label>
+                                    <div class="col-sm-10">
+                                        <label class="radio-inline"><input type="radio" name="config_stock_purchase_status" value="1" {{ config_stock_purchase_status ? 'checked="checked"' : '' }} /> {{ text_enabled }}</label>
+                                        <label class="radio-inline"><input type="radio" name="config_stock_purchase_status" value="0" {{ not config_stock_purchase_status ? 'checked="checked"' : '' }} /> {{ text_disabled }}</label>
+                                        <p class="help-block">{{ help_stock_purchase_status }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_purchase_excess }}</label>
+                                    <div class="col-sm-10">
+                                        <select name="config_stock_purchase_excess" class="form-control">
+                                            <option value="block" {{ config_stock_purchase_excess == 'block' ? 'selected="selected"' : '' }}>{{ text_stock_purchase_excess_block }}</option>
+                                            <option value="checkout" {{ config_stock_purchase_excess == 'checkout' ? 'selected="selected"' : '' }}>{{ text_stock_purchase_excess_checkout }}</option>
+                                        </select>
+                                        <p class="help-block">{{ help_stock_purchase_excess }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_purchase_button }}</label>
+                                    <div class="col-sm-10">
+                                        <select name="config_stock_purchase_button" class="form-control">
+                                            <option value="disable_status" {{ config_stock_purchase_button == 'disable_status' ? 'selected="selected"' : '' }}>{{ text_stock_purchase_button_disable_status }}</option>
+                                            <option value="disable_cart" {{ config_stock_purchase_button == 'disable_cart' ? 'selected="selected"' : '' }}>{{ text_stock_purchase_button_disable_cart }}</option>
+                                            <option value="hide" {{ config_stock_purchase_button == 'hide' ? 'selected="selected"' : '' }}>{{ text_stock_purchase_button_hide }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_purchase_status_action }}</label>
+                                    <div class="col-sm-10">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{{ column_stock_status }}</th>
+                                                        <th>{{ column_stock_action }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for stock_status in stock_statuses %}
+                                                    {% set stock_action = config_stock_purchase_status_action[stock_status.stock_status_id] is defined ? config_stock_purchase_status_action[stock_status.stock_status_id] : 'inherit' %}
+                                                    <tr>
+                                                        <td>{{ stock_status.name }}</td>
+                                                        <td>
+                                                            <select name="config_stock_purchase_status_action[{{ stock_status.stock_status_id }}]" class="form-control">
+                                                                <option value="inherit" {{ stock_action == 'inherit' ? 'selected="selected"' : '' }}>{{ text_stock_action_inherit }}</option>
+                                                                <option value="block" {{ stock_action == 'block' ? 'selected="selected"' : '' }}>{{ text_stock_action_block }}</option>
+                                                                <option value="allow" {{ stock_action == 'allow' ? 'selected="selected"' : '' }}>{{ text_stock_action_allow }}</option>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <p class="help-block">{{ help_stock_purchase_status_action }}</p>
+                                    </div>
+                                </div>
                             </fieldset>
                         </div>
 
