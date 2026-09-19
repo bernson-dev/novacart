@@ -5,6 +5,9 @@
 class ControllerCheckoutCart extends Controller {
 	public function index() {
 		$this->load->language('checkout/cart');
+		$this->load->model('catalog/stock_policy');
+
+		$stock_state = $this->model_catalog_stock_policy->getCartStockState();
 
 		$this->document->setTitle($this->language->get('heading_title'));
 		$this->document->setRobots('noindex,follow');
@@ -23,8 +26,7 @@ class ControllerCheckoutCart extends Controller {
 
 		if ($this->cart->hasProducts() || !empty($this->session->data['vouchers'])) {
 			if (
-				!$this->cart->hasStock() &&
-				(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')) &&
+				$stock_state['warning'] &&
 				!$this->isStockPopupEnabledForRoute('checkout/cart')
 			) {
 				$data['error_warning'] = $this->language->get('error_stock');
@@ -43,7 +45,7 @@ class ControllerCheckoutCart extends Controller {
 			}
 
 			if (isset($this->session->data['success'])) {
-				if ($this->cart->hasStock()) {
+				if (!$stock_state['warning']) {
 					$data['success'] = $this->session->data['success'];
 				} else {
 					$data['success'] = '';
@@ -66,10 +68,13 @@ class ControllerCheckoutCart extends Controller {
 			$this->load->model('tool/upload');
 
 			$data['products'] = array();
+			$data['text_stock_preorder_badge'] = $this->language->get('text_stock_preorder_badge');
+			$data['text_stock_preorder_cart'] = $this->language->get('text_stock_preorder_cart');
 
 			$products = $this->cart->getProducts();
 
 			foreach ($products as $product) {
+				$product_stock_state = $this->model_catalog_stock_policy->getCartProductState($product);
 				$product_total = 0;
 
 				foreach ($products as $product_2) {
@@ -150,7 +155,14 @@ class ControllerCheckoutCart extends Controller {
 					'option'    => $option_data,
 					'recurring' => $recurring,
 					'quantity'  => $product['quantity'],
-					'stock'     => $product['stock'] ? true : !(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')),
+					'stock'     => !$product_stock_state['warning'],
+					'preorder'  => (
+						!empty($product_stock_state['shortage']) &&
+						!empty($product_stock_state['can_checkout']) &&
+						!empty($product_stock_state['policy']) &&
+						isset($product_stock_state['policy']['stock_rule']) &&
+						$product_stock_state['policy']['stock_rule'] === 'allow'
+					),
 					'reward'    => ($product['reward'] ? sprintf($this->language->get('text_points'), $product['reward']) : ''),
 					'price'     => $price,
 					'total'     => $total,
@@ -329,6 +341,22 @@ class ControllerCheckoutCart extends Controller {
 
 				if (!in_array($recurring_id, $recurring_ids)) {
 					$json['error']['recurring'] = $this->language->get('error_recurring_required');
+				}
+			}
+
+			if (!$json && $this->config->get('config_stock_purchase_status')) {
+				$this->load->model('catalog/stock_policy');
+
+				$stock_policy = $this->model_catalog_stock_policy->evaluate($product_info, $quantity, $option);
+
+				if (!$stock_policy['can_buy']) {
+					if ($stock_policy['available'] !== null) {
+						$json['error']['stock'] = sprintf($this->language->get('error_stock_available'), (int)$stock_policy['available']);
+					} else {
+						$json['error']['stock'] = $this->language->get('error_stock_unavailable');
+					}
+
+					$json['stock'] = $stock_policy;
 				}
 			}
 
@@ -579,6 +607,31 @@ class ControllerCheckoutCart extends Controller {
 		$this->response->setOutput(json_encode($json));
 	}
 
+	public function buttonState() {
+		$this->load->language('checkout/cart');
+
+		$products = array();
+
+		foreach ($this->cart->getProducts() as $product) {
+			$product_id = (int)$product['product_id'];
+
+			if (!isset($products[$product_id])) {
+				$products[$product_id] = 0;
+			}
+
+			$products[$product_id] += (int)$product['quantity'];
+		}
+
+		$json = array(
+			'products'       => $products,
+			'button_cart'    => $this->language->get('button_cart'),
+			'button_in_cart' => $this->language->get('button_in_cart')
+		);
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
 	public function stockPopup() {
 		$this->load->language('checkout/cart');
 
@@ -602,9 +655,16 @@ class ControllerCheckoutCart extends Controller {
 
 		$this->load->model('tool/image');
 		$this->load->model('tool/upload');
+		$this->load->model('catalog/stock_policy');
 
 		foreach ($this->cart->getProducts() as $product) {
 			if ($product['stock']) {
+				continue;
+			}
+
+			$product_stock_state = $this->model_catalog_stock_policy->getCartProductState($product);
+
+			if (!$product_stock_state['warning']) {
 				continue;
 			}
 

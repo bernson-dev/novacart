@@ -4,8 +4,11 @@
 
 class ControllerCheckoutCheckout extends Controller {
 	public function index() {
+		$this->load->model('catalog/stock_policy');
+		$stock_state = $this->model_catalog_stock_policy->getCartStockState();
+
 		// Validate cart has products and has stock.
-		if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || (!$this->cart->hasStock() && !$this->config->get('config_stock_checkout'))) {
+		if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || !$stock_state['can_checkout']) {
 			$this->response->redirect($this->url->link('checkout/cart'));
 		}
 

@@ -3940,3 +3940,49 @@ html[dir="rtl"] #cart .dropdown-menu {
 		display: block;
 	}
 }
+
+
+/* Stock purchase policy */
+.stock-purchase-disabled,
+.stock-purchase-disabled:hover,
+.stock-purchase-disabled:focus,
+.stock-purchase-disabled:active {
+	background: #fff3cd !important;
+	border-color: #e0b85c !important;
+	color: #856404 !important;
+	box-shadow: none !important;
+	cursor: not-allowed !important;
+	opacity: 1 !important;
+	pointer-events: none;
+}
+
+
+#stock-purchase-message.stock-purchase-error {
+	color: #a94442;
+}
+
+#stock-purchase-message.stock-purchase-info {
+	color: #31708f;
+}
+
+
+.stock-preorder-note {
+	display: block;
+	min-width: 0;
+	margin-top: 4px;
+	margin-left: 0;
+	color: #8a6d3b;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: normal;
+	line-height: 1.35;
+}
+
+
+.stock-cart-in-cart,
+.stock-cart-in-cart:hover,
+.stock-cart-in-cart:focus {
+	background-color: #5cb85c !important;
+	border-color: #4cae4c !important;
+	color: #fff !important;
+}

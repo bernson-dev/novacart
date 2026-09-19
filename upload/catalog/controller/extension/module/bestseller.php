@@ -9,6 +9,8 @@ class ControllerExtensionModuleBestSeller extends Controller {
 
 		$data['products'] = array();
 
+			$this->load->model('catalog/stock_policy');
+
 		$results = $this->model_catalog_product->getBestSellerProducts($setting['limit']);
 
 		if ($results) {
@@ -45,6 +47,8 @@ class ControllerExtensionModuleBestSeller extends Controller {
 					$rating = false;
 				}
 
+				$stock_policy = $this->model_catalog_stock_policy->getListPolicy($result);
+
 				$data['products'][] = array(
 					'product_id'  => $result['product_id'],
 					'thumb'       => $image,
@@ -54,6 +58,12 @@ class ControllerExtensionModuleBestSeller extends Controller {
 					'special'     => $special,
 					'tax'         => $tax,
 					'rating'      => $rating,
+					'can_buy'     => $stock_policy['can_buy'],
+					'in_cart'     => !empty($stock_policy['in_cart']),
+					'cart_button_text' => $stock_policy['cart_button_text'],
+					'button_text' => $stock_policy['button_text'],
+					'stock_action'=> $stock_policy['action'],
+					'stock_button'=> (string)$this->config->get('config_stock_purchase_button'),
 					'href'        => $this->url->link('product/product', 'product_id=' . $result['product_id'])
 				);
 			}

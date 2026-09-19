@@ -1225,7 +1225,51 @@
                         </div>
                         <div class="tab-pane" id="tab-stock-popup">
                             <fieldset>
-                                <legend>{{ text_stock_popup }}</legend>
+                                <legend style="background-color:#f5f5f5; padding:6px 10px; border-radius:4px; color:#337ab7;">
+                                    <a href="#stock-popup-integration-help" data-toggle="collapse" class="collapsed" style="display:block; color:#337ab7; text-decoration:none;">
+                                        <i class="fa fa-code"></i> {{ text_stock_popup_integration }}
+                                        <i class="fa fa-chevron-down pull-right"></i>
+                                    </a>
+                                </legend>
+
+                                <div id="stock-popup-integration-help" class="panel-collapse collapse">
+                                    <div class="alert alert-info">
+                                        <i class="fa fa-info-circle"></i> {{ help_stock_popup_integration_intro }}
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="col-sm-12">
+                                            <h4>{{ text_stock_popup_integration_auto }}</h4>
+                                            <p>{{ help_stock_popup_integration_auto }}</p>
+
+                                            <h4>{{ text_stock_popup_integration_ajax_title }}</h4>
+                                            <p>{{ help_stock_popup_integration_ajax_intro }}</p>
+
+                                            <ol class="stock-popup-integration-steps">
+                                                <li>{{ help_stock_popup_integration_route }}</li>
+                                                <li>{{ help_stock_popup_integration_ajax }}</li>
+                                            </ol>
+
+                                            <div class="well well-sm">
+                                                <p><strong>{{ text_stock_popup_integration_code }}</strong></p>
+                                                <pre style="margin-bottom:8px;"><code>if (typeof stockShortagePopup !== 'undefined') {
+    stockShortagePopup.refresh();
+}</code></pre>
+                                                <p class="help-block" style="margin-bottom:0;">{{ help_stock_popup_integration_code }}</p>
+                                            </div>
+
+                                            <div class="alert alert-warning" style="margin-bottom:0;">
+                                                <i class="fa fa-exclamation-triangle"></i> {{ help_stock_popup_integration_note }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset>
+                                <legend style="background-color:#f5f5f5; padding:6px 10px; border-radius:4px; color:#337ab7;">
+                                    <i class="fa fa-exclamation-triangle"></i> {{ text_stock_popup }}
+                                </legend>
 
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label">{{ entry_stock_popup_status }}</label>
@@ -1312,6 +1356,75 @@
                                     <div class="col-sm-10">
                                         <label class="radio-inline"><input type="radio" name="config_stock_popup_show_quantity" value="1" {{ config_stock_popup_show_quantity ? 'checked="checked"' : '' }} /> {{ text_yes }}</label>
                                         <label class="radio-inline"><input type="radio" name="config_stock_popup_show_quantity" value="0" {{ not config_stock_popup_show_quantity ? 'checked="checked"' : '' }} /> {{ text_no }}</label>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset>
+                                <legend style="background-color:#f5f5f5; padding:6px 10px; border-radius:4px; color:#337ab7;">
+                                    <i class="fa fa-shopping-cart"></i> {{ text_stock_purchase }}
+                                </legend>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_purchase_status }}</label>
+                                    <div class="col-sm-10">
+                                        <label class="radio-inline"><input type="radio" name="config_stock_purchase_status" value="1" {{ config_stock_purchase_status ? 'checked="checked"' : '' }} /> {{ text_enabled }}</label>
+                                        <label class="radio-inline"><input type="radio" name="config_stock_purchase_status" value="0" {{ not config_stock_purchase_status ? 'checked="checked"' : '' }} /> {{ text_disabled }}</label>
+                                        <p class="help-block">{{ help_stock_purchase_status }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_purchase_excess }}</label>
+                                    <div class="col-sm-10">
+                                        <select name="config_stock_purchase_excess" class="form-control">
+                                            <option value="block" {{ config_stock_purchase_excess == 'block' ? 'selected="selected"' : '' }}>{{ text_stock_purchase_excess_block }}</option>
+                                            <option value="checkout" {{ config_stock_purchase_excess == 'checkout' ? 'selected="selected"' : '' }}>{{ text_stock_purchase_excess_checkout }}</option>
+                                        </select>
+                                        <p class="help-block">{{ help_stock_purchase_excess }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_purchase_button }}</label>
+                                    <div class="col-sm-10">
+                                        <select name="config_stock_purchase_button" class="form-control">
+                                            <option value="disable_status" {{ config_stock_purchase_button == 'disable_status' ? 'selected="selected"' : '' }}>{{ text_stock_purchase_button_disable_status }}</option>
+                                            <option value="disable_cart" {{ config_stock_purchase_button == 'disable_cart' ? 'selected="selected"' : '' }}>{{ text_stock_purchase_button_disable_cart }}</option>
+                                            <option value="hide" {{ config_stock_purchase_button == 'hide' ? 'selected="selected"' : '' }}>{{ text_stock_purchase_button_hide }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_purchase_status_action }}</label>
+                                    <div class="col-sm-10">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{{ column_stock_status }}</th>
+                                                        <th>{{ column_stock_action }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for stock_status in stock_statuses %}
+                                                    {% set stock_action = config_stock_purchase_status_action[stock_status.stock_status_id] is defined ? config_stock_purchase_status_action[stock_status.stock_status_id] : 'inherit' %}
+                                                    <tr>
+                                                        <td>{{ stock_status.name }}</td>
+                                                        <td>
+                                                            <select name="config_stock_purchase_status_action[{{ stock_status.stock_status_id }}]" class="form-control">
+                                                                <option value="inherit" {{ stock_action == 'inherit' ? 'selected="selected"' : '' }}>{{ text_stock_action_inherit }}</option>
+                                                                <option value="block" {{ stock_action == 'block' ? 'selected="selected"' : '' }}>{{ text_stock_action_block }}</option>
+                                                                <option value="allow" {{ stock_action == 'allow' ? 'selected="selected"' : '' }}>{{ text_stock_action_allow }}</option>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <p class="help-block">{{ help_stock_purchase_status_action }}</p>
                                     </div>
                                 </div>
                             </fieldset>
@@ -2270,6 +2383,14 @@ $('#button-test-smtp').on('click', function() {
 
 #tab-stock-popup .stock-popup-mode-options .radio span {
     font-weight: 400;
+}
+
+#tab-stock-popup legend [data-toggle="collapse"] .fa-chevron-down {
+    transition: transform .2s ease;
+}
+
+#tab-stock-popup legend [data-toggle="collapse"]:not(.collapsed) .fa-chevron-down {
+    transform: rotate(180deg);
 }
 </style>
 

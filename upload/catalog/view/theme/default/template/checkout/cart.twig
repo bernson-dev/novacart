@@ -52,6 +52,10 @@
             <tr>
               <td class="text-center">{% if product.thumb %} <a href="{{ product.href }}"><img src="{{ product.thumb }}" alt="{{ product.name }}" title="{{ product.name }}" class="img-thumbnail" /></a> {% endif %}</td>
               <td class="text-left"><a href="{{ product.href }}">{{ product.name }}</a> {% if not product.stock %} <span class="text-danger">***</span> {% endif %}
+                {% if product.preorder %}
+                <br /><span class="label label-warning">{{ text_stock_preorder_badge }}</span>
+                <small class="stock-preorder-note">{{ text_stock_preorder_cart }}</small>
+                {% endif %}
                 {% if product.option %}
                 {% for option in product.option %} <br />
                 <small>{{ option.name }}: {{ option.value }}</small> {% endfor %}
