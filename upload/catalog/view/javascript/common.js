@@ -255,6 +255,11 @@ var cart = {
 					location = json['redirect'];
 				}
 
+				if (json['error'] && json['error']['stock']) {
+					$('#content').parent().before('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + json['error']['stock'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+					$('html, body').animate({ scrollTop: 0 }, 'slow');
+				}
+
 				if (json['success']) {
 					$('#content').parent().before('<div class="alert alert-success alert-dismissible cart-success-alert"><i class="fa fa-check-circle"></i> ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
 
