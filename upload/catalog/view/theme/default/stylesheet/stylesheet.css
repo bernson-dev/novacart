@@ -3940,3 +3940,12 @@ html[dir="rtl"] #cart .dropdown-menu {
 		display: block;
 	}
 }
+
+
+/* Stock purchase policy */
+.stock-purchase-disabled,
+.stock-purchase-disabled:hover,
+.stock-purchase-disabled:focus {
+	cursor: not-allowed;
+	opacity: .65;
+}
