@@ -3949,3 +3949,8 @@ html[dir="rtl"] #cart .dropdown-menu {
 	cursor: not-allowed;
 	opacity: .65;
 }
+
+
+#stock-purchase-message {
+	color: #a94442;
+}
