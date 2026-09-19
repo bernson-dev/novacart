@@ -147,7 +147,7 @@
                             <button type="button" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');">
                                 <i class="fa fa-shopping-cart"></i> <span class="hidden-xs hidden-sm hidden-md">{{ product.button_text ?: button_cart }}</span></button>
                             {% elseif product.stock_button != 'hide' %}
-                            <button type="button" disabled="disabled" class="stock-purchase-disabled" title="{{ product.button_text }}">
+                            <button type="button" disabled="disabled" class="stock-purchase-disabled stock-purchase-warning" title="{{ product.button_text }}">
                                 <i class="fa fa-shopping-cart"></i> <span class="hidden-xs hidden-sm hidden-md">{{ product.stock_button == 'disable_status' ? product.button_text : button_cart }}</span></button>
                             {% endif %}
                 <button type="button" data-toggle="tooltip" title="{{ button_wishlist }}" onclick="wishlist.add('{{ product.product_id }}');"><i class="fa fa-heart"></i></button>
