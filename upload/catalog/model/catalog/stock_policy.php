@@ -1,6 +1,8 @@
 <?php
 class ModelCatalogStockPolicy extends Model {
 	public function evaluate(array $product, $quantity = 1, array $option = array()) {
+		$this->load->model('catalog/product');
+
 		$quantity = max(1, (int)$quantity);
 		$available = null;
 		$limited_by = '';
@@ -49,6 +51,19 @@ class ModelCatalogStockPolicy extends Model {
 					}
 				}
 			}
+		}
+
+		if (!$this->config->get('config_stock_purchase_status')) {
+			return array(
+				'can_buy'         => true,
+				'action'          => 'buy',
+				'available'       => $available,
+				'limited_by'      => $limited_by,
+				'reason'          => '',
+				'stock_status_id' => isset($product['stock_status_id']) ? (int)$product['stock_status_id'] : 0,
+				'stock_status'    => isset($product['stock_status']) ? (string)$product['stock_status'] : '',
+				'button_text'     => $this->language->get('button_cart')
+			);
 		}
 
 		$stock_status_id = isset($product['stock_status_id']) ? (int)$product['stock_status_id'] : 0;
