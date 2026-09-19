@@ -3977,3 +3977,12 @@ html[dir="rtl"] #cart .dropdown-menu {
 	word-break: normal;
 	line-height: 1.35;
 }
+
+
+.stock-cart-in-cart,
+.stock-cart-in-cart:hover,
+.stock-cart-in-cart:focus {
+	background-color: #5cb85c !important;
+	border-color: #4cae4c !important;
+	color: #fff !important;
+}
