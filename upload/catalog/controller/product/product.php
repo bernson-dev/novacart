@@ -718,7 +718,7 @@ class ControllerProductProduct extends Controller {
 
 			if (!$policy['can_buy']) {
 				if ($policy['available'] !== null) {
-					$json['message'] = sprintf($this->language->get('error_stock_available'), (int)$policy['remaining']);
+					$json['message'] = sprintf($this->language->get('error_stock_available'), (int)$policy['available']);
 				} else {
 					$json['message'] = $this->language->get('error_stock_unavailable');
 				}
