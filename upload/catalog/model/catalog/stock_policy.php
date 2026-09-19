@@ -78,6 +78,15 @@ class ModelCatalogStockPolicy extends Model {
 		}
 
 		$stock_status_id = isset($product['stock_status_id']) ? (int)$product['stock_status_id'] : 0;
+
+		if (!$stock_status_id && !empty($product['product_id'])) {
+			$stock_status_query = $this->db->query("SELECT stock_status_id FROM " . DB_PREFIX . "product WHERE product_id = '" . (int)$product['product_id'] . "' LIMIT 1");
+
+			if ($stock_status_query->num_rows) {
+				$stock_status_id = (int)$stock_status_query->row['stock_status_id'];
+			}
+		}
+
 		$stock_status = isset($product['stock_status']) ? (string)$product['stock_status'] : '';
 		$action = $this->getStockStatusAction($stock_status_id);
 		$can_buy = true;
