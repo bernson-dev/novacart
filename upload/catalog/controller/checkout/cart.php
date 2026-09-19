@@ -22,7 +22,11 @@ class ControllerCheckoutCart extends Controller {
 		);
 
 		if ($this->cart->hasProducts() || !empty($this->session->data['vouchers'])) {
-			if (!$this->cart->hasStock() && (!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning'))) {
+			if (
+				!$this->cart->hasStock() &&
+				(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')) &&
+				!$this->isStockPopupEnabledForRoute('checkout/cart')
+			) {
 				$data['error_warning'] = $this->language->get('error_stock');
 			} elseif (isset($this->session->data['error'])) {
 				$data['error_warning'] = $this->session->data['error'];
@@ -39,7 +43,11 @@ class ControllerCheckoutCart extends Controller {
 			}
 
 			if (isset($this->session->data['success'])) {
-				$data['success'] = $this->session->data['success'];
+				if ($this->cart->hasStock()) {
+					$data['success'] = $this->session->data['success'];
+				} else {
+					$data['success'] = '';
+				}
 
 				unset($this->session->data['success']);
 			} else {
@@ -570,4 +578,156 @@ class ControllerCheckoutCart extends Controller {
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
 	}
+
+	public function stockPopup() {
+		$this->load->language('checkout/cart');
+
+		$json = array(
+			'show' => false,
+			'html' => ''
+		);
+
+		$current_route = isset($this->request->post['current_route']) && is_scalar($this->request->post['current_route'])
+			? trim((string)$this->request->post['current_route'])
+			: '';
+
+		if (!$this->isStockPopupEnabledForRoute($current_route)) {
+			$this->response->addHeader('Content-Type: application/json');
+			$this->response->setOutput(json_encode($json));
+			return;
+		}
+
+		$products = array();
+		$signature_data = array();
+
+		$this->load->model('tool/image');
+		$this->load->model('tool/upload');
+
+		foreach ($this->cart->getProducts() as $product) {
+			if ($product['stock']) {
+				continue;
+			}
+
+			$product_stock_query = $this->db->query("SELECT quantity FROM " . DB_PREFIX . "product WHERE product_id = '" . (int)$product['product_id'] . "' LIMIT 1");
+			$available = $product_stock_query->num_rows ? max(0, (int)$product_stock_query->row['quantity']) : 0;
+
+			$option_data = array();
+
+			foreach ($product['option'] as $option) {
+				if ($option['type'] == 'file') {
+					$upload_info = $this->model_tool_upload->getUploadByCode($option['value']);
+					$value = $upload_info ? $upload_info['name'] : '';
+				} else {
+					$value = $option['value'];
+				}
+
+				if (!empty($option['subtract']) && $option['quantity'] !== '') {
+					$available = min($available, max(0, (int)$option['quantity']));
+				}
+
+				$option_data[] = array(
+					'name'  => $option['name'],
+					'value' => $value
+				);
+			}
+
+			if ($product['image']) {
+				$thumb = $this->model_tool_image->resize(
+					$product['image'],
+					$this->config->get('theme_' . $this->config->get('config_theme') . '_image_cart_width'),
+					$this->config->get('theme_' . $this->config->get('config_theme') . '_image_cart_height')
+				);
+			} else {
+				$thumb = '';
+			}
+
+			$products[] = array(
+				'name'      => $product['name'],
+				'model'     => $product['model'],
+				'quantity'  => (int)$product['quantity'],
+				'available' => $available,
+				'option'    => $option_data,
+				'thumb'     => $thumb,
+				'href'      => $this->url->link('product/product', 'product_id=' . (int)$product['product_id'])
+			);
+
+			$signature_data[] = array(
+				'cart_id'   => (int)$product['cart_id'],
+				'product_id'=> (int)$product['product_id'],
+				'quantity'  => (int)$product['quantity'],
+				'available' => $available
+			);
+		}
+
+		if ($products) {
+			$language_id = (int)$this->config->get('config_language_id');
+			$titles = (array)$this->config->get('config_stock_popup_title');
+			$messages = (array)$this->config->get('config_stock_popup_message');
+
+			$data['title'] = !empty($titles[$language_id])
+				? (string)$titles[$language_id]
+				: $this->language->get('text_stock_popup_title');
+
+			$data['message'] = !empty($messages[$language_id])
+				? (string)$messages[$language_id]
+				: $this->language->get('text_stock_popup_message');
+
+			$data['products'] = $products;
+			$data['show_image'] = (bool)$this->config->get('config_stock_popup_show_image');
+			$data['show_model'] = (bool)$this->config->get('config_stock_popup_show_model');
+			$data['show_quantity'] = (bool)$this->config->get('config_stock_popup_show_quantity');
+			$data['text_model'] = $this->language->get('text_stock_popup_model');
+			$data['text_quantity'] = $this->language->get('text_stock_popup_quantity');
+			$data['text_available'] = $this->language->get('text_stock_popup_available');
+			$data['button_close'] = $this->language->get('button_stock_popup_close');
+
+			usort($signature_data, function($a, $b) {
+				return $a['cart_id'] <=> $b['cart_id'];
+			});
+
+			$json['show'] = true;
+			$json['signature'] = sha1(json_encode($signature_data));
+			$json['html'] = $this->load->view('common/stock_shortage_popup', $data);
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
+
+	private function isStockPopupEnabledForRoute($route) {
+		if (!$this->config->get('config_stock_popup_status')) {
+			return false;
+		}
+
+		$mode = (string)$this->config->get('config_stock_popup_mode');
+
+		if (!$mode) {
+			$mode = 'checkout';
+		}
+
+		if ($mode === 'all') {
+			return true;
+		}
+
+		if ($mode === 'checkout') {
+			return strpos((string)$route, 'checkout/') === 0;
+		}
+
+		if ($mode !== 'routes') {
+			return false;
+		}
+
+		$config_routes = trim((string)$this->config->get('config_stock_popup_routes'));
+
+		if ($config_routes === '') {
+			return false;
+		}
+
+		$routes = preg_split('/[\r\n,]+/', $config_routes, -1, PREG_SPLIT_NO_EMPTY);
+		$routes = array_map('trim', $routes);
+
+		return in_array((string)$route, $routes, true);
+	}
+
 }

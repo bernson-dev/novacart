@@ -135,6 +135,105 @@ $(document).ready(function() {
 	});
 });
 
+// Stock shortage popup
+var stockShortagePopup = {
+	'programmaticClose': false,
+	'pending': null,
+	'requestSeq': 0,
+
+	'route': function() {
+		return (typeof window.NovaCartRoute !== 'undefined' ? window.NovaCartRoute : (getURLVar('route') || 'common/home'));
+	},
+
+	'render': function(html, signature) {
+		var self = this;
+		var currentModal = $('#stock-shortage-modal');
+
+		if (currentModal.length) {
+			// Do not reopen or duplicate the same warning while it is already visible.
+			if (currentModal.data('stock-signature') === signature) {
+				return;
+			}
+
+			self.pending = {
+				html: html,
+				signature: signature
+			};
+			self.programmaticClose = true;
+			currentModal.modal('hide');
+			return;
+		}
+
+		$('body').append(html);
+
+		$('#stock-shortage-modal')
+			.data('stock-signature', signature)
+			.on('hidden.bs.modal', function() {
+				var modal = $(this);
+				var next = self.pending;
+
+				self.programmaticClose = false;
+				self.pending = null;
+				modal.remove();
+
+				if (next) {
+					self.render(next.html, next.signature);
+				}
+			})
+			.modal('show');
+	},
+
+	'closeCurrent': function() {
+		var modal = $('#stock-shortage-modal');
+
+		this.pending = null;
+
+		if (!modal.length) {
+			return;
+		}
+
+		this.programmaticClose = true;
+		modal.modal('hide');
+	},
+
+	'refresh': function() {
+		var self = this;
+		var requestId = ++self.requestSeq;
+
+		if (typeof window.NovaCartStockPopupEnabled !== 'undefined' && !window.NovaCartStockPopupEnabled) {
+			self.closeCurrent();
+			return;
+		}
+
+		$.ajax({
+			url: 'index.php?route=checkout/cart/stockPopup',
+			type: 'post',
+			data: {
+				current_route: self.route()
+			},
+			dataType: 'json',
+			global: false,
+			success: function(json) {
+				if (requestId !== self.requestSeq) {
+					return;
+				}
+
+				if (!json['show'] || !json['html'] || !json['signature']) {
+					self.closeCurrent();
+					return;
+				}
+
+				$('.cart-success-alert').remove();
+				self.render(json['html'], json['signature']);
+			}
+		});
+	}
+};
+
+$(function() {
+	stockShortagePopup.refresh();
+});
+
 // Cart add remove functions
 var cart = {
 	'add': function(product_id, quantity) {
@@ -157,7 +256,7 @@ var cart = {
 				}
 
 				if (json['success']) {
-					$('#content').parent().before('<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
+					$('#content').parent().before('<div class="alert alert-success alert-dismissible cart-success-alert"><i class="fa fa-check-circle"></i> ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
 
 					// Need to set timeout otherwise it wont update the total
 					setTimeout(function () {
@@ -167,6 +266,7 @@ var cart = {
 					$('html, body').animate({ scrollTop: 0 }, 'slow');
 
 					$('#cart > ul').load('index.php?route=common/cart/info ul li');
+					stockShortagePopup.refresh();
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
@@ -196,6 +296,7 @@ var cart = {
 					location = 'index.php?route=checkout/cart';
 				} else {
 					$('#cart > ul').load('index.php?route=common/cart/info ul li');
+					stockShortagePopup.refresh();
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
@@ -225,6 +326,7 @@ var cart = {
 					location = 'index.php?route=checkout/cart';
 				} else {
 					$('#cart > ul').load('index.php?route=common/cart/info ul li');
+					stockShortagePopup.refresh();
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {

@@ -153,6 +153,38 @@ class ControllerCommonHeader extends Controller {
 		$data['checkout'] = $this->url->link('checkout/checkout', '', true);
 		$data['contact'] = $this->url->link('information/contact');
 		$data['telephone'] = $this->config->get('config_telephone');
+		$data['current_route'] = isset($this->request->get['route']) && is_scalar($this->request->get['route'])
+			? (string)$this->request->get['route']
+			: 'common/home';
+
+		$data['stock_popup_enabled'] = false;
+		$data['stock_popup_mode'] = (string)$this->config->get('config_stock_popup_mode');
+
+		if (!$data['stock_popup_mode']) {
+			$data['stock_popup_mode'] = 'checkout';
+		}
+
+		if ($this->config->get('config_stock_popup_status')) {
+			$mode = $data['stock_popup_mode'];
+
+			if (!$mode) {
+				$mode = 'checkout';
+			}
+
+			if ($mode === 'all') {
+				$data['stock_popup_enabled'] = true;
+			} elseif ($mode === 'checkout') {
+				$data['stock_popup_enabled'] = (strpos($data['current_route'], 'checkout/') === 0);
+			} elseif ($mode === 'routes') {
+				$config_routes = trim((string)$this->config->get('config_stock_popup_routes'));
+
+				if ($config_routes !== '') {
+					$routes = preg_split('/[\r\n,]+/', $config_routes, -1, PREG_SPLIT_NO_EMPTY);
+					$routes = array_map('trim', $routes);
+					$data['stock_popup_enabled'] = in_array($data['current_route'], $routes, true);
+				}
+			}
+		}
 
 		$data['language'] = $this->load->controller('common/language');
 		$data['currency'] = $this->load->controller('common/currency');

@@ -49,6 +49,7 @@
                         <li><a href="#tab-store" data-toggle="tab"><i class="fa fa-home"></i> {{ tab_store }}</a></li>
                         <li><a href="#tab-local" data-toggle="tab"><i class="fa fa-globe"></i> {{ tab_local }}</a></li>
                         <li><a href="#tab-option" data-toggle="tab"><i class="fa fa-sliders"></i> {{ tab_option }}</a></li>
+                        <li><a href="#tab-stock-popup" data-toggle="tab"><i class="fa fa-exclamation-triangle"></i> {{ tab_stock_popup }}</a></li>
                         <li><a href="#tab-image" data-toggle="tab"><i class="fa fa-image"></i> {{ tab_image }}</a></li>
                         <li><a href="#tab-mail" data-toggle="tab"><i class="fa fa-envelope"></i> {{ tab_mail }}</a></li>
                         <li><a href="#tab-server" data-toggle="tab"><i class="fa fa-server"></i> {{ tab_server }}</a></li>
@@ -1222,6 +1223,100 @@
                                 </div>
                             </fieldset>
                         </div>
+                        <div class="tab-pane" id="tab-stock-popup">
+                            <fieldset>
+                                <legend>{{ text_stock_popup }}</legend>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_popup_status }}</label>
+                                    <div class="col-sm-10">
+                                        <label class="radio-inline">
+                                            <input type="radio" name="config_stock_popup_status" value="1" {{ config_stock_popup_status ? 'checked="checked"' : '' }} /> {{ text_enabled }}
+                                        </label>
+                                        <label class="radio-inline">
+                                            <input type="radio" name="config_stock_popup_status" value="0" {{ not config_stock_popup_status ? 'checked="checked"' : '' }} /> {{ text_disabled }}
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group stock-popup-mode-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_popup_mode }}</label>
+                                    <div class="col-sm-10">
+                                        <div class="stock-popup-mode-options">
+                                            <label class="radio">
+                                                <input type="radio" name="config_stock_popup_mode" value="checkout" {{ config_stock_popup_mode == 'checkout' ? 'checked="checked"' : '' }} />
+                                                <span>{{ text_stock_popup_mode_checkout }}</span>
+                                            </label>
+                                            <label class="radio">
+                                                <input type="radio" name="config_stock_popup_mode" value="all" {{ config_stock_popup_mode == 'all' ? 'checked="checked"' : '' }} />
+                                                <span>{{ text_stock_popup_mode_all }}</span>
+                                            </label>
+                                            <label class="radio">
+                                                <input type="radio" name="config_stock_popup_mode" value="routes" {{ config_stock_popup_mode == 'routes' ? 'checked="checked"' : '' }} />
+                                                <span>{{ text_stock_popup_mode_routes }}</span>
+                                            </label>
+                                        </div>
+                                        <p class="help-block">{{ help_stock_popup_mode }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" id="stock-popup-routes-group" style="{{ config_stock_popup_mode == 'routes' ? '' : 'display:none;' }}">
+                                    <label class="col-sm-2 control-label" for="input-stock-popup-routes"><span data-toggle="tooltip" title="{{ help_stock_popup_routes }}">{{ entry_stock_popup_routes }}</span></label>
+                                    <div class="col-sm-10">
+                                        <textarea name="config_stock_popup_routes" rows="6" id="input-stock-popup-routes" class="form-control" placeholder="checkout/cart&#10;checkout/checkout&#10;checkout/simplecheckout">{{ config_stock_popup_routes }}</textarea>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_popup_title }}</label>
+                                    <div class="col-sm-10">
+                                        {% for language in languages %}
+                                        <div class="input-group" style="margin-bottom:8px;">
+                                            <span class="input-group-addon"><img src="language/{{ language.code }}/{{ language.code }}.png" title="{{ language.name }}" /></span>
+                                            <input type="text" name="config_stock_popup_title[{{ language.language_id }}]" value="{{ config_stock_popup_title[language.language_id] is defined ? config_stock_popup_title[language.language_id] : '' }}" class="form-control" />
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_popup_message }}</label>
+                                    <div class="col-sm-10">
+                                        {% for language in languages %}
+                                        <div class="input-group" style="margin-bottom:8px;">
+                                            <span class="input-group-addon"><img src="language/{{ language.code }}/{{ language.code }}.png" title="{{ language.name }}" /></span>
+                                            <textarea name="config_stock_popup_message[{{ language.language_id }}]" rows="3" class="form-control">{{ config_stock_popup_message[language.language_id] is defined ? config_stock_popup_message[language.language_id] : '' }}</textarea>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_popup_show_image }}</label>
+                                    <div class="col-sm-10">
+                                        <label class="radio-inline"><input type="radio" name="config_stock_popup_show_image" value="1" {{ config_stock_popup_show_image ? 'checked="checked"' : '' }} /> {{ text_yes }}</label>
+                                        <label class="radio-inline"><input type="radio" name="config_stock_popup_show_image" value="0" {{ not config_stock_popup_show_image ? 'checked="checked"' : '' }} /> {{ text_no }}</label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_popup_show_model }}</label>
+                                    <div class="col-sm-10">
+                                        <label class="radio-inline"><input type="radio" name="config_stock_popup_show_model" value="1" {{ config_stock_popup_show_model ? 'checked="checked"' : '' }} /> {{ text_yes }}</label>
+                                        <label class="radio-inline"><input type="radio" name="config_stock_popup_show_model" value="0" {{ not config_stock_popup_show_model ? 'checked="checked"' : '' }} /> {{ text_no }}</label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">{{ entry_stock_popup_show_quantity }}</label>
+                                    <div class="col-sm-10">
+                                        <label class="radio-inline"><input type="radio" name="config_stock_popup_show_quantity" value="1" {{ config_stock_popup_show_quantity ? 'checked="checked"' : '' }} /> {{ text_yes }}</label>
+                                        <label class="radio-inline"><input type="radio" name="config_stock_popup_show_quantity" value="0" {{ not config_stock_popup_show_quantity ? 'checked="checked"' : '' }} /> {{ text_no }}</label>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+
                         <div class="tab-pane" id="tab-image">
                             <div class="form-group">
                                 <label class="col-sm-2 control-label" for="input-logo">{{ entry_logo }}</label>
@@ -2157,4 +2252,30 @@ $('#button-test-smtp').on('click', function() {
 });
 </script>
 
+<style>
+#tab-stock-popup .stock-popup-mode-options .radio {
+    margin: 0 0 8px;
+    padding-left: 24px;
+    font-weight: 400;
+}
+
+#tab-stock-popup .stock-popup-mode-options .radio:last-child {
+    margin-bottom: 0;
+}
+
+#tab-stock-popup .stock-popup-mode-options .radio input[type="radio"] {
+    margin-left: -24px;
+    margin-top: 3px;
+}
+
+#tab-stock-popup .stock-popup-mode-options .radio span {
+    font-weight: 400;
+}
+</style>
+
+<script type="text/javascript">
+$(document).on('change', 'input[name="config_stock_popup_mode"]', function() {
+    $('#stock-popup-routes-group').toggle(this.value === 'routes');
+});
+</script>
 {{ footer }}

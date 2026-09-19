@@ -804,6 +804,64 @@ class ControllerSettingSetting extends Controller {
 			$data['config_stock_checkout'] = $this->config->get('config_stock_checkout');
 		}
 
+		if (isset($this->request->post['config_stock_popup_status'])) {
+			$data['config_stock_popup_status'] = (int)$this->request->post['config_stock_popup_status'];
+		} else {
+			$data['config_stock_popup_status'] = (int)$this->config->get('config_stock_popup_status');
+		}
+
+		if (isset($this->request->post['config_stock_popup_mode'])) {
+			$data['config_stock_popup_mode'] = (string)$this->request->post['config_stock_popup_mode'];
+		} elseif ($this->config->has('config_stock_popup_mode')) {
+			$data['config_stock_popup_mode'] = (string)$this->config->get('config_stock_popup_mode');
+		} else {
+			$data['config_stock_popup_mode'] = 'checkout';
+		}
+
+		if (isset($this->request->post['config_stock_popup_routes'])) {
+			$data['config_stock_popup_routes'] = (string)$this->request->post['config_stock_popup_routes'];
+		} elseif ($this->config->has('config_stock_popup_routes')) {
+			$data['config_stock_popup_routes'] = (string)$this->config->get('config_stock_popup_routes');
+		} else {
+			$data['config_stock_popup_routes'] = '';
+		}
+
+		if (isset($this->request->post['config_stock_popup_title']) && is_array($this->request->post['config_stock_popup_title'])) {
+			$data['config_stock_popup_title'] = $this->request->post['config_stock_popup_title'];
+		} else {
+			$data['config_stock_popup_title'] = (array)$this->config->get('config_stock_popup_title');
+		}
+
+		if (isset($this->request->post['config_stock_popup_message']) && is_array($this->request->post['config_stock_popup_message'])) {
+			$data['config_stock_popup_message'] = $this->request->post['config_stock_popup_message'];
+		} else {
+			$data['config_stock_popup_message'] = (array)$this->config->get('config_stock_popup_message');
+		}
+
+		if (isset($this->request->post['config_stock_popup_show_image'])) {
+			$data['config_stock_popup_show_image'] = (int)$this->request->post['config_stock_popup_show_image'];
+		} elseif ($this->config->has('config_stock_popup_show_image')) {
+			$data['config_stock_popup_show_image'] = (int)$this->config->get('config_stock_popup_show_image');
+		} else {
+			$data['config_stock_popup_show_image'] = 1;
+		}
+
+		if (isset($this->request->post['config_stock_popup_show_model'])) {
+			$data['config_stock_popup_show_model'] = (int)$this->request->post['config_stock_popup_show_model'];
+		} elseif ($this->config->has('config_stock_popup_show_model')) {
+			$data['config_stock_popup_show_model'] = (int)$this->config->get('config_stock_popup_show_model');
+		} else {
+			$data['config_stock_popup_show_model'] = 1;
+		}
+
+		if (isset($this->request->post['config_stock_popup_show_quantity'])) {
+			$data['config_stock_popup_show_quantity'] = (int)$this->request->post['config_stock_popup_show_quantity'];
+		} elseif ($this->config->has('config_stock_popup_show_quantity')) {
+			$data['config_stock_popup_show_quantity'] = (int)$this->config->get('config_stock_popup_show_quantity');
+		} else {
+			$data['config_stock_popup_show_quantity'] = 1;
+		}
+
 		if (isset($this->request->post['config_affiliate_group_id'])) {
 			$data['config_affiliate_group_id'] = (int)$this->request->post['config_affiliate_group_id'];
 		} else {

@@ -1,0 +1,48 @@
+<div class="modal fade" id="stock-shortage-modal" tabindex="-1" role="dialog" aria-labelledby="stock-shortage-title">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content stock-shortage-modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+        <h4 class="modal-title" id="stock-shortage-title"><i class="fa fa-exclamation-triangle text-danger"></i> {{ title }}</h4>
+      </div>
+      <div class="modal-body">
+        {% if message %}
+        <p class="stock-shortage-message">{{ message }}</p>
+        {% endif %}
+        <div class="list-group stock-shortage-list">
+          {% for product in products %}
+          <div class="list-group-item stock-shortage-item">
+            {% if show_image and product.thumb %}
+            <a href="{{ product.href }}" class="stock-shortage-thumb"><img src="{{ product.thumb }}" alt="{{ product.name }}" class="img-thumbnail" /></a>
+            {% endif %}
+            <div class="stock-shortage-info">
+            <div class="stock-shortage-name">
+              <a href="{{ product.href }}">{{ product.name }}</a>
+            </div>
+            {% if product.option %}
+            <div class="stock-shortage-options">
+              {% for option in product.option %}
+              <small>{{ option.name }}: {{ option.value }}</small>{% if not loop.last %}<br />{% endif %}
+              {% endfor %}
+            </div>
+            {% endif %}
+            <div class="stock-shortage-meta">
+              {% if show_model and product.model %}
+              <span><strong>{{ text_model }}:</strong> {{ product.model }}</span>
+              {% endif %}
+              <span class="stock-shortage-available"><strong>{{ text_available }}:</strong> {{ product.available }}</span>
+              {% if show_quantity %}
+              <span><strong>{{ text_quantity }}:</strong> {{ product.quantity }}</span>
+              {% endif %}
+            </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">{{ button_close }}</button>
+      </div>
+    </div>
+  </div>
+</div>
