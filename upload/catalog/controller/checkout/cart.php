@@ -607,6 +607,31 @@ class ControllerCheckoutCart extends Controller {
 		$this->response->setOutput(json_encode($json));
 	}
 
+	public function buttonState() {
+		$this->load->language('checkout/cart');
+
+		$products = array();
+
+		foreach ($this->cart->getProducts() as $product) {
+			$product_id = (int)$product['product_id'];
+
+			if (!isset($products[$product_id])) {
+				$products[$product_id] = 0;
+			}
+
+			$products[$product_id] += (int)$product['quantity'];
+		}
+
+		$json = array(
+			'products'       => $products,
+			'button_cart'    => $this->language->get('button_cart'),
+			'button_in_cart' => $this->language->get('button_in_cart')
+		);
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
 	public function stockPopup() {
 		$this->load->language('checkout/cart');
 
