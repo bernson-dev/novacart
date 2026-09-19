@@ -598,6 +598,7 @@ class ControllerCheckoutCart extends Controller {
 		}
 
 		$products = array();
+		$signature_data = array();
 
 		$this->load->model('tool/image');
 		$this->load->model('tool/upload');
@@ -641,13 +642,20 @@ class ControllerCheckoutCart extends Controller {
 			}
 
 			$products[] = array(
-				'name'     => $product['name'],
-				'model'    => $product['model'],
+				'name'      => $product['name'],
+				'model'     => $product['model'],
 				'quantity'  => (int)$product['quantity'],
 				'available' => $available,
 				'option'    => $option_data,
-				'thumb'    => $thumb,
-				'href'     => $this->url->link('product/product', 'product_id=' . (int)$product['product_id'])
+				'thumb'     => $thumb,
+				'href'      => $this->url->link('product/product', 'product_id=' . (int)$product['product_id'])
+			);
+
+			$signature_data[] = array(
+				'cart_id'   => (int)$product['cart_id'],
+				'product_id'=> (int)$product['product_id'],
+				'quantity'  => (int)$product['quantity'],
+				'available' => $available
 			);
 		}
 
@@ -674,6 +682,7 @@ class ControllerCheckoutCart extends Controller {
 			$data['button_close'] = $this->language->get('button_stock_popup_close');
 
 			$json['show'] = true;
+			$json['signature'] = sha1(json_encode($signature_data));
 			$json['html'] = $this->load->view('common/stock_shortage_popup', $data);
 		}
 
@@ -687,10 +696,28 @@ class ControllerCheckoutCart extends Controller {
 			return false;
 		}
 
+		$mode = (string)$this->config->get('config_stock_popup_mode');
+
+		if (!$mode) {
+			$mode = 'checkout';
+		}
+
+		if ($mode === 'all') {
+			return true;
+		}
+
+		if ($mode === 'checkout') {
+			return strpos((string)$route, 'checkout/') === 0;
+		}
+
+		if ($mode !== 'routes') {
+			return false;
+		}
+
 		$config_routes = trim((string)$this->config->get('config_stock_popup_routes'));
 
 		if ($config_routes === '') {
-			return true;
+			return false;
 		}
 
 		$routes = preg_split('/[\r\n,]+/', $config_routes, -1, PREG_SPLIT_NO_EMPTY);
