@@ -82,34 +82,36 @@ class ModelCatalogStockPolicy extends Model {
 		$can_buy = true;
 		$reason = '';
 
-		if ($available !== null && $available <= 0) {
+		if ($available !== null && $requested_total > $available) {
 			if ($action === 'block') {
 				$can_buy = false;
-				$reason = 'out_of_stock';
+				$reason = ($available <= 0) ? 'out_of_stock' : 'insufficient';
 			} elseif ($action === 'allow') {
 				$can_buy = true;
 			} else {
-				$can_buy = (bool)$this->config->get('config_stock_checkout');
+				if ($available <= 0) {
+					$can_buy = (bool)$this->config->get('config_stock_checkout');
 
-				if (!$can_buy) {
-					$reason = 'out_of_stock';
+					if (!$can_buy) {
+						$reason = 'out_of_stock';
+					}
+				} else {
+					$excess_mode = (string)$this->config->get('config_stock_purchase_excess');
+
+					if (!$excess_mode) {
+						$excess_mode = 'block';
+					}
+
+					if ($excess_mode === 'checkout') {
+						$can_buy = (bool)$this->config->get('config_stock_checkout');
+					} else {
+						$can_buy = false;
+					}
+
+					if (!$can_buy) {
+						$reason = 'insufficient';
+					}
 				}
-			}
-		} elseif ($available !== null && $requested_total > $available) {
-			$excess_mode = (string)$this->config->get('config_stock_purchase_excess');
-
-			if (!$excess_mode) {
-				$excess_mode = 'block';
-			}
-
-			if ($excess_mode === 'checkout') {
-				$can_buy = (bool)$this->config->get('config_stock_checkout');
-			} else {
-				$can_buy = false;
-			}
-
-			if (!$can_buy) {
-				$reason = 'insufficient';
 			}
 		}
 
