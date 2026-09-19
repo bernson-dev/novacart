@@ -302,7 +302,7 @@
                             {% elseif stock_button_mode != 'hide' %}
                             <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-warning btn-lg btn-block stock-purchase-disabled stock-purchase-warning" disabled="disabled">{{ stock_button_mode == 'disable_status' ? stock_button_text : button_cart }}</button>
                             {% endif %}
-                            <div id="stock-purchase-message" class="help-block stock-purchase-message" style="display:none;"></div>
+                            <div id="stock-purchase-message" class="help-block stock-purchase-message"{% if stock_preorder_allowed %}>{{ text_stock_preorder_allowed }}{% else %} style="display:none;">{% endif %}</div>
                         </div>
                         {% if minimum > 1 %}
                         <div class="alert alert-info">
@@ -436,8 +436,12 @@
                         return;
                     }
 
-                    button.prop('disabled', false).removeClass('stock-purchase-disabled');
+                    button.show().prop('disabled', false).removeClass('stock-purchase-disabled stock-purchase-warning');
                     button.text(json['button_text'] || '{{ button_cart|escape('js') }}');
+
+                    if (json['preorder_allowed'] && json['preorder_message']) {
+                        message.removeClass('stock-purchase-error').addClass('stock-purchase-info').text(json['preorder_message']).show();
+                    }
                 } else {
                     if (json['button_mode'] === 'hide') {
                         button.hide();
@@ -447,7 +451,7 @@
                     }
 
                     if (json['message']) {
-                        message.text(json['message']).show();
+                        message.removeClass('stock-purchase-info').addClass('stock-purchase-error').text(json['message']).show();
                     }
                 }
             }
