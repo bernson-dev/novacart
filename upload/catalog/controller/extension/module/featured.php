@@ -9,7 +9,7 @@ class ControllerExtensionModuleFeatured extends Controller {
 
 		$data['products'] = array();
 
-		$this->load->model('catalog/stock_policy');
+			$this->load->model('catalog/stock_policy');
 
 		if (!$setting['limit']) {
 			$setting['limit'] = 4;
@@ -54,9 +54,9 @@ class ControllerExtensionModuleFeatured extends Controller {
 						$rating = false;
 					}
 
-										$stock_policy = $this->model_catalog_stock_policy->getListPolicy($product_info);
+					$stock_policy = $this->model_catalog_stock_policy->getListPolicy($product_info);
 
-$data['products'][] = array(
+					$data['products'][] = array(
 						'product_id'  => $product_info['product_id'],
 						'thumb'       => $image,
 						'name'        => $product_info['name'],
