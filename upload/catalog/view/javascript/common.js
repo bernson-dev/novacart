@@ -145,38 +145,12 @@ var stockShortagePopup = {
 		return (typeof window.NovaCartRoute !== 'undefined' ? window.NovaCartRoute : (getURLVar('route') || 'common/home'));
 	},
 
-	'storageKey': function() {
-		var mode = (typeof window.NovaCartStockPopupMode !== 'undefined' ? window.NovaCartStockPopupMode : 'checkout');
-		var scope = (mode === 'checkout' ? 'checkout' : this.route());
-
-		return 'novacart_stock_popup_dismissed:' + scope;
-	},
-
-	'getDismissedSignature': function() {
-		try {
-			return sessionStorage.getItem(this.storageKey()) || '';
-		} catch (e) {
-			return '';
-		}
-	},
-
-	'setDismissedSignature': function(signature) {
-		try {
-			if (signature) {
-				sessionStorage.setItem(this.storageKey(), signature);
-			} else {
-				sessionStorage.removeItem(this.storageKey());
-			}
-		} catch (e) {
-			// sessionStorage may be unavailable in strict privacy modes.
-		}
-	},
-
 	'render': function(html, signature) {
 		var self = this;
 		var currentModal = $('#stock-shortage-modal');
 
 		if (currentModal.length) {
+			// Do not reopen or duplicate the same warning while it is already visible.
 			if (currentModal.data('stock-signature') === signature) {
 				return;
 			}
@@ -196,12 +170,7 @@ var stockShortagePopup = {
 			.data('stock-signature', signature)
 			.on('hidden.bs.modal', function() {
 				var modal = $(this);
-				var wasProgrammatic = self.programmaticClose;
 				var next = self.pending;
-
-				if (!wasProgrammatic) {
-					self.setDismissedSignature(modal.data('stock-signature') || '');
-				}
 
 				self.programmaticClose = false;
 				self.pending = null;
@@ -250,12 +219,6 @@ var stockShortagePopup = {
 				}
 
 				if (!json['show'] || !json['html'] || !json['signature']) {
-					self.setDismissedSignature('');
-					self.closeCurrent();
-					return;
-				}
-
-				if (self.getDismissedSignature() === json['signature']) {
 					self.closeCurrent();
 					return;
 				}
