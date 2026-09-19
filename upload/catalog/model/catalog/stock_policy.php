@@ -70,6 +70,7 @@ class ModelCatalogStockPolicy extends Model {
 				'reason'          => '',
 				'stock_status_id' => isset($product['stock_status_id']) ? (int)$product['stock_status_id'] : 0,
 				'stock_status'    => isset($product['stock_status']) ? (string)$product['stock_status'] : '',
+				'stock_rule'      => 'inherit',
 				'button_text'     => $this->language->get('button_cart'),
 				'existing_quantity'=> $existing_quantity,
 				'requested_total' => $requested_total
@@ -85,33 +86,24 @@ class ModelCatalogStockPolicy extends Model {
 		if ($available !== null && $requested_total > $available) {
 			if ($action === 'block') {
 				$can_buy = false;
-				$reason = ($available <= 0) ? 'out_of_stock' : 'insufficient';
 			} elseif ($action === 'allow') {
 				$can_buy = true;
 			} else {
-				if ($available <= 0) {
-					$can_buy = (bool)$this->config->get('config_stock_checkout');
+				$excess_mode = (string)$this->config->get('config_stock_purchase_excess');
 
-					if (!$can_buy) {
-						$reason = 'out_of_stock';
-					}
-				} else {
-					$excess_mode = (string)$this->config->get('config_stock_purchase_excess');
-
-					if (!$excess_mode) {
-						$excess_mode = 'block';
-					}
-
-					if ($excess_mode === 'checkout') {
-						$can_buy = (bool)$this->config->get('config_stock_checkout');
-					} else {
-						$can_buy = false;
-					}
-
-					if (!$can_buy) {
-						$reason = 'insufficient';
-					}
+				if (!$excess_mode) {
+					$excess_mode = 'block';
 				}
+
+				if ($excess_mode === 'checkout') {
+					$can_buy = (bool)$this->config->get('config_stock_checkout');
+				} else {
+					$can_buy = false;
+				}
+			}
+
+			if (!$can_buy) {
+				$reason = ($available <= 0) ? 'out_of_stock' : 'insufficient';
 			}
 		}
 
@@ -134,9 +126,135 @@ class ModelCatalogStockPolicy extends Model {
 			'reason'          => $reason,
 			'stock_status_id' => $stock_status_id,
 			'stock_status'    => $stock_status,
+			'stock_rule'      => $action,
 			'button_text'     => $button_text,
 			'existing_quantity'=> $existing_quantity,
 			'requested_total' => $requested_total
+		);
+	}
+
+	public function evaluateCartProduct(array $cart_product) {
+		$this->load->model('catalog/product');
+
+		$product = $this->model_catalog_product->getProduct((int)$cart_product['product_id']);
+
+		if (!$product) {
+			return array(
+				'can_buy'    => false,
+				'stock_rule' => 'inherit',
+				'reason'     => 'unavailable',
+				'available'  => 0
+			);
+		}
+
+		$option = array();
+
+		if (!empty($cart_product['option']) && is_array($cart_product['option'])) {
+			foreach ($cart_product['option'] as $item) {
+				if (empty($item['product_option_id'])) {
+					continue;
+				}
+
+				$product_option_id = (int)$item['product_option_id'];
+
+				if ($item['type'] === 'checkbox') {
+					if (!isset($option[$product_option_id]) || !is_array($option[$product_option_id])) {
+						$option[$product_option_id] = array();
+					}
+
+					if ($item['product_option_value_id'] !== '') {
+						$option[$product_option_id][] = (int)$item['product_option_value_id'];
+					}
+				} elseif (in_array($item['type'], array('select', 'radio', 'image'), true)) {
+					$option[$product_option_id] = (int)$item['product_option_value_id'];
+				} else {
+					$option[$product_option_id] = $item['value'];
+				}
+			}
+		}
+
+		return $this->evaluate($product, max(1, (int)$cart_product['quantity']), $option, false);
+	}
+
+	public function getCartStockState() {
+		$raw_has_stock = $this->cart->hasStock();
+
+		if (!$this->config->get('config_stock_purchase_status')) {
+			return array(
+				'has_shortage' => !$raw_has_stock,
+				'can_checkout' => $raw_has_stock || (bool)$this->config->get('config_stock_checkout'),
+				'warning'      => !$raw_has_stock && (!(bool)$this->config->get('config_stock_checkout') || (bool)$this->config->get('config_stock_warning'))
+			);
+		}
+
+		$has_shortage = false;
+		$can_checkout = true;
+		$warning = false;
+
+		foreach ($this->cart->getProducts() as $product) {
+			if (!empty($product['stock'])) {
+				continue;
+			}
+
+			$has_shortage = true;
+			$policy = $this->evaluateCartProduct($product);
+
+			if (isset($policy['stock_rule']) && $policy['stock_rule'] === 'allow') {
+				continue;
+			}
+
+			if (empty($policy['can_buy'])) {
+				$can_checkout = false;
+				$warning = true;
+			} elseif ($this->config->get('config_stock_warning')) {
+				$warning = true;
+			}
+		}
+
+		return array(
+			'has_shortage' => $has_shortage,
+			'can_checkout' => $can_checkout,
+			'warning'      => $warning
+		);
+	}
+
+	public function getCartProductState(array $product) {
+		if (!empty($product['stock'])) {
+			return array(
+				'shortage'     => false,
+				'can_checkout' => true,
+				'warning'      => false,
+				'policy'       => null
+			);
+		}
+
+		if (!$this->config->get('config_stock_purchase_status')) {
+			$can_checkout = (bool)$this->config->get('config_stock_checkout');
+
+			return array(
+				'shortage'     => true,
+				'can_checkout' => $can_checkout,
+				'warning'      => !$can_checkout || (bool)$this->config->get('config_stock_warning'),
+				'policy'       => null
+			);
+		}
+
+		$policy = $this->evaluateCartProduct($product);
+
+		if (isset($policy['stock_rule']) && $policy['stock_rule'] === 'allow') {
+			return array(
+				'shortage'     => true,
+				'can_checkout' => true,
+				'warning'      => false,
+				'policy'       => $policy
+			);
+		}
+
+		return array(
+			'shortage'     => true,
+			'can_checkout' => !empty($policy['can_buy']),
+			'warning'      => empty($policy['can_buy']) || (bool)$this->config->get('config_stock_warning'),
+			'policy'       => $policy
 		);
 	}
 
