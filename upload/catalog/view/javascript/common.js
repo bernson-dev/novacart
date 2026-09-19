@@ -137,8 +137,52 @@ $(document).ready(function() {
 
 // Stock shortage popup
 var stockShortagePopup = {
+	'programmaticClose': false,
+
+	'route': function() {
+		return (typeof window.NovaCartRoute !== 'undefined' ? window.NovaCartRoute : (getURLVar('route') || 'common/home'));
+	},
+
+	'storageKey': function() {
+		return 'novacart_stock_popup_dismissed:' + this.route();
+	},
+
+	'getDismissedSignature': function() {
+		try {
+			return sessionStorage.getItem(this.storageKey()) || '';
+		} catch (e) {
+			return '';
+		}
+	},
+
+	'setDismissedSignature': function(signature) {
+		try {
+			if (signature) {
+				sessionStorage.setItem(this.storageKey(), signature);
+			} else {
+				sessionStorage.removeItem(this.storageKey());
+			}
+		} catch (e) {
+			// sessionStorage may be unavailable in strict privacy modes.
+		}
+	},
+
+	'closeCurrent': function() {
+		var modal = $('#stock-shortage-modal');
+
+		if (!modal.length) {
+			return;
+		}
+
+		this.programmaticClose = true;
+		modal.modal('hide');
+	},
+
 	'refresh': function() {
+		var self = this;
+
 		if (typeof window.NovaCartStockPopupEnabled !== 'undefined' && !window.NovaCartStockPopupEnabled) {
+			self.closeCurrent();
 			return;
 		}
 
@@ -146,27 +190,47 @@ var stockShortagePopup = {
 			url: 'index.php?route=checkout/cart/stockPopup',
 			type: 'post',
 			data: {
-				current_route: (typeof window.NovaCartRoute !== 'undefined' ? window.NovaCartRoute : (getURLVar('route') || 'common/home'))
+				current_route: self.route()
 			},
 			dataType: 'json',
 			global: false,
 			success: function(json) {
 				var currentModal = $('#stock-shortage-modal');
 
+				if (!json['show'] || !json['html'] || !json['signature']) {
+					self.setDismissedSignature('');
+					self.closeCurrent();
+					return;
+				}
+
+				if (self.getDismissedSignature() === json['signature']) {
+					self.closeCurrent();
+					return;
+				}
+
+				if (currentModal.length && currentModal.data('stock-signature') === json['signature']) {
+					return;
+				}
+
 				if (currentModal.length) {
-					currentModal.modal('hide');
-					currentModal.remove();
+					self.closeCurrent();
 				}
 
-				if (json['show'] && json['html']) {
-					$('body').append(json['html']);
+				$('body').append(json['html']);
 
-					$('#stock-shortage-modal')
-						.modal('show')
-						.on('hidden.bs.modal', function() {
-							$(this).remove();
-						});
-				}
+				$('#stock-shortage-modal')
+					.data('stock-signature', json['signature'])
+					.on('hidden.bs.modal', function() {
+						var modal = $(this);
+
+						if (!self.programmaticClose) {
+							self.setDismissedSignature(modal.data('stock-signature') || '');
+						}
+
+						self.programmaticClose = false;
+						modal.remove();
+					})
+					.modal('show');
 			}
 		});
 	}
