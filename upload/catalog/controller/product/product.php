@@ -290,6 +290,13 @@ class ControllerProductProduct extends Controller {
 			$data['stock_can_buy'] = $stock_policy['can_buy'];
 			$data['stock_button_text'] = $stock_policy['button_text'];
 			$data['stock_button_mode'] = (string)$this->config->get('config_stock_purchase_button');
+			$data['stock_preorder_allowed'] = (
+				$stock_policy['can_buy'] &&
+				$stock_policy['available'] !== null &&
+				$stock_policy['requested_total'] > $stock_policy['available'] &&
+				$stock_policy['stock_rule'] === 'allow'
+			);
+			$data['text_stock_preorder_allowed'] = $this->language->get('text_stock_preorder_allowed');
 
 			$this->load->model('tool/image');
 
@@ -715,6 +722,13 @@ class ControllerProductProduct extends Controller {
 			$json['button_text'] = $policy['button_text'];
 			$json['button_mode'] = (string)$this->config->get('config_stock_purchase_button');
 			$json['reason'] = $policy['reason'];
+			$json['preorder_allowed'] = (
+				$policy['can_buy'] &&
+				$policy['available'] !== null &&
+				$policy['requested_total'] > $policy['available'] &&
+				$policy['stock_rule'] === 'allow'
+			);
+			$json['preorder_message'] = $json['preorder_allowed'] ? $this->language->get('text_stock_preorder_allowed') : '';
 
 			if (!$policy['can_buy']) {
 				if ($policy['available'] !== null) {
