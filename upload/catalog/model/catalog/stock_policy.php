@@ -7,6 +7,7 @@ class ModelCatalogStockPolicy extends Model {
 		$existing_quantity = $include_cart ? $this->getExistingCartQuantity((int)$product['product_id'], $option) : 0;
 		$requested_total = $existing_quantity + $quantity;
 		$available = null;
+		$remaining = null;
 		$limited_by = '';
 
 		if (!empty($product['subtract'])) {
@@ -55,11 +56,16 @@ class ModelCatalogStockPolicy extends Model {
 			}
 		}
 
+		if ($available !== null) {
+			$remaining = max(0, $available - $existing_quantity);
+		}
+
 		if (!$this->config->get('config_stock_purchase_status')) {
 			return array(
 				'can_buy'         => true,
 				'action'          => 'buy',
 				'available'       => $available,
+				'remaining'       => $remaining,
 				'limited_by'      => $limited_by,
 				'reason'          => '',
 				'stock_status_id' => isset($product['stock_status_id']) ? (int)$product['stock_status_id'] : 0,
@@ -121,6 +127,7 @@ class ModelCatalogStockPolicy extends Model {
 			'can_buy'         => $can_buy,
 			'action'          => $can_buy ? (($available !== null && $available <= 0) ? 'allow' : 'buy') : 'block',
 			'available'       => $available,
+			'remaining'       => $remaining,
 			'limited_by'      => $limited_by,
 			'reason'          => $reason,
 			'stock_status_id' => $stock_status_id,
