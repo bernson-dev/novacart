@@ -4,6 +4,8 @@ class ModelCatalogStockPolicy extends Model {
 		$this->load->model('catalog/product');
 
 		$quantity = max(1, (int)$quantity);
+		$existing_quantity = $this->getExistingCartQuantity((int)$product['product_id'], $option);
+		$requested_total = $existing_quantity + $quantity;
 		$available = null;
 		$limited_by = '';
 
@@ -62,7 +64,9 @@ class ModelCatalogStockPolicy extends Model {
 				'reason'          => '',
 				'stock_status_id' => isset($product['stock_status_id']) ? (int)$product['stock_status_id'] : 0,
 				'stock_status'    => isset($product['stock_status']) ? (string)$product['stock_status'] : '',
-				'button_text'     => $this->language->get('button_cart')
+				'button_text'     => $this->language->get('button_cart'),
+				'existing_quantity'=> $existing_quantity,
+				'requested_total' => $requested_total
 			);
 		}
 
@@ -85,7 +89,7 @@ class ModelCatalogStockPolicy extends Model {
 					$reason = 'out_of_stock';
 				}
 			}
-		} elseif ($available !== null && $quantity > $available) {
+		} elseif ($available !== null && $requested_total > $available) {
 			$excess_mode = (string)$this->config->get('config_stock_purchase_excess');
 
 			if (!$excess_mode) {
@@ -121,12 +125,52 @@ class ModelCatalogStockPolicy extends Model {
 			'reason'          => $reason,
 			'stock_status_id' => $stock_status_id,
 			'stock_status'    => $stock_status,
-			'button_text'     => $button_text
+			'button_text'     => $button_text,
+			'existing_quantity'=> $existing_quantity,
+			'requested_total' => $requested_total
 		);
 	}
 
 	public function getListPolicy(array $product) {
 		return $this->evaluate($product, isset($product['minimum']) ? max(1, (int)$product['minimum']) : 1);
+	}
+
+	private function getExistingCartQuantity($product_id, array $option) {
+		$normalized_option = $this->normalizeOption($option);
+
+		$query = $this->db->query("SELECT option, quantity FROM " . DB_PREFIX . "cart WHERE api_id = '" . (isset($this->session->data['api_id']) ? (int)$this->session->data['api_id'] : 0) . "' AND customer_id = '" . (int)$this->customer->getId() . "' AND session_id = '" . $this->db->escape($this->session->getId()) . "' AND product_id = '" . (int)$product_id . "'");
+
+		$total = 0;
+
+		foreach ($query->rows as $row) {
+			$row_option = json_decode($row['option'], true);
+
+			if (!is_array($row_option)) {
+				$row_option = array();
+			}
+
+			if ($this->normalizeOption($row_option) === $normalized_option) {
+				$total += (int)$row['quantity'];
+			}
+		}
+
+		return $total;
+	}
+
+	private function normalizeOption(array $option) {
+		foreach ($option as $key => $value) {
+			if (is_array($value)) {
+				$value = array_map('strval', $value);
+				sort($value, SORT_STRING);
+				$option[$key] = $value;
+			} else {
+				$option[$key] = (string)$value;
+			}
+		}
+
+		ksort($option, SORT_NUMERIC);
+
+		return $option;
 	}
 
 	private function getStockStatusAction($stock_status_id) {
