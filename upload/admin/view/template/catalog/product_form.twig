@@ -44,6 +44,11 @@
             <button type="button" class="close" data-dismiss="alert">&times;</button>
         </div>
         {% endif %}
+        <div id="option-quantity-alert" class="alert alert-dismissible" style="display:none;">
+            <i class="fa fa-info-circle option-quantity-alert-icon"></i>
+            <span class="option-quantity-alert-text"></span>
+            <button type="button" class="close" aria-label="Close">&times;</button>
+        </div>
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h3 class="panel-title">
@@ -247,6 +252,7 @@
                                                 <strong>Margin%:</strong> <span id="stat-margin">—</span></div>
                                         </div>
                                     </div>
+                                    <div id="margin-calculator-alert" class="alert" style="display:none; margin-top:10px; margin-bottom:0;"></div>
                                 </div>
                             </div>
                             {# Закупочная цена (конец) #}
@@ -280,7 +286,11 @@
                                 <label class="col-sm-2 control-label" for="input-quantity">{{ entry_quantity }}</label>
                                 <div class="col-sm-10">
                                     <input type="text" name="quantity" value="{{ quantity }}" placeholder="{{ entry_quantity }}" id="input-quantity" class="form-control"/>
-                                    <div id="option-quantity-note" class="help-block" style="display:none;"></div>
+                                    <input type="hidden" name="quantity_mode" value="{{ quantity_mode }}" id="input-quantity-mode"/>
+                                    <div id="option-quantity-note" class="help-block" style="display:none;">
+                                        <span id="option-quantity-note-text"></span>
+                                        <button type="button" id="option-quantity-auto" class="btn btn-link btn-xs" style="display:none; padding:0 0 0 5px;">{{ text_option_quantity_auto }}</button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -1679,6 +1689,7 @@
         function addOptionValue(option_row) {
             let html = '<tr id="option-value-row' + option_value_row + '">';
             html += '  <td class="text-left"><select name="product_option[' + option_row + '][product_option_value][' + option_value_row + '][option_value_id]" class="form-control">';
+            html += '    <option value="">{{ text_none|escape('js') }}</option>';
             html += $('#option-values' + option_row).html();
             html += '  </select><input type="hidden" name="product_option[' + option_row + '][product_option_value][' + option_value_row + '][product_option_value_id]" value="" /></td>';
             html += '  <td class="text-right"><input type="text" name="product_option[' + option_row + '][product_option_value][' + option_value_row + '][quantity]" value="" placeholder="{{ entry_quantity }}" class="form-control" /></td>';
@@ -1997,114 +2008,317 @@
 
     <script>
         (function () {
-            function toNum(v) {
-                v = (v || '').toString().replace(',', '.').trim();
-                var n = parseFloat(v);
-                return isNaN(n) ? 0 : n;
+            var costInput = $('#input-cost-price');
+            var priceInput = $('#input-price');
+            var markupInput = $('#input-markup-percent');
+            var marginInput = $('#input-margin-percent');
+            var calculatorAlert = $('#margin-calculator-alert');
+
+            function parseNumber(value) {
+                var normalized = $.trim((value || '').toString()).replace(',', '.');
+
+                if (normalized === '' || !/^-?(?:\d+(?:\.\d*)?|\.\d+)$/.test(normalized)) {
+                    return null;
+                }
+
+                var number = Number(normalized);
+
+                return isFinite(number) ? number : null;
             }
 
-            function fmt(n) {
-                // форматирование
-                return (Math.round(n * 10000) / 10000).toFixed(4);
+            function fmt(number) {
+                return (Math.round(number * 10000) / 10000).toFixed(4);
+            }
+
+            function resetStats() {
+                $('#stat-profit, #stat-markup, #stat-margin').text('—');
+            }
+
+            function showCalculatorAlert(type, message) {
+                calculatorAlert
+                    .removeClass('alert-info alert-success alert-warning alert-danger')
+                    .addClass('alert-' + type)
+                    .text(message)
+                    .stop(true, true)
+                    .show();
+            }
+
+            function hideCalculatorAlert() {
+                calculatorAlert.stop(true, true).hide().text('');
             }
 
             function recalcStats() {
-                var cost = toNum($('#input-cost-price').val());
-                var price = toNum($('#input-price').val());
+                var cost = parseNumber(costInput.val());
+                var price = parseNumber(priceInput.val());
 
-                if (price <= 0 && cost <= 0) {
-                    $('#stat-profit').text('—');
-                    $('#stat-markup').text('—');
-                    $('#stat-margin').text('—');
+                // Statistics are meaningful only when both prices are valid.
+                if (cost === null || price === null || cost <= 0 || price <= 0) {
+                    resetStats();
                     return;
                 }
 
                 var profit = price - cost;
-
-                var markup = (cost > 0) ? (profit / cost * 100) : 0;
-                var margin = (price > 0) ? (profit / price * 100) : 0;
+                var markup = profit / cost * 100;
+                var margin = profit / price * 100;
 
                 $('#stat-profit').text(fmt(profit));
                 $('#stat-markup').text((Math.round(markup * 100) / 100).toFixed(2) + '%');
                 $('#stat-margin').text((Math.round(margin * 100) / 100).toFixed(2) + '%');
             }
 
+            function getValidCost() {
+                var cost = parseNumber(costInput.val());
+
+                if (cost === null || cost <= 0) {
+                    showCalculatorAlert('warning', '{{ error_margin_cost_positive|escape('js') }}');
+                    costInput.focus();
+                    return null;
+                }
+
+                return cost;
+            }
+
             function setPriceFromMarkup() {
-                var cost = toNum($('#input-cost-price').val());
-                var pct = toNum($('#input-markup-percent').val());
-                var price = cost * (1 + pct / 100);
-                $('#input-price').val(fmt(price));
+                hideCalculatorAlert();
+
+                var cost = getValidCost();
+
+                if (cost === null) {
+                    return;
+                }
+
+                var markup = parseNumber(markupInput.val());
+
+                if (markup === null || markup <= 0) {
+                    showCalculatorAlert('warning', '{{ error_markup_positive|escape('js') }}');
+                    markupInput.focus();
+                    return;
+                }
+
+                var price = cost * (1 + markup / 100);
+
+                if (!isFinite(price) || price <= 0) {
+                    showCalculatorAlert('danger', '{{ error_margin_calculation|escape('js') }}');
+                    return;
+                }
+
+                priceInput.val(fmt(price));
+                hideCalculatorAlert();
                 recalcStats();
             }
 
             function setPriceFromMargin() {
-                var cost = toNum($('#input-cost-price').val());
-                var pct = toNum($('#input-margin-percent').val());
+                hideCalculatorAlert();
 
-                if (pct >= 100) {
-                    alert('Margin% cannot be >= 100');
+                var cost = getValidCost();
+
+                if (cost === null) {
                     return;
                 }
 
-                var price = cost / (1 - pct / 100);
-                $('#input-price').val(fmt(price));
+                var margin = parseNumber(marginInput.val());
+
+                if (margin === null || margin <= 0 || margin >= 100) {
+                    showCalculatorAlert('warning', '{{ error_margin_range|escape('js') }}');
+                    marginInput.focus();
+                    return;
+                }
+
+                var price = cost / (1 - margin / 100);
+
+                if (!isFinite(price) || price <= 0) {
+                    showCalculatorAlert('danger', '{{ error_margin_calculation|escape('js') }}');
+                    return;
+                }
+
+                priceInput.val(fmt(price));
+                hideCalculatorAlert();
                 recalcStats();
             }
 
-            // обновляем показатели при изменении цены/закупки
-            $(document).on('keyup change', '#input-cost-price, #input-price', recalcStats);
+            // Manual changes only update statistics; they never overwrite price.
+            $(document).on('input change', '#input-cost-price, #input-price', function() {
+                hideCalculatorAlert();
+                recalcStats();
+            });
 
-            // кнопки
+            markupInput.add(marginInput).on('input change', hideCalculatorAlert);
+
             $('#btn-calc-price-markup').on('click', setPriceFromMarkup);
             $('#btn-calc-price-margin').on('click', setPriceFromMargin);
 
-            // стартовый пересчёт
             $(recalcStats);
         })();
     </script>
     <script type="text/javascript">
     (function() {
-        function recalculateProductQuantity() {
-            var total = 0;
-            var hasManagedValues = false;
+        var quantityInput = $('#input-quantity');
+        var quantityMode = $('#input-quantity-mode');
+        var quantityNote = $('#option-quantity-note');
+        var quantityNoteText = $('#option-quantity-note-text');
+        var quantityAutoButton = $('#option-quantity-auto');
+        var quantityAlert = $('#option-quantity-alert');
+        var quantityAlertText = quantityAlert.find('.option-quantity-alert-text');
+        var quantityAlertIcon = quantityAlert.find('.option-quantity-alert-icon');
+        var hadManagedValues = false;
+        var quantityInitialized = false;
+
+        function showQuantityAlert(type, message) {
+            var iconClass = type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+
+            quantityAlert
+                .removeClass('alert-info alert-success alert-warning alert-danger')
+                .addClass('alert-' + type);
+
+            quantityAlertIcon
+                .removeClass('fa-info-circle fa-exclamation-triangle')
+                .addClass(iconClass);
+
+            quantityAlertText.text(message);
+            quantityAlert.stop(true, true).show();
+
+            // The notice is intentionally persistent because the quantity field
+            // is located on another tab and the administrator may not see an
+            // auto-closing message in time.
+            $('html, body').stop(true).animate({
+                scrollTop: Math.max(0, quantityAlert.offset().top - 15)
+            }, 200);
+        }
+
+        quantityAlert.on('click', '.close', function() {
+            quantityAlert.hide();
+        });
+
+        function getOptionQuantityState() {
+            var state = {
+                total: 0,
+                hasManagedValues: false
+            };
 
             $('#tab-option input[name^="product_option"][name$="[quantity]"]').each(function() {
-                var row = $(this).closest('tr');
+                var quantityField = $(this);
+                var row = quantityField.closest('tr');
+                var optionValueId = row.find('select[name$="[option_value_id]"]').val();
                 var subtract = row.find('select[name$="[subtract]"]').val();
+                var rawQuantity = $.trim(quantityField.val());
 
-                if (subtract != '1') {
+                // An unfinished row must not affect the product stock.
+                if (!optionValueId || subtract != '1' || rawQuantity === '' || !/^-?\d+$/.test(rawQuantity)) {
                     return;
                 }
 
-                var quantity = parseInt($(this).val(), 10);
-
-                if (isNaN(quantity) || quantity < 0) {
-                    quantity = 0;
-                }
-
-                hasManagedValues = true;
-                total += quantity;
+                state.hasManagedValues = true;
+                state.total += Math.max(0, parseInt(rawQuantity, 10));
             });
 
-            if (hasManagedValues) {
-                $('#input-quantity').val(total).prop('readonly', true);
-                $('#option-quantity-note')
-                    .text('{{ help_option_quantity_auto|escape('js') }}')
-                    .show();
+            return state;
+        }
+
+        function setAutomaticMode(state, notify) {
+            var previousValue = parseInt(quantityInput.val(), 10);
+
+            quantityMode.val('auto');
+
+            if (state.hasManagedValues) {
+                quantityInput.val(state.total).prop('readonly', true);
+                quantityNoteText.text('{{ help_option_quantity_auto|escape('js') }}');
+                quantityAutoButton.hide();
+                quantityNote.show();
+
+                if (notify) {
+                    showQuantityAlert(
+                        'info',
+                        '{{ text_option_quantity_auto_enabled|escape('js') }}'
+                            .replace('%s', isNaN(previousValue) ? '—' : previousValue)
+                            .replace('%s', state.total)
+                    );
+                }
             } else {
-                $('#input-quantity').prop('readonly', false);
-                $('#option-quantity-note').hide();
+                quantityInput.prop('readonly', false);
+                quantityNote.hide();
             }
         }
 
-        $(document).on('input change', '#tab-option input[name^="product_option"][name$="[quantity]"], #tab-option select[name^="product_option"][name$="[subtract]"]', recalculateProductQuantity);
+        function setManualMode() {
+            quantityMode.val('manual');
+            quantityInput.prop('readonly', false).focus().select();
+            quantityNoteText.text('{{ help_option_quantity_manual|escape('js') }}');
+            quantityAutoButton.show();
+            quantityNote.show();
+            showQuantityAlert('warning', '{{ text_option_quantity_manual_enabled|escape('js') }}');
+        }
 
-        $(document).on('click', '#tab-option .btn-danger, #option .fa-minus-circle', function() {
-            setTimeout(recalculateProductQuantity, 0);
+        function recalculateProductQuantity(forceAuto) {
+            var state = getOptionQuantityState();
+
+            if (forceAuto === true) {
+                setAutomaticMode(state, state.hasManagedValues);
+                hadManagedValues = state.hasManagedValues;
+                return;
+            }
+
+            // Manual override is authoritative until the user explicitly
+            // switches back to automatic calculation.
+            if (quantityMode.val() === 'manual') {
+                quantityInput.prop('readonly', false);
+                return;
+            }
+
+            var switchedToAuto = quantityInitialized && !hadManagedValues && state.hasManagedValues;
+
+            setAutomaticMode(state, switchedToAuto);
+            hadManagedValues = state.hasManagedValues;
+        }
+
+        // Double click is an intentional manual override. A single click keeps
+        // the calculated field protected from accidental edits.
+        quantityInput.on('dblclick', function() {
+            if (getOptionQuantityState().hasManagedValues) {
+                setManualMode();
+            }
         });
 
-        window.recalculateProductQuantity = recalculateProductQuantity;
-        $(recalculateProductQuantity);
+        quantityAutoButton.on('click', function() {
+            recalculateProductQuantity(true);
+        });
+
+        $(document).on(
+            'input change',
+            '#tab-option input[name^="product_option"][name$="[quantity]"], ' +
+            '#tab-option select[name^="product_option"][name$="[subtract]"], ' +
+            '#tab-option select[name^="product_option"][name$="[option_value_id]"]',
+            function() {
+                recalculateProductQuantity(false);
+            }
+        );
+
+        $(document).on('click', '#tab-option .btn-danger, #option .fa-minus-circle', function() {
+            setTimeout(function() {
+                recalculateProductQuantity(false);
+            }, 0);
+        });
+
+        window.recalculateProductQuantity = function() {
+            recalculateProductQuantity(false);
+        };
+
+        $(function() {
+            var state = getOptionQuantityState();
+
+            // A normal page load is silent: alerts are shown only for actions
+            // performed by the administrator on the current page.
+            if (quantityMode.val() === 'manual' && state.hasManagedValues) {
+                quantityInput.prop('readonly', false);
+                quantityNoteText.text('{{ help_option_quantity_manual|escape('js') }}');
+                quantityAutoButton.show();
+                quantityNote.show();
+            } else {
+                setAutomaticMode(state, false);
+            }
+
+            hadManagedValues = state.hasManagedValues;
+            quantityInitialized = true;
+        });
     })();
     </script>
     <script type="text/javascript">
