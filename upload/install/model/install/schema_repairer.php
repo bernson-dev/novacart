@@ -283,6 +283,16 @@ class SchemaRepairer {
             return true;
         }
 
+        // AUTO_INCREMENT является частью определения колонки. Без этой
+        // проверки repairSchemaFromFile() не замечает потерянный AUTO_INCREMENT,
+        // если тип и NOT NULL остались прежними (например cart.cart_id).
+        $schema_auto_increment = strpos($def, 'auto_increment') !== false;
+        $existing_auto_increment = strpos($existing_col['Extra'], 'auto_increment') !== false;
+
+        if ($schema_auto_increment !== $existing_auto_increment) {
+            return true;
+        }
+
         return false;
     }
 
