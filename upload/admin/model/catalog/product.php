@@ -82,6 +82,12 @@ class ModelCatalogProduct extends Model {
 						$product_option_id = $this->db->getLastId();
 
 						foreach ($product_option['product_option_value'] as $product_option_value) {
+							// A newly added option-value row may still contain the UI placeholder.
+							// Do not persist it as option_value_id = 0.
+							if (empty($product_option_value['option_value_id'])) {
+								continue;
+							}
+
 							$this->db->query("INSERT INTO " . DB_PREFIX . "product_option_value SET product_option_id = '" . (int)$product_option_id . "', product_id = '" . (int)$product_id . "', option_id = '" . (int)$product_option['option_id'] . "', option_value_id = '" . (int)$product_option_value['option_value_id'] . "', quantity = '" . (int)$product_option_value['quantity'] . "', subtract = '" . (int)$product_option_value['subtract'] . "', price = '" . (float)$product_option_value['price'] . "', price_prefix = '" . $this->db->escape($product_option_value['price_prefix']) . "', points = '" . (int)$product_option_value['points'] . "', points_prefix = '" . $this->db->escape($product_option_value['points_prefix']) . "', weight = '" . (float)$product_option_value['weight'] . "', weight_prefix = '" . $this->db->escape($product_option_value['weight_prefix']) . "'");
 						}
 					}
@@ -303,6 +309,12 @@ class ModelCatalogProduct extends Model {
 						$product_option_id = $this->db->getLastId();
 
 						foreach ($product_option['product_option_value'] as $product_option_value) {
+							// A newly added option-value row may still contain the UI placeholder.
+							// Do not persist it as option_value_id = 0.
+							if (empty($product_option_value['option_value_id'])) {
+								continue;
+							}
+
 							$this->db->query("INSERT INTO " . DB_PREFIX . "product_option_value SET product_option_value_id = '" . (int)$product_option_value['product_option_value_id'] . "', product_option_id = '" . (int)$product_option_id . "', product_id = '" . (int)$product_id . "', option_id = '" . (int)$product_option['option_id'] . "', option_value_id = '" . (int)$product_option_value['option_value_id'] . "', quantity = '" . (int)$product_option_value['quantity'] . "', subtract = '" . (int)$product_option_value['subtract'] . "', price = '" . (float)$product_option_value['price'] . "', price_prefix = '" . $this->db->escape($product_option_value['price_prefix']) . "', points = '" . (int)$product_option_value['points'] . "', points_prefix = '" . $this->db->escape($product_option_value['points_prefix']) . "', weight = '" . (float)$product_option_value['weight'] . "', weight_prefix = '" . $this->db->escape($product_option_value['weight_prefix']) . "'");
 						}
 					}
@@ -1184,15 +1196,25 @@ class ModelCatalogProduct extends Model {
 	}
 
 	/**
-	 * Calculate the product quantity from stock-managed option values.
+	 * Calculate the product quantity from configured stock-managed option values.
 	 *
-	 * When at least one selectable option value subtracts stock, the product's
-	 * total quantity is the sum of all such option value quantities.
-	 * Otherwise the manually entered product quantity is preserved.
+	 * Automatic mode is used only for real selectable option values with stock
+	 * subtraction enabled and an explicitly entered integer quantity. Placeholder
+	 * rows and unfinished rows therefore cannot reset the product quantity to zero.
+	 *
+	 * A manual override is explicit: the admin form posts quantity_mode=manual.
+	 * In that case the entered product quantity is authoritative and option stock
+	 * changes must not overwrite it.
 	 */
 	private function getProductOptionTotalQuantity($data, $fallback) {
+		$fallback = max(0, (int)$fallback);
+
+		if (isset($data['quantity_mode']) && $data['quantity_mode'] === 'manual') {
+			return $fallback;
+		}
+
 		if (empty($data['product_option']) || !is_array($data['product_option'])) {
-			return (int)$fallback;
+			return $fallback;
 		}
 
 		$total = 0;
@@ -1209,17 +1231,29 @@ class ModelCatalogProduct extends Model {
 			}
 
 			foreach ($product_option['product_option_value'] as $product_option_value) {
-				if (empty($product_option_value['subtract'])) {
+				if (
+					empty($product_option_value['option_value_id']) ||
+					empty($product_option_value['subtract'])
+				) {
+					continue;
+				}
+
+				// Blank/invalid quantity means the row is not configured yet.
+				// Typing 0 is explicit and therefore is a valid managed quantity.
+				$raw_quantity = isset($product_option_value['quantity'])
+					? trim((string)$product_option_value['quantity'])
+					: '';
+
+				if ($raw_quantity === '' || !preg_match('/^-?\\d+$/', $raw_quantity)) {
 					continue;
 				}
 
 				$has_managed_values = true;
-				$quantity = isset($product_option_value['quantity']) ? (int)$product_option_value['quantity'] : 0;
-				$total += max(0, $quantity);
+				$total += max(0, (int)$raw_quantity);
 			}
 		}
 
-		return $has_managed_values ? $total : (int)$fallback;
+		return $has_managed_values ? $total : $fallback;
 	}
 
 	private function productExists($product_id) {
