@@ -294,6 +294,16 @@ function emergencyModificationFailure(Throwable $e): void {
 	}
 
 	$message = get_class($e) . ': ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine();
+
+	// This emergency response bypasses framework.php's normal exception handler.
+	// Keep a dedicated diagnostic entry so OCMOD runtime failures are never silent.
+	if (defined('DIR_LOGS') && is_dir(DIR_LOGS)) {
+		@file_put_contents(
+			DIR_LOGS . 'ocmod-runtime-error.log',
+			date('Y-m-d H:i:s') . ' - ' . $message . PHP_EOL,
+			FILE_APPEND | LOCK_EX
+		);
+	}
 	$is_ajax = false;
 
 	if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower((string)$_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
@@ -376,7 +386,16 @@ function start($application_config): void {
 	try {
 		require_once(DIR_SYSTEM . 'framework.php');
 	} catch (Throwable $e) {
-		if (emergencyModificationFile($e->getFile())) {
+		/*
+		 * Emergency cleanup is reserved for engine-level PHP errors caused by
+		 * generated OCMOD code (ParseError, TypeError, Error, etc.).
+		 *
+		 * Ordinary Exceptions, including database exceptions, must reach the
+		 * framework exception handler so they are logged normally. The fact
+		 * that a library is loaded from DIR_MODIFICATION does not prove that
+		 * the modification itself caused an application/database exception.
+		 */
+		if ($e instanceof \Error && emergencyModificationFile($e->getFile())) {
 			emergencyModificationFailure($e);
 		}
 
