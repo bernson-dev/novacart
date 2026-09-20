@@ -280,7 +280,7 @@
                                 <label class="col-sm-2 control-label" for="input-quantity">{{ entry_quantity }}</label>
                                 <div class="col-sm-10">
                                     <input type="text" name="quantity" value="{{ quantity }}" placeholder="{{ entry_quantity }}" id="input-quantity" class="form-control"/>
-                                    <input type="hidden" name="quantity_mode" value="auto" id="input-quantity-mode"/>
+                                    <input type="hidden" name="quantity_mode" value="{{ quantity_mode }}" id="input-quantity-mode"/>
                                     <div id="option-quantity-note" class="help-block" style="display:none;">
                                         <span id="option-quantity-note-text"></span>
                                         <button type="button" id="option-quantity-auto" class="btn btn-link btn-xs" style="display:none; padding:0 0 0 5px;">{{ text_option_quantity_auto }}</button>
@@ -2174,16 +2174,11 @@
 
         $(function() {
             var state = getOptionQuantityState();
-            var storedQuantity = parseInt(quantityInput.val(), 10);
 
-            // If the saved product quantity differs from the current option sum,
-            // preserve it as a previous manual override instead of destroying it.
-            if (
-                state.hasManagedValues &&
-                !isNaN(storedQuantity) &&
-                Math.max(0, storedQuantity) !== state.total
-            ) {
-                quantityMode.val('manual');
+            // A normal page load with configured stock option values always
+            // starts in automatic mode. Manual mode is preserved only after a
+            // failed POST, when it was explicitly selected in the submitted form.
+            if (quantityMode.val() === 'manual' && state.hasManagedValues) {
                 quantityInput.prop('readonly', false);
                 quantityNoteText.text('{{ help_option_quantity_manual|escape('js') }}');
                 quantityAutoButton.show();
