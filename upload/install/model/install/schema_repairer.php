@@ -14,7 +14,17 @@ class SchemaRepairer {
      * @throws Exception
      */
     public function repairSchemaFromFile($db, $prefix) {
-        $schema_file = DIR_APPLICATION . 'model/install/opencart_schema.sql';
+        /*
+         * Use the canonical installer dump as the schema source.
+         *
+         * opencart.sql keeps PRIMARY KEY, indexes and AUTO_INCREMENT inside
+         * CREATE TABLE definitions, which is exactly what parseCreateTables()
+         * understands. The legacy opencart_schema.sql is a phpMyAdmin-style
+         * export where these attributes are added later by ALTER TABLE
+         * statements; using it here could therefore repair a column with an
+         * incomplete definition and, for example, drop AUTO_INCREMENT.
+         */
+        $schema_file = DIR_APPLICATION . 'opencart.sql';
 
         if (!file_exists($schema_file)) {
             throw new \Exception('Could not load schema file: ' . $schema_file);
