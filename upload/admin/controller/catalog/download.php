@@ -359,8 +359,12 @@ class ControllerCatalogDownload extends Controller {
 			$file_max_size = 20;
 		}
 
-		$data['config_file_max_size_bytes'] = $file_max_size * 1024 * 1024;
-		$data['error_upload_size'] = sprintf($this->language->get('error_upload_size'), $file_max_size);
+		// Browser File.size is measured in bytes. Use the smallest active limit
+		// so the client-side check matches both OpenCart and PHP restrictions.
+		$effective_max_size = $this->getEffectiveUploadMaxBytes($file_max_size);
+
+		$data['config_file_max_size_bytes'] = $effective_max_size;
+		$data['error_upload_size'] = sprintf($this->language->get('error_upload_size'), $this->formatBytesAsMegabytes($effective_max_size));
 		$data['user_token'] = $this->session->data['user_token'];
 
 		if (isset($this->error['warning'])) {
@@ -527,12 +531,22 @@ class ControllerCatalogDownload extends Controller {
 		}
 
 		$this->load->model('catalog/product');
+		$this->load->model('blog/article');
 
 		foreach ($this->request->post['selected'] as $download_id) {
 			$product_total = $this->model_catalog_product->getTotalProductsByDownloadId((int)$download_id);
 
 			if ($product_total) {
 				$this->error['warning'] = sprintf($this->language->get('error_product'), $product_total);
+			}
+
+			// NovaCart also allows downloads to be attached to blog articles.
+			// Keep the same referential-safety behavior as for products and do not
+			// leave orphaned article_to_download rows after deleting a download.
+			$article_total = $this->model_blog_article->getTotalArticlesByDownloadId((int)$download_id);
+
+			if ($article_total) {
+				$this->error['warning'] = sprintf($this->language->get('error_article'), $article_total);
 			}
 		}
 
@@ -615,90 +629,111 @@ class ControllerCatalogDownload extends Controller {
 		}
 
 		if (!$json) {
-			if (!empty($this->request->files['file']['name']) && is_file($this->request->files['file']['tmp_name'])) {
-				// Sanitize the filename
-				$filename = basename(html_entity_decode($this->request->files['file']['name'], ENT_QUOTES, 'UTF-8'));
+			$post_max_size = $this->iniSizeToBytes(ini_get('post_max_size'));
+			$content_length = isset($this->request->server['CONTENT_LENGTH']) ? (int)$this->request->server['CONTENT_LENGTH'] : 0;
 
-				// Validate the filename length
-				if ((utf8_strlen($filename) < 3) || (utf8_strlen($filename) > 127)) {
-					$json['error'] = $this->language->get('error_upload_filename');
-				}
+			// When post_max_size is exceeded PHP may leave $_FILES completely empty,
+			// so handle this case before inspecting the uploaded file.
+			if ($post_max_size > 0 && $content_length > $post_max_size) {
+				$json['error'] = sprintf($this->language->get('error_upload_post_max'), $this->formatBytesAsMegabytes($post_max_size));
+			}
+		}
 
-				$file_max_size = (int)$this->config->get('config_file_max_size');
+		if (!$json) {
+			if (!isset($this->request->files['file']) || !is_array($this->request->files['file'])) {
+				$json['error'] = $this->language->get('error_upload');
+			} else {
+				$file = $this->request->files['file'];
+				$upload_error = isset($file['error']) ? (int)$file['error'] : UPLOAD_ERR_NO_FILE;
 
-				if ($file_max_size < 1) {
-					$file_max_size = 20;
-				}
+				// Check PHP upload errors before is_file(). For UPLOAD_ERR_INI_SIZE and
+				// similar failures PHP does not provide a usable temporary file.
+				if ($upload_error !== UPLOAD_ERR_OK) {
+					$error_key = 'error_upload_' . $upload_error;
+					$error_message = $this->language->get($error_key);
 
-				if ((int)$this->request->files['file']['size'] > ($file_max_size * 1024 * 1024)) {
-					$json['error'] = sprintf($this->language->get('error_upload_size'), $file_max_size);
-				}
+					$json['error'] = ($error_message !== $error_key) ? $error_message : $this->language->get('error_upload');
+				} elseif (!empty($file['name']) && !empty($file['tmp_name']) && is_file($file['tmp_name'])) {
+					// Sanitize the filename
+					$filename = basename(html_entity_decode($file['name'], ENT_QUOTES, 'UTF-8'));
 
-				// Allowed file extension types
-				$allowed = array();
-				$extension_allowed = preg_replace('~\r?\n~', "\n", (string)$this->config->get('config_file_ext_allowed'));
-				$filetypes = explode("\n", $extension_allowed);
-
-				foreach ($filetypes as $filetype) {
-					$filetype = strtolower(trim($filetype));
-
-					if ($filetype !== '') {
-						$allowed[] = $filetype;
+					// Validate the filename length
+					if ((utf8_strlen($filename) < 3) || (utf8_strlen($filename) > 127)) {
+						$json['error'] = $this->language->get('error_upload_filename');
 					}
-				}
 
-				$extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+					$file_max_size = (int)$this->config->get('config_file_max_size');
 
-				if (!in_array($extension, $allowed)) {
-					$json['error'] = $this->language->get('error_filetype');
-				}
-
-				// Allowed file mime types
-				$allowed = array();
-				$mime_allowed = preg_replace('~\r?\n~', "\n", (string)$this->config->get('config_file_mime_allowed'));
-				$filetypes = explode("\n", $mime_allowed);
-
-				foreach ($filetypes as $filetype) {
-					$filetype = trim($filetype);
-
-					if ($filetype !== '') {
-						$allowed[] = $filetype;
+					if ($file_max_size < 1) {
+						$file_max_size = 20;
 					}
-				}
 
-				$mime = '';
+					$effective_max_size = $this->getEffectiveUploadMaxBytes($file_max_size);
 
-				if (function_exists('finfo_open')) {
-					$finfo = finfo_open(FILEINFO_MIME_TYPE);
-
-					if ($finfo) {
-						$mime = finfo_file($finfo, $this->request->files['file']['tmp_name']);
-						finfo_close($finfo);
+					if ((int)$file['size'] > $effective_max_size) {
+						$json['error'] = sprintf($this->language->get('error_upload_size'), $this->formatBytesAsMegabytes($effective_max_size));
 					}
-				}
 
-				if ($mime) {
-					if (!in_array($mime, $allowed)) {
+					// Allowed file extension types
+					$allowed = array();
+					$extension_allowed = preg_replace('~\\r?\\n~', "\n", (string)$this->config->get('config_file_ext_allowed'));
+					$filetypes = explode("\n", $extension_allowed);
+
+					foreach ($filetypes as $filetype) {
+						$filetype = strtolower(trim($filetype));
+
+						if ($filetype !== '') {
+							$allowed[] = $filetype;
+						}
+					}
+
+					$extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+					if (!in_array($extension, $allowed)) {
 						$json['error'] = $this->language->get('error_filetype');
 					}
-				} elseif (!in_array($this->request->files['file']['type'], $allowed)) {
-					$json['error'] = $this->language->get('error_filetype');
-				}
 
-				// Check to see if any PHP files are trying to be uploaded
-				$content = file_get_contents($this->request->files['file']['tmp_name'], false, null, 0, 1024);
+					// Allowed file mime types
+					$allowed = array();
+					$mime_allowed = preg_replace('~\\r?\\n~', "\n", (string)$this->config->get('config_file_mime_allowed'));
+					$filetypes = explode("\n", $mime_allowed);
 
-				if ($content !== false && preg_match('/<\?(php|=)?/i', $content)) {
-					$json['error'] = $this->language->get('error_filetype');
-				}
+					foreach ($filetypes as $filetype) {
+						$filetype = trim($filetype);
 
-				// Return any upload error
-				if ($this->request->files['file']['error'] != UPLOAD_ERR_OK) {
-					$error_key = 'error_upload_' . $this->request->files['file']['error'];
-					$json['error'] = $this->language->get($error_key);
+						if ($filetype !== '') {
+							$allowed[] = $filetype;
+						}
+					}
+
+					$mime = '';
+
+					if (function_exists('finfo_open')) {
+						$finfo = finfo_open(FILEINFO_MIME_TYPE);
+
+						if ($finfo) {
+							$mime = finfo_file($finfo, $file['tmp_name']);
+							finfo_close($finfo);
+						}
+					}
+
+					if ($mime) {
+						if (!in_array($mime, $allowed)) {
+							$json['error'] = $this->language->get('error_filetype');
+						}
+					} elseif (!in_array($file['type'], $allowed)) {
+						$json['error'] = $this->language->get('error_filetype');
+					}
+
+					// Check to see if any PHP files are trying to be uploaded
+					$content = file_get_contents($file['tmp_name'], false, null, 0, 1024);
+
+					if ($content !== false && preg_match('/<\\?(php|=)?/i', $content)) {
+						$json['error'] = $this->language->get('error_filetype');
+					}
+				} else {
+					$json['error'] = $this->language->get('error_upload');
 				}
-			} else {
-				$json['error'] = $this->language->get('error_upload');
 			}
 		}
 
@@ -716,6 +751,64 @@ class ControllerCatalogDownload extends Controller {
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
+	}
+
+	/**
+	 * Convert a PHP shorthand size (for example 512K, 128M or 2G) to bytes.
+	 * A value of 0 means that the corresponding PHP limit is disabled/unlimited.
+	 */
+	private function iniSizeToBytes($value) {
+		$value = trim((string)$value);
+
+		if ($value === '') {
+			return 0;
+		}
+
+		$number = (float)$value;
+		$unit = strtolower(substr($value, -1));
+
+		switch ($unit) {
+			case 'g':
+				$number *= 1024;
+				// no break
+			case 'm':
+				$number *= 1024;
+				// no break
+			case 'k':
+				$number *= 1024;
+		}
+
+		return (int)round($number);
+	}
+
+	/**
+	 * Return the effective upload limit shared by OpenCart and PHP.
+	 */
+	private function getEffectiveUploadMaxBytes($file_max_size_mb) {
+		$limits = array((int)$file_max_size_mb * 1024 * 1024);
+
+		$upload_max_filesize = $this->iniSizeToBytes(ini_get('upload_max_filesize'));
+		$post_max_size = $this->iniSizeToBytes(ini_get('post_max_size'));
+
+		if ($upload_max_filesize > 0) {
+			$limits[] = $upload_max_filesize;
+		}
+
+		if ($post_max_size > 0) {
+			$limits[] = $post_max_size;
+		}
+
+		return min($limits);
+	}
+
+	private function formatBytesAsMegabytes($bytes) {
+		$megabytes = $bytes / 1024 / 1024;
+
+		if ((int)$megabytes == $megabytes) {
+			return (string)(int)$megabytes;
+		}
+
+		return rtrim(rtrim(number_format($megabytes, 2, '.', ''), '0'), '.');
 	}
 
 	public function download() {

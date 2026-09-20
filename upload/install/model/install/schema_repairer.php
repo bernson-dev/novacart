@@ -14,7 +14,14 @@ class SchemaRepairer {
      * @throws Exception
      */
     public function repairSchemaFromFile($db, $prefix) {
-        $schema_file = DIR_APPLICATION . 'model/install/opencart_schema.sql';
+        /*
+         * Use the canonical installer dump as the schema source.
+         *
+         * opencart.sql keeps PRIMARY KEY, indexes and AUTO_INCREMENT inside
+         * CREATE TABLE definitions, which is exactly what parseCreateTables()
+         * understands and avoids maintaining a second divergent schema file.
+         */
+        $schema_file = DIR_APPLICATION . 'opencart.sql';
 
         if (!file_exists($schema_file)) {
             throw new \Exception('Could not load schema file: ' . $schema_file);
@@ -280,6 +287,16 @@ class SchemaRepairer {
 
         // Проверяем NULL / NOT NULL
         if (strpos($def, 'not null') !== false && $existing_col['Null'] === 'yes') {
+            return true;
+        }
+
+        // AUTO_INCREMENT является частью определения колонки. Без этой
+        // проверки repairSchemaFromFile() не замечает потерянный AUTO_INCREMENT,
+        // если тип и NOT NULL остались прежними (например cart.cart_id).
+        $schema_auto_increment = strpos($def, 'auto_increment') !== false;
+        $existing_auto_increment = strpos($existing_col['Extra'], 'auto_increment') !== false;
+
+        if ($schema_auto_increment !== $existing_auto_increment) {
             return true;
         }
 

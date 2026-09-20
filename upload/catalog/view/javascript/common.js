@@ -22,6 +22,58 @@ function getURLVar(key) {
 	}
 }
 
+/**
+ * Show one meaningful message for failed AJAX requests.
+ *
+ * Prefer the structured JSON error returned by the server. Only fall back to
+ * raw response text or HTTP status when no structured error is available.
+ * This avoids duplicated messages such as:
+ * "Internal Server Error / Internal Server Error / {json...}".
+ */
+function showAjaxError(xhr, thrownError) {
+	var response = null;
+	var responseText = '';
+	var message = '';
+
+	if (xhr) {
+		if (xhr.responseJSON && typeof xhr.responseJSON === 'object') {
+			response = xhr.responseJSON;
+		} else if (xhr.responseText) {
+			responseText = $.trim(xhr.responseText);
+
+			try {
+				response = JSON.parse(responseText);
+			} catch (e) {
+				response = null;
+			}
+		}
+	}
+
+	if (response && response.error) {
+		if (typeof response.error === 'string') {
+			message = response.error;
+		} else {
+			try {
+				message = JSON.stringify(response.error);
+			} catch (e) {
+				message = String(response.error);
+			}
+		}
+
+		if (response.emergency_clear) {
+			message += "\r\n\r\n" + response.emergency_clear;
+		}
+	} else if (responseText && responseText.charAt(0) !== '<') {
+		message = responseText;
+	}
+
+	if (!message) {
+		message = thrownError || (xhr && xhr.statusText) || (xhr && xhr.status ? 'HTTP ' + xhr.status : 'Request failed');
+	}
+
+	alert(message);
+}
+
 $(document).ready(function() {
 	// Highlight any found errors
 	$('.text-danger').each(function() {
@@ -317,7 +369,7 @@ var cart = {
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
-				alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+				showAjaxError(xhr, thrownError);
 			}
 		});
 	},
@@ -353,7 +405,7 @@ var cart = {
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
-				alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+				showAjaxError(xhr, thrownError);
 			}
 		});
 	},
@@ -389,7 +441,7 @@ var cart = {
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
-				alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+				showAjaxError(xhr, thrownError);
 			}
 		});
 	}
@@ -424,7 +476,7 @@ var voucher = {
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
-				alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+				showAjaxError(xhr, thrownError);
 			}
 		});
 	}
@@ -454,7 +506,7 @@ var wishlist = {
 				$('html, body').animate({ scrollTop: 0 }, 'slow');
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
-				alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+				showAjaxError(xhr, thrownError);
 			}
 		});
 	},
@@ -482,7 +534,7 @@ var compare = {
 				}
 			},
 			error: function(xhr, ajaxOptions, thrownError) {
-				alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+				showAjaxError(xhr, thrownError);
 			}
 		});
 	},

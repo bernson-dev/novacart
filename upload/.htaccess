@@ -46,7 +46,7 @@ RewriteRule ^([^?]*) index.php?_route_=$1 [L,QSA]
 # php_value upload_max_filesize 999M
 
 # 2. Set max post size. Uncomment this line if you have a lot of product options or are getting errors where forms are not saving all fields.
-# php_value post_max_size 999M
+# php_value post_max_size 1000M
 
 # 3. Set max time script can take. Uncomment this line if you have a lot of product options or are getting errors where forms are not saving all fields.
 # php_value max_execution_time 200

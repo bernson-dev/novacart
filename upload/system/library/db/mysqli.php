@@ -47,10 +47,23 @@ class MySQLi {
 			throw new \Exception('Error: No database connection established.');
 		}
 
-		$query = $this->connection->query($sql);
+		try {
+			$query = $this->connection->query($sql);
+		} catch (\mysqli_sql_exception $e) {
+			// PHP 8.1+ enables MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT by default.
+			// Normalize mysqli exceptions so the global exception handler can log
+			// the failed SQL query consistently on all supported PHP versions.
+			throw new \Exception(
+				'Error: ' . $e->getMessage() . ' (' . (int)$e->getCode() . ') SQL: ' . $sql,
+				(int)$e->getCode(),
+				$e
+			);
+		}
 
-		if ($this->connection->errno) {
-			throw new \Exception('Error: ' . $this->connection->error . ' (' . $this->connection->errno . ') ' . $sql);
+		if ($query === false || $this->connection->errno) {
+			throw new \Exception(
+				'Error: ' . $this->connection->error . ' (' . $this->connection->errno . ') SQL: ' . $sql
+			);
 		}
 
 /**
