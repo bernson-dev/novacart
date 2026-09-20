@@ -280,7 +280,11 @@
                                 <label class="col-sm-2 control-label" for="input-quantity">{{ entry_quantity }}</label>
                                 <div class="col-sm-10">
                                     <input type="text" name="quantity" value="{{ quantity }}" placeholder="{{ entry_quantity }}" id="input-quantity" class="form-control"/>
-                                    <div id="option-quantity-note" class="help-block" style="display:none;"></div>
+                                    <input type="hidden" name="quantity_mode" value="auto" id="input-quantity-mode"/>
+                                    <div id="option-quantity-note" class="help-block" style="display:none;">
+                                        <span id="option-quantity-note-text"></span>
+                                        <button type="button" id="option-quantity-auto" class="btn btn-link btn-xs" style="display:none; padding:0 0 0 5px;">{{ text_option_quantity_auto }}</button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -1679,6 +1683,7 @@
         function addOptionValue(option_row) {
             let html = '<tr id="option-value-row' + option_value_row + '">';
             html += '  <td class="text-left"><select name="product_option[' + option_row + '][product_option_value][' + option_value_row + '][option_value_id]" class="form-control">';
+            html += '    <option value="">{{ text_none|escape('js') }}</option>';
             html += $('#option-values' + option_row).html();
             html += '  </select><input type="hidden" name="product_option[' + option_row + '][product_option_value][' + option_value_row + '][product_option_value_id]" value="" /></td>';
             html += '  <td class="text-right"><input type="text" name="product_option[' + option_row + '][product_option_value][' + option_value_row + '][quantity]" value="" placeholder="{{ entry_quantity }}" class="form-control" /></td>';
@@ -2064,47 +2069,129 @@
     </script>
     <script type="text/javascript">
     (function() {
-        function recalculateProductQuantity() {
-            var total = 0;
-            var hasManagedValues = false;
+        var quantityInput = $('#input-quantity');
+        var quantityMode = $('#input-quantity-mode');
+        var quantityNote = $('#option-quantity-note');
+        var quantityNoteText = $('#option-quantity-note-text');
+        var quantityAutoButton = $('#option-quantity-auto');
+
+        function getOptionQuantityState() {
+            var state = {
+                total: 0,
+                hasManagedValues: false
+            };
 
             $('#tab-option input[name^="product_option"][name$="[quantity]"]').each(function() {
-                var row = $(this).closest('tr');
+                var quantityField = $(this);
+                var row = quantityField.closest('tr');
+                var optionValueId = row.find('select[name$="[option_value_id]"]').val();
                 var subtract = row.find('select[name$="[subtract]"]').val();
+                var rawQuantity = $.trim(quantityField.val());
 
-                if (subtract != '1') {
+                // An unfinished row must not affect the product stock.
+                if (!optionValueId || subtract != '1' || rawQuantity === '' || !/^-?\d+$/.test(rawQuantity)) {
                     return;
                 }
 
-                var quantity = parseInt($(this).val(), 10);
-
-                if (isNaN(quantity) || quantity < 0) {
-                    quantity = 0;
-                }
-
-                hasManagedValues = true;
-                total += quantity;
+                state.hasManagedValues = true;
+                state.total += Math.max(0, parseInt(rawQuantity, 10));
             });
 
-            if (hasManagedValues) {
-                $('#input-quantity').val(total).prop('readonly', true);
-                $('#option-quantity-note')
-                    .text('{{ help_option_quantity_auto|escape('js') }}')
-                    .show();
+            return state;
+        }
+
+        function setAutomaticMode(state) {
+            quantityMode.val('auto');
+
+            if (state.hasManagedValues) {
+                quantityInput.val(state.total).prop('readonly', true);
+                quantityNoteText.text('{{ help_option_quantity_auto|escape('js') }}');
+                quantityAutoButton.hide();
+                quantityNote.show();
             } else {
-                $('#input-quantity').prop('readonly', false);
-                $('#option-quantity-note').hide();
+                quantityInput.prop('readonly', false);
+                quantityNote.hide();
             }
         }
 
-        $(document).on('input change', '#tab-option input[name^="product_option"][name$="[quantity]"], #tab-option select[name^="product_option"][name$="[subtract]"]', recalculateProductQuantity);
+        function setManualMode() {
+            quantityMode.val('manual');
+            quantityInput.prop('readonly', false).focus().select();
+            quantityNoteText.text('{{ help_option_quantity_manual|escape('js') }}');
+            quantityAutoButton.show();
+            quantityNote.show();
+        }
 
-        $(document).on('click', '#tab-option .btn-danger, #option .fa-minus-circle', function() {
-            setTimeout(recalculateProductQuantity, 0);
+        function recalculateProductQuantity(forceAuto) {
+            var state = getOptionQuantityState();
+
+            if (forceAuto === true) {
+                setAutomaticMode(state);
+                return;
+            }
+
+            // Manual override is authoritative until the user explicitly
+            // switches back to automatic calculation.
+            if (quantityMode.val() === 'manual') {
+                quantityInput.prop('readonly', false);
+                return;
+            }
+
+            setAutomaticMode(state);
+        }
+
+        // Double click is an intentional manual override. A single click keeps
+        // the calculated field protected from accidental edits.
+        quantityInput.on('dblclick', function() {
+            if (getOptionQuantityState().hasManagedValues) {
+                setManualMode();
+            }
         });
 
-        window.recalculateProductQuantity = recalculateProductQuantity;
-        $(recalculateProductQuantity);
+        quantityAutoButton.on('click', function() {
+            recalculateProductQuantity(true);
+        });
+
+        $(document).on(
+            'input change',
+            '#tab-option input[name^="product_option"][name$="[quantity]"], ' +
+            '#tab-option select[name^="product_option"][name$="[subtract]"], ' +
+            '#tab-option select[name^="product_option"][name$="[option_value_id]"]',
+            function() {
+                recalculateProductQuantity(false);
+            }
+        );
+
+        $(document).on('click', '#tab-option .btn-danger, #option .fa-minus-circle', function() {
+            setTimeout(function() {
+                recalculateProductQuantity(false);
+            }, 0);
+        });
+
+        window.recalculateProductQuantity = function() {
+            recalculateProductQuantity(false);
+        };
+
+        $(function() {
+            var state = getOptionQuantityState();
+            var storedQuantity = parseInt(quantityInput.val(), 10);
+
+            // If the saved product quantity differs from the current option sum,
+            // preserve it as a previous manual override instead of destroying it.
+            if (
+                state.hasManagedValues &&
+                !isNaN(storedQuantity) &&
+                Math.max(0, storedQuantity) !== state.total
+            ) {
+                quantityMode.val('manual');
+                quantityInput.prop('readonly', false);
+                quantityNoteText.text('{{ help_option_quantity_manual|escape('js') }}');
+                quantityAutoButton.show();
+                quantityNote.show();
+            } else {
+                setAutomaticMode(state);
+            }
+        });
     })();
     </script>
     <script type="text/javascript">
