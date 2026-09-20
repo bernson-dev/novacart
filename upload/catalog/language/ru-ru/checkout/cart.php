@@ -46,6 +46,8 @@ $_['text_stock_popup_quantity'] = 'В корзине';
 $_['text_stock_popup_available'] = 'Доступно';
 $_['button_stock_popup_close']  = 'Понятно';
 
+$_['error_stock_available']   = 'Недостаточно товара на складе. Доступно для заказа: %s шт.';
+$_['error_stock_unavailable'] = 'Товар сейчас недоступен для покупки.';
 $_['error_stock']                             = 'Товары, отмеченные ***, недоступны в нужном количестве или отсутствуют на складе!';
 $_['error_minimum']                           = 'Минимальное количество для заказа товара %s составляет %s!';
 $_['error_required']                          = '%s необходим!';
@@ -57,3 +59,8 @@ Translated with
 https://translator.codeguild.com.ua/
 */
 $_['text_payment_cancel']                     = "%s каждые %d %s(s) до отмены";
+
+$_['text_stock_preorder_allowed'] = 'Товар доступен для заказа по правилу предзаказа, несмотря на текущий остаток.';
+
+$_['text_stock_preorder_badge'] = 'Предзаказ';
+$_['text_stock_preorder_cart'] = 'Товара сейчас нет в наличии, но заказ разрешён.';

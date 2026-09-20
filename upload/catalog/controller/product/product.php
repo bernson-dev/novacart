@@ -281,6 +281,25 @@ class ControllerProductProduct extends Controller {
 				$data['stock'] = $this->language->get('text_instock');
 			}
 
+			$this->load->model('catalog/stock_policy');
+			$stock_policy = $this->model_catalog_stock_policy->evaluate(
+				$product_info,
+				isset($product_info['minimum']) && $product_info['minimum'] > 0 ? (int)$product_info['minimum'] : 1
+			);
+
+			$data['stock_can_buy'] = $stock_policy['can_buy'];
+			$data['stock_in_cart'] = !empty($stock_policy['in_cart']);
+			$data['stock_cart_button_text'] = $stock_policy['cart_button_text'];
+			$data['stock_button_text'] = $stock_policy['button_text'];
+			$data['stock_button_mode'] = (string)$this->config->get('config_stock_purchase_button');
+			$data['stock_preorder_allowed'] = (
+				$stock_policy['can_buy'] &&
+				$stock_policy['available'] !== null &&
+				$stock_policy['requested_total'] > $stock_policy['available'] &&
+				$stock_policy['stock_rule'] === 'allow'
+			);
+			$data['text_stock_preorder_allowed'] = $this->language->get('text_stock_preorder_allowed');
+
 			$this->load->model('tool/image');
 
 			if (is_file(DIR_IMAGE . html_entity_decode($product_info['image'], ENT_QUOTES, 'UTF-8'))) {
@@ -423,6 +442,8 @@ class ControllerProductProduct extends Controller {
 
 			$data['products'] = array();
 
+			$this->load->model('catalog/stock_policy');
+
 			$results = $this->model_catalog_product->getProductRelated($this->request->get['product_id']);
 
 			foreach ($results as $result) {
@@ -458,6 +479,8 @@ class ControllerProductProduct extends Controller {
 					$rating = false;
 				}
 
+				$stock_policy = $this->model_catalog_stock_policy->getListPolicy($result);
+
 				$data['products'][] = array(
 					'product_id'  => $result['product_id'],
 					'thumb'       => $image,
@@ -468,6 +491,12 @@ class ControllerProductProduct extends Controller {
 					'tax'         => $tax,
 					'minimum'     => $result['minimum'] > 0 ? $result['minimum'] : 1,
 					'rating'      => $rating,
+					'can_buy'     => $stock_policy['can_buy'],
+					'in_cart'     => !empty($stock_policy['in_cart']),
+					'cart_button_text' => $stock_policy['cart_button_text'],
+					'button_text' => $stock_policy['button_text'],
+					'stock_action'=> $stock_policy['action'],
+					'stock_button'=> (string)$this->config->get('config_stock_purchase_button'),
 					'href'        => $this->url->link('product/product', 'product_id=' . $result['product_id'])
 				);
 			}
@@ -668,6 +697,54 @@ class ControllerProductProduct extends Controller {
 				$this->model_catalog_review->addReview($product_id, $this->request->post);
 
 				$json['success'] = $this->language->get('text_success');
+			}
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
+	public function stockCheck() {
+		$this->load->language('checkout/cart');
+		$this->load->model('catalog/product');
+			$this->load->model('catalog/stock_policy');
+
+		$json = array();
+
+		$product_id = isset($this->request->post['product_id']) ? (int)$this->request->post['product_id'] : 0;
+		$quantity = isset($this->request->post['quantity']) ? max(1, (int)$this->request->post['quantity']) : 1;
+		$option = isset($this->request->post['option']) && is_array($this->request->post['option']) ? $this->request->post['option'] : array();
+
+		$product_info = $this->model_catalog_product->getProduct($product_id);
+
+		if ($product_info) {
+			$policy = $this->model_catalog_stock_policy->evaluate($product_info, $quantity, $option);
+
+			$json['can_buy'] = $policy['can_buy'];
+			$json['available'] = $policy['available'];
+			$json['remaining'] = $policy['remaining'];
+			$json['button_text'] = $policy['button_text'];
+			$json['button_mode'] = (string)$this->config->get('config_stock_purchase_button');
+			$json['in_cart'] = !empty($policy['in_cart']);
+			$json['cart_quantity'] = isset($policy['cart_quantity']) ? (int)$policy['cart_quantity'] : 0;
+			$json['cart_button_text'] = $policy['cart_button_text'];
+			$json['reason'] = $policy['reason'];
+			$json['preorder_allowed'] = (
+				$policy['can_buy'] &&
+				$policy['available'] !== null &&
+				$policy['requested_total'] > $policy['available'] &&
+				$policy['stock_rule'] === 'allow'
+			);
+			$json['preorder_message'] = $json['preorder_allowed'] ? $this->language->get('text_stock_preorder_allowed') : '';
+
+			if (!$policy['can_buy']) {
+				if ($policy['available'] !== null) {
+					$json['message'] = sprintf($this->language->get('error_stock_available'), (int)$policy['available']);
+				} else {
+					$json['message'] = $this->language->get('error_stock_unavailable');
+				}
+			} else {
+				$json['message'] = '';
 			}
 		}
 

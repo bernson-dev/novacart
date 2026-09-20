@@ -198,6 +198,8 @@ class ControllerProductCategory extends Controller {
 			// Товары
 			$data['products'] = array();
 
+			$this->load->model('catalog/stock_policy');
+
 			$filter_data = array(
 				'filter_category_id' => $category_id,
 				'filter_filter'      => $filter,
@@ -244,6 +246,8 @@ class ControllerProductCategory extends Controller {
 					$rating = false;
 				}
 
+				$stock_policy = $this->model_catalog_stock_policy->getListPolicy($result);
+
 				$data['products'][] = array(
 					'product_id'  => $result['product_id'],
 					'thumb'       => $image,
@@ -254,6 +258,12 @@ class ControllerProductCategory extends Controller {
 					'tax'         => $tax,
 					'minimum'     => $result['minimum'] > 0 ? $result['minimum'] : 1,
 					'rating'      => $rating,
+					'can_buy'     => $stock_policy['can_buy'],
+					'in_cart'     => !empty($stock_policy['in_cart']),
+					'cart_button_text' => $stock_policy['cart_button_text'],
+					'button_text' => $stock_policy['button_text'],
+					'stock_action'=> $stock_policy['action'],
+					'stock_button'=> (string)$this->config->get('config_stock_purchase_button'),
 					'href'        => $this->url->link('product/product', 'path=' . $this->request->get['path'] . '&product_id=' . $result['product_id'] . $url)
 				);
 			}
