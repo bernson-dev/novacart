@@ -19,10 +19,7 @@ class SchemaRepairer {
          *
          * opencart.sql keeps PRIMARY KEY, indexes and AUTO_INCREMENT inside
          * CREATE TABLE definitions, which is exactly what parseCreateTables()
-         * understands. The legacy opencart_schema.sql is a phpMyAdmin-style
-         * export where these attributes are added later by ALTER TABLE
-         * statements; using it here could therefore repair a column with an
-         * incomplete definition and, for example, drop AUTO_INCREMENT.
+         * understands and avoids maintaining a second divergent schema file.
          */
         $schema_file = DIR_APPLICATION . 'opencart.sql';
 
