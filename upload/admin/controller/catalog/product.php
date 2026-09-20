@@ -1447,6 +1447,14 @@ $data['action'] = $this->url->link('catalog/product/edit', 'user_token=' . $this
 			$data['quantity'] = 1;
 		}
 
+		// Manual quantity mode exists only when the administrator explicitly
+		// enabled it in the current form. On a normal product edit page the
+		// presence of configured stock option values must always start auto mode.
+		$data['quantity_mode'] = (
+			isset($this->request->post['quantity_mode']) &&
+			$this->request->post['quantity_mode'] === 'manual'
+		) ? 'manual' : 'auto';
+
 		if (isset($this->request->post['minimum'])) {
 			$data['minimum'] = $this->request->post['minimum'];
 		} elseif (!empty($product_info)) {
