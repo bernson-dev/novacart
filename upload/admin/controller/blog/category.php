@@ -507,7 +507,6 @@ class ControllerBlogCategory extends Controller {
 		$this->response->setOutput($this->load->view('blog/category_form', $data));
 	}
 
-
 	protected function validateModifyPermission() {
 		if (!$this->user->hasPermission('modify', 'blog/category')) {
 			$this->error['warning'] = $this->language->get('error_permission');
