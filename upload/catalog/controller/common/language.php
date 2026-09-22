@@ -61,9 +61,15 @@ class ControllerCommonLanguage extends Controller {
 		}
 
 		if ($code !== '') {
-
 			$this->session->data['language'] = $code;
 			$this->config->set('config_language_id', $languages[$code]['language_id']);
+
+			// Persist the explicit user choice immediately. The following GET
+			// request will also confirm it, but writing the cookie here avoids
+			// losing the preference if the redirect target changes.
+			if (PHP_SAPI !== 'cli' && !headers_sent()) {
+				setcookie('language', $code, time() + 60 * 60 * 24 * 30, '/');
+			}
 		}
 
 		$redirect_data = array();
