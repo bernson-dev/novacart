@@ -278,7 +278,6 @@ class SeoLanguage {
 		$languages = $this->getLanguages();
 		$default = $this->getDefaultLanguage($languages);
 		$links = array();
-		$default_hreflang = '';
 
 		foreach ($languages as $language) {
 			$url = $this->getUrlForLanguage(
@@ -483,6 +482,7 @@ class SeoLanguage {
 		$languages = $this->getLanguages();
 		$default = $this->getDefaultLanguage($languages);
 		$links = array();
+		$default_hreflang = '';
 
 		foreach ($languages as $language) {
 			if (!$this->isRouteAvailableForLanguage($route, $params, (int)$language['language_id'])) {
