@@ -545,8 +545,17 @@ class SeoLanguage {
 			$target .= implode('/', $parts);
 		}
 
-		if (!empty($this->request->server['QUERY_STRING'])) {
-			$target .= '?' . (string)$this->request->server['QUERY_STRING'];
+		/*
+		 * _route_ is an internal Apache/OpenCart rewrite parameter. Never
+		 * expose it in a public redirect URL, otherwise /ru can become
+		 * /?_route_=ru and redirect forever. Preserve only real user query
+		 * parameters (utm_*, page, sort, tracking, etc.).
+		 */
+		$query_data = $this->request->get;
+		unset($query_data['_route_']);
+
+		if ($query_data) {
+			$target .= '?' . http_build_query($query_data, '', '&', PHP_QUERY_RFC3986);
 		}
 
 		$this->response->redirect($target, 301);
