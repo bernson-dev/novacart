@@ -141,16 +141,15 @@ class ControllerExtensionFeedGoogleSitemap extends Controller {
 			ORDER BY p.product_id");
 
 		foreach ($product_query->rows as $product) {
-			$image = '';
-
-			if (!empty($product['image'])) {
-				$this->load->model('tool/image');
-				$image = $this->model_tool_image->resize(
-					$product['image'],
-					$this->config->get('theme_' . $this->config->get('config_theme') . '_image_popup_width'),
-					$this->config->get('theme_' . $this->config->get('config_theme') . '_image_popup_height')
-				);
-			}
+			/*
+			 * Sitemap generation must never create image cache files. Calling
+			 * ModelToolImage::resize() here scales with the whole catalog and can
+			 * easily exhaust max_execution_time on the first sitemap request.
+			 * Search engines accept the original product image URL directly.
+			 */
+			$image = !empty($product['image'])
+				? $this->getOriginalImageUrl($product['image'])
+				: '';
 
 			$output .= $this->renderMultilingualUrl(
 				'product/product',
@@ -371,6 +370,27 @@ class ControllerExtensionFeedGoogleSitemap extends Controller {
 		$query = $this->db->query("SHOW TABLES LIKE '" . $this->db->escape($table) . "'");
 
 		return (bool)$query->num_rows;
+	}
+
+	private function getOriginalImageUrl($filename) {
+		$filename = str_replace('\\', '/', ltrim((string)$filename, '/'));
+
+		if ($filename === '') {
+			return '';
+		}
+
+		$base = $this->config->get('config_ssl')
+			? (string)$this->config->get('config_ssl')
+			: (string)$this->config->get('config_url');
+
+		$parts = explode('/', $filename);
+
+		foreach ($parts as &$part) {
+			$part = rawurlencode(rawurldecode($part));
+		}
+		unset($part);
+
+		return rtrim($base, '/') . '/image/' . implode('/', $parts);
 	}
 
 	private function xml($value) {
