@@ -154,6 +154,23 @@ class SeoPro {
 			return array($url, $data, $postfix);
 		}
 
+		/*
+		 * In language-prefix mode common/home is a structural route, not a SEO
+		 * keyword. This also prevents legacy common/home rows from producing a
+		 * second language segment.
+		 */
+		if (
+			$data['route'] === 'common/home'
+			&& $this->registry->has('seo_language')
+		) {
+			$seo_language = $this->registry->get('seo_language');
+
+			if ($seo_language instanceof SeoLanguage && $seo_language->isEnabled()) {
+				$data = array('route' => 'common/home');
+				return array('', $data, $postfix);
+			}
+		}
+
 		switch ($data['route']) {
 			case 'product/product':
 				if (isset($data['product_id'])) {
@@ -562,6 +579,19 @@ class SeoPro {
 	private function detectLanguage() {
 		if (!$this->config->get('config_seo_pro') || $this->ajax) {
 			return;
+		}
+
+		/*
+		 * SeoLanguage resolves an explicit first-path language prefix before
+		 * SeoPro starts. Do not infer the language again from arbitrary SEO
+		 * keywords when the dedicated router is enabled.
+		 */
+		if ($this->registry->has('seo_language')) {
+			$seo_language = $this->registry->get('seo_language');
+
+			if ($seo_language instanceof SeoLanguage && $seo_language->isEnabled()) {
+				return;
+			}
 		}
 
 		$request_language_id = null;
