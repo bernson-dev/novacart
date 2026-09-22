@@ -10,7 +10,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
-define('DIR_SYSTEM', dirname(__DIR__, 2) . '/upload/system/');
+define('DIR_SYSTEM', dirname(__DIR__) . '/upload/system/');
 
 require DIR_SYSTEM . 'library/language.php';
 require DIR_SYSTEM . 'library/seopro.php';
