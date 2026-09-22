@@ -69,28 +69,44 @@ class ControllerCommonHeader extends Controller {
 		$data['hreflang'] = array();
 		$this->load->model('localisation/language');
 
-		$language_url = new LanguageUrl($this->registry);
-		$languages = $this->model_localisation_language->getLanguages();
+		if ($this->config->get('config_seo_url')) {
+			$language_url = new LanguageUrl($this->registry);
+			$languages = $this->model_localisation_language->getLanguages();
+			$alternates = array();
+			$alternate_urls = array();
 
-		foreach ($languages as $language_info) {
-			if (empty($language_info['status'])) {
-				continue;
-			}
+			foreach ($languages as $language_info) {
+				if (empty($language_info['status'])) {
+					continue;
+				}
 
-			$code_parts = explode('-', (string)$language_info['code'], 2);
-			$hreflang_code = strtolower($code_parts[0]);
+				$code_parts = explode('-', (string)$language_info['code'], 2);
+				$hreflang_code = strtolower($code_parts[0]);
 
-			if (isset($code_parts[1]) && $code_parts[1] !== '') {
-				$hreflang_code .= '-' . strtoupper($code_parts[1]);
-			}
+				if (isset($code_parts[1]) && $code_parts[1] !== '') {
+					$hreflang_code .= '-' . strtoupper($code_parts[1]);
+				}
 
-			$data['hreflang'][] = array(
-				'code' => $hreflang_code,
-				'href' => $language_url->current(
+				$href = $language_url->current(
 					(int)$language_info['language_id'],
 					$this->isSecureRequest()
-				)
-			);
+				);
+
+				$alternates[] = array(
+					'code' => $hreflang_code,
+					'href' => $href
+				);
+
+				$alternate_urls[] = html_entity_decode($href, ENT_QUOTES, 'UTF-8');
+			}
+
+			// hreflang only makes sense when every enabled language has its own URL.
+			if (
+				count($alternates) > 1
+				&& count(array_unique($alternate_urls)) === count($alternate_urls)
+			) {
+				$data['hreflang'] = $alternates;
+			}
 		}
 		$data['robots'] = $this->document->getRobots();
 		$data['styles'] = $this->document->getStyles();
