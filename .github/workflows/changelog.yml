@@ -135,6 +135,7 @@ jobs:
           CHANGE_TYPE: ${{ steps.copilot.outputs.type }}
           CHANGE_ENTRY: ${{ steps.copilot.outputs.entry }}
         with:
+          github-token: ${{ secrets.COPILOT_TOKEN }}
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
