@@ -3,7 +3,7 @@ class ModelDesignSeoUrl extends Model {
 	public function addSeoUrl($data) {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$data['store_id'] . "', `language_id` = '" . (int)$data['language_id'] . "', `query` = '" . $this->db->escape(html_entity_decode($data['query'], ENT_QUOTES, 'UTF-8')) . "', `keyword` = '" . $this->db->escape(trim($data['keyword'])) . "'");
 
-		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath', 'seopro.oct_blog_cat_tree', 'seopro.oct_blogarticle_blogcategories'));
 
 		return $this->db->getLastId();
 	}
@@ -11,13 +11,13 @@ class ModelDesignSeoUrl extends Model {
 	public function editSeoUrl($seo_url_id, $data) {
 		$this->db->query("UPDATE `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$data['store_id'] . "', `language_id` = '" . (int)$data['language_id'] . "', `query` = '" . $this->db->escape(html_entity_decode($data['query'], ENT_QUOTES, 'UTF-8')) . "', `keyword` = '" . $this->db->escape(trim($data['keyword'])) . "' WHERE `seo_url_id` = '" . (int)$seo_url_id . "'");
 
-		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath', 'seopro.oct_blog_cat_tree', 'seopro.oct_blogarticle_blogcategories'));
 	}
 
 	public function deleteSeoUrl($seo_url_id) {
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url` WHERE `seo_url_id` = '" . (int)$seo_url_id . "'");
 
-		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath', 'seopro.oct_blog_cat_tree', 'seopro.oct_blogarticle_blogcategories'));
 	}
 
 	public function getSeoUrl($seo_url_id) {
