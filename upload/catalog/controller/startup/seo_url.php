@@ -352,8 +352,7 @@ class ControllerStartupSeoUrl extends Controller {
 		$theme = strtolower((string)$this->config->get('config_theme'));
 
 		return $theme === 'oct_deals'
-			|| strpos($theme, 'oct_deals') !== false
-			|| (bool)$this->config->get('theme_oct_deals_status');
+			|| strpos($theme, 'oct_deals') !== false;
 	}
 
 	private function getOctDealsLanguageAlias($code) {
