@@ -74,6 +74,11 @@
             {{ language.language_id }}: '{{ language.code }}'{% if not loop.last %},{% endif %}
             {% endfor %}
         };
+        var seoLanguageEnabledStores = {
+            {% for store_id, enabled in seo_language_enabled_stores %}
+            {{ store_id }}: {{ enabled ? 'true' : 'false' }}{% if not loop.last %},{% endif %}
+            {% endfor %}
+        };
     </script>
     {% for script in scripts %}
     <script type="text/javascript" src="{{ script }}"> </script>
