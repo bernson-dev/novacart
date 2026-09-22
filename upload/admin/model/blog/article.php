@@ -90,7 +90,7 @@ class ModelBlogArticle extends Model {
 
 		$this->cache->delete('article');
 
-		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath', 'seopro.oct_blog_cat_tree', 'seopro.oct_blogarticle_blogcategories'));
 
 		return $article_id;
 	}
@@ -199,7 +199,7 @@ class ModelBlogArticle extends Model {
 
 		$this->cache->delete('article');
 
-		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath', 'seopro.oct_blog_cat_tree', 'seopro.oct_blogarticle_blogcategories'));
 	}
 
 	public function editArticleStatus($article_id, $status) {
@@ -207,7 +207,7 @@ class ModelBlogArticle extends Model {
 
 		$this->cache->delete('article');
 
-		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath', 'seopro.oct_blog_cat_tree', 'seopro.oct_blogarticle_blogcategories'));
 
 		return $article_id;
 	}
@@ -251,7 +251,7 @@ class ModelBlogArticle extends Model {
 
 		$this->cache->delete('article');
 
-		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath', 'seopro.oct_blog_cat_tree', 'seopro.oct_blogarticle_blogcategories'));
 	}
 
 	public function getArticle($article_id) {
