@@ -9,8 +9,9 @@ class ControllerStartupLanguageUrl extends Controller {
 		$seo_language = new SeoLanguage($this->registry);
 		$this->registry->set('seo_language', $seo_language);
 
-		if ($seo_language->isEnabled()) {
-			$seo_language->resolve();
-		}
+		// resolve() also handles previously configured prefixes as compatibility
+		// aliases when the module is disabled, preventing old /ua/... URLs from
+		// turning into 404 pages immediately after disabling the feature.
+		$seo_language->resolve();
 	}
 }
