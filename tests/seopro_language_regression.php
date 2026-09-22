@@ -11,6 +11,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 define('DIR_SYSTEM', dirname(__DIR__) . '/upload/system/');
+define('DB_PREFIX', 'oc_');
 
 require DIR_SYSTEM . 'library/language.php';
 require DIR_SYSTEM . 'library/seopro.php';
