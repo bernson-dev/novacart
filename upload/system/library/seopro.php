@@ -22,7 +22,7 @@ class SeoPro {
 	private $cat_tree = [];
 	private $keywords = [];
 	private $queries = [];
-	private $product_categories = [];
+	private $product_categories = array();
 	private $valide_get_param = [];
 
 	public function __construct($registry) {
@@ -264,6 +264,11 @@ class SeoPro {
 					unset($data[$key]);
 					break;
 				case 'category_id':
+					$category_id = (int)$value;
+					$queries[] = 'category_id=' . $category_id;
+					unset($data[$key]);
+					break;
+
 				case 'information_id':
 					$information_id = (int)$value;
 					$queries[] = 'information_id=' . $information_id;
@@ -385,6 +390,7 @@ class SeoPro {
 		if ($this->config->get('config_seo_url_cache')) {
 			$this->keywords = $this->cache->get('seopro.keywords');
 			$this->queries = $this->cache->get('seopro.queries');
+			$this->product_categories = $this->cache->get('seopro.product_categories');
 
 			if (!$this->keywords || !is_array($this->keywords)) {
 				$this->keywords = [];
@@ -392,6 +398,10 @@ class SeoPro {
 
 			if (!$this->queries || !is_array($this->queries)) {
 				$this->queries = [];
+			}
+
+			if (!$this->product_categories || !is_array($this->product_categories)) {
+				$this->product_categories = [];
 			}
 
 			if (empty($this->keywords) || empty($this->queries)) {
@@ -625,14 +635,6 @@ class SeoPro {
 		}
 
 		if ($this->config->get('config_seo_url_cache')) {
-			if (!is_array($this->product_categories)) {
-				$this->product_categories = $this->cache->get('seopro.product_categories');
-
-				if (!is_array($this->product_categories)) {
-					$this->product_categories = [];
-				}
-			}
-
 			if (isset($this->product_categories[$product_id])) {
 				return $this->product_categories[$product_id];
 			}
