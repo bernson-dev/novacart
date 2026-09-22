@@ -41,10 +41,6 @@ class SeoLanguage {
 	 * routes keep the language already selected by the normal startup logic.
 	 */
 	public function resolve() {
-		if (!$this->isEnabled()) {
-			return;
-		}
-
 		$languages = $this->getLanguages();
 
 		if (!$languages) {
@@ -54,6 +50,17 @@ class SeoLanguage {
 		$default = $this->getDefaultLanguage($languages);
 
 		if (!$default) {
+			return;
+		}
+
+		/*
+		 * When the feature is disabled, only consume a previously configured
+		 * language prefix as a compatibility alias. This prevents stale
+		 * /ua/... or /ru/... links from becoming 404 pages after disabling the
+		 * module. No language routing is applied in this mode.
+		 */
+		if (!$this->isEnabled()) {
+			$this->resolveDisabledAlias($languages);
 			return;
 		}
 
@@ -108,6 +115,17 @@ class SeoLanguage {
 			&& $this->isSafeRedirectMethod()
 			&& $this->isStoreRootRequest()
 		) {
+			$preferred = $this->getPreferredLanguage($languages);
+
+			if ($preferred && $preferred['code'] !== $default['code']) {
+				$prefix = $this->getPrefixByCode($preferred['code']);
+
+				if ($prefix !== '') {
+					$this->applyLanguage($preferred);
+					$this->redirectToLanguageRoot($prefix);
+				}
+			}
+
 			$this->applyLanguage($default);
 		}
 	}
@@ -406,6 +424,98 @@ class SeoLanguage {
 		if (PHP_SAPI !== 'cli' && !headers_sent()) {
 			setcookie('language', $code, time() + 60 * 60 * 24 * 30, '/');
 		}
+	}
+
+	private function getPreferredLanguage($languages) {
+		$code = '';
+
+		if (isset($this->session->data['language']) && is_scalar($this->session->data['language'])) {
+			$code = (string)$this->session->data['language'];
+		}
+
+		if (
+			($code === '' || !isset($languages[$code]))
+			&& isset($this->request->cookie['language'])
+			&& is_scalar($this->request->cookie['language'])
+		) {
+			$code = (string)$this->request->cookie['language'];
+		}
+
+		return isset($languages[$code]) ? $languages[$code] : false;
+	}
+
+	private function redirectToLanguageRoot($prefix) {
+		$base = $this->getBaseUrlForScheme($this->isSecureRequest() ? 'https' : 'http');
+		$base_info = parse_url($base);
+
+		if (!is_array($base_info) || empty($base_info['scheme']) || empty($base_info['host'])) {
+			return;
+		}
+
+		$target = $base_info['scheme'] . '://' . $base_info['host'];
+
+		if (isset($base_info['port'])) {
+			$target .= ':' . (int)$base_info['port'];
+		}
+
+		$target .= $this->normalizeBasePath(isset($base_info['path']) ? $base_info['path'] : '/');
+		$target .= rawurlencode((string)$prefix) . '/';
+
+		$this->response->redirect($target, 302);
+	}
+
+	private function resolveDisabledAlias($languages) {
+		if (
+			!isset($this->request->get['_route_'])
+			|| !is_scalar($this->request->get['_route_'])
+			|| !$this->isSafeRedirectMethod()
+		) {
+			return;
+		}
+
+		$route = trim((string)$this->request->get['_route_'], '/');
+
+		if ($route === '') {
+			return;
+		}
+
+		$parts = explode('/', $route);
+		$first = strtolower(rawurldecode((string)$parts[0]));
+		$prefix_map = $this->getPrefixMap($languages);
+
+		if (!isset($prefix_map[$first])) {
+			return;
+		}
+
+		array_shift($parts);
+		$this->redirectWithoutPrefix($parts);
+	}
+
+	private function redirectWithoutPrefix($parts) {
+		$base = $this->getBaseUrlForScheme($this->isSecureRequest() ? 'https' : 'http');
+		$base_info = parse_url($base);
+
+		if (!is_array($base_info) || empty($base_info['scheme']) || empty($base_info['host'])) {
+			return;
+		}
+
+		$target = $base_info['scheme'] . '://' . $base_info['host'];
+
+		if (isset($base_info['port'])) {
+			$target .= ':' . (int)$base_info['port'];
+		}
+
+		$target .= $this->normalizeBasePath(isset($base_info['path']) ? $base_info['path'] : '/');
+
+		if ($parts) {
+			$target .= implode('/', $parts);
+		}
+
+		if (!empty($this->request->server['QUERY_STRING'])) {
+			$target .= '?' . (string)$this->request->server['QUERY_STRING'];
+		}
+
+		$this->response->redirect($target, 301);
 	}
 
 	private function isSafeRedirectMethod() {
