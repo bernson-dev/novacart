@@ -294,17 +294,28 @@ class ControllerStartupSeoUrl extends Controller {
 		// Standard seo_url also supports route aliases stored directly in seo_url.
 		// This includes multilingual home aliases such as common/home => "" / "uk".
 		if (!$this->seo_pro_enabled && !$rewritten && isset($data['route'])) {
-			$route_query = $this->db->query("SELECT keyword FROM " . DB_PREFIX . "seo_url
-				WHERE `query` = '" . $this->db->escape((string)$data['route']) . "'
-				AND store_id = '" . (int)$this->config->get('config_store_id') . "'
-				AND language_id = '" . (int)$this->config->get('config_language_id') . "'
-				LIMIT 1");
+			if ($data['route'] === 'common/home' && $this->isOctDealsTheme()) {
+				$alias = $this->getOctDealsLanguageAliasById((int)$this->config->get('config_language_id'));
 
-			if ($route_query->num_rows) {
-				$rewritten = true;
+				if ($alias !== '') {
+					$url = '/' . rawurlencode($alias);
+					$rewritten = true;
+				}
+			}
 
-				if ($route_query->row['keyword'] !== '') {
-					$url = '/' . rawurlencode($route_query->row['keyword']);
+			if (!$rewritten) {
+				$route_query = $this->db->query("SELECT keyword FROM " . DB_PREFIX . "seo_url
+					WHERE `query` = '" . $this->db->escape((string)$data['route']) . "'
+					AND store_id = '" . (int)$this->config->get('config_store_id') . "'
+					AND language_id = '" . (int)$this->config->get('config_language_id') . "'
+					LIMIT 1");
+
+				if ($route_query->num_rows) {
+					$rewritten = true;
+
+					if ($route_query->row['keyword'] !== '') {
+						$url = '/' . rawurlencode($route_query->row['keyword']);
+					}
 				}
 			}
 		}
@@ -359,6 +370,23 @@ class ControllerStartupSeoUrl extends Controller {
 		$code = strtolower((string)$code);
 
 		return substr(str_replace('uk', 'ua', $code), 0, 2);
+	}
+
+	private function getOctDealsLanguageAliasById($language_id) {
+		if (!$this->isOctDealsTheme()) {
+			return '';
+		}
+
+		$query = $this->db->query("SELECT code FROM " . DB_PREFIX . "language
+			WHERE language_id = '" . (int)$language_id . "'
+			AND status = '1'
+			LIMIT 1");
+
+		if (!$query->num_rows) {
+			return '';
+		}
+
+		return $this->getOctDealsLanguageAlias($query->row['code']);
 	}
 
 	private function getOctDealsLanguageByAlias($alias) {
