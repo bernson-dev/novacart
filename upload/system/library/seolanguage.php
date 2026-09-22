@@ -13,6 +13,7 @@ class SeoLanguage {
 	private $response;
 	private $session;
 	private $db;
+	private $url;
 	private $languages;
 	private $prefixes;
 
@@ -23,6 +24,7 @@ class SeoLanguage {
 		$this->response = $registry->get('response');
 		$this->session = $registry->get('session');
 		$this->db = $registry->get('db');
+		$this->url = $registry->get('url');
 	}
 
 	public function isEnabled() {
@@ -241,6 +243,130 @@ class SeoLanguage {
 		$language = $this->getLanguageById((int)$language_id, $languages);
 
 		return $language ? $this->getPrefixByCode($language['code']) : '';
+	}
+
+
+	/**
+	 * Return enabled storefront languages without exposing the internal cache.
+	 */
+	public function getEnabledLanguages() {
+		return array_values($this->getLanguages());
+	}
+
+	/**
+	 * Build alternate URLs for the same logical route in every enabled language.
+	 *
+	 * Only config_language_id is changed temporarily. Session, cookies and the
+	 * active Language object remain untouched, so hreflang/sitemap generation
+	 * cannot change the visitor's language.
+	 *
+	 * @param string $route
+	 * @param array  $params
+	 * @param bool   $ssl
+	 *
+	 * @return array hreflang => URL, including x-default
+	 */
+	public function getAlternateLinks($route, $params = array(), $ssl = false) {
+		if (!$this->isEnabled() || !$this->url || !is_string($route) || $route === '') {
+			return array();
+		}
+
+		if (!is_array($params)) {
+			$params = array();
+		}
+
+		$languages = $this->getLanguages();
+		$default = $this->getDefaultLanguage($languages);
+		$links = array();
+
+		foreach ($languages as $language) {
+			$url = $this->getUrlForLanguage(
+				$route,
+				$params,
+				(int)$language['language_id'],
+				(bool)$ssl
+			);
+
+			if ($url === '') {
+				continue;
+			}
+
+			$links[$this->normalizeHreflangCode($language['code'])] = $url;
+		}
+
+		if ($default) {
+			$default_url = $this->getUrlForLanguage(
+				$route,
+				$params,
+				(int)$default['language_id'],
+				(bool)$ssl
+			);
+
+			if ($default_url !== '') {
+				$links['x-default'] = $default_url;
+			}
+		}
+
+		return $links;
+	}
+
+	/**
+	 * Generate one URL in a requested language without modifying visitor state.
+	 */
+	public function getUrlForLanguage($route, $params, $language_id, $ssl = false) {
+		$languages = $this->getLanguages();
+		$language = $this->getLanguageById((int)$language_id, $languages);
+
+		if (
+			!$this->isEnabled()
+			|| !$this->url
+			|| !$language
+			|| !is_string($route)
+			|| $route === ''
+		) {
+			return '';
+		}
+
+		if (!is_array($params)) {
+			$params = array();
+		}
+
+		$original_language_id = $this->config->get('config_language_id');
+
+		try {
+			$this->config->set('config_language_id', (int)$language['language_id']);
+
+			$query = $params
+				? http_build_query($params, '', '&', PHP_QUERY_RFC3986)
+				: '';
+
+			return $this->url->link($route, $query, (bool)$ssl);
+		} finally {
+			$this->config->set('config_language_id', $original_language_id);
+		}
+	}
+
+	private function normalizeHreflangCode($code) {
+		$parts = preg_split('/[-_]+/', trim((string)$code));
+		$normalized = array();
+
+		foreach ($parts as $index => $part) {
+			if ($part === '') {
+				continue;
+			}
+
+			if ($index === 0) {
+				$normalized[] = strtolower($part);
+			} elseif (strlen($part) === 2 || strlen($part) === 3) {
+				$normalized[] = strtoupper($part);
+			} elseif (strlen($part) === 4) {
+				$normalized[] = ucfirst(strtolower($part));
+			} else {
+				$normalized[] = strtolower($part);
+			}
+		}
+
+		return implode('-', $normalized);
 	}
 
 	private function getLanguages() {
