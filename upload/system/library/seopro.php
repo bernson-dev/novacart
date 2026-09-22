@@ -574,58 +574,67 @@ class SeoPro {
 			return;
 		}
 
-		$request_language_id = null;
+		$request_language_id = 0;
 		$request_language_code = '';
 		$active_language_id = (int)$this->config->get('config_language_id');
-
 		$keyword = '';
 
 		if (isset($this->request->get['_route_'])) {
-			$parts = explode('/', $this->request->get['_route_']);
+			$parts = explode('/', (string)$this->request->get['_route_']);
 
 			foreach ($parts as $_part) {
-				if ($_part && trim($_part)) {
-					$keyword = trim($_part);
+				$_part = trim((string)$_part);
+
+				if ($_part !== '') {
+					$keyword = $_part;
 				}
 			}
 		}
 
-		if ($keyword || (isset($this->request->server['REQUEST_URI']) && $this->request->server['REQUEST_URI'] == '/')) {
+		if (
+			$keyword !== ''
+			|| (
+				isset($this->request->server['REQUEST_URI'])
+				&& parse_url((string)$this->request->server['REQUEST_URI'], PHP_URL_PATH) === '/'
+			)
+		) {
 			$query = $this->db->query("SELECT language_id FROM " . DB_PREFIX . "seo_url
-				WHERE keyword = '" . $this->db->escape(trim($keyword)) . "'
+				WHERE keyword = '" . $this->db->escape($keyword) . "'
 				AND store_id = '" . (int)$this->config->get('config_store_id') . "'
 				LIMIT 1");
 
-			if ($query->row) {
+			if ($query->num_rows) {
 				$request_language_id = (int)$query->row['language_id'];
-				$query = $this->db->query("SELECT code FROM " . DB_PREFIX . "language
+
+				$language_query = $this->db->query("SELECT code FROM " . DB_PREFIX . "language
 					WHERE language_id = '" . $request_language_id . "'
 					AND status = '1'
 					LIMIT 1");
 
-				if ($query->row) {
-					$request_language_code = $query->row['code'];
-					$this->session->data['language'] = $request_language_code;
+				if ($language_query->num_rows) {
+					$request_language_code = (string)$language_query->row['code'];
 				}
 			}
 		}
 
-		if (isset($this->session->data['language'])) {
-			$query = $this->db->query("SELECT language_id FROM " . DB_PREFIX . "language
-				WHERE code = '" . $this->db->escape($this->session->data['language']) . "'
-				AND status = '1'
-				LIMIT 1");
+		if ($request_language_id > 0 && $request_language_code !== '') {
+			// Apply the language selected by the URL atomically. Session must not
+			// be changed before config_language_id is compared, otherwise one
+			// request can run with a new session language and an old config ID.
+			if ($active_language_id !== $request_language_id) {
+				$language = new Language($request_language_code);
+				$language->load($request_language_code);
 
-			if ($query->num_rows) {
-				$active_language_id = (int)$query->row['language_id'];
+				$this->registry->set('language', $language);
+				$this->config->set('config_language_id', $request_language_id);
 			}
-		}
 
-		if ($request_language_id && $request_language_code && $active_language_id != $request_language_id) {
-			$language = new Language($request_language_code);
-			$language->load($request_language_code);
-			$this->registry->set('language', $language);
-			$this->config->set('config_language_id', $request_language_id);
+			$this->session->data['language'] = $request_language_code;
+			$this->request->cookie['language'] = $request_language_code;
+
+			if (!headers_sent()) {
+				setcookie('language', $request_language_code, time() + 60 * 60 * 24 * 30, '/');
+			}
 		}
 	}
 
