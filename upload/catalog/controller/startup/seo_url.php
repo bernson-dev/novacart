@@ -37,6 +37,9 @@ class ControllerStartupSeoUrl extends Controller {
 			}
 
 			$route_language_id = null;
+			$route_parts = array_values(array_filter($parts, function($part) {
+				return trim((string)$part) !== '';
+			}));
 
 			foreach ($parts as $part) {
 				if ($part === '') {
@@ -114,6 +117,19 @@ class ControllerStartupSeoUrl extends Controller {
 					}
 				} else {
 					if (!$this->seo_pro_enabled) {
+						// Octemplates Deals uses short language-home aliases
+						// (/ru, /ua, ...). Resolve only a single unknown segment,
+						// so normal SEO keywords keep their standard priority.
+						if (count($route_parts) === 1) {
+							$language_info = $this->getOctDealsLanguageByAlias($part);
+
+							if ($language_info) {
+								$this->applyLanguage((int)$language_info['language_id']);
+								$this->request->get['route'] = 'common/home';
+								break;
+							}
+						}
+
 						$this->request->get['route'] = 'error/not_found';
 					}
 
@@ -330,6 +346,43 @@ class ControllerStartupSeoUrl extends Controller {
 			. (isset($url_info['port']) ? ':' . $url_info['port'] : '')
 			. $path
 			. $query;
+	}
+
+	private function isOctDealsTheme() {
+		$theme = strtolower((string)$this->config->get('config_theme'));
+
+		return $theme === 'oct_deals'
+			|| strpos($theme, 'oct_deals') !== false;
+	}
+
+	private function getOctDealsLanguageAlias($code) {
+		$code = strtolower((string)$code);
+
+		return substr(str_replace('uk', 'ua', $code), 0, 2);
+	}
+
+	private function getOctDealsLanguageByAlias($alias) {
+		if (!$this->isOctDealsTheme()) {
+			return false;
+		}
+
+		$alias = strtolower(trim((string)$alias, '/'));
+
+		if (!preg_match('/^[a-z]{2}$/', $alias)) {
+			return false;
+		}
+
+		$query = $this->db->query("SELECT language_id, code FROM " . DB_PREFIX . "language
+			WHERE status = '1'
+			ORDER BY sort_order, name");
+
+		foreach ($query->rows as $language) {
+			if ($this->getOctDealsLanguageAlias($language['code']) === $alias) {
+				return $language;
+			}
+		}
+
+		return false;
 	}
 
 	private function applyLanguage($language_id) {

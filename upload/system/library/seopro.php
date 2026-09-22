@@ -24,6 +24,7 @@ class SeoPro {
 	private $queries = [];
 	private $product_categories = array();
 	private $valide_get_param = [];
+	private $language_home_alias = false;
 
 	public function __construct($registry) {
 		$this->registry = $registry;
@@ -52,6 +53,13 @@ class SeoPro {
 	public function prepareRoute($parts) {
 		if (!$this->config->get('config_seo_pro')) {
 			return $parts;
+		}
+
+		// Octemplates Deals uses /ru, /ua, ... as language-home aliases.
+		// detectLanguage() resolves the alias before route decoding.
+		if ($this->language_home_alias) {
+			$this->request->get['route'] = 'common/home';
+			return [];
 		}
 
 		$query = null;
@@ -537,6 +545,13 @@ class SeoPro {
 		$uri = $this->request->server['REQUEST_URI'];
 		$route = $this->request->get['route'];
 
+		// Deal language-home aliases are intentional navigation URLs. Rewriting
+		// /ru back to / (or /ua back to another common/home keyword) creates a
+		// redirect loop with the theme language switcher.
+		if ($this->language_home_alias && $route === 'common/home') {
+			return;
+		}
+
 		if (isset($this->request->get['page'])) {
 			if ((float)$this->request->get['page'] < 1) {
 				unset($this->request->get['page']);
@@ -577,35 +592,58 @@ class SeoPro {
 		$request_language_id = null;
 		$request_language_code = '';
 		$active_language_id = (int)$this->config->get('config_language_id');
-
 		$keyword = '';
+		$route_parts = [];
 
 		if (isset($this->request->get['_route_'])) {
-			$parts = explode('/', $this->request->get['_route_']);
+			$parts = explode('/', (string)$this->request->get['_route_']);
 
 			foreach ($parts as $_part) {
-				if ($_part && trim($_part)) {
-					$keyword = trim($_part);
+				$_part = trim((string)$_part);
+
+				if ($_part !== '') {
+					$route_parts[] = $_part;
+					$keyword = $_part;
 				}
 			}
 		}
 
 		if ($keyword || (isset($this->request->server['REQUEST_URI']) && $this->request->server['REQUEST_URI'] == '/')) {
-			$query = $this->db->query("SELECT language_id FROM " . DB_PREFIX . "seo_url
+			$query = $this->db->query("SELECT language_id, `query` FROM " . DB_PREFIX . "seo_url
 				WHERE keyword = '" . $this->db->escape(trim($keyword)) . "'
 				AND store_id = '" . (int)$this->config->get('config_store_id') . "'
 				LIMIT 1");
 
 			if ($query->row) {
 				$request_language_id = (int)$query->row['language_id'];
-				$query = $this->db->query("SELECT code FROM " . DB_PREFIX . "language
+				$language_query = $this->db->query("SELECT code FROM " . DB_PREFIX . "language
 					WHERE language_id = '" . $request_language_id . "'
 					AND status = '1'
 					LIMIT 1");
 
-				if ($query->row) {
-					$request_language_code = $query->row['code'];
+				if ($language_query->row) {
+					$request_language_code = (string)$language_query->row['code'];
 					$this->session->data['language'] = $request_language_code;
+
+					if (
+						count($route_parts) === 1
+						&& (string)$query->row['query'] === 'common/home'
+						&& $this->isOctDealsLanguageAlias($keyword, $request_language_code)
+					) {
+						$this->language_home_alias = true;
+					}
+				}
+			} elseif (count($route_parts) === 1) {
+				// Deal builds direct language links (/ru, /ua, ...). If such an
+				// alias is not present in seo_url, resolve it from enabled
+				// OpenCart languages without changing normal SEO keywords.
+				$language_info = $this->getOctDealsLanguageByAlias($keyword);
+
+				if ($language_info) {
+					$request_language_id = (int)$language_info['language_id'];
+					$request_language_code = (string)$language_info['code'];
+					$this->session->data['language'] = $request_language_code;
+					$this->language_home_alias = true;
 				}
 			}
 		}
@@ -627,6 +665,51 @@ class SeoPro {
 			$this->registry->set('language', $language);
 			$this->config->set('config_language_id', $request_language_id);
 		}
+	}
+
+	private function isOctDealsTheme() {
+		$theme = strtolower((string)$this->config->get('config_theme'));
+
+		return $theme === 'oct_deals'
+			|| strpos($theme, 'oct_deals') !== false;
+	}
+
+	private function getOctDealsLanguageAlias($code) {
+		$code = strtolower((string)$code);
+
+		return substr(str_replace('uk', 'ua', $code), 0, 2);
+	}
+
+	private function isOctDealsLanguageAlias($alias, $code) {
+		if (!$this->isOctDealsTheme()) {
+			return false;
+		}
+
+		return strtolower(trim((string)$alias, '/')) === $this->getOctDealsLanguageAlias($code);
+	}
+
+	private function getOctDealsLanguageByAlias($alias) {
+		if (!$this->isOctDealsTheme()) {
+			return false;
+		}
+
+		$alias = strtolower(trim((string)$alias, '/'));
+
+		if (!preg_match('/^[a-z]{2}$/', $alias)) {
+			return false;
+		}
+
+		$query = $this->db->query("SELECT language_id, code FROM " . DB_PREFIX . "language
+			WHERE status = '1'
+			ORDER BY sort_order, name");
+
+		foreach ($query->rows as $language) {
+			if ($this->getOctDealsLanguageAlias($language['code']) === $alias) {
+				return $language;
+			}
+		}
+
+		return false;
 	}
 
 	private function getCategoryByProduct($product_id) {
