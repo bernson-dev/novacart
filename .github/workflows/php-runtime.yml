@@ -8,6 +8,7 @@ on:
       - 'upload/system/**/*.php'
       - 'upload/image/placeholder.png'
       - 'upload/admin/language/**'
+      - 'tests/**/*.php'
       - '.github/workflows/php-runtime.yml'
   pull_request:
     branches:
@@ -16,6 +17,7 @@ on:
       - 'upload/system/**/*.php'
       - 'upload/image/placeholder.png'
       - 'upload/admin/language/**'
+      - 'tests/**/*.php'
       - '.github/workflows/php-runtime.yml'
   workflow_dispatch:
 
@@ -203,3 +205,6 @@ jobs:
             -d error_reporting=E_ALL \
             -d display_errors=1 \
             /tmp/novacart-runtime-smoke.php
+
+      - name: SeoPro language regression
+        run: php tests/seopro_language_regression.php
