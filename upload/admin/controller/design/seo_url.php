@@ -554,6 +554,8 @@ class ControllerDesignSeoUrl extends Controller {
 		} elseif ($keyword !== '') {
 			if (preg_match('/[^a-zA-Z0-9_-]/', $keyword)) {
 				$this->error['keyword'] = $this->language->get('error_keyword');
+			} elseif ($this->model_design_seo_url->isReservedLanguagePrefix($keyword, $store_id)) {
+				$this->error['keyword'] = $this->language->get('error_keyword_exists');
 			} elseif ($this->hasDuplicate('keyword', $keyword, $store_id, $language_id, $seo_url_id)) {
 				$this->error['keyword'] = $this->language->get('error_keyword_exists');
 			}
