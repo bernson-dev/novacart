@@ -36,6 +36,8 @@ class ControllerStartupSeoUrl extends Controller {
 				array_pop($parts);
 			}
 
+			$route_language_id = null;
+
 			foreach ($parts as $part) {
 				if ($part === '') {
 					continue;
@@ -47,9 +49,18 @@ class ControllerStartupSeoUrl extends Controller {
 					LIMIT 1");
 
 				if ($query->num_rows) {
-					// Standard seo_url detects the language from the unique keyword.
+					// Standard seo_url detects the language from the first unique keyword
+					// and rejects mixed-language paths.
 					if (!$this->seo_pro_enabled && isset($query->row['language_id'])) {
-						$this->applyLanguage((int)$query->row['language_id']);
+						$current_language_id = (int)$query->row['language_id'];
+
+						if ($route_language_id === null) {
+							$route_language_id = $current_language_id;
+							$this->applyLanguage($current_language_id);
+						} elseif ($route_language_id !== $current_language_id) {
+							$this->request->get['route'] = 'error/not_found';
+							break;
+						}
 					}
 
 					$url = explode('=', (string)$query->row['query'], 2);
