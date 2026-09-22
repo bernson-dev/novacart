@@ -53,14 +53,7 @@ class SeoLanguage {
 			return;
 		}
 
-		/*
-		 * When the feature is disabled, only consume a previously configured
-		 * language prefix as a compatibility alias. This prevents stale
-		 * /ua/... or /ru/... links from becoming 404 pages after disabling the
-		 * module. No language routing is applied in this mode.
-		 */
 		if (!$this->isEnabled()) {
-			$this->resolveDisabledAlias($languages);
 			return;
 		}
 
@@ -296,40 +289,6 @@ class SeoLanguage {
 		return false;
 	}
 
-	private function getStoredPrefixMap($languages) {
-		$map = array();
-
-		if ($this->config->has('module_seo_language_prefix')) {
-			$configured = $this->config->get('module_seo_language_prefix');
-		} else {
-			$configured = $this->config->get('seo_language_prefix');
-		}
-
-		if (!is_array($configured)) {
-			return $map;
-		}
-
-		foreach ($languages as $language) {
-			$code = (string)$language['code'];
-
-			if (!isset($configured[$code]) || !is_scalar($configured[$code])) {
-				continue;
-			}
-
-			$prefix = strtolower(trim((string)$configured[$code], " /\\"));
-
-			if (
-				$prefix !== ''
-				&& preg_match('/^[a-z0-9][a-z0-9_-]{0,31}$/', $prefix)
-				&& !isset($map[$prefix])
-			) {
-				$map[$prefix] = $language;
-			}
-		}
-
-		return $map;
-	}
-
 	private function getPrefixMap($languages) {
 		$map = array();
 
@@ -496,78 +455,6 @@ class SeoLanguage {
 		$target .= rawurlencode((string)$prefix) . '/';
 
 		$this->response->redirect($target, 302);
-	}
-
-	private function resolveDisabledAlias($languages) {
-		if (
-			!isset($this->request->get['_route_'])
-			|| !is_scalar($this->request->get['_route_'])
-			|| !$this->isSafeRedirectMethod()
-		) {
-			return;
-		}
-
-		$route = trim((string)$this->request->get['_route_'], '/');
-
-		if ($route === '') {
-			return;
-		}
-
-		$parts = explode('/', $route);
-		$first = strtolower(rawurldecode((string)$parts[0]));
-		$prefix_map = $this->getStoredPrefixMap($languages);
-
-		if (!isset($prefix_map[$first])) {
-			return;
-		}
-
-		/*
-		 * Some themes (including OCTemplates Deals) use /ru, /ua, ... as the
-		 * language switch target. Even with the SEO language module disabled,
-		 * keep these previously configured aliases functional: select the
-		 * matching language first, then canonicalize the URL by removing the
-		 * prefix.
-		 */
-		$this->applyLanguage($prefix_map[$first]);
-
-		array_shift($parts);
-		$this->redirectWithoutPrefix($parts);
-	}
-
-	private function redirectWithoutPrefix($parts) {
-		$base = $this->getBaseUrlForScheme($this->isSecureRequest() ? 'https' : 'http');
-		$base_info = parse_url($base);
-
-		if (!is_array($base_info) || empty($base_info['scheme']) || empty($base_info['host'])) {
-			return;
-		}
-
-		$target = $base_info['scheme'] . '://' . $base_info['host'];
-
-		if (isset($base_info['port'])) {
-			$target .= ':' . (int)$base_info['port'];
-		}
-
-		$target .= $this->normalizeBasePath(isset($base_info['path']) ? $base_info['path'] : '/');
-
-		if ($parts) {
-			$target .= implode('/', $parts);
-		}
-
-		/*
-		 * _route_ is an internal Apache/OpenCart rewrite parameter. Never
-		 * expose it in a public redirect URL, otherwise /ru can become
-		 * /?_route_=ru and redirect forever. Preserve only real user query
-		 * parameters (utm_*, page, sort, tracking, etc.).
-		 */
-		$query_data = $this->request->get;
-		unset($query_data['_route_']);
-
-		if ($query_data) {
-			$target .= '?' . http_build_query($query_data, '', '&', PHP_QUERY_RFC3986);
-		}
-
-		$this->response->redirect($target, 301);
 	}
 
 	private function isSafeRedirectMethod() {
