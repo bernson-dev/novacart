@@ -90,9 +90,7 @@ class ModelBlogArticle extends Model {
 
 		$this->cache->delete('article');
 
-		if ($this->config->get('config_seo_pro')) {
-			$this->cache->delete('seopro');
-		}
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 
 		return $article_id;
 	}
@@ -201,9 +199,7 @@ class ModelBlogArticle extends Model {
 
 		$this->cache->delete('article');
 
-		if ($this->config->get('config_seo_pro')) {
-			$this->cache->delete('seopro');
-		}
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 	}
 
 	public function editArticleStatus($article_id, $status) {
@@ -211,9 +207,7 @@ class ModelBlogArticle extends Model {
 
 		$this->cache->delete('article');
 
-		if ($this->config->get('config_seo_pro')) {
-			$this->cache->delete('seopro');
-		}
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 
 		return $article_id;
 	}
@@ -257,9 +251,7 @@ class ModelBlogArticle extends Model {
 
 		$this->cache->delete('article');
 
-		if ($this->config->get('config_seo_pro')) {
-			$this->cache->delete('seopro');
-		}
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 	}
 
 	public function getArticle($article_id) {
