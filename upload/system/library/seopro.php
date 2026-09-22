@@ -22,9 +22,8 @@ class SeoPro {
 	private $cat_tree = [];
 	private $keywords = [];
 	private $queries = [];
-	private $product_categories = array();
+	private $product_categories = [];
 	private $valide_get_param = [];
-	private $language_home_alias = false;
 
 	public function __construct($registry) {
 		$this->registry = $registry;
@@ -53,13 +52,6 @@ class SeoPro {
 	public function prepareRoute($parts) {
 		if (!$this->config->get('config_seo_pro')) {
 			return $parts;
-		}
-
-		// Octemplates Deals uses /ru, /ua, ... as language-home aliases.
-		// detectLanguage() resolves the alias before route decoding.
-		if ($this->language_home_alias) {
-			$this->request->get['route'] = 'common/home';
-			return [];
 		}
 
 		$query = null;
@@ -205,7 +197,7 @@ class SeoPro {
 					$article_id = $data['article_id'];
 					$valide_get_param_data = array();
 
-					if (isset($data['blog_category_id']) || $this->config->get('config_seo_url_include_path')) {
+					if (isset($data['blog_category_id'])) {
 						$blog_path = $this->getBlogPathByArticle($article_id);
 					}
 
@@ -272,11 +264,6 @@ class SeoPro {
 					unset($data[$key]);
 					break;
 				case 'category_id':
-					$category_id = (int)$value;
-					$queries[] = 'category_id=' . $category_id;
-					unset($data[$key]);
-					break;
-
 				case 'information_id':
 					$information_id = (int)$value;
 					$queries[] = 'information_id=' . $information_id;
@@ -398,7 +385,6 @@ class SeoPro {
 		if ($this->config->get('config_seo_url_cache')) {
 			$this->keywords = $this->cache->get('seopro.keywords');
 			$this->queries = $this->cache->get('seopro.queries');
-			$this->product_categories = $this->cache->get('seopro.product_categories');
 
 			if (!$this->keywords || !is_array($this->keywords)) {
 				$this->keywords = [];
@@ -406,10 +392,6 @@ class SeoPro {
 
 			if (!$this->queries || !is_array($this->queries)) {
 				$this->queries = [];
-			}
-
-			if (!$this->product_categories || !is_array($this->product_categories)) {
-				$this->product_categories = [];
 			}
 
 			if (empty($this->keywords) || empty($this->queries)) {
@@ -545,13 +527,6 @@ class SeoPro {
 		$uri = $this->request->server['REQUEST_URI'];
 		$route = $this->request->get['route'];
 
-		// Deal language-home aliases are intentional navigation URLs. Rewriting
-		// /ru back to / (or /ua back to another common/home keyword) creates a
-		// redirect loop with the theme language switcher.
-		if ($this->language_home_alias && $route === 'common/home') {
-			return;
-		}
-
 		if (isset($this->request->get['page'])) {
 			if ((float)$this->request->get['page'] < 1) {
 				unset($this->request->get['page']);
@@ -592,58 +567,35 @@ class SeoPro {
 		$request_language_id = null;
 		$request_language_code = '';
 		$active_language_id = (int)$this->config->get('config_language_id');
+
 		$keyword = '';
-		$route_parts = [];
 
 		if (isset($this->request->get['_route_'])) {
-			$parts = explode('/', (string)$this->request->get['_route_']);
+			$parts = explode('/', $this->request->get['_route_']);
 
 			foreach ($parts as $_part) {
-				$_part = trim((string)$_part);
-
-				if ($_part !== '') {
-					$route_parts[] = $_part;
-					$keyword = $_part;
+				if ($_part && trim($_part)) {
+					$keyword = trim($_part);
 				}
 			}
 		}
 
 		if ($keyword || (isset($this->request->server['REQUEST_URI']) && $this->request->server['REQUEST_URI'] == '/')) {
-			$query = $this->db->query("SELECT language_id, `query` FROM " . DB_PREFIX . "seo_url
+			$query = $this->db->query("SELECT language_id FROM " . DB_PREFIX . "seo_url
 				WHERE keyword = '" . $this->db->escape(trim($keyword)) . "'
 				AND store_id = '" . (int)$this->config->get('config_store_id') . "'
 				LIMIT 1");
 
 			if ($query->row) {
 				$request_language_id = (int)$query->row['language_id'];
-				$language_query = $this->db->query("SELECT code FROM " . DB_PREFIX . "language
+				$query = $this->db->query("SELECT code FROM " . DB_PREFIX . "language
 					WHERE language_id = '" . $request_language_id . "'
 					AND status = '1'
 					LIMIT 1");
 
-				if ($language_query->row) {
-					$request_language_code = (string)$language_query->row['code'];
+				if ($query->row) {
+					$request_language_code = $query->row['code'];
 					$this->session->data['language'] = $request_language_code;
-
-					if (
-						count($route_parts) === 1
-						&& (string)$query->row['query'] === 'common/home'
-						&& $this->isOctDealsLanguageAlias($keyword, $request_language_code)
-					) {
-						$this->language_home_alias = true;
-					}
-				}
-			} elseif (count($route_parts) === 1) {
-				// Deal builds direct language links (/ru, /ua, ...). If such an
-				// alias is not present in seo_url, resolve it from enabled
-				// OpenCart languages without changing normal SEO keywords.
-				$language_info = $this->getOctDealsLanguageByAlias($keyword);
-
-				if ($language_info) {
-					$request_language_id = (int)$language_info['language_id'];
-					$request_language_code = (string)$language_info['code'];
-					$this->session->data['language'] = $request_language_code;
-					$this->language_home_alias = true;
 				}
 			}
 		}
@@ -667,57 +619,20 @@ class SeoPro {
 		}
 	}
 
-	private function isOctDealsTheme() {
-		$theme = strtolower((string)$this->config->get('config_theme'));
-
-		return $theme === 'oct_deals'
-			|| strpos($theme, 'oct_deals') !== false;
-	}
-
-	private function getOctDealsLanguageAlias($code) {
-		$code = strtolower((string)$code);
-
-		return substr(str_replace('uk', 'ua', $code), 0, 2);
-	}
-
-	private function isOctDealsLanguageAlias($alias, $code) {
-		if (!$this->isOctDealsTheme()) {
-			return false;
-		}
-
-		return strtolower(trim((string)$alias, '/')) === $this->getOctDealsLanguageAlias($code);
-	}
-
-	private function getOctDealsLanguageByAlias($alias) {
-		if (!$this->isOctDealsTheme()) {
-			return false;
-		}
-
-		$alias = strtolower(trim((string)$alias, '/'));
-
-		if (!preg_match('/^[a-z]{2}$/', $alias)) {
-			return false;
-		}
-
-		$query = $this->db->query("SELECT language_id, code FROM " . DB_PREFIX . "language
-			WHERE status = '1'
-			ORDER BY sort_order, name");
-
-		foreach ($query->rows as $language) {
-			if ($this->getOctDealsLanguageAlias($language['code']) === $alias) {
-				return $language;
-			}
-		}
-
-		return false;
-	}
-
 	private function getCategoryByProduct($product_id) {
 		if ((int)$product_id < 1) {
 			return false;
 		}
 
 		if ($this->config->get('config_seo_url_cache')) {
+			if (!is_array($this->product_categories)) {
+				$this->product_categories = $this->cache->get('seopro.product_categories');
+
+				if (!is_array($this->product_categories)) {
+					$this->product_categories = [];
+				}
+			}
+
 			if (isset($this->product_categories[$product_id])) {
 				return $this->product_categories[$product_id];
 			}
@@ -777,7 +692,7 @@ class SeoPro {
 			return false;
 		}
 
-		static $blog_path = null;
+		static $blog_path = [];
 		$cache = 'seopro.blog_category.seopath';
 
 		if (!is_array($blog_path)) {
@@ -834,7 +749,7 @@ class SeoPro {
 			$exclude = [];
 		}
 
-		return http_build_query(array_diff_key($this->request->get, array_flip($exclude)), '', '&', PHP_QUERY_RFC3986);
+		return urldecode(http_build_query(array_diff_key($this->request->get, array_flip($exclude))));
 	}
 
 	public function __destruct() {
