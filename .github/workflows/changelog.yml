@@ -111,7 +111,9 @@ jobs:
             exit 1
           fi
 
-          if [[ "$(wc -l < copilot-result.txt | tr -d ' ')" -gt 2 ]]; then
+          NONEMPTY_LINES="$(grep -cve '^[[:space:]]*$' copilot-result.txt || true)"
+
+          if [[ "$NONEMPTY_LINES" -gt 2 ]]; then
             echo "::error::Copilot returned unexpected extra output."
             cat copilot-result.txt
             exit 1
