@@ -24,7 +24,6 @@ class SeoPro {
 	private $queries = [];
 	private $product_categories = array();
 	private $valide_get_param = [];
-	private $language_home_alias = false;
 
 	public function __construct($registry) {
 		$this->registry = $registry;
@@ -53,13 +52,6 @@ class SeoPro {
 	public function prepareRoute($parts) {
 		if (!$this->config->get('config_seo_pro')) {
 			return $parts;
-		}
-
-		// Octemplates Deals uses /ru, /ua, ... as language-home aliases.
-		// detectLanguage() resolves the alias before route decoding.
-		if ($this->language_home_alias) {
-			$this->request->get['route'] = 'common/home';
-			return [];
 		}
 
 		$query = null;
@@ -160,18 +152,6 @@ class SeoPro {
 
 		if (empty($data['route'])) {
 			return array($url, $data, $postfix);
-		}
-
-		// Octemplates Deals uses language aliases as canonical home URLs.
-		// Generate the same scheme that the theme uses for switching languages,
-		// otherwise validate() can alternate between /, /uk and /ru, /ua.
-		if ($data['route'] === 'common/home' && $this->isOctDealsTheme()) {
-			$alias = $this->getOctDealsLanguageAliasById($language_id);
-
-			if ($alias !== '') {
-				unset($data['route']);
-				return array('/' . rawurlencode($alias), $data, $postfix);
-			}
 		}
 
 		switch ($data['route']) {
@@ -594,142 +574,59 @@ class SeoPro {
 			return;
 		}
 
-		$request_language_id = 0;
+		$request_language_id = null;
 		$request_language_code = '';
 		$active_language_id = (int)$this->config->get('config_language_id');
+
 		$keyword = '';
-		$route_parts = array();
 
 		if (isset($this->request->get['_route_'])) {
-			$parts = explode('/', (string)$this->request->get['_route_']);
+			$parts = explode('/', $this->request->get['_route_']);
 
 			foreach ($parts as $_part) {
-				$_part = trim((string)$_part);
-
-				if ($_part !== '') {
-					$route_parts[] = $_part;
-					$keyword = $_part;
+				if ($_part && trim($_part)) {
+					$keyword = trim($_part);
 				}
 			}
 		}
 
-		if ($keyword !== '' || (isset($this->request->server['REQUEST_URI']) && $this->request->server['REQUEST_URI'] == '/')) {
-			$query = $this->db->query("SELECT language_id, `query` FROM " . DB_PREFIX . "seo_url
+		if ($keyword || (isset($this->request->server['REQUEST_URI']) && $this->request->server['REQUEST_URI'] == '/')) {
+			$query = $this->db->query("SELECT language_id FROM " . DB_PREFIX . "seo_url
 				WHERE keyword = '" . $this->db->escape(trim($keyword)) . "'
 				AND store_id = '" . (int)$this->config->get('config_store_id') . "'
 				LIMIT 1");
 
-			if ($query->num_rows) {
+			if ($query->row) {
 				$request_language_id = (int)$query->row['language_id'];
-
-				$language_query = $this->db->query("SELECT code FROM " . DB_PREFIX . "language
+				$query = $this->db->query("SELECT code FROM " . DB_PREFIX . "language
 					WHERE language_id = '" . $request_language_id . "'
 					AND status = '1'
 					LIMIT 1");
 
-				if ($language_query->num_rows) {
-					$request_language_code = (string)$language_query->row['code'];
-
-					if (
-						count($route_parts) === 1
-						&& (string)$query->row['query'] === 'common/home'
-						&& $this->isOctDealsLanguageAlias($keyword, $request_language_code)
-					) {
-						$this->language_home_alias = true;
-					}
-				}
-			} elseif (count($route_parts) === 1) {
-				// Deal's /ru, /ua, ... aliases are not required to exist in seo_url.
-				$language_info = $this->getOctDealsLanguageByAlias($keyword);
-
-				if ($language_info) {
-					$request_language_id = (int)$language_info['language_id'];
-					$request_language_code = (string)$language_info['code'];
-					$this->language_home_alias = true;
+				if ($query->row) {
+					$request_language_code = $query->row['code'];
+					$this->session->data['language'] = $request_language_code;
 				}
 			}
 		}
 
-		if ($request_language_id > 0 && $request_language_code !== '') {
-			// Apply the URL language atomically to this request and future requests.
-			// Do not mutate session before comparing with the currently active config:
-			// doing so leaves session and config_language_id out of sync for one request.
-			if ($active_language_id !== $request_language_id) {
-				$language = new Language($request_language_code);
-				$language->load($request_language_code);
-				$this->registry->set('language', $language);
-				$this->config->set('config_language_id', $request_language_id);
-			}
+		if (isset($this->session->data['language'])) {
+			$query = $this->db->query("SELECT language_id FROM " . DB_PREFIX . "language
+				WHERE code = '" . $this->db->escape($this->session->data['language']) . "'
+				AND status = '1'
+				LIMIT 1");
 
-			$this->session->data['language'] = $request_language_code;
-			$this->request->cookie['language'] = $request_language_code;
-
-			if (!headers_sent()) {
-				setcookie('language', $request_language_code, time() + 60 * 60 * 24 * 30, '/');
-			}
-		}
-	}
-
-	private function isOctDealsTheme() {
-		$theme = strtolower((string)$this->config->get('config_theme'));
-
-		return $theme === 'oct_deals'
-			|| strpos($theme, 'oct_deals') !== false;
-	}
-
-	private function getOctDealsLanguageAlias($code) {
-		$code = strtolower((string)$code);
-
-		return substr(str_replace('uk', 'ua', $code), 0, 2);
-	}
-
-	private function getOctDealsLanguageAliasById($language_id) {
-		if (!$this->isOctDealsTheme()) {
-			return '';
-		}
-
-		$query = $this->db->query("SELECT code FROM " . DB_PREFIX . "language
-			WHERE language_id = '" . (int)$language_id . "'
-			AND status = '1'
-			LIMIT 1");
-
-		if (!$query->num_rows) {
-			return '';
-		}
-
-		return $this->getOctDealsLanguageAlias($query->row['code']);
-	}
-
-	private function isOctDealsLanguageAlias($alias, $code) {
-		if (!$this->isOctDealsTheme()) {
-			return false;
-		}
-
-		return strtolower(trim((string)$alias, '/')) === $this->getOctDealsLanguageAlias($code);
-	}
-
-	private function getOctDealsLanguageByAlias($alias) {
-		if (!$this->isOctDealsTheme()) {
-			return false;
-		}
-
-		$alias = strtolower(trim((string)$alias, '/'));
-
-		if (!preg_match('/^[a-z]{2}$/', $alias)) {
-			return false;
-		}
-
-		$query = $this->db->query("SELECT language_id, code FROM " . DB_PREFIX . "language
-			WHERE status = '1'
-			ORDER BY sort_order, name");
-
-		foreach ($query->rows as $language) {
-			if ($this->getOctDealsLanguageAlias($language['code']) === $alias) {
-				return $language;
+			if ($query->num_rows) {
+				$active_language_id = (int)$query->row['language_id'];
 			}
 		}
 
-		return false;
+		if ($request_language_id && $request_language_code && $active_language_id != $request_language_id) {
+			$language = new Language($request_language_code);
+			$language->load($request_language_code);
+			$this->registry->set('language', $language);
+			$this->config->set('config_language_id', $request_language_id);
+		}
 	}
 
 	private function getCategoryByProduct($product_id) {
