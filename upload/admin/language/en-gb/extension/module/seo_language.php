@@ -6,6 +6,7 @@ $_['text_edit'] = 'Language URL settings';
 $_['text_prefixes'] = 'Language prefixes';
 $_['text_default_root'] = 'default language';
 $_['text_optional_alias'] = 'optional';
+$_['entry_store'] = 'Store';
 $_['entry_status'] = 'Language prefixes';
 $_['help_architecture'] = 'The language prefix is resolved before standard SEO URL / SeoPro. The Catalog Language setting defines the default language, which always owns the unprefixed store root.';
 $_['help_prefixes'] = 'Set a unique first URL segment for every additional language, for example /ua/ or /en/. A prefix must not collide with an existing store SEO keyword.';
