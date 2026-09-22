@@ -37,11 +37,17 @@ class ControllerStartupSeoUrl extends Controller {
 				array_pop($parts);
 			}
 
+			$language_filter = '';
+
+			if ($this->seo_language instanceof SeoLanguage && $this->seo_language->isEnabled()) {
+				$language_filter = " AND language_id = '" . (int)$this->config->get('config_language_id') . "'";
+			}
+
 			foreach ($parts as $part) {
 				$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "seo_url
                     WHERE keyword = '" . $this->db->escape($part) . "'
-                      AND store_id = '" . (int)$this->config->get('config_store_id') . "'
-                      AND language_id = '" . (int)$this->config->get('config_language_id') . "'
+                      AND store_id = '" . (int)$this->config->get('config_store_id') . "'" .
+					$language_filter . "
                     LIMIT 1");
 
 				if ($query->num_rows) {
