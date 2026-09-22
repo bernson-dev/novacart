@@ -15,6 +15,24 @@ class ControllerCommonHeader extends Controller {
 		$data['default_language_id'] = $this->config->get('config_language_id');
 		$data['languages'] = $this->model_localisation_language->getLanguages();
 
+		/*
+		 * SEO URL generation in admin is shared by all catalog entity forms.
+		 * Expose the SEO Language status per store so common.js can generate a
+		 * clean slug for language-prefixed stores while preserving the legacy
+		 * language prefix when the module is disabled.
+		 */
+		$data['seo_language_enabled_stores'] = array();
+
+		$seo_language_query = $this->db->query("SELECT store_id, code, `value`
+			FROM `" . DB_PREFIX . "setting`
+			WHERE (code = 'module_seo_language' AND `key` = 'module_seo_language_status')
+			   OR (code = 'seo_language' AND `key` = 'seo_language_status')
+			ORDER BY (code = 'module_seo_language') ASC");
+
+		foreach ($seo_language_query->rows as $row) {
+			$data['seo_language_enabled_stores'][(int)$row['store_id']] = !empty($row['value']);
+		}
+
 		$data['description'] = $this->document->getDescription();
 		$data['keywords'] = $this->document->getKeywords();
 		$data['links'] = $this->document->getLinks();
