@@ -4,13 +4,27 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'upload/system/**/*.php'
+      - 'upload/image/placeholder.png'
+      - 'upload/admin/language/**'
+      - '.github/workflows/php-runtime.yml'
   pull_request:
     branches:
       - main
+    paths:
+      - 'upload/system/**/*.php'
+      - 'upload/image/placeholder.png'
+      - 'upload/admin/language/**'
+      - '.github/workflows/php-runtime.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: php-runtime-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   runtime:
