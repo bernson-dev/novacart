@@ -4770,7 +4770,7 @@ INSERT INTO `oc_seo_url` (`store_id`, `language_id`, `query`, `keyword`) VALUES
 (0, 2, 'category_id=58', 'uk_test25'),
 (0, 2, 'checkout/cart', 'uk-cart'),
 (0, 2, 'checkout/checkout', 'uk-checkout'),
-(0, 2, 'common/home', 'uk'),
+(0, 2, 'common/home', 'ua'),
 (0, 2, 'information/contact', 'uk-contact-us'),
 (0, 2, 'information/sitemap', 'uk-sitemap'),
 (0, 2, 'information_id=3', 'uk_privacy'),
