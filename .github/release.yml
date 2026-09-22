@@ -1,0 +1,25 @@
+changelog:
+  exclude:
+    labels:
+      - changelog:skip
+
+  categories:
+    - title: "Добавлено"
+      labels:
+        - changelog:added
+
+    - title: "Изменено"
+      labels:
+        - changelog:changed
+
+    - title: "Исправлено"
+      labels:
+        - changelog:fixed
+
+    - title: "Безопасность"
+      labels:
+        - changelog:security
+
+    - title: "Другие изменения"
+      labels:
+        - "*"
