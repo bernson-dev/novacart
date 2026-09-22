@@ -296,6 +296,40 @@ class SeoLanguage {
 		return false;
 	}
 
+	private function getStoredPrefixMap($languages) {
+		$map = array();
+
+		if ($this->config->has('module_seo_language_prefix')) {
+			$configured = $this->config->get('module_seo_language_prefix');
+		} else {
+			$configured = $this->config->get('seo_language_prefix');
+		}
+
+		if (!is_array($configured)) {
+			return $map;
+		}
+
+		foreach ($languages as $language) {
+			$code = (string)$language['code'];
+
+			if (!isset($configured[$code]) || !is_scalar($configured[$code])) {
+				continue;
+			}
+
+			$prefix = strtolower(trim((string)$configured[$code], " /\\"));
+
+			if (
+				$prefix !== ''
+				&& preg_match('/^[a-z0-9][a-z0-9_-]{0,31}$/', $prefix)
+				&& !isset($map[$prefix])
+			) {
+				$map[$prefix] = $language;
+			}
+		}
+
+		return $map;
+	}
+
 	private function getPrefixMap($languages) {
 		$map = array();
 
@@ -481,7 +515,7 @@ class SeoLanguage {
 
 		$parts = explode('/', $route);
 		$first = strtolower(rawurldecode((string)$parts[0]));
-		$prefix_map = $this->getPrefixMap($languages);
+		$prefix_map = $this->getStoredPrefixMap($languages);
 
 		if (!isset($prefix_map[$first])) {
 			return;
