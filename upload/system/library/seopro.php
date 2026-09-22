@@ -751,7 +751,7 @@ class SeoPro {
 			$exclude = [];
 		}
 
-		return urldecode(http_build_query(array_diff_key($this->request->get, array_flip($exclude))));
+		return http_build_query(array_diff_key($this->request->get, array_flip($exclude)), '', '&', PHP_QUERY_RFC3986);
 	}
 
 	public function __destruct() {
