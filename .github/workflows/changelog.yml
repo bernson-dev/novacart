@@ -30,6 +30,7 @@ jobs:
         with:
           script: |
             const body = context.payload.pull_request.body || '';
+            const visibleBody = body.replace(/<!--[\s\S]*?-->/g, '');
 
             const typeLabels = [
               'Добавлено',
@@ -41,7 +42,7 @@ jobs:
 
             const checked = typeLabels.filter((label) => {
               const escaped = label.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&');
-              return new RegExp('^- \\[xX\\] ' + escaped + '$', 'm').test(body);
+              return new RegExp('^- \\[xX\\] ' + escaped + '$', 'm').test(visibleBody);
             });
 
             if (checked.length !== 1) {
@@ -54,7 +55,7 @@ jobs:
               return;
             }
 
-            const match = body.match(
+            const match = visibleBody.match(
               /## Запись для CHANGELOG\s*\n[\s\S]*?(?:^|\n)-\s+([^\n<>][^\n]*)/m
             );
 
@@ -84,6 +85,7 @@ jobs:
             const repo = context.repo.repo;
             const pr = context.payload.pull_request;
             const body = pr.body || '';
+            const visibleBody = body.replace(/<!--[\s\S]*?-->/g, '');
 
             const types = [
               {
@@ -125,7 +127,7 @@ jobs:
 
             const selected = types.filter((type) => {
               const escaped = type.text.replace(/[.*+?^$\{\}()|[\]\\]/g, '\\$&');
-              return new RegExp('^- \\[xX\\] ' + escaped + '$', 'm').test(body);
+              return new RegExp('^- \\[xX\\] ' + escaped + '$', 'm').test(visibleBody);
             });
 
             if (selected.length !== 1) {
@@ -163,7 +165,7 @@ jobs:
               return;
             }
 
-            const entryMatch = body.match(
+            const entryMatch = visibleBody.match(
               /## Запись для CHANGELOG\s*\n[\s\S]*?(?:^|\n)-\s+([^\n<>][^\n]*)/m
             );
 
