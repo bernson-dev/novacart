@@ -24,6 +24,7 @@ class SeoPro {
 	private $queries = [];
 	private $product_categories = [];
 	private $valide_get_param = [];
+	private $language_home_alias = false;
 
 	public function __construct($registry) {
 		$this->registry = $registry;
@@ -52,6 +53,18 @@ class SeoPro {
 	public function prepareRoute($parts) {
 		if (!$this->config->get('config_seo_pro')) {
 			return $parts;
+		}
+
+		/*
+		 * Synthetic language-home aliases are used only when a non-default
+		 * language has no stored common/home keyword (usually because it used
+		 * to be the default language). detectLanguage() has already selected the
+		 * language, so this segment represents common/home rather than a normal
+		 * SEO entity.
+		 */
+		if ($this->language_home_alias) {
+			$this->request->get['route'] = 'common/home';
+			return array();
 		}
 
 		$query = null;
@@ -171,6 +184,33 @@ class SeoPro {
 			}
 		}
 
+
+		/*
+		 * The current catalog default always owns the bare store root. Do not let
+		 * an old common/home row keep a prefix after config_language changes.
+		 * Conversely, if a former default language has an empty home keyword,
+		 * synthesize a deterministic alias without modifying the database.
+		 */
+		if ($data['route'] === 'common/home') {
+			$default_language_id = $this->getDefaultLanguageId();
+
+			if ($default_language_id && $language_id === $default_language_id) {
+				return array('', array('route' => 'common/home'), $postfix);
+			}
+
+			$keyword = $this->getKeywordByQuery('common/home', $language_id);
+
+			if ($keyword === null || $keyword === '') {
+				$language_code = $this->getLanguageCodeById($language_id);
+				$keyword = $this->getLanguageHomeAlias($language_code);
+			}
+
+			if ($keyword !== '') {
+				return array('/' . rawurlencode($keyword), array('route' => 'common/home'), $postfix);
+			}
+
+			return array('', array('route' => 'common/home'), $postfix);
+		}
 		switch ($data['route']) {
 			case 'product/product':
 				if (isset($data['product_id'])) {
@@ -582,9 +622,8 @@ class SeoPro {
 		}
 
 		/*
-		 * When SeoLanguage is enabled it has already resolved the explicit
-		 * first-path prefix before SeoPro starts. SeoPro must not infer the
-		 * language a second time from ordinary SEO keywords.
+		 * SeoLanguage owns language resolution when the dedicated prefix router
+		 * is enabled. SeoPro must not infer the language again from entity slugs.
 		 */
 		if ($this->registry->has('seo_language')) {
 			$seo_language = $this->registry->get('seo_language');
@@ -594,32 +633,34 @@ class SeoPro {
 			}
 		}
 
-		/*
-		 * Only an explicit SEO keyword may select a language.
-		 *
-		 * The store root "/" has no language keyword and must keep the language
-		 * already restored by startup/startup from session/cookie. Looking up
-		 * common/home by an empty keyword here would reset every visit to the
-		 * default language and make the user's language preference appear lost.
-		 */
+		// The bare store root keeps the language restored by startup/startup.
 		if (!isset($this->request->get['_route_'])) {
 			return;
 		}
 
-		$keyword = '';
+		$route_parts = array();
 		$parts = explode('/', (string)$this->request->get['_route_']);
 
 		foreach ($parts as $part) {
-			if (trim((string)$part) !== '') {
-				$keyword = trim((string)$part);
+			$part = trim((string)$part);
+
+			if ($part !== '') {
+				$route_parts[] = $part;
 			}
 		}
 
-		if ($keyword === '') {
+		if (!$route_parts) {
 			return;
 		}
 
-		$query = $this->db->query("SELECT su.language_id, l.code
+		$keyword = end($route_parts);
+
+		/*
+		 * Normal SEO keywords always have priority. This prevents a real product,
+		 * category or information slug such as "ua" from being mistaken for a
+		 * language alias.
+		 */
+		$query = $this->db->query("SELECT su.language_id, su.query, l.code
 			FROM " . DB_PREFIX . "seo_url su
 			INNER JOIN " . DB_PREFIX . "language l ON (l.language_id = su.language_id)
 			WHERE su.keyword = '" . $this->db->escape($keyword) . "'
@@ -627,21 +668,45 @@ class SeoPro {
 			AND l.status = '1'
 			LIMIT 1");
 
-		if (!$query->num_rows) {
+		if ($query->num_rows) {
+			$this->applyDetectedLanguage(
+				(int)$query->row['language_id'],
+				(string)$query->row['code']
+			);
 			return;
 		}
 
-		$language_id = (int)$query->row['language_id'];
-		$language_code = (string)$query->row['code'];
+		/*
+		 * A language that used to be the default can have an empty common/home
+		 * keyword. After config_language changes it still needs a stable home
+		 * alias. Resolve only a single unknown path segment and only when it
+		 * matches an enabled language's deterministic home alias.
+		 */
+		if (count($route_parts) === 1) {
+			$language = $this->getLanguageByHomeAlias($keyword);
+
+			if ($language) {
+				$this->applyDetectedLanguage(
+					(int)$language['language_id'],
+					(string)$language['code']
+				);
+				$this->language_home_alias = true;
+			}
+		}
+	}
+
+	private function applyDetectedLanguage($language_id, $language_code) {
+		$language_id = (int)$language_id;
+		$language_code = (string)$language_code;
+
+		if ($language_id < 1 || $language_code === '') {
+			return;
+		}
 
 		/*
-		 * Apply all parts of the language state in the same request.
-		 *
-		 * The previous implementation wrote the detected code to the session,
-		 * then re-read that modified session to decide whether config_language_id
-		 * needed changing. That made the comparison false and left one request
-		 * with session=RU but config/language still=UA (or vice versa), causing
-		 * transient 404s and redirect loops until the next request.
+		 * Keep the complete language state synchronized in the same request.
+		 * Updating only the session caused transient 404 pages and redirect loops
+		 * until a later request rebuilt config_language_id and Language.
 		 */
 		$this->session->data['language'] = $language_code;
 		$this->config->set('config_language_id', $language_id);
@@ -653,6 +718,69 @@ class SeoPro {
 		if (PHP_SAPI !== 'cli' && !headers_sent()) {
 			setcookie('language', $language_code, time() + 60 * 60 * 24 * 30, '/');
 		}
+	}
+
+	private function getLanguageByHomeAlias($alias) {
+		$alias = strtolower(trim((string)$alias, '/'));
+
+		if (!preg_match('/^[a-z0-9][a-z0-9_-]{0,31}$/', $alias)) {
+			return false;
+		}
+
+		$query = $this->db->query("SELECT language_id, code FROM " . DB_PREFIX . "language
+			WHERE status = '1'
+			ORDER BY sort_order, name");
+
+		foreach ($query->rows as $language) {
+			if ($this->getLanguageHomeAlias($language['code']) === $alias) {
+				return $language;
+			}
+		}
+
+		return false;
+	}
+
+	private function getLanguageHomeAlias($code) {
+		$code = strtolower(str_replace('_', '-', (string)$code));
+		$parts = explode('-', $code);
+		$alias = !empty($parts[0]) ? $parts[0] : '';
+
+		// Octemplates Deals displays Ukrainian as "ua" rather than locale "uk".
+		if ($this->isOctDealsTheme() && $alias === 'uk') {
+			$alias = 'ua';
+		}
+
+		return $alias;
+	}
+
+	private function isOctDealsTheme() {
+		$theme = strtolower((string)$this->config->get('config_theme'));
+
+		return $theme === 'oct_deals' || strpos($theme, 'oct_deals') !== false;
+	}
+
+	private function getDefaultLanguageId() {
+		$code = (string)$this->config->get('config_language');
+
+		if ($code === '') {
+			return 0;
+		}
+
+		$query = $this->db->query("SELECT language_id FROM " . DB_PREFIX . "language
+			WHERE code = '" . $this->db->escape($code) . "'
+			AND status = '1'
+			LIMIT 1");
+
+		return $query->num_rows ? (int)$query->row['language_id'] : 0;
+	}
+
+	private function getLanguageCodeById($language_id) {
+		$query = $this->db->query("SELECT code FROM " . DB_PREFIX . "language
+			WHERE language_id = '" . (int)$language_id . "'
+			AND status = '1'
+			LIMIT 1");
+
+		return $query->num_rows ? (string)$query->row['code'] : '';
 	}
 
 	private function getCategoryByProduct($product_id) {
