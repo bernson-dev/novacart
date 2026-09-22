@@ -61,4 +61,19 @@ class Cache {
 	public function delete($key) {
 		return $this->adaptor->delete($key);
 	}
+
+	/**
+	 * Delete multiple cache keys.
+	 *
+	 * @param array $keys
+	 */
+	public function deleteMany($keys) {
+		if (!is_array($keys)) {
+			return;
+		}
+
+		foreach ($keys as $key) {
+			$this->adaptor->delete($key);
+		}
+	}
 }

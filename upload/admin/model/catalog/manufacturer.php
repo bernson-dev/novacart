@@ -52,6 +52,7 @@ class ModelCatalogManufacturer extends Model {
 		}
 
 		$this->cache->delete('manufacturer');
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 
 		return $manufacturer_id;
 	}
@@ -121,6 +122,7 @@ class ModelCatalogManufacturer extends Model {
 		}
 
 		$this->cache->delete('manufacturer');
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 	}
 
 	public function deleteManufacturer($manufacturer_id) {
@@ -133,6 +135,7 @@ class ModelCatalogManufacturer extends Model {
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "article_related_mn` WHERE manufacturer_id = '" . (int)$manufacturer_id . "'");
 
 		$this->cache->delete('manufacturer');
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 	}
 
 	public function getManufacturer($manufacturer_id) {

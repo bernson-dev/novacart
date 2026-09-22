@@ -19,6 +19,9 @@ class ControllerSettingSetting extends Controller {
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 			$this->model_setting_setting->editSetting('config', $this->request->post);
 
+			// SeoPro cache depends on URL and SeoPro settings (language, lowercase, paths, etc.).
+			$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+
 			// Start Add svg Favicon generator
 			$store_id = (int)($this->request->get['store_id'] ?? 0);
 

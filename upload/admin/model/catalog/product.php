@@ -214,9 +214,7 @@ class ModelCatalogProduct extends Model {
 
 		$this->cache->delete('product');
 		
-		if ($this->config->get('config_seo_pro')) {
-			$this->cache->delete('seopro');
-		}
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 
 		return $product_id;
 	}
@@ -463,9 +461,7 @@ class ModelCatalogProduct extends Model {
 
 		$this->cache->delete('product');
 
-		if ($this->config->get('config_seo_pro')) {
-			$this->cache->delete('seopro');
-		}
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 	}
 
 	public function editProductStatus($product_id, $status) {
@@ -473,9 +469,7 @@ class ModelCatalogProduct extends Model {
 
 		$this->cache->delete('product');
 
-		if ($this->config->get('config_seo_pro')) {
-			$this->cache->delete('seopro');
-		}
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 
 		return $product_id;
 	}
@@ -540,9 +534,7 @@ class ModelCatalogProduct extends Model {
 
 		$this->cache->delete('product');
 
-		if ($this->config->get('config_seo_pro')) {
-			$this->cache->delete('seopro');
-		}
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 	}
 
 	public function getProduct($product_id) {
