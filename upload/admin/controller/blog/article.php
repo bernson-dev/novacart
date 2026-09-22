@@ -702,11 +702,17 @@ class ControllerBlogArticle extends Controller {
 					$keyword = trim((string)$keyword);
 
 					if ($keyword !== '') {
-						if (count(array_keys($language, $keyword, true)) > 1) {
+						$language_scoped = $this->model_design_seo_url->usesLanguageScopedKeywords((int)$store_id);
+
+						if (!$language_scoped && count(array_keys($language, $keyword, true)) > 1) {
 							$this->error['keyword'][$store_id][$language_id] = $this->language->get('error_unique');
 						}
 
-						$seo_urls = $this->model_design_seo_url->getSeoUrlsByKeyword($keyword);
+						$seo_urls = $this->model_design_seo_url->getSeoUrlsByKeyword(
+							$keyword,
+							(int)$store_id,
+							$language_scoped ? (int)$language_id : null
+						);
 
 						foreach ($seo_urls as $seo_url) {
 							if ((int)$seo_url['store_id'] == (int)$store_id && (!isset($this->request->get['article_id']) || ($seo_url['query'] != 'article_id=' . (int)$this->request->get['article_id']))) {
