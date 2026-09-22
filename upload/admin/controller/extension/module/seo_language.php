@@ -13,13 +13,13 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 		$store_id = isset($this->request->get['store_id']) ? (int)$this->request->get['store_id'] : 0;
 
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate($store_id)) {
-			$this->request->post['seo_language_prefix'] = $this->normalizePrefixes(
-				isset($this->request->post['seo_language_prefix'])
-					? $this->request->post['seo_language_prefix']
+			$this->request->post['module_seo_language_prefix'] = $this->normalizePrefixes(
+				isset($this->request->post['module_seo_language_prefix'])
+					? $this->request->post['module_seo_language_prefix']
 					: array()
 			);
 
-			$this->model_setting_setting->editSetting('seo_language', $this->request->post, $store_id);
+			$this->model_setting_setting->editSetting('module_seo_language', $this->request->post, $store_id);
 
 			$this->session->data['success'] = $this->language->get('text_success');
 
@@ -79,21 +79,38 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 			true
 		);
 
-		$settings = $this->model_setting_setting->getSetting('seo_language', $store_id);
+		$settings = $this->model_setting_setting->getSetting('module_seo_language', $store_id);
+
+		if (!$settings) {
+			$legacy_settings = $this->model_setting_setting->getSetting('seo_language', $store_id);
+
+			if ($legacy_settings) {
+				$settings = array();
+
+				if (isset($legacy_settings['seo_language_status'])) {
+					$settings['module_seo_language_status'] = $legacy_settings['seo_language_status'];
+				}
+
+				if (isset($legacy_settings['seo_language_prefix'])) {
+					$settings['module_seo_language_prefix'] = $legacy_settings['seo_language_prefix'];
+				}
+			}
+		}
+
 		$store_settings = $this->model_setting_setting->getSetting('config', $store_id);
 
-		if (isset($this->request->post['seo_language_status'])) {
-			$data['seo_language_status'] = (int)$this->request->post['seo_language_status'];
+		if (isset($this->request->post['module_seo_language_status'])) {
+			$data['module_seo_language_status'] = (int)$this->request->post['module_seo_language_status'];
 		} else {
-			$data['seo_language_status'] = isset($settings['seo_language_status'])
-				? (int)$settings['seo_language_status']
+			$data['module_seo_language_status'] = isset($settings['module_seo_language_status'])
+				? (int)$settings['module_seo_language_status']
 				: 0;
 		}
 
-		if (isset($this->request->post['seo_language_prefix'])) {
-			$prefixes = $this->request->post['seo_language_prefix'];
-		} elseif (isset($settings['seo_language_prefix']) && is_array($settings['seo_language_prefix'])) {
-			$prefixes = $settings['seo_language_prefix'];
+		if (isset($this->request->post['module_seo_language_prefix'])) {
+			$prefixes = $this->request->post['module_seo_language_prefix'];
+		} elseif (isset($settings['module_seo_language_prefix']) && is_array($settings['module_seo_language_prefix'])) {
+			$prefixes = $settings['module_seo_language_prefix'];
 		} else {
 			$prefixes = array();
 		}
@@ -103,9 +120,6 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 		$data['default_language'] = isset($store_settings['config_language'])
 			? (string)$store_settings['config_language']
 			: (string)$this->config->get('config_language');
-		$has_saved_prefixes = isset($settings['seo_language_prefix'])
-			&& is_array($settings['seo_language_prefix']);
-
 		foreach ($languages as $language) {
 			if (empty($language['status'])) {
 				continue;
@@ -114,7 +128,7 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 			$code = (string)$language['code'];
 			$prefix = isset($prefixes[$code]) ? trim((string)$prefixes[$code], " /\\") : '';
 
-			if ($prefix === '' && !$has_saved_prefixes) {
+			if ($prefix === '') {
 				$legacy = $this->db->query("SELECT keyword FROM " . DB_PREFIX . "seo_url
 					WHERE query = 'common/home'
 					AND store_id = '" . $store_id . "'
@@ -123,7 +137,7 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 
 				if ($legacy->num_rows && trim((string)$legacy->row['keyword']) !== '') {
 					$prefix = trim((string)$legacy->row['keyword'], " /\\");
-				} elseif ($code !== $data['default_language']) {
+				} else {
 					$code_parts = preg_split('/[-_]/', strtolower($code));
 					$prefix = !empty($code_parts[0]) ? $code_parts[0] : '';
 				}
@@ -167,9 +181,11 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 		$this->load->model('setting/setting');
 		$this->load->model('setting/store');
 
+		$this->model_setting_setting->deleteSetting('module_seo_language', 0);
 		$this->model_setting_setting->deleteSetting('seo_language', 0);
 
 		foreach ($this->model_setting_store->getStores() as $store) {
+			$this->model_setting_setting->deleteSetting('module_seo_language', (int)$store['store_id']);
 			$this->model_setting_setting->deleteSetting('seo_language', (int)$store['store_id']);
 		}
 	}
@@ -187,10 +203,10 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 		$default_code = isset($store_settings['config_language'])
 			? (string)$store_settings['config_language']
 			: (string)$this->config->get('config_language');
-		$status = !empty($this->request->post['seo_language_status']);
+		$status = !empty($this->request->post['module_seo_language_status']);
 		$prefixes = $this->normalizePrefixes(
-			isset($this->request->post['seo_language_prefix'])
-				? $this->request->post['seo_language_prefix']
+			isset($this->request->post['module_seo_language_prefix'])
+				? $this->request->post['module_seo_language_prefix']
 				: array()
 		);
 		$used = array();
@@ -203,7 +219,7 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 			$code = (string)$language['code'];
 			$prefix = isset($prefixes[$code]) ? $prefixes[$code] : '';
 
-			if ($status && $code !== $default_code && $prefix === '') {
+			if ($status && $prefix === '') {
 				$this->error['prefix'][$code] = $this->language->get('error_prefix_required');
 				continue;
 			}
