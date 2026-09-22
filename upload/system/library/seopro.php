@@ -582,9 +582,9 @@ class SeoPro {
 		}
 
 		/*
-		 * SeoLanguage resolves an explicit first-path language prefix before
-		 * SeoPro starts. Do not infer the language again from arbitrary SEO
-		 * keywords when the dedicated router is enabled.
+		 * When SeoLanguage is enabled it has already resolved the explicit
+		 * first-path prefix before SeoPro starts. SeoPro must not infer the
+		 * language a second time from ordinary SEO keywords.
 		 */
 		if ($this->registry->has('seo_language')) {
 			$seo_language = $this->registry->get('seo_language');
@@ -594,58 +594,59 @@ class SeoPro {
 			}
 		}
 
-		$request_language_id = null;
-		$request_language_code = '';
-		$active_language_id = (int)$this->config->get('config_language_id');
-
 		$keyword = '';
 
 		if (isset($this->request->get['_route_'])) {
-			$parts = explode('/', $this->request->get['_route_']);
+			$parts = explode('/', (string)$this->request->get['_route_']);
 
-			foreach ($parts as $_part) {
-				if ($_part && trim($_part)) {
-					$keyword = trim($_part);
+			foreach ($parts as $part) {
+				if (trim((string)$part) !== '') {
+					$keyword = trim((string)$part);
 				}
 			}
+		} elseif (
+			isset($this->request->server['REQUEST_URI'])
+			&& parse_url((string)$this->request->server['REQUEST_URI'], PHP_URL_PATH) === '/'
+		) {
+			// An empty common/home keyword may identify the default language.
+			$keyword = '';
+		} else {
+			return;
 		}
 
-		if ($keyword || (isset($this->request->server['REQUEST_URI']) && $this->request->server['REQUEST_URI'] == '/')) {
-			$query = $this->db->query("SELECT language_id FROM " . DB_PREFIX . "seo_url
-				WHERE keyword = '" . $this->db->escape(trim($keyword)) . "'
-				AND store_id = '" . (int)$this->config->get('config_store_id') . "'
-				LIMIT 1");
+		$query = $this->db->query("SELECT su.language_id, l.code
+			FROM " . DB_PREFIX . "seo_url su
+			INNER JOIN " . DB_PREFIX . "language l ON (l.language_id = su.language_id)
+			WHERE su.keyword = '" . $this->db->escape($keyword) . "'
+			AND su.store_id = '" . (int)$this->config->get('config_store_id') . "'
+			AND l.status = '1'
+			LIMIT 1");
 
-			if ($query->row) {
-				$request_language_id = (int)$query->row['language_id'];
-				$query = $this->db->query("SELECT code FROM " . DB_PREFIX . "language
-					WHERE language_id = '" . $request_language_id . "'
-					AND status = '1'
-					LIMIT 1");
-
-				if ($query->row) {
-					$request_language_code = $query->row['code'];
-					$this->session->data['language'] = $request_language_code;
-				}
-			}
+		if (!$query->num_rows) {
+			return;
 		}
 
-		if (isset($this->session->data['language'])) {
-			$query = $this->db->query("SELECT language_id FROM " . DB_PREFIX . "language
-				WHERE code = '" . $this->db->escape($this->session->data['language']) . "'
-				AND status = '1'
-				LIMIT 1");
+		$language_id = (int)$query->row['language_id'];
+		$language_code = (string)$query->row['code'];
 
-			if ($query->num_rows) {
-				$active_language_id = (int)$query->row['language_id'];
-			}
-		}
+		/*
+		 * Apply all parts of the language state in the same request.
+		 *
+		 * The previous implementation wrote the detected code to the session,
+		 * then re-read that modified session to decide whether config_language_id
+		 * needed changing. That made the comparison false and left one request
+		 * with session=RU but config/language still=UA (or vice versa), causing
+		 * transient 404s and redirect loops until the next request.
+		 */
+		$this->session->data['language'] = $language_code;
+		$this->config->set('config_language_id', $language_id);
 
-		if ($request_language_id && $request_language_code && $active_language_id != $request_language_id) {
-			$language = new Language($request_language_code);
-			$language->load($request_language_code);
-			$this->registry->set('language', $language);
-			$this->config->set('config_language_id', $request_language_id);
+		$language = new Language($language_code);
+		$language->load($language_code);
+		$this->registry->set('language', $language);
+
+		if (PHP_SAPI !== 'cli' && !headers_sent()) {
+			setcookie('language', $language_code, time() + 60 * 60 * 24 * 30, '/');
 		}
 	}
 
