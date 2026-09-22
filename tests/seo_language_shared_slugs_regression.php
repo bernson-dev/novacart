@@ -45,7 +45,10 @@ class SeoSharedSlugTestDb {
 					&& (string)$setting['code'] === $code
 					&& (string)$setting['key'] === $key
 				) {
-					$result->row = array('value' => $setting['value']);
+					$result->row = array(
+						'value' => $setting['value'],
+						'serialized' => isset($setting['serialized']) ? (int)$setting['serialized'] : 0
+					);
 					$result->rows = array($result->row);
 					$result->num_rows = 1;
 					return $result;
@@ -129,6 +132,13 @@ $db->settings = array(
 		'value' => '1'
 	),
 	array(
+		'store_id' => 0,
+		'code' => 'module_seo_language',
+		'key' => 'module_seo_language_prefix',
+		'value' => json_encode(array('ru-ru' => 'ru', 'uk-ua' => 'uk')),
+		'serialized' => 1
+	),
+	array(
 		'store_id' => 1,
 		'code' => 'module_seo_language',
 		'key' => 'module_seo_language_status',
@@ -162,6 +172,11 @@ $controller = new ControllerDesignSeoUrl($registry);
 
 assertSameValue(true, $model->usesLanguageScopedKeywords(0), 'Enabled SEO Language store was not language scoped');
 assertSameValue(false, $model->usesLanguageScopedKeywords(1), 'Disabled SEO Language store became language scoped');
+
+assertSameValue(true, $model->isReservedLanguagePrefix('uk', 0), 'Configured language prefix was not reserved');
+assertSameValue(true, $model->isReservedLanguagePrefix('/RU/', 0), 'Reserved prefix normalization changed');
+assertSameValue(false, $model->isReservedLanguagePrefix('shared-slug', 0), 'Normal SEO keyword was treated as a prefix');
+assertSameValue(false, $model->isReservedLanguagePrefix('uk', 1), 'Disabled SEO Language store reserved a prefix');
 
 assertSameValue(
 	false,
