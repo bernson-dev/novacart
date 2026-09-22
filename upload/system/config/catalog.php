@@ -32,6 +32,8 @@ $_['library_autoload'] = array();
 $_['action_pre_action'] = array(
 	'startup/session',
 	'startup/startup',
+	// Resolve an optional language URL prefix before seo_url / SeoPro.
+	'startup/language_url',
 	'startup/error',
 	'startup/event',
 	'startup/maintenance',
