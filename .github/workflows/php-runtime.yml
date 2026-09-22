@@ -208,3 +208,6 @@ jobs:
 
       - name: SeoPro language regression
         run: php tests/seopro_language_regression.php
+
+      - name: SEO hreflang regression
+        run: php tests/seo_hreflang_regression.php

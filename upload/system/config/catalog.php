@@ -55,6 +55,10 @@ $_['action_event'] = array(
 	'language/*/after' => array(
 		'event/translation'
 	),
+	// Inject multilingual alternate links after the active theme renders header.
+	'view/common/header/after' => array(
+		'event/seo_language_hreflang'
+	),
 	//'view/*/before' => array(
 	//	1000  => 'event/debug/before'
 	//),

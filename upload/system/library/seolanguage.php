@@ -13,6 +13,7 @@ class SeoLanguage {
 	private $response;
 	private $session;
 	private $db;
+	private $url;
 	private $languages;
 	private $prefixes;
 
@@ -23,6 +24,7 @@ class SeoLanguage {
 		$this->response = $registry->get('response');
 		$this->session = $registry->get('session');
 		$this->db = $registry->get('db');
+		$this->url = $registry->get('url');
 	}
 
 	public function isEnabled() {
@@ -241,6 +243,292 @@ class SeoLanguage {
 		$language = $this->getLanguageById((int)$language_id, $languages);
 
 		return $language ? $this->getPrefixByCode($language['code']) : '';
+	}
+
+
+	/**
+	 * Return enabled storefront languages without exposing the internal cache.
+	 */
+	public function getEnabledLanguages() {
+		return array_values($this->getLanguages());
+	}
+
+	/**
+	 * Build alternate URLs for the same logical route in every enabled language.
+	 *
+	 * Only config_language_id is changed temporarily. Session, cookies and the
+	 * active Language object remain untouched, so hreflang/sitemap generation
+	 * cannot change the visitor's language.
+	 *
+	 * @param string $route
+	 * @param array  $params
+	 * @param bool   $ssl
+	 *
+	 * @return array hreflang => URL, including x-default
+	 */
+	public function getAlternateLinks($route, $params = array(), $ssl = false) {
+		if (!$this->isEnabled() || !$this->url || !is_string($route) || $route === '') {
+			return array();
+		}
+
+		if (!is_array($params)) {
+			$params = array();
+		}
+
+		$languages = $this->getLanguages();
+		$default = $this->getDefaultLanguage($languages);
+		$links = array();
+
+		foreach ($languages as $language) {
+			$url = $this->getUrlForLanguage(
+				$route,
+				$params,
+				(int)$language['language_id'],
+				(bool)$ssl
+			);
+
+			if ($url === '') {
+				continue;
+			}
+
+			$links[$this->normalizeHreflangCode($language['code'])] = $url;
+		}
+
+		if ($default) {
+			$default_url = $this->getUrlForLanguage(
+				$route,
+				$params,
+				(int)$default['language_id'],
+				(bool)$ssl
+			);
+
+			if ($default_url !== '') {
+				$links['x-default'] = $default_url;
+			}
+		}
+
+		return $links;
+	}
+
+	/**
+	 * Generate one URL in a requested language without modifying visitor state.
+	 */
+	public function getUrlForLanguage($route, $params, $language_id, $ssl = false) {
+		$languages = $this->getLanguages();
+		$language = $this->getLanguageById((int)$language_id, $languages);
+
+		if (
+			!$this->isEnabled()
+			|| !$this->url
+			|| !$language
+			|| !is_string($route)
+			|| $route === ''
+		) {
+			return '';
+		}
+
+		if (!is_array($params)) {
+			$params = array();
+		}
+
+		$original_language_id = $this->config->get('config_language_id');
+
+		try {
+			$this->config->set('config_language_id', (int)$language['language_id']);
+
+			$query = $params
+				? http_build_query($params, '', '&', PHP_QUERY_RFC3986)
+				: '';
+
+			return $this->url->link($route, $query, (bool)$ssl);
+		} finally {
+			$this->config->set('config_language_id', $original_language_id);
+		}
+	}
+
+	/**
+	 * Check that the logical page exists in the requested language.
+	 *
+	 * Routes without a language-bound entity are considered available. Entity
+	 * routes are verified against their description table so hreflang never
+	 * points to a localized 404 page.
+	 */
+	public function isRouteAvailableForLanguage($route, $params, $language_id) {
+		$route = (string)$route;
+		$language_id = (int)$language_id;
+		$params = is_array($params) ? $params : array();
+
+		if ($language_id < 1) {
+			return false;
+		}
+
+		switch ($route) {
+			case 'product/product':
+				if (empty($params['product_id'])) {
+					return false;
+				}
+
+				$query = $this->db->query("SELECT p.product_id FROM " . DB_PREFIX . "product p
+					INNER JOIN " . DB_PREFIX . "product_description pd ON (pd.product_id = p.product_id)
+					INNER JOIN " . DB_PREFIX . "product_to_store p2s ON (p2s.product_id = p.product_id)
+					WHERE p.product_id = '" . (int)$params['product_id'] . "'
+					AND pd.language_id = '" . $language_id . "'
+					AND p2s.store_id = '" . (int)$this->config->get('config_store_id') . "'
+					AND p.status = '1'
+					AND p.date_available <= NOW()
+					LIMIT 1");
+
+				return (bool)$query->num_rows;
+
+			case 'product/category':
+				if (empty($params['path'])) {
+					return false;
+				}
+
+				$path = explode('_', (string)$params['path']);
+				$category_id = (int)end($path);
+
+				$query = $this->db->query("SELECT c.category_id FROM " . DB_PREFIX . "category c
+					INNER JOIN " . DB_PREFIX . "category_description cd ON (cd.category_id = c.category_id)
+					INNER JOIN " . DB_PREFIX . "category_to_store c2s ON (c2s.category_id = c.category_id)
+					WHERE c.category_id = '" . $category_id . "'
+					AND cd.language_id = '" . $language_id . "'
+					AND c2s.store_id = '" . (int)$this->config->get('config_store_id') . "'
+					AND c.status = '1'
+					LIMIT 1");
+
+				return (bool)$query->num_rows;
+
+			case 'product/manufacturer/info':
+				if (empty($params['manufacturer_id'])) {
+					return false;
+				}
+
+				$query = $this->db->query("SELECT m.manufacturer_id FROM " . DB_PREFIX . "manufacturer m
+					INNER JOIN " . DB_PREFIX . "manufacturer_description md ON (md.manufacturer_id = m.manufacturer_id)
+					INNER JOIN " . DB_PREFIX . "manufacturer_to_store m2s ON (m2s.manufacturer_id = m.manufacturer_id)
+					WHERE m.manufacturer_id = '" . (int)$params['manufacturer_id'] . "'
+					AND md.language_id = '" . $language_id . "'
+					AND m2s.store_id = '" . (int)$this->config->get('config_store_id') . "'
+					LIMIT 1");
+
+				return (bool)$query->num_rows;
+
+			case 'information/information':
+				if (empty($params['information_id'])) {
+					return false;
+				}
+
+				$query = $this->db->query("SELECT i.information_id FROM " . DB_PREFIX . "information i
+					INNER JOIN " . DB_PREFIX . "information_description id ON (id.information_id = i.information_id)
+					INNER JOIN " . DB_PREFIX . "information_to_store i2s ON (i2s.information_id = i.information_id)
+					WHERE i.information_id = '" . (int)$params['information_id'] . "'
+					AND id.language_id = '" . $language_id . "'
+					AND i2s.store_id = '" . (int)$this->config->get('config_store_id') . "'
+					AND i.status = '1'
+					LIMIT 1");
+
+				return (bool)$query->num_rows;
+
+			case 'blog/article':
+				if (empty($params['article_id'])) {
+					return false;
+				}
+
+				$query = $this->db->query("SELECT a.article_id FROM " . DB_PREFIX . "article a
+					INNER JOIN " . DB_PREFIX . "article_description ad ON (ad.article_id = a.article_id)
+					INNER JOIN " . DB_PREFIX . "article_to_store a2s ON (a2s.article_id = a.article_id)
+					WHERE a.article_id = '" . (int)$params['article_id'] . "'
+					AND ad.language_id = '" . $language_id . "'
+					AND a2s.store_id = '" . (int)$this->config->get('config_store_id') . "'
+					AND a.status = '1'
+					AND a.date_available <= NOW()
+					LIMIT 1");
+
+				return (bool)$query->num_rows;
+
+			case 'blog/category':
+				if (empty($params['blog_category_id'])) {
+					return false;
+				}
+
+				$path = explode('_', (string)$params['blog_category_id']);
+				$blog_category_id = (int)end($path);
+
+				$query = $this->db->query("SELECT c.blog_category_id FROM " . DB_PREFIX . "blog_category c
+					INNER JOIN " . DB_PREFIX . "blog_category_description cd ON (cd.blog_category_id = c.blog_category_id)
+					INNER JOIN " . DB_PREFIX . "blog_category_to_store c2s ON (c2s.blog_category_id = c.blog_category_id)
+					WHERE c.blog_category_id = '" . $blog_category_id . "'
+					AND cd.language_id = '" . $language_id . "'
+					AND c2s.store_id = '" . (int)$this->config->get('config_store_id') . "'
+					AND c.status = '1'
+					LIMIT 1");
+
+				return (bool)$query->num_rows;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Same as getAlternateLinks(), but excludes languages where the entity does
+	 * not exist.
+	 */
+	public function getAvailableAlternateLinks($route, $params = array(), $ssl = false) {
+		if (!$this->isEnabled()) {
+			return array();
+		}
+
+		$languages = $this->getLanguages();
+		$default = $this->getDefaultLanguage($languages);
+		$links = array();
+		$default_hreflang = '';
+
+		foreach ($languages as $language) {
+			if (!$this->isRouteAvailableForLanguage($route, $params, (int)$language['language_id'])) {
+				continue;
+			}
+
+			$url = $this->getUrlForLanguage($route, $params, (int)$language['language_id'], $ssl);
+
+			if ($url !== '') {
+				$hreflang = $this->normalizeHreflangCode($language['code']);
+				$links[$hreflang] = $url;
+
+				if ($default && $language['code'] === $default['code']) {
+					$default_hreflang = $hreflang;
+				}
+			}
+		}
+
+		if ($default_hreflang !== '' && isset($links[$default_hreflang])) {
+			$links['x-default'] = $links[$default_hreflang];
+		}
+
+		return $links;
+	}
+
+	private function normalizeHreflangCode($code) {
+		$parts = preg_split('/[-_]+/', trim((string)$code));
+		$normalized = array();
+
+		foreach ($parts as $index => $part) {
+			if ($part === '') {
+				continue;
+			}
+
+			if ($index === 0) {
+				$normalized[] = strtolower($part);
+			} elseif (strlen($part) === 2 || strlen($part) === 3) {
+				$normalized[] = strtoupper($part);
+			} elseif (strlen($part) === 4) {
+				$normalized[] = ucfirst(strtolower($part));
+			} else {
+				$normalized[] = strtolower($part);
+			}
+		}
+
+		return implode('-', $normalized);
 	}
 
 	private function getLanguages() {
