@@ -42,9 +42,9 @@
           <div class="form-group">
             <label class="col-sm-2 control-label">{{ entry_status }}</label>
             <div class="col-sm-10">
-              <select name="seo_language_status" class="form-control">
-                <option value="1"{% if seo_language_status %} selected="selected"{% endif %}>{{ text_enabled }}</option>
-                <option value="0"{% if not seo_language_status %} selected="selected"{% endif %}>{{ text_disabled }}</option>
+              <select name="module_seo_language_status" class="form-control">
+                <option value="1"{% if module_seo_language_status %} selected="selected"{% endif %}>{{ text_enabled }}</option>
+                <option value="0"{% if not module_seo_language_status %} selected="selected"{% endif %}>{{ text_disabled }}</option>
               </select>
             </div>
           </div>
@@ -63,11 +63,11 @@
                 <div class="input-group">
                   <span class="input-group-addon">/</span>
                   <input type="text"
-                         name="seo_language_prefix[{{ language.code }}]"
+                         name="module_seo_language_prefix[{{ language.code }}]"
                          value="{{ language.prefix }}"
                          id="input-prefix-{{ language.language_id }}"
                          class="form-control"
-                         placeholder="{{ language.is_default ? text_optional_alias : language.code }}" />
+                         placeholder="{{ language.code }}" />
                   <span class="input-group-addon">/</span>
                 </div>
                 {% if error_prefix[language.code] %}
