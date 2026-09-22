@@ -694,7 +694,7 @@ class SeoPro {
 			return false;
 		}
 
-		static $blog_path = [];
+		static $blog_path = null;
 		$cache = 'seopro.blog_category.seopath';
 
 		if (!is_array($blog_path)) {
