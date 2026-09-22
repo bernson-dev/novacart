@@ -425,8 +425,8 @@ class ControllerCustomerCustomer extends Controller {
 
 			foreach ($stores as $store) {
 				$store_data[] = array(
-				'name' => $store['name'],
-				'href' => $this->url->link('customer/customer/login', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $result['customer_id'] . '&store_id=' . $store['store_id'], true)
+					'name' => $store['name'],
+					'href' => $this->url->link('customer/customer/login', 'user_token=' . $this->session->data['user_token'] . '&customer_id=' . $result['customer_id'] . '&store_id=' . $store['store_id'], true)
 				);
 			}
 
@@ -828,7 +828,7 @@ class ControllerCustomerCustomer extends Controller {
 
 		foreach ($custom_fields as $custom_field) {
 			if ($custom_field['status']) {
-					$data['custom_fields'][] = array(
+				$data['custom_fields'][] = array(
 					'custom_field_id'    => $custom_field['custom_field_id'],
 					'custom_field_value' => $this->model_customer_custom_field->getCustomFieldValues($custom_field['custom_field_id']),
 					'name'               => $custom_field['name'],

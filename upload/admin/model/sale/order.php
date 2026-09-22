@@ -5,8 +5,8 @@ class ModelSaleOrder extends Model {
 		$order_query = $this->db->query("SELECT o.email, o.telephone FROM `" . DB_PREFIX . "order` o WHERE o.order_id = '" . (int)$order_id . "'");
 		if ($order_query->num_rows) {
 			return array(
-			'phone' => $order_query->row['telephone'],
-			'email' => $order_query->row['email']
+				'phone' => $order_query->row['telephone'],
+				'email' => $order_query->row['email']
 			);
 		} else {
 			return false;

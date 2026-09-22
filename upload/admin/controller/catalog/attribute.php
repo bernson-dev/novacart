@@ -199,13 +199,13 @@ class ControllerCatalogAttribute extends Controller {
 		$data['breadcrumbs'] = array();
 
 		$data['breadcrumbs'][] = array(
-		'text' => $this->language->get('text_home'),
-		'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true)
+			'text' => $this->language->get('text_home'),
+			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true)
 		);
 
 		$data['breadcrumbs'][] = array(
-		'text' => $this->language->get('heading_title'),
-		'href' => $this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . $url, true)
+			'text' => $this->language->get('heading_title'),
+			'href' => $this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . $url, true)
 		);
 
 		$data['add'] = $this->url->link('catalog/attribute/add', 'user_token=' . $this->session->data['user_token'] . $url, true);
@@ -214,12 +214,12 @@ class ControllerCatalogAttribute extends Controller {
 		$data['attributes'] = array();
 
 		$filter_data = array(
-		'filter_name'               => $filter_name,
-		'filter_attribute_group_id' => $filter_attribute_group_id,
-		'sort'                      => $sort,
-		'order'                     => $order,
-		'start'                     => ($page - 1) * $this->config->get('config_limit_admin'),
-		'limit'                     => $this->config->get('config_limit_admin')
+			'filter_name'               => $filter_name,
+			'filter_attribute_group_id' => $filter_attribute_group_id,
+			'sort'                      => $sort,
+			'order'                     => $order,
+			'start'                     => ($page - 1) * $this->config->get('config_limit_admin'),
+			'limit'                     => $this->config->get('config_limit_admin')
 		);
 
 		$attribute_total = $this->model_catalog_attribute->getTotalAttributes($filter_data);
@@ -228,11 +228,11 @@ class ControllerCatalogAttribute extends Controller {
 
 		foreach ($results as $result) {
 			$data['attributes'][] = array(
-			'attribute_id'    => $result['attribute_id'],
-			'name'            => $result['name'],
-			'attribute_group' => $result['attribute_group'],
-			'sort_order'      => $result['sort_order'],
-			'edit'            => $this->url->link('catalog/attribute/edit', 'user_token=' . $this->session->data['user_token'] . '&attribute_id=' . $result['attribute_id'] . $url, true)
+				'attribute_id'    => $result['attribute_id'],
+				'name'            => $result['name'],
+				'attribute_group' => $result['attribute_group'],
+				'sort_order'      => $result['sort_order'],
+				'edit'            => $this->url->link('catalog/attribute/edit', 'user_token=' . $this->session->data['user_token'] . '&attribute_id=' . $result['attribute_id'] . $url, true)
 			);
 		}
 
@@ -381,13 +381,13 @@ class ControllerCatalogAttribute extends Controller {
 		$data['breadcrumbs'] = array();
 
 		$data['breadcrumbs'][] = array(
-		'text' => $this->language->get('text_home'),
-		'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true)
+			'text' => $this->language->get('text_home'),
+			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true)
 		);
 
 		$data['breadcrumbs'][] = array(
-		'text' => $this->language->get('heading_title'),
-		'href' => $this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . $url, true)
+			'text' => $this->language->get('heading_title'),
+			'href' => $this->url->link('catalog/attribute', 'user_token=' . $this->session->data['user_token'] . $url, true)
 		);
 
 		if (!isset($this->request->get['attribute_id'])) {
@@ -488,9 +488,9 @@ class ControllerCatalogAttribute extends Controller {
 			$this->load->model('catalog/attribute');
 
 			$filter_data = array(
-			'filter_name' => $this->request->get['filter_name'],
-			'start'       => 0,
-			'limit'       => $this->config->get('config_limit_autocomplete')
+				'filter_name' => $this->request->get['filter_name'],
+				'start'       => 0,
+				'limit'       => $this->config->get('config_limit_autocomplete')
 			);
 
 			$results = $this->model_catalog_attribute->getAttributes($filter_data);

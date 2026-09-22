@@ -35,7 +35,6 @@ class SeoPro {
 		$this->db = $registry->get('db');
 		$this->cache = $registry->get('cache');
 
-		// Важно: request должен быть инициализирован до detectAjax().
 		$this->detectAjax();
 
 		if (!$this->config->get('config_seo_pro')) {
