@@ -75,7 +75,11 @@ class ControllerStartupSeoUrl extends Controller {
 
 					// Blog
 					if ($url[0] == 'blog_category_id') {
-						$this->request->get['blog_category_id'] = $url[1];
+						if (!isset($this->request->get['blog_category_id'])) {
+							$this->request->get['blog_category_id'] = $url[1];
+						} else {
+							$this->request->get['blog_category_id'] .= '_' . $url[1];
+						}
 					}
 
 					if ($url[0] == 'article_id') {
@@ -192,15 +196,23 @@ class ControllerStartupSeoUrl extends Controller {
 
 				// поддержка блога: категории и статьи
 				if ($data['route'] == 'blog/category' && $key == 'blog_category_id') {
-					$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "seo_url
-                        WHERE `query` = 'blog_category_id=" . (int)$value . "'
-                          AND store_id = '" . (int)$this->config->get('config_store_id') . "'
-                          AND language_id = '" . (int)$this->config->get('config_language_id') . "'");
+					$blog_categories = explode('_', (string)$value);
 
-					if ($query->num_rows && $query->row['keyword']) {
-						$url .= '/' . $query->row['keyword'];
-						unset($data[$key]);
+					foreach ($blog_categories as $blog_category_id) {
+						$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "seo_url
+                            WHERE `query` = 'blog_category_id=" . (int)$blog_category_id . "'
+                              AND store_id = '" . (int)$this->config->get('config_store_id') . "'
+                              AND language_id = '" . (int)$this->config->get('config_language_id') . "'");
+
+						if ($query->num_rows && $query->row['keyword']) {
+							$url .= '/' . $query->row['keyword'];
+						} else {
+							$url = '';
+							break;
+						}
 					}
+
+					unset($data[$key]);
 				}
 
 				if ($data['route'] == 'blog/article' && $key == 'article_id') {
