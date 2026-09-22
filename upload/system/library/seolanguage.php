@@ -521,6 +521,15 @@ class SeoLanguage {
 			return;
 		}
 
+		/*
+		 * Some themes (including OCTemplates Deals) use /ru, /ua, ... as the
+		 * language switch target. Even with the SEO language module disabled,
+		 * keep these previously configured aliases functional: select the
+		 * matching language first, then canonicalize the URL by removing the
+		 * prefix.
+		 */
+		$this->applyLanguage($prefix_map[$first]);
+
 		array_shift($parts);
 		$this->redirectWithoutPrefix($parts);
 	}
