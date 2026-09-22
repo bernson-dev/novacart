@@ -43,7 +43,7 @@ class ModelBlogCategory extends Model {
 
 		$this->cache->delete('blog_category');
 
-		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath', 'seopro.oct_blog_cat_tree', 'seopro.oct_blogarticle_blogcategories'));
 
 		return $blog_category_id;
 	}
@@ -119,7 +119,7 @@ class ModelBlogCategory extends Model {
 
 		$this->cache->delete('blog_category');
 
-		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath', 'seopro.oct_blog_cat_tree', 'seopro.oct_blogarticle_blogcategories'));
 
 	}
 
@@ -128,7 +128,7 @@ class ModelBlogCategory extends Model {
 
 		$this->cache->delete('blog_category');
 
-		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath', 'seopro.oct_blog_cat_tree', 'seopro.oct_blogarticle_blogcategories'));
 
 	}
 	public function deleteCategory($blog_category_id) {
@@ -146,7 +146,7 @@ class ModelBlogCategory extends Model {
 
 		$this->cache->delete('blog_category');
 
-		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath', 'seopro.oct_blog_cat_tree', 'seopro.oct_blogarticle_blogcategories'));
 
 	}
 	public function repairCategories($parent_id = 0) {
