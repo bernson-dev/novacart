@@ -110,10 +110,46 @@ class ModelDesignSeoUrl extends Model {
 		return (int)$query->row['total'];
 	}
 
-	public function getSeoUrlsByKeyword($keyword) {
-		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "seo_url` WHERE `keyword` = '" . $this->db->escape($keyword) . "'");
+	public function getSeoUrlsByKeyword($keyword, $store_id = null, $language_id = null) {
+		$sql = "SELECT * FROM `" . DB_PREFIX . "seo_url` WHERE `keyword` = '" . $this->db->escape($keyword) . "'";
+
+		if ($store_id !== null) {
+			$sql .= " AND `store_id` = '" . (int)$store_id . "'";
+		}
+
+		if ($language_id !== null) {
+			$sql .= " AND `language_id` = '" . (int)$language_id . "'";
+		}
+
+		$query = $this->db->query($sql);
 
 		return $query->rows;
+	}
+
+	/**
+	 * Language-prefixed SEO URLs make identical keywords safe across languages.
+	 * Without the SEO Language module, keep OpenCart's legacy global-per-store
+	 * uniqueness rule so disabling the module cannot introduce ambiguous URLs.
+	 */
+	public function usesLanguageScopedKeywords($store_id) {
+		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
+			WHERE `store_id` = '" . (int)$store_id . "'
+			AND `code` = 'module_seo_language'
+			AND `key` = 'module_seo_language_status'
+			LIMIT 1");
+
+		if ($query->num_rows) {
+			return !empty($query->row['value']);
+		}
+
+		// Compatibility with the first test build before one-time migration.
+		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
+			WHERE `store_id` = '" . (int)$store_id . "'
+			AND `code` = 'seo_language'
+			AND `key` = 'seo_language_status'
+			LIMIT 1");
+
+		return $query->num_rows && !empty($query->row['value']);
 	}
 
 	public function getSeoUrlsByQuery($query) {
