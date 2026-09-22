@@ -29,7 +29,7 @@ jobs:
 
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
       issues: write
 
     steps:
@@ -135,7 +135,6 @@ jobs:
           CHANGE_TYPE: ${{ steps.copilot.outputs.type }}
           CHANGE_ENTRY: ${{ steps.copilot.outputs.entry }}
         with:
-          github-token: ${{ secrets.COPILOT_TOKEN }}
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
@@ -268,7 +267,7 @@ jobs:
 
     permissions:
       contents: write
-      pull-requests: read
+      pull-requests: write
       issues: write
 
     steps:
