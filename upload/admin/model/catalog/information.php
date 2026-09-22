@@ -34,6 +34,7 @@ class ModelCatalogInformation extends Model {
 		}
 
 		$this->cache->delete('information');
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 
 		return $information_id;
 	}
@@ -76,12 +77,14 @@ class ModelCatalogInformation extends Model {
 		}
 
 		$this->cache->delete('information');
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 	}
 
 	public function editInformationStatus($information_id, $status) {
 		$this->db->query("UPDATE " . DB_PREFIX . "information SET status = '" . (int)$status . "'WHERE information_id = '" . (int)$information_id . "'");
 
 		$this->cache->delete('information');
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 
 	}
 
@@ -93,6 +96,7 @@ class ModelCatalogInformation extends Model {
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url` WHERE query = 'information_id=" . (int)$information_id . "'");
 
 		$this->cache->delete('information');
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 	}
 
 	public function getInformation($information_id) {
