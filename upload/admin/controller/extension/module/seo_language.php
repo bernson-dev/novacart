@@ -7,6 +7,7 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 		$this->document->setTitle($this->language->get('heading_title'));
 
 		$this->load->model('setting/setting');
+		$this->load->model('setting/store');
 		$this->load->model('localisation/language');
 
 		$store_id = isset($this->request->get['store_id']) ? (int)$this->request->get['store_id'] : 0;
@@ -57,6 +58,26 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 
 		$data['action'] = $this->url->link('extension/module/seo_language', $url, true);
 		$data['cancel'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=module', true);
+		$data['store_id'] = $store_id;
+		$data['stores'] = array(
+			array(
+				'store_id' => 0,
+				'name'     => $this->config->get('config_name')
+			)
+		);
+
+		foreach ($this->model_setting_store->getStores() as $store) {
+			$data['stores'][] = array(
+				'store_id' => (int)$store['store_id'],
+				'name'     => (string)$store['name']
+			);
+		}
+
+		$data['store_url'] = $this->url->link(
+			'extension/module/seo_language',
+			'user_token=' . $this->session->data['user_token'] . '&store_id=',
+			true
+		);
 
 		$settings = $this->model_setting_setting->getSetting('seo_language', $store_id);
 		$store_settings = $this->model_setting_setting->getSetting('config', $store_id);
@@ -140,6 +161,17 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 			'modify',
 			'extension/module/seo_language'
 		);
+	}
+
+	public function uninstall() {
+		$this->load->model('setting/setting');
+		$this->load->model('setting/store');
+
+		$this->model_setting_setting->deleteSetting('seo_language', 0);
+
+		foreach ($this->model_setting_store->getStores() as $store) {
+			$this->model_setting_setting->deleteSetting('seo_language', (int)$store['store_id']);
+		}
 	}
 
 	private function validate($store_id) {
