@@ -69,11 +69,14 @@ class ControllerStartupSeoUrl extends Controller {
 						$this->request->get['product_id'] = $url[1];
 					}
 
-					if ($url[0] == 'category_id' && isset($url[1])) {
-						if (!isset($this->request->get['path'])) {
-							$this->request->get['path'] = $url[1];
-						} else {
-							$this->request->get['path'] .= '_' . $url[1];
+					// Keep this condition as a stable OCMOD anchor used by third-party SEO extensions.
+					if ($url[0] == 'category_id') {
+						if (isset($url[1])) {
+							if (!isset($this->request->get['path'])) {
+								$this->request->get['path'] = $url[1];
+							} else {
+								$this->request->get['path'] .= '_' . $url[1];
+							}
 						}
 					}
 
@@ -168,11 +171,8 @@ class ControllerStartupSeoUrl extends Controller {
 			}
 
 			// Standard entities.
-			if (
-				($data['route'] == 'product/product' && $key == 'product_id')
-				|| (($data['route'] == 'product/manufacturer/info' || $data['route'] == 'product/product') && $key == 'manufacturer_id')
-				|| ($data['route'] == 'information/information' && $key == 'information_id')
-			) {
+			// Keep this expression on one line: third-party OCMOD packages extend this exact condition.
+			if (($data['route'] == 'product/product' && $key == 'product_id') || (($data['route'] == 'product/manufacturer/info' || $data['route'] == 'product/product') && $key == 'manufacturer_id') || ($data['route'] == 'information/information' && $key == 'information_id')) {
 				$query = $this->db->query("SELECT keyword FROM " . DB_PREFIX . "seo_url
 					WHERE `query` = '" . $this->db->escape($key . '=' . (int)$value) . "'
 					AND store_id = '" . (int)$this->config->get('config_store_id') . "'
@@ -267,6 +267,12 @@ class ControllerStartupSeoUrl extends Controller {
 					}
 				}
 			}
+		}
+
+		// Backward compatibility for OCMOD extensions written for the classic seo_url:
+		// older modifications append a valid SEO path to $url but do not set $rewritten.
+		if (!$this->seo_pro_enabled && !$rewritten && $url !== '') {
+			$rewritten = true;
 		}
 
 		// Standard seo_url also supports route aliases stored directly in seo_url.
