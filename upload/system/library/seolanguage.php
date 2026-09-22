@@ -27,7 +27,7 @@ class SeoLanguage {
 
 	public function isEnabled() {
 		return (bool)$this->config->get('config_seo_url')
-			&& (bool)$this->config->get('config_language_url_status');
+			&& (bool)$this->config->get('seo_language_status');
 	}
 
 	/**
@@ -292,7 +292,7 @@ class SeoLanguage {
 	private function getPrefixByCode($code) {
 		if ($this->prefixes === null) {
 			$this->prefixes = array();
-			$configured = $this->config->get('config_language_url_prefix');
+			$configured = $this->config->get('seo_language_prefix');
 
 			if (is_array($configured)) {
 				foreach ($configured as $language_code => $prefix) {
