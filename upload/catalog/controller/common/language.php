@@ -113,9 +113,13 @@ class ControllerCommonLanguage extends Controller {
 		$redirect_data = $this->decodeRedirect($encoded_redirect);
 
 		$route = isset($redirect_data['route']) ? $redirect_data['route'] : 'common/home';
-		$params = isset($redirect_data['params']) && is_array($redirect_data['params'])
-			? $redirect_data['params']
-			: array();
+		$params = isset($redirect_data['params']) ? $redirect_data['params'] : array();
+
+		// Backward compatibility with redirect payloads generated before the
+		// LanguageUrl refactor, where params were stored as a query string.
+		if (!is_array($params) && !is_string($params)) {
+			$params = array();
+		}
 		$protocol = isset($redirect_data['protocol'])
 			? (bool)$redirect_data['protocol']
 			: $this->isSecure();
