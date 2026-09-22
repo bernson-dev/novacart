@@ -94,6 +94,14 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 				if (isset($legacy_settings['seo_language_prefix'])) {
 					$settings['module_seo_language_prefix'] = $legacy_settings['seo_language_prefix'];
 				}
+
+				/*
+				 * One-time migration from the first test build. OpenCart's
+				 * extensions list reads module_<code>_status, so persist the
+				 * converted values under the standard module setting code.
+				 */
+				$this->model_setting_setting->editSetting('module_seo_language', $settings, $store_id);
+				$this->model_setting_setting->deleteSetting('seo_language', $store_id);
 			}
 		}
 
@@ -200,9 +208,6 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 
 		$languages = $this->model_localisation_language->getLanguages();
 		$store_settings = $this->model_setting_setting->getSetting('config', $store_id);
-		$default_code = isset($store_settings['config_language'])
-			? (string)$store_settings['config_language']
-			: (string)$this->config->get('config_language');
 		$status = !empty($this->request->post['module_seo_language_status']);
 		$prefixes = $this->normalizePrefixes(
 			isset($this->request->post['module_seo_language_prefix'])
