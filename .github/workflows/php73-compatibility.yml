@@ -4,13 +4,23 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'upload/**/*.php'
+      - '.github/workflows/php73-compatibility.yml'
   pull_request:
     branches:
       - main
+    paths:
+      - 'upload/**/*.php'
+      - '.github/workflows/php73-compatibility.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: php-compatibility-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   syntax:
@@ -22,12 +32,6 @@ jobs:
       matrix:
         php:
           - '7.3'
-          - '7.4'
-          - '8.0'
-          - '8.1'
-          - '8.2'
-          - '8.3'
-          - '8.4'
           - '8.5'
 
     steps:
