@@ -302,7 +302,12 @@ class SeoPro {
 		}
 
 		if (empty($queries) && $route) {
-			$keyword = $this->getKeywordByQuery($route, $language_id);
+			if ($route === 'common/home') {
+				$language_url = new LanguageUrl($this->registry);
+				$keyword = $language_url->getHomeKeyword($language_id);
+			} else {
+				$keyword = $this->getKeywordByQuery($route, $language_id);
+			}
 
 			if ($keyword !== null) {
 				$url = '';
@@ -577,29 +582,37 @@ class SeoPro {
 		$request_language_id = 0;
 		$request_language_code = '';
 		$active_language_id = (int)$this->config->get('config_language_id');
-		$keyword = '';
+		$route_parts = array();
 
 		if (isset($this->request->get['_route_'])) {
 			$parts = explode('/', (string)$this->request->get['_route_']);
 
-			foreach ($parts as $_part) {
-				$_part = trim((string)$_part);
+			foreach ($parts as $part) {
+				$part = trim((string)$part);
 
-				if ($_part !== '') {
-					$keyword = $_part;
+				if ($part !== '') {
+					$route_parts[] = $part;
 				}
 			}
 		}
 
-		if (
-			$keyword !== ''
-			|| (
-				isset($this->request->server['REQUEST_URI'])
-				&& parse_url((string)$this->request->server['REQUEST_URI'], PHP_URL_PATH) === '/'
-			)
-		) {
+		$language_url = new LanguageUrl($this->registry);
+		$request_path = isset($this->request->server['REQUEST_URI'])
+			? parse_url((string)$this->request->server['REQUEST_URI'], PHP_URL_PATH)
+			: '';
+
+		if ($request_path === '/' && !$route_parts) {
+			$default_language = $language_url->getDefaultLanguage();
+
+			if ($default_language) {
+				$request_language_id = (int)$default_language['language_id'];
+				$request_language_code = (string)$default_language['code'];
+			}
+		} elseif ($route_parts) {
+			$keyword = end($route_parts);
+
 			$query = $this->db->query("SELECT language_id FROM " . DB_PREFIX . "seo_url
-				WHERE keyword = '" . $this->db->escape($keyword) . "'
+				WHERE keyword = '" . $this->db->escape((string)$keyword) . "'
 				AND store_id = '" . (int)$this->config->get('config_store_id') . "'
 				LIMIT 1");
 
@@ -614,13 +627,19 @@ class SeoPro {
 				if ($language_query->num_rows) {
 					$request_language_code = (string)$language_query->row['code'];
 				}
+			} elseif (count($route_parts) === 1) {
+				$language_info = $language_url->getLanguageByFallbackHomeKeyword($keyword);
+
+				if ($language_info) {
+					$request_language_id = (int)$language_info['language_id'];
+					$request_language_code = (string)$language_info['code'];
+					$this->request->get['route'] = 'common/home';
+					unset($this->request->get['_route_']);
+				}
 			}
 		}
 
 		if ($request_language_id > 0 && $request_language_code !== '') {
-			// Apply the language selected by the URL atomically. Session must not
-			// be changed before config_language_id is compared, otherwise one
-			// request can run with a new session language and an old config ID.
 			if ($active_language_id !== $request_language_id) {
 				$language = new Language($request_language_code);
 				$language->load($request_language_code);
