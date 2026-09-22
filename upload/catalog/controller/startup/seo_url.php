@@ -21,6 +21,21 @@ class ControllerStartupSeoUrl extends Controller {
 		// Add rewrite to url class.
 		if ($this->config->get('config_seo_url')) {
 			$this->url->addRewrite($this);
+
+			// The store root always belongs to config_language, regardless of
+			// a previous session/cookie language.
+			$path = isset($this->request->server['REQUEST_URI'])
+				? parse_url((string)$this->request->server['REQUEST_URI'], PHP_URL_PATH)
+				: '';
+
+			if ($path === '/' && !isset($this->request->get['_route_'])) {
+				$language_url = new LanguageUrl($this->registry);
+				$default_language = $language_url->getDefaultLanguage();
+
+				if ($default_language) {
+					$this->applyLanguage((int)$default_language['language_id']);
+				}
+			}
 		}
 
 		// Decode URL.
@@ -114,6 +129,17 @@ class ControllerStartupSeoUrl extends Controller {
 					}
 				} else {
 					if (!$this->seo_pro_enabled) {
+						if (count($route_parts) === 1) {
+							$language_url = new LanguageUrl($this->registry);
+							$language_info = $language_url->getLanguageByFallbackHomeKeyword($part);
+
+							if ($language_info) {
+								$this->applyLanguage((int)$language_info['language_id']);
+								$this->request->get['route'] = 'common/home';
+								break;
+							}
+						}
+
 						$this->request->get['route'] = 'error/not_found';
 					}
 
@@ -276,19 +302,31 @@ class ControllerStartupSeoUrl extends Controller {
 		}
 
 		// Standard seo_url also supports route aliases stored directly in seo_url.
-		// This includes multilingual home aliases such as common/home => "" / "uk".
+		// common/home is resolved dynamically: config_language owns the store root.
 		if (!$this->seo_pro_enabled && !$rewritten && isset($data['route'])) {
-			$route_query = $this->db->query("SELECT keyword FROM " . DB_PREFIX . "seo_url
-				WHERE `query` = '" . $this->db->escape((string)$data['route']) . "'
-				AND store_id = '" . (int)$this->config->get('config_store_id') . "'
-				AND language_id = '" . (int)$this->config->get('config_language_id') . "'
-				LIMIT 1");
+			if ($data['route'] === 'common/home') {
+				$language_url = new LanguageUrl($this->registry);
+				$keyword = $language_url->getHomeKeyword((int)$this->config->get('config_language_id'));
 
-			if ($route_query->num_rows) {
-				$rewritten = true;
+				if ($keyword !== null) {
+					$rewritten = true;
+					$url = $keyword === '' ? '' : '/' . rawurlencode($keyword);
+				}
+			}
 
-				if ($route_query->row['keyword'] !== '') {
-					$url = '/' . rawurlencode($route_query->row['keyword']);
+			if (!$rewritten) {
+				$route_query = $this->db->query("SELECT keyword FROM " . DB_PREFIX . "seo_url
+					WHERE `query` = '" . $this->db->escape((string)$data['route']) . "'
+					AND store_id = '" . (int)$this->config->get('config_store_id') . "'
+					AND language_id = '" . (int)$this->config->get('config_language_id') . "'
+					LIMIT 1");
+
+				if ($route_query->num_rows) {
+					$rewritten = true;
+
+					if ($route_query->row['keyword'] !== '') {
+						$url = '/' . rawurlencode($route_query->row['keyword']);
+					}
 				}
 			}
 		}
