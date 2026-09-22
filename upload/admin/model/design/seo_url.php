@@ -1,5 +1,7 @@
 <?php
 class ModelDesignSeoUrl extends Model {
+	private $language_scope = array();
+	private $language_prefixes = array();
 	public function addSeoUrl($data) {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$data['store_id'] . "', `language_id` = '" . (int)$data['language_id'] . "', `query` = '" . $this->db->escape(html_entity_decode($data['query'], ENT_QUOTES, 'UTF-8')) . "', `keyword` = '" . $this->db->escape($data['keyword']) . "'");
 	}
@@ -132,24 +134,99 @@ class ModelDesignSeoUrl extends Model {
 	 * uniqueness rule so disabling the module cannot introduce ambiguous URLs.
 	 */
 	public function usesLanguageScopedKeywords($store_id) {
+		$store_id = (int)$store_id;
+
+		if (array_key_exists($store_id, $this->language_scope)) {
+			return $this->language_scope[$store_id];
+		}
+
 		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
-			WHERE `store_id` = '" . (int)$store_id . "'
+			WHERE `store_id` = '" . $store_id . "'
 			AND `code` = 'module_seo_language'
 			AND `key` = 'module_seo_language_status'
 			LIMIT 1");
 
 		if ($query->num_rows) {
-			return !empty($query->row['value']);
+			$this->language_scope[$store_id] = !empty($query->row['value']);
+			return $this->language_scope[$store_id];
 		}
 
 		// Compatibility with the first test build before one-time migration.
 		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
-			WHERE `store_id` = '" . (int)$store_id . "'
+			WHERE `store_id` = '" . $store_id . "'
 			AND `code` = 'seo_language'
 			AND `key` = 'seo_language_status'
 			LIMIT 1");
 
-		return $query->num_rows && !empty($query->row['value']);
+		$this->language_scope[$store_id] = $query->num_rows && !empty($query->row['value']);
+
+		return $this->language_scope[$store_id];
+	}
+
+	public function isReservedLanguagePrefix($keyword, $store_id) {
+		if (!$this->usesLanguageScopedKeywords($store_id)) {
+			return false;
+		}
+
+		$keyword = strtolower(trim((string)$keyword, " /\\"));
+
+		if ($keyword === '') {
+			return false;
+		}
+
+		$prefixes = $this->getReservedLanguagePrefixes((int)$store_id);
+
+		return isset($prefixes[$keyword]);
+	}
+
+	private function getReservedLanguagePrefixes($store_id) {
+		if (isset($this->language_prefixes[$store_id])) {
+			return $this->language_prefixes[$store_id];
+		}
+
+		$this->language_prefixes[$store_id] = array();
+
+		$query = $this->db->query("SELECT `value`, `serialized` FROM `" . DB_PREFIX . "setting`
+			WHERE `store_id` = '" . (int)$store_id . "'
+			AND `code` = 'module_seo_language'
+			AND `key` = 'module_seo_language_prefix'
+			LIMIT 1");
+
+		if (!$query->num_rows) {
+			$query = $this->db->query("SELECT `value`, `serialized` FROM `" . DB_PREFIX . "setting`
+				WHERE `store_id` = '" . (int)$store_id . "'
+				AND `code` = 'seo_language'
+				AND `key` = 'seo_language_prefix'
+				LIMIT 1");
+		}
+
+		if (!$query->num_rows) {
+			return $this->language_prefixes[$store_id];
+		}
+
+		$value = $query->row['value'];
+
+		if (!empty($query->row['serialized'])) {
+			$value = json_decode((string)$value, true);
+		}
+
+		if (!is_array($value)) {
+			return $this->language_prefixes[$store_id];
+		}
+
+		foreach ($value as $prefix) {
+			if (!is_scalar($prefix)) {
+				continue;
+			}
+
+			$prefix = strtolower(trim((string)$prefix, " /\\"));
+
+			if ($prefix !== '') {
+				$this->language_prefixes[$store_id][$prefix] = true;
+			}
+		}
+
+		return $this->language_prefixes[$store_id];
 	}
 
 	public function getSeoUrlsByQuery($query) {
