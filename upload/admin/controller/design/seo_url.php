@@ -563,37 +563,39 @@ class ControllerDesignSeoUrl extends Controller {
 	}
 
 	/**
-	* Проверка дублей для query или keyword.
-	*
-	* Для keyword убираем проверку language_id,
-	* чтобы один и тот же URL не повторялся в разных языках.
-	*
-	* @param string $type         'query' или 'keyword'
-	* @param string $value        искомое значение
-	* @param int    $store_id
-	* @param int    $language_id  (не используется для keyword)
-	* @param int    $exclude_id   seo_url_id для игнорирования
-	* @return bool                true — есть дубликат
-	*/
+	 * Check duplicate query/keyword values in the namespace that can actually
+	 * collide on the storefront.
+	 *
+	 * With SEO Language enabled, the language prefix is resolved before the SEO
+	 * keyword, so identical keywords are safe in different languages. If the
+	 * module is disabled, preserve OpenCart's legacy per-store keyword scope.
+	 */
 	protected function hasDuplicate($type, $value, $store_id, $language_id, $exclude_id) {
+		$language_scoped = false;
+
 		if ($type === 'keyword') {
-			$rows = $this->model_design_seo_url->getSeoUrlsByKeyword($value);
+			$language_scoped = $this->model_design_seo_url->usesLanguageScopedKeywords($store_id);
+			$rows = $this->model_design_seo_url->getSeoUrlsByKeyword(
+				$value,
+				$store_id,
+				$language_scoped ? $language_id : null
+			);
 		} else {
 			$rows = $this->model_design_seo_url->getSeoUrlsByQuery($value);
 		}
 
 		foreach ($rows as $row) {
-			// Обязательное совпадение по store_id
 			if ((int)$row['store_id'] !== $store_id) {
 				continue;
 			}
 
-			// Для query проверяем и language_id, для keyword — нет
-			if ($type !== 'keyword' && (int)$row['language_id'] !== $language_id) {
+			if (
+				($type !== 'keyword' || $language_scoped)
+				&& (int)$row['language_id'] !== $language_id
+			) {
 				continue;
 			}
 
-			// Исключаем текующую запись по seo_url_id
 			if ((int)$row['seo_url_id'] === $exclude_id) {
 				continue;
 			}
