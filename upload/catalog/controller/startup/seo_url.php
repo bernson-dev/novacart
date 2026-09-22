@@ -41,6 +41,7 @@ class ControllerStartupSeoUrl extends Controller {
 				$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "seo_url
                     WHERE keyword = '" . $this->db->escape($part) . "'
                       AND store_id = '" . (int)$this->config->get('config_store_id') . "'
+                      AND language_id = '" . (int)$this->config->get('config_language_id') . "'
                     LIMIT 1");
 
 				if ($query->num_rows) {
@@ -124,9 +125,16 @@ class ControllerStartupSeoUrl extends Controller {
 			parse_str($url_info['query'], $data);
 		}
 
-		// Если ссылка ведёт на главную страницу — возвращаем корень
+		// Standard SEO keeps common/home at the store root. Language prefixes
+		// are applied afterwards by SeoLanguage and are not seo_url keywords.
 		if (isset($data['route']) && $data['route'] == 'common/home' && !$this->config->get('config_seo_pro')) {
-			return $url_info['scheme'] . '://' . $url_info['host'] . (isset($url_info['port']) ? ':' . $url_info['port'] : '') . '/';
+			$result = $url_info['scheme'] . '://' . $url_info['host'] . (isset($url_info['port']) ? ':' . $url_info['port'] : '') . str_replace('/index.php', '', $url_info['path']);
+
+			if ($this->seo_language instanceof SeoLanguage) {
+				$result = $this->seo_language->rewrite($result);
+			}
+
+			return $result;
 		}
 
 		if ($this->config->get('config_seo_pro')) {
@@ -233,7 +241,13 @@ class ControllerStartupSeoUrl extends Controller {
 				}
 			}
 
-			return $url_info['scheme'] . '://' . $url_info['host'] . (isset($url_info['port']) ? ':' . $url_info['port'] : '') . str_replace('/index.php', '', $url_info['path']) . $url . $query;
+			$result = $url_info['scheme'] . '://' . $url_info['host'] . (isset($url_info['port']) ? ':' . $url_info['port'] : '') . str_replace('/index.php', '', $url_info['path']) . $url . $query;
+
+			if ($this->seo_language instanceof SeoLanguage) {
+				$result = $this->seo_language->rewrite($result);
+			}
+
+			return $result;
 		} else {
 			return $link;
 		}
