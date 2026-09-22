@@ -42,6 +42,7 @@ class ModelSettingStore extends Model {
 		}
 
 		$this->cache->delete('store');
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
 	}
 
 
