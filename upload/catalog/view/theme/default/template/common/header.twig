@@ -46,7 +46,10 @@
         window.NovaCartStockPopupMode = '{{ stock_popup_mode|escape('js') }}';
     </script>
     <script src="catalog/view/javascript/common.js" type="text/javascript"> </script>
-    {% for link in links %}
+    {% for lang in hreflang %}
+<link rel="alternate" hreflang="{{ lang.code }}" href="{{ lang.href }}" />
+{% endfor %}
+{% for link in links %}
     <link href="{{ link.href }}" rel="{{ link.rel }}" />
     {% endfor %}
     {% for analytic in analytics %}
