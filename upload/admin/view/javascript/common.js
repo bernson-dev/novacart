@@ -64,22 +64,34 @@ window.translit = function(text) {
 	.replace(/^-+/g, '');                // убрать дефисы в начале
 };
 
-const buildSeoValue = (text, languageId) => {
+const buildSeoValue = (text, languageId, storeId) => {
 	let seo = window.translit(text);
 
 	if (!seo) {
 		return '';
 	}
 
-	const def = window.defaultLanguageId ? Number(window.defaultLanguageId) : null;
-	const current = Number(languageId);
+	const store = Number(storeId);
+	const languageScoped = window.seoLanguageEnabledStores
+		&& Object.prototype.hasOwnProperty.call(window.seoLanguageEnabledStores, store)
+		&& window.seoLanguageEnabledStores[store] === true;
 
-	if (def && current && current !== def && window.languages && window.languages[languageId]) {
-		const raw = String(window.languages[languageId]);
-		const prefix = raw.split('-')[0];
+	/*
+	 * When SEO Language owns the language prefix in the public URL, the stored
+	 * keyword must remain a clean slug. Otherwise preserve the legacy generator
+	 * behavior so standard OpenCart keeps distinct keywords between languages.
+	 */
+	if (!languageScoped) {
+		const def = window.defaultLanguageId ? Number(window.defaultLanguageId) : null;
+		const current = Number(languageId);
 
-		if (prefix) {
-			seo = prefix + '_' + seo;
+		if (def && current && current !== def && window.languages && window.languages[languageId]) {
+			const raw = String(window.languages[languageId]);
+			const prefix = raw.split('-')[0];
+
+			if (prefix) {
+				seo = prefix + '_' + seo;
+			}
 		}
 	}
 
@@ -95,12 +107,6 @@ const flashSeoField = ($el) => {
 };
 
 const fillSeo = (languageId, sourceText, onlyEmpty) => {
-	const seo = buildSeoValue(sourceText, languageId);
-
-	if (!seo) {
-		return;
-	}
-
 	const fieldNames = [
 		'category_seo_url',
 		'product_seo_url',
@@ -115,6 +121,14 @@ const fillSeo = (languageId, sourceText, onlyEmpty) => {
 
 		$(selector).each(function() {
 			const $el = $(this);
+			const fieldName = String($el.attr('name') || '');
+			const storeMatch = fieldName.match(/^[^[]+\[(\d+)\]\[(\d+)\]$/);
+			const storeId = storeMatch ? Number(storeMatch[1]) : 0;
+			const seo = buildSeoValue(sourceText, languageId, storeId);
+
+			if (!seo) {
+				return;
+			}
 
 			if (!onlyEmpty || !$el.val()) {
 				$el.val(seo).trigger('change');
