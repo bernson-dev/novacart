@@ -59,6 +59,7 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 		$data['cancel'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=module', true);
 
 		$settings = $this->model_setting_setting->getSetting('seo_language', $store_id);
+		$store_settings = $this->model_setting_setting->getSetting('config', $store_id);
 
 		if (isset($this->request->post['seo_language_status'])) {
 			$data['seo_language_status'] = (int)$this->request->post['seo_language_status'];
@@ -78,7 +79,11 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 
 		$languages = $this->model_localisation_language->getLanguages();
 		$data['languages'] = array();
-		$data['default_language'] = (string)$this->config->get('config_language');
+		$data['default_language'] = isset($store_settings['config_language'])
+			? (string)$store_settings['config_language']
+			: (string)$this->config->get('config_language');
+		$has_saved_prefixes = isset($settings['seo_language_prefix'])
+			&& is_array($settings['seo_language_prefix']);
 
 		foreach ($languages as $language) {
 			if (empty($language['status'])) {
@@ -88,7 +93,7 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 			$code = (string)$language['code'];
 			$prefix = isset($prefixes[$code]) ? trim((string)$prefixes[$code], " /\\") : '';
 
-			if ($prefix === '') {
+			if ($prefix === '' && !$has_saved_prefixes) {
 				$legacy = $this->db->query("SELECT keyword FROM " . DB_PREFIX . "seo_url
 					WHERE query = 'common/home'
 					AND store_id = '" . $store_id . "'
@@ -146,7 +151,10 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 		$this->load->model('localisation/language');
 
 		$languages = $this->model_localisation_language->getLanguages();
-		$default_code = (string)$this->config->get('config_language');
+		$store_settings = $this->model_setting_setting->getSetting('config', $store_id);
+		$default_code = isset($store_settings['config_language'])
+			? (string)$store_settings['config_language']
+			: (string)$this->config->get('config_language');
 		$status = !empty($this->request->post['seo_language_status']);
 		$prefixes = $this->normalizePrefixes(
 			isset($this->request->post['seo_language_prefix'])
