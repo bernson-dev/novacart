@@ -8,6 +8,14 @@ on:
       - 'upload/system/**/*.php'
       - 'upload/image/placeholder.png'
       - 'upload/admin/language/**'
+      - 'upload/admin/controller/catalog/product.php'
+      - 'upload/admin/controller/catalog/category.php'
+      - 'upload/admin/controller/catalog/manufacturer.php'
+      - 'upload/admin/controller/catalog/information.php'
+      - 'upload/admin/controller/blog/article.php'
+      - 'upload/admin/controller/blog/category.php'
+      - 'upload/admin/controller/design/seo_url.php'
+      - 'upload/admin/model/design/seo_url.php'
       - 'tests/**/*.php'
       - '.github/workflows/php-runtime.yml'
   pull_request:
@@ -17,6 +25,14 @@ on:
       - 'upload/system/**/*.php'
       - 'upload/image/placeholder.png'
       - 'upload/admin/language/**'
+      - 'upload/admin/controller/catalog/product.php'
+      - 'upload/admin/controller/catalog/category.php'
+      - 'upload/admin/controller/catalog/manufacturer.php'
+      - 'upload/admin/controller/catalog/information.php'
+      - 'upload/admin/controller/blog/article.php'
+      - 'upload/admin/controller/blog/category.php'
+      - 'upload/admin/controller/design/seo_url.php'
+      - 'upload/admin/model/design/seo_url.php'
       - 'tests/**/*.php'
       - '.github/workflows/php-runtime.yml'
   workflow_dispatch:
@@ -211,3 +227,6 @@ jobs:
 
       - name: SEO hreflang regression
         run: php tests/seo_hreflang_regression.php
+
+      - name: SEO shared-slug regression
+        run: php tests/seo_language_shared_slugs_regression.php
