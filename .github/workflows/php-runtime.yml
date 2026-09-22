@@ -16,6 +16,9 @@ on:
       - 'upload/admin/controller/blog/category.php'
       - 'upload/admin/controller/design/seo_url.php'
       - 'upload/admin/model/design/seo_url.php'
+      - 'upload/admin/controller/common/header.php'
+      - 'upload/admin/view/template/common/header.twig'
+      - 'upload/admin/view/javascript/common.js'
       - 'tests/**/*.php'
       - '.github/workflows/php-runtime.yml'
   pull_request:
@@ -33,6 +36,9 @@ on:
       - 'upload/admin/controller/blog/category.php'
       - 'upload/admin/controller/design/seo_url.php'
       - 'upload/admin/model/design/seo_url.php'
+      - 'upload/admin/controller/common/header.php'
+      - 'upload/admin/view/template/common/header.twig'
+      - 'upload/admin/view/javascript/common.js'
       - 'tests/**/*.php'
       - '.github/workflows/php-runtime.yml'
   workflow_dispatch:
@@ -230,3 +236,6 @@ jobs:
 
       - name: SEO shared-slug regression
         run: php tests/seo_language_shared_slugs_regression.php
+
+      - name: SEO generator regression
+        run: node tests/seo_generator_regression.js
