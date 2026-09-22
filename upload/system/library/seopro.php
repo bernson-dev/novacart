@@ -594,23 +594,28 @@ class SeoPro {
 			}
 		}
 
+		/*
+		 * Only an explicit SEO keyword may select a language.
+		 *
+		 * The store root "/" has no language keyword and must keep the language
+		 * already restored by startup/startup from session/cookie. Looking up
+		 * common/home by an empty keyword here would reset every visit to the
+		 * default language and make the user's language preference appear lost.
+		 */
+		if (!isset($this->request->get['_route_'])) {
+			return;
+		}
+
 		$keyword = '';
+		$parts = explode('/', (string)$this->request->get['_route_']);
 
-		if (isset($this->request->get['_route_'])) {
-			$parts = explode('/', (string)$this->request->get['_route_']);
-
-			foreach ($parts as $part) {
-				if (trim((string)$part) !== '') {
-					$keyword = trim((string)$part);
-				}
+		foreach ($parts as $part) {
+			if (trim((string)$part) !== '') {
+				$keyword = trim((string)$part);
 			}
-		} elseif (
-			isset($this->request->server['REQUEST_URI'])
-			&& parse_url((string)$this->request->server['REQUEST_URI'], PHP_URL_PATH) === '/'
-		) {
-			// An empty common/home keyword may identify the default language.
-			$keyword = '';
-		} else {
+		}
+
+		if ($keyword === '') {
 			return;
 		}
 
