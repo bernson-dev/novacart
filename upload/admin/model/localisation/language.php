@@ -283,7 +283,7 @@ class ModelLocalisationLanguage extends Model {
 		$this->cache->delete('article');
 		$this->cache->delete('catalog.language');
 		$this->cache->delete('admin.language');
-		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath'));
+		$this->cache->deleteMany(array('seopro.keywords', 'seopro.queries', 'seopro.cat_tree', 'seopro.product_categories', 'seopro.blog_category.seopath', 'seopro.oct_blog_cat_tree', 'seopro.oct_blogarticle_blogcategories'));
 	}
 
 	public function getLanguage($language_id) {
