@@ -350,7 +350,12 @@ class ControllerStartupSeoUrl extends Controller {
 
 		$code = (string)$query->row['code'];
 		$this->session->data['language'] = $code;
+		$this->request->cookie['language'] = $code;
 		$this->config->set('config_language_id', $language_id);
+
+		if (!headers_sent()) {
+			setcookie('language', $code, time() + 60 * 60 * 24 * 30, '/');
+		}
 
 		$language = new Language($code);
 		$language->load($code);
