@@ -15,7 +15,7 @@ permissions:
   issues: read
 
 concurrency:
-  group: changelog-${{ github.event.pull_request.number }}-${{ github.event.action }}
+  group: changelog-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 env:
@@ -625,7 +625,7 @@ jobs:
               const dateMatch = datePattern.exec(text);
 
               if (!dateMatch) {
-                return text.replace(/\s*$/, '') + '\n\n' + date + '\n' + line + '\n';
+                return text.replace(/\s*$/, '') + '\n\n' + date + '\n\n' + line + '\n';
               }
 
               const sectionStart = dateMatch.index + dateMatch[0].length;
@@ -637,7 +637,7 @@ jobs:
 
               return (
                 text.slice(0, insertAt).replace(/\s*$/, '') +
-                '\n' + line + '\n\n' +
+                '\n\n' + line + '\n\n' +
                 text.slice(insertAt).replace(/^\s*/, '')
               );
             }
