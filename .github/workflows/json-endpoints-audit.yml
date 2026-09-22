@@ -4,13 +4,25 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'upload/admin/controller/**/*.php'
+      - 'upload/catalog/controller/**/*.php'
+      - '.github/workflows/json-endpoints-audit.yml'
   pull_request:
     branches:
       - main
+    paths:
+      - 'upload/admin/controller/**/*.php'
+      - 'upload/catalog/controller/**/*.php'
+      - '.github/workflows/json-endpoints-audit.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: json-endpoints-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   audit:
