@@ -682,6 +682,10 @@ class ControllerCatalogInformation extends Controller {
 					if (!empty($keyword)) {
 						$language_scoped = $this->model_design_seo_url->usesLanguageScopedKeywords((int)$store_id);
 
+						if ($this->model_design_seo_url->isReservedLanguagePrefix($keyword, (int)$store_id)) {
+							$this->error['keyword'][$store_id][$language_id] = $this->language->get('error_keyword');
+						}
+
 						if (!$language_scoped && count(array_keys($language, $keyword)) > 1) {
 							$this->error['keyword'][$store_id][$language_id] = $this->language->get('error_unique');
 						}
