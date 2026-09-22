@@ -26,8 +26,11 @@ class SeoLanguage {
 	}
 
 	public function isEnabled() {
-		return (bool)$this->config->get('config_seo_url')
-			&& (bool)$this->config->get('seo_language_status');
+		$status = $this->config->has('module_seo_language_status')
+			? $this->config->get('module_seo_language_status')
+			: $this->config->get('seo_language_status');
+
+		return (bool)$this->config->get('config_seo_url') && (bool)$status;
 	}
 
 	/**
@@ -292,7 +295,13 @@ class SeoLanguage {
 	private function getPrefixByCode($code) {
 		if ($this->prefixes === null) {
 			$this->prefixes = array();
-			$configured = $this->config->get('seo_language_prefix');
+
+			if ($this->config->has('module_seo_language_prefix')) {
+				$configured = $this->config->get('module_seo_language_prefix');
+			} else {
+				// Compatibility with settings saved by the first test build.
+				$configured = $this->config->get('seo_language_prefix');
+			}
 
 			if (is_array($configured)) {
 				foreach ($configured as $language_code => $prefix) {
@@ -310,7 +319,73 @@ class SeoLanguage {
 			}
 		}
 
-		return isset($this->prefixes[$code]) ? $this->prefixes[$code] : '';
+		if (isset($this->prefixes[$code])) {
+			return $this->prefixes[$code];
+		}
+
+		/*
+		 * Older saved settings allowed the current default language to have an
+		 * empty prefix. If that language later becomes non-default, generate a
+		 * deterministic collision-free reserve prefix automatically.
+		 */
+		$languages = $this->getLanguages();
+
+		if (!isset($languages[$code])) {
+			return '';
+		}
+
+		$language = $languages[$code];
+		$candidates = array();
+
+		$legacy = $this->db->query("SELECT keyword FROM " . DB_PREFIX . "seo_url
+			WHERE query = 'common/home'
+			AND store_id = '" . (int)$this->config->get('config_store_id') . "'
+			AND language_id = '" . (int)$language['language_id'] . "'
+			LIMIT 1");
+
+		if ($legacy->num_rows) {
+			$legacy_prefix = strtolower(trim((string)$legacy->row['keyword'], " /\\"));
+
+			if ($legacy_prefix !== '') {
+				$candidates[] = $legacy_prefix;
+			}
+		}
+
+		$normalized_code = strtolower(str_replace('_', '-', (string)$language['code']));
+		$parts = explode('-', $normalized_code);
+
+		if (!empty($parts[0])) {
+			$candidates[] = $parts[0];
+		}
+
+		if ($normalized_code !== '') {
+			$candidates[] = $normalized_code;
+		}
+
+		$candidates[] = 'lang-' . (int)$language['language_id'];
+
+		foreach (array_unique($candidates) as $candidate) {
+			if (
+				$candidate === ''
+				|| in_array($candidate, $this->prefixes, true)
+				|| !preg_match('/^[a-z0-9][a-z0-9_-]{0,31}$/', $candidate)
+			) {
+				continue;
+			}
+
+			$collision = $this->db->query("SELECT seo_url_id FROM " . DB_PREFIX . "seo_url
+				WHERE store_id = '" . (int)$this->config->get('config_store_id') . "'
+				AND keyword = '" . $this->db->escape($candidate) . "'
+				AND query <> 'common/home'
+				LIMIT 1");
+
+			if (!$collision->num_rows) {
+				$this->prefixes[$code] = $candidate;
+				return $candidate;
+			}
+		}
+
+		return '';
 	}
 
 	private function applyLanguage($language) {
