@@ -2,6 +2,7 @@
 class ModelDesignSeoUrl extends Model {
 	private $language_scope = array();
 	private $language_prefixes = array();
+	private $language_prefix_map = array();
 	public function addSeoUrl($data) {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$data['store_id'] . "', `language_id` = '" . (int)$data['language_id'] . "', `query` = '" . $this->db->escape(html_entity_decode($data['query'], ENT_QUOTES, 'UTF-8')) . "', `keyword` = '" . $this->db->escape($data['keyword']) . "'");
 	}
@@ -190,12 +191,51 @@ class ModelDesignSeoUrl extends Model {
 		return isset($prefixes[$keyword]);
 	}
 
+	public function isOwnLanguagePrefix($keyword, $store_id, $language_id) {
+		if (!$this->usesLanguageScopedKeywords($store_id)) {
+			return false;
+		}
+
+		$keyword = strtolower(trim((string)$keyword, " /\\"));
+
+		if ($keyword === '') {
+			return false;
+		}
+
+		$query = $this->db->query("SELECT code FROM `" . DB_PREFIX . "language`
+			WHERE language_id = '" . (int)$language_id . "'
+			LIMIT 1");
+
+		if (!$query->num_rows || empty($query->row['code'])) {
+			return false;
+		}
+
+		$prefixes = $this->getLanguagePrefixMap((int)$store_id);
+		$code = (string)$query->row['code'];
+
+		return isset($prefixes[$code]) && $prefixes[$code] === $keyword;
+	}
+
 	private function getReservedLanguagePrefixes($store_id) {
 		if (isset($this->language_prefixes[$store_id])) {
 			return $this->language_prefixes[$store_id];
 		}
 
 		$this->language_prefixes[$store_id] = array();
+
+		foreach ($this->getLanguagePrefixMap((int)$store_id) as $prefix) {
+			$this->language_prefixes[$store_id][$prefix] = true;
+		}
+
+		return $this->language_prefixes[$store_id];
+	}
+
+	private function getLanguagePrefixMap($store_id) {
+		if (isset($this->language_prefix_map[$store_id])) {
+			return $this->language_prefix_map[$store_id];
+		}
+
+		$this->language_prefix_map[$store_id] = array();
 
 		$query = $this->db->query("SELECT `value`, `serialized` FROM `" . DB_PREFIX . "setting`
 			WHERE `store_id` = '" . (int)$store_id . "'
@@ -212,7 +252,7 @@ class ModelDesignSeoUrl extends Model {
 		}
 
 		if (!$query->num_rows) {
-			return $this->language_prefixes[$store_id];
+			return $this->language_prefix_map[$store_id];
 		}
 
 		$value = $query->row['value'];
@@ -222,10 +262,10 @@ class ModelDesignSeoUrl extends Model {
 		}
 
 		if (!is_array($value)) {
-			return $this->language_prefixes[$store_id];
+			return $this->language_prefix_map[$store_id];
 		}
 
-		foreach ($value as $prefix) {
+		foreach ($value as $code => $prefix) {
 			if (!is_scalar($prefix)) {
 				continue;
 			}
@@ -233,11 +273,11 @@ class ModelDesignSeoUrl extends Model {
 			$prefix = strtolower(trim((string)$prefix, " /\\"));
 
 			if ($prefix !== '') {
-				$this->language_prefixes[$store_id][$prefix] = true;
+				$this->language_prefix_map[$store_id][(string)$code] = $prefix;
 			}
 		}
 
-		return $this->language_prefixes[$store_id];
+		return $this->language_prefix_map[$store_id];
 	}
 
 	public function getSeoUrlsByQuery($query) {
