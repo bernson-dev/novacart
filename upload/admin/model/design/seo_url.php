@@ -153,38 +153,16 @@ class ModelDesignSeoUrl extends Model {
 			return false;
 		}
 
-		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
-			WHERE `store_id` IN (0, '" . $store_id . "')
-			AND `code` = 'config'
-			AND `key` = 'config_seo_language'
-			ORDER BY `store_id` DESC
-			LIMIT 1");
+		$setting = $this->getEffectiveLanguageSetting(
+			$store_id,
+			array(
+				array('config', 'config_seo_language'),
+				array('module_seo_language', 'module_seo_language_status'),
+				array('seo_language', 'seo_language_status')
+			)
+		);
 
-		if ($query->num_rows) {
-			$this->language_scope[$store_id] = !empty($query->row['value']);
-			return $this->language_scope[$store_id];
-		}
-
-		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
-			WHERE `store_id` IN (0, '" . $store_id . "')
-			AND `code` = 'module_seo_language'
-			AND `key` = 'module_seo_language_status'
-			ORDER BY `store_id` DESC
-			LIMIT 1");
-
-		if ($query->num_rows) {
-			$this->language_scope[$store_id] = !empty($query->row['value']);
-			return $this->language_scope[$store_id];
-		}
-
-		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
-			WHERE `store_id` IN (0, '" . $store_id . "')
-			AND `code` = 'seo_language'
-			AND `key` = 'seo_language_status'
-			ORDER BY `store_id` DESC
-			LIMIT 1");
-
-		$this->language_scope[$store_id] = $query->num_rows && !empty($query->row['value']);
+		$this->language_scope[$store_id] = $setting !== null && !empty($setting['value']);
 
 		return $this->language_scope[$store_id];
 	}
@@ -251,38 +229,23 @@ class ModelDesignSeoUrl extends Model {
 
 		$this->language_prefix_map[$store_id] = array();
 
-		$query = $this->db->query("SELECT `value`, `serialized` FROM `" . DB_PREFIX . "setting`
-			WHERE `store_id` IN (0, '" . (int)$store_id . "')
-			AND `code` = 'config'
-			AND `key` = 'config_seo_language_prefix'
-			ORDER BY `store_id` DESC
-			LIMIT 1");
+		$setting = $this->getEffectiveLanguageSetting(
+			(int)$store_id,
+			array(
+				array('config', 'config_seo_language_prefix'),
+				array('module_seo_language', 'module_seo_language_prefix'),
+				array('seo_language', 'seo_language_prefix')
+			),
+			true
+		);
 
-		if (!$query->num_rows) {
-			$query = $this->db->query("SELECT `value`, `serialized` FROM `" . DB_PREFIX . "setting`
-				WHERE `store_id` IN (0, '" . (int)$store_id . "')
-				AND `code` = 'module_seo_language'
-				AND `key` = 'module_seo_language_prefix'
-				ORDER BY `store_id` DESC
-				LIMIT 1");
-		}
-
-		if (!$query->num_rows) {
-			$query = $this->db->query("SELECT `value`, `serialized` FROM `" . DB_PREFIX . "setting`
-				WHERE `store_id` IN (0, '" . (int)$store_id . "')
-				AND `code` = 'seo_language'
-				AND `key` = 'seo_language_prefix'
-				ORDER BY `store_id` DESC
-				LIMIT 1");
-		}
-
-		if (!$query->num_rows) {
+		if ($setting === null) {
 			return $this->language_prefix_map[$store_id];
 		}
 
-		$value = $query->row['value'];
+		$value = $setting['value'];
 
-		if (!empty($query->row['serialized'])) {
+		if (!empty($setting['serialized'])) {
 			$value = json_decode((string)$value, true);
 		}
 
@@ -303,6 +266,37 @@ class ModelDesignSeoUrl extends Model {
 		}
 
 		return $this->language_prefix_map[$store_id];
+	}
+
+	/**
+	 * Resolve a setting with migration-safe precedence:
+	 * local native -> local extension legacy -> local earliest legacy ->
+	 * store 0 native -> store 0 extension legacy -> store 0 earliest legacy.
+	 */
+	private function getEffectiveLanguageSetting($store_id, $candidates, $serialized = false) {
+		$store_ids = array((int)$store_id);
+
+		if ((int)$store_id !== 0) {
+			$store_ids[] = 0;
+		}
+
+		foreach ($store_ids as $candidate_store_id) {
+			foreach ($candidates as $candidate) {
+				$columns = $serialized ? "`value`, `serialized`" : "`value`";
+
+				$query = $this->db->query("SELECT " . $columns . " FROM `" . DB_PREFIX . "setting`
+					WHERE `store_id` = '" . (int)$candidate_store_id . "'
+					AND `code` = '" . $this->db->escape($candidate[0]) . "'
+					AND `key` = '" . $this->db->escape($candidate[1]) . "'
+					LIMIT 1");
+
+				if ($query->num_rows) {
+					return $query->row;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	public function getSeoUrlsByQuery($query) {
