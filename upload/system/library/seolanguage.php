@@ -167,6 +167,25 @@ class SeoLanguage {
 			return $url;
 		}
 
+		/*
+		 * SeoLanguage is the second URL rewrite layer. It must only decorate
+		 * already rewritten public URLs. Internal index.php actions (language
+		 * switch, cart/AJAX endpoints, account actions, etc.) stay untouched.
+		 */
+		$path = isset($url_info['path']) ? (string)$url_info['path'] : '/';
+		$query_data = array();
+
+		if (!empty($url_info['query'])) {
+			parse_str((string)$url_info['query'], $query_data);
+		}
+
+		if (
+			basename($path) === 'index.php'
+			|| isset($query_data['route'])
+		) {
+			return $url;
+		}
+
 		$base = $this->getBaseUrlForScheme($url_info['scheme']);
 		$base_info = parse_url($base);
 
@@ -179,7 +198,6 @@ class SeoLanguage {
 		}
 
 		$base_path = $this->normalizeBasePath(isset($base_info['path']) ? $base_info['path'] : '/');
-		$path = isset($url_info['path']) ? (string)$url_info['path'] : '/';
 		$base_without_slash = rtrim($base_path, '/');
 
 		if ($base_without_slash === '') {
