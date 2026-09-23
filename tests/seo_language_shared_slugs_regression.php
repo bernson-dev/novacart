@@ -35,23 +35,25 @@ class SeoSharedSlugTestDb {
 		$result->rows = array();
 
 		if (strpos($sql, 'FROM `oc_setting`') !== false) {
-			$store_id = $this->extractInt($sql, 'store_id');
+			$store_ids = $this->extractStoreIds($sql);
 			$code = $this->extractString($sql, 'code');
 			$key = $this->extractString($sql, 'key');
 
-			foreach ($this->settings as $setting) {
-				if (
-					(int)$setting['store_id'] === $store_id
-					&& (string)$setting['code'] === $code
-					&& (string)$setting['key'] === $key
-				) {
-					$result->row = array(
-						'value' => $setting['value'],
-						'serialized' => isset($setting['serialized']) ? (int)$setting['serialized'] : 0
-					);
-					$result->rows = array($result->row);
-					$result->num_rows = 1;
-					return $result;
+			foreach ($store_ids as $store_id) {
+				foreach ($this->settings as $setting) {
+					if (
+						(int)$setting['store_id'] === $store_id
+						&& (string)$setting['code'] === $code
+						&& (string)$setting['key'] === $key
+					) {
+						$result->row = array(
+							'value' => $setting['value'],
+							'serialized' => isset($setting['serialized']) ? (int)$setting['serialized'] : 0
+						);
+						$result->rows = array($result->row);
+						$result->num_rows = 1;
+						return $result;
+					}
 				}
 			}
 
@@ -106,6 +108,16 @@ class SeoSharedSlugTestDb {
 		return strpos($sql, '`' . $field . '` = ') !== false;
 	}
 
+	private function extractStoreIds($sql) {
+		if (preg_match("/`store_id` IN \(0, '([0-9]+)'\)/", $sql, $match)) {
+			$store_id = (int)$match[1];
+
+			return $store_id === 0 ? array(0) : array($store_id, 0);
+		}
+
+		return array($this->extractInt($sql, 'store_id'));
+	}
+
 	private function extractInt($sql, $field) {
 		if (preg_match("/`" . preg_quote($field, '/') . "` = '([0-9]+)'/", $sql, $match)) {
 			return (int)$match[1];
@@ -149,14 +161,14 @@ $db->settings = array(
 	),
 	array(
 		'store_id' => 0,
-		'code' => 'module_seo_language',
-		'key' => 'module_seo_language_status',
+		'code' => 'config',
+		'key' => 'config_seo_language',
 		'value' => '1'
 	),
 	array(
 		'store_id' => 0,
-		'code' => 'module_seo_language',
-		'key' => 'module_seo_language_prefix',
+		'code' => 'config',
+		'key' => 'config_seo_language_prefix',
 		'value' => json_encode(array('ru-ru' => 'ru', 'uk-ua' => 'uk')),
 		'serialized' => 1
 	),
@@ -180,8 +192,8 @@ $db->settings = array(
 	),
 	array(
 		'store_id' => 2,
-		'code' => 'module_seo_language',
-		'key' => 'module_seo_language_status',
+		'code' => 'config',
+		'key' => 'config_seo_language',
 		'value' => '1'
 	)
 );
