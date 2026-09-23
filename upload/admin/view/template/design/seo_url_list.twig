@@ -33,7 +33,15 @@
         {% endif %}
 
         <div class="panel panel-default seo-audit-panel">
-            <div class="panel-heading">
+            <div class="panel-heading clearfix">
+                {% if filter_issue %}
+                <a href="{{ audit_reset }}"
+                   class="btn btn-default btn-xs pull-right seo-audit-reset"
+                   data-toggle="tooltip"
+                   title="{{ button_clear }}">
+                    <i class="fa fa-times"></i> {{ button_clear }}
+                </a>
+                {% endif %}
                 <h3 class="panel-title">
                     <i class="fa fa-search"></i> {{ text_audit }}
                 </h3>
@@ -336,6 +344,7 @@
     </div>
     <style>
         .seo-audit-panel .panel-body { padding: 15px; }
+        .seo-audit-reset { margin-top: -3px; }
         .seo-audit-grid > [class*="col-"] { margin-bottom: 0; }
         .seo-audit-list {
             border: 1px solid #e5e8ec;
