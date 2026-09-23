@@ -143,6 +143,139 @@ const fillSeo = (languageId, sourceText, onlyEmpty) => {
 	});
 };
 
+const seoEntityFieldNames = [
+	'category_seo_url',
+	'product_seo_url',
+	'manufacturer_seo_url',
+	'article_seo_url',
+	'information_seo_url'
+];
+
+const parseSeoEntityField = (name) => {
+	const match = String(name || '').match(/^([^[]+)\[(\d+)\]\[(\d+)\]$/);
+
+	if (!match || seoEntityFieldNames.indexOf(match[1]) === -1) {
+		return null;
+	}
+
+	return {
+		field: match[1],
+		storeId: Number(match[2]),
+		languageId: Number(match[3])
+	};
+};
+
+const syncUnifiedSeoGroup = ($input) => {
+	const parsed = parseSeoEntityField($input.attr('name'));
+
+	if (!parsed) {
+		return;
+	}
+
+	const storeConfig = window.seoStoreConfig
+		&& Object.prototype.hasOwnProperty.call(window.seoStoreConfig, parsed.storeId)
+		? window.seoStoreConfig[parsed.storeId]
+		: null;
+
+	if (!storeConfig || !storeConfig.languageScoped) {
+		return;
+	}
+
+	const selector = 'input[name^="' + parsed.field + '[' + parsed.storeId + ']"]';
+	const $group = $(selector);
+	const value = $input.val();
+
+	$group.each(function() {
+		if (this !== $input[0]) {
+			$(this).val(value);
+		}
+	});
+};
+
+const initUnifiedSeoFields = () => {
+	seoEntityFieldNames.forEach(field => {
+		const groups = Object.create(null);
+
+		$('input[name^="' + field + '["]').each(function() {
+			const $input = $(this);
+			const parsed = parseSeoEntityField($input.attr('name'));
+
+			if (!parsed) {
+				return;
+			}
+
+			const key = parsed.field + ':' + parsed.storeId;
+
+			if (!groups[key]) {
+				groups[key] = [];
+			}
+
+			groups[key].push({
+				input: $input,
+				languageId: parsed.languageId,
+				storeId: parsed.storeId
+			});
+		});
+
+		Object.keys(groups).forEach(key => {
+			const items = groups[key];
+			const storeId = items[0].storeId;
+			const storeConfig = window.seoStoreConfig
+				&& Object.prototype.hasOwnProperty.call(window.seoStoreConfig, storeId)
+				? window.seoStoreConfig[storeId]
+				: null;
+
+			if (!storeConfig || !storeConfig.languageScoped || !storeConfig.defaultLanguageId) {
+				return;
+			}
+
+			let primary = null;
+
+			items.forEach(item => {
+				if (Number(item.languageId) === Number(storeConfig.defaultLanguageId)) {
+					primary = item;
+				}
+			});
+
+			if (!primary) {
+				return;
+			}
+
+			let value = $.trim(primary.input.val());
+
+			if (!value) {
+				for (let i = 0; i < items.length; i++) {
+					const candidate = $.trim(items[i].input.val());
+
+					if (candidate) {
+						value = candidate;
+						break;
+					}
+				}
+			}
+
+			items.forEach(item => {
+				item.input.val(value);
+
+				if (item !== primary) {
+					const $wrapper = item.input.closest('.input-group');
+					$wrapper.hide();
+
+					const $error = $wrapper.next('.text-danger');
+
+					if ($error.length) {
+						$error.hide();
+					}
+				}
+			});
+
+			primary.input
+				.attr('data-unified-seo', '1')
+				.attr('data-store-id', storeId);
+		});
+	});
+};
+
 $(document).ready(function() {
 	// 1. Form Submit for IE Browser
 	$('button[type="submit"]').on('click', function() {
@@ -750,7 +883,14 @@ $(document).ready(function() {
 		}
 	});
 
-	// 9. SEO URL Generator Events
+	// 9. Unified SEO URL fields
+	initUnifiedSeoFields();
+
+	$(document).on('input change', 'input[data-unified-seo="1"]', function() {
+		syncUnifiedSeoGroup($(this));
+	});
+
+	// 10. SEO URL Generator Events
 	$(document).on('blur', 'input[name$="][name]"], input[name$="][title]"], input[name="name"]', function() {
 		const $el = $(this);
 		const nameAttr = $el.attr('name');
@@ -776,15 +916,33 @@ $(document).ready(function() {
 	$(document).on('click', '.regenerate-seo', function(e) {
 		e.preventDefault();
 
-		const langId = $(this).data('language-id');
-		let $source = $(`input[name$="[${langId}][name]"], input[name$="[${langId}][title]"]`);
+		const $seoInput = $(this).closest('.input-group').find('input[name*="_seo_url["]').first();
+		const parsed = $seoInput.length ? parseSeoEntityField($seoInput.attr('name')) : null;
+		let langId = Number($(this).data('language-id'));
+
+		if (parsed && window.seoStoreConfig && window.seoStoreConfig[parsed.storeId]
+			&& window.seoStoreConfig[parsed.storeId].languageScoped
+			&& window.seoStoreConfig[parsed.storeId].defaultLanguageId) {
+			langId = Number(window.seoStoreConfig[parsed.storeId].defaultLanguageId);
+		}
+
+		let $source = $('input[name$="[' + langId + '][name]"], input[name$="[' + langId + '][title]"]').first();
 
 		if (!$source.length || !$source.val()) {
-			$source = $('input[name="name"]');
+			$source = $('input[name="name"]').first();
 		}
 
 		if ($source.val()) {
 			fillSeo(langId, $source.val(), false);
+
+			if (parsed) {
+				const selector = 'input[name="' + parsed.field + '[' + parsed.storeId + '][' + langId + ']"]';
+				const $primary = $(selector);
+
+				if ($primary.length) {
+					syncUnifiedSeoGroup($primary);
+				}
+			}
 		}
 	});
 });
