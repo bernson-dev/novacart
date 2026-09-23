@@ -288,7 +288,9 @@ class ControllerDesignSeoUrl extends Controller {
 			$audit['summary']['issue_rows'],
 			$audit['summary']['keyword_groups'],
 			$audit['summary']['query_groups'],
-			$audit['summary']['prefix_rows']
+			$audit['summary']['prefix_rows'],
+			$audit['summary']['shared_language_groups'],
+			$audit['summary']['orphan_rows']
 		);
 
 		$seo_url_total = $this->model_design_seo_url->getTotalSeoUrls($filter_data);
@@ -304,7 +306,13 @@ class ControllerDesignSeoUrl extends Controller {
 				'language'   => $result['language'],
 				'issues'     => isset($audit['issues'][(int)$result['seo_url_id']])
 					? $audit['issues'][(int)$result['seo_url_id']]
-					: array('query' => false, 'keyword' => false, 'prefix' => false),
+					: array(
+						'query' => false,
+						'keyword' => false,
+						'prefix' => false,
+						'shared_language' => false,
+						'orphan' => false
+					),
 				'edit'       => $this->url->link('design/seo_url/edit', 'user_token=' . $this->session->data['user_token'] . '&seo_url_id=' . $result['seo_url_id'] . $url, true)
 			);
 		}
