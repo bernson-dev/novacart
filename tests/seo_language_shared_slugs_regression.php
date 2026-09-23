@@ -61,14 +61,43 @@ class SeoSharedSlugTestDb {
 		}
 
 		if (strpos($sql, 'FROM `oc_language`') !== false) {
-			$language_id = $this->extractInt($sql, 'language_id');
 			$languages = array(
 				1 => 'ru-ru',
 				2 => 'uk-ua'
 			);
 
+			if (strpos($sql, "`status` = '1'") !== false) {
+				foreach ($languages as $language_id => $code) {
+					$result->rows[] = array(
+						'language_id' => $language_id,
+						'code' => $code
+					);
+				}
+
+				$result->num_rows = count($result->rows);
+				$result->row = $result->rows[0];
+
+				return $result;
+			}
+
+			$code = $this->extractString($sql, 'code');
+
+			if ($code !== '') {
+				$language_id = array_search($code, $languages, true);
+
+				if ($language_id !== false) {
+					$result->row = array('language_id' => (int)$language_id, 'code' => $code);
+					$result->rows = array($result->row);
+					$result->num_rows = 1;
+				}
+
+				return $result;
+			}
+
+			$language_id = $this->extractInt($sql, 'language_id');
+
 			if (isset($languages[$language_id])) {
-				$result->row = array('code' => $languages[$language_id]);
+				$result->row = array('language_id' => $language_id, 'code' => $languages[$language_id]);
 				$result->rows = array($result->row);
 				$result->num_rows = 1;
 			}
@@ -162,6 +191,12 @@ $db->settings = array(
 	array(
 		'store_id' => 0,
 		'code' => 'config',
+		'key' => 'config_language',
+		'value' => 'ru-ru'
+	),
+	array(
+		'store_id' => 0,
+		'code' => 'config',
 		'key' => 'config_seo_language',
 		'value' => '1'
 	),
@@ -225,6 +260,32 @@ $controller = new ControllerDesignSeoUrl($registry);
 assertSameValue(true, $model->usesLanguageScopedKeywords(0), 'Enabled SEO Language store was not language scoped');
 assertSameValue(false, $model->usesLanguageScopedKeywords(1), 'Disabled SEO Language store became language scoped');
 assertSameValue(false, $model->usesLanguageScopedKeywords(2), 'SEO-disabled store became language scoped');
+
+$normalized = $model->normalizeLanguageScopedSeoUrls(array(
+	0 => array(
+		1 => 'default-slug',
+		2 => 'translated-slug'
+	),
+	1 => array(
+		1 => 'legacy-ru',
+		2 => 'legacy-uk'
+	)
+));
+
+assertSameValue('default-slug', $normalized[0][1], 'Default-language slug changed during normalization');
+assertSameValue('default-slug', $normalized[0][2], 'Secondary language did not inherit the unified slug');
+assertSameValue('legacy-ru', $normalized[1][1], 'Legacy store slug was unexpectedly normalized');
+assertSameValue('legacy-uk', $normalized[1][2], 'Legacy store language-specific slug was unexpectedly changed');
+
+$migrated = $model->normalizeLanguageScopedSeoUrls(array(
+	0 => array(
+		1 => '',
+		2 => 'existing-secondary'
+	)
+));
+
+assertSameValue('existing-secondary', $migrated[0][1], 'Upgrade fallback discarded an existing secondary slug');
+assertSameValue('existing-secondary', $migrated[0][2], 'Upgrade fallback did not synchronize the retained slug');
 
 assertSameValue(true, $model->isReservedLanguagePrefix('uk', 0), 'Configured language prefix was not reserved');
 assertSameValue(true, $model->isReservedLanguagePrefix('/RU/', 0), 'Reserved prefix normalization changed');
