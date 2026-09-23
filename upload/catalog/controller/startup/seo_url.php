@@ -123,8 +123,97 @@ class ControllerStartupSeoUrl extends Controller {
 		// Валидация SeoPro
 		if ($this->config->get('config_seo_pro') && $this->seo_pro) {
 			$this->seo_pro->validate();
+		} else {
+			/*
+			 * Standard seo_url does not canonicalize direct index.php routes.
+			 * When SEO Language is enabled, keep one public URL per language
+			 * by redirecting a direct GET/HEAD route to its generated SEO URL.
+			 * SeoPro has its own validate() implementation above.
+			 */
+			$canonical = $this->getDirectRouteCanonicalUrl();
+
+			if ($canonical !== '') {
+				$this->response->redirect($canonical, 301);
+			}
 		}
 		//seopro validate
+	}
+
+	private function getDirectRouteCanonicalUrl() {
+		if (
+			!($this->seo_language instanceof SeoLanguage)
+			|| !$this->seo_language->isEnabled()
+			|| !isset($this->request->get['route'])
+			|| isset($this->request->get['_route_'])
+			|| empty($this->request->server['REQUEST_URI'])
+		) {
+			return '';
+		}
+
+		$method = isset($this->request->server['REQUEST_METHOD'])
+			? strtoupper((string)$this->request->server['REQUEST_METHOD'])
+			: 'GET';
+
+		if ($method !== 'GET' && $method !== 'HEAD') {
+			return '';
+		}
+
+		if (
+			!empty($this->request->server['HTTP_X_REQUESTED_WITH'])
+			&& strtolower((string)$this->request->server['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+		) {
+			return '';
+		}
+
+		$request_uri = parse_url((string)$this->request->server['REQUEST_URI']);
+
+		if (!is_array($request_uri) || empty($request_uri['path'])) {
+			return '';
+		}
+
+		$path = (string)$request_uri['path'];
+
+		if (substr($path, -10) !== '/index.php' && $path !== 'index.php') {
+			return '';
+		}
+
+		$route = (string)$this->request->get['route'];
+
+		if ($route === '') {
+			return '';
+		}
+
+		$params = $this->request->get;
+		unset($params['route'], $params['_route_']);
+
+		$args = $params
+			? http_build_query($params, '', '&', PHP_QUERY_RFC3986)
+			: '';
+
+		$secure = !empty($this->request->server['HTTPS'])
+			&& strtolower((string)$this->request->server['HTTPS']) !== 'off';
+
+		$canonical = str_replace('&amp;', '&', $this->url->link($route, $args, $secure));
+
+		$base = $secure && $this->config->get('config_ssl')
+			? (string)$this->config->get('config_ssl')
+			: (string)$this->config->get('config_url');
+
+		$direct = rtrim($base, '/') . '/index.php?route=' . rawurlencode($route);
+
+		if ($args !== '') {
+			$direct .= '&' . $args;
+		}
+
+		/*
+		 * If rewrite() could not build an SEO URL for the active language,
+		 * Url::link() returns the original index.php route. Do not redirect.
+		 */
+		if (rawurldecode($canonical) === rawurldecode($direct)) {
+			return '';
+		}
+
+		return $canonical;
 	}
 
 	public function rewrite($link) {
