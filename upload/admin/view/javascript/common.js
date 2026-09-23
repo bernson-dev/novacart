@@ -76,27 +76,21 @@ window.buildSeoValue = (text, languageId, storeId) => {
 		&& Object.prototype.hasOwnProperty.call(window.seoStoreConfig, store)
 		? window.seoStoreConfig[store]
 		: null;
-	const languageScoped = !!(storeConfig && storeConfig.languageScoped);
+	const def = storeConfig && storeConfig.defaultLanguageId
+		? Number(storeConfig.defaultLanguageId)
+		: (window.defaultLanguageId ? Number(window.defaultLanguageId) : null);
+	const current = Number(languageId);
 
 	/*
-	 * When SEO Language owns the language prefix in the public URL, the stored
-	 * keyword must remain a clean slug. Otherwise preserve the legacy generator
-	 * behavior so standard OpenCart keeps distinct keywords between languages.
-	 * The default language must come from this storefront, not from admin UI.
+	 * Keep language-specific fallback keywords in storage. Prefix mode only
+	 * changes which keyword is used publicly; it must not destroy fallback data.
 	 */
-	if (!languageScoped) {
-		const def = storeConfig && storeConfig.defaultLanguageId
-			? Number(storeConfig.defaultLanguageId)
-			: (window.defaultLanguageId ? Number(window.defaultLanguageId) : null);
-		const current = Number(languageId);
+	if (def && current && current !== def && window.languages && window.languages[languageId]) {
+		const raw = String(window.languages[languageId]);
+		const prefix = raw.split('-')[0];
 
-		if (def && current && current !== def && window.languages && window.languages[languageId]) {
-			const raw = String(window.languages[languageId]);
-			const prefix = raw.split('-')[0];
-
-			if (prefix) {
-				seo = prefix + '_' + seo;
-			}
+		if (prefix) {
+			seo = prefix + '_' + seo;
 		}
 	}
 
@@ -134,13 +128,6 @@ const fillSeo = (languageId, sourceText, onlyEmpty) => {
 				? window.seoStoreConfig[storeId]
 				: null;
 
-			if (
-				storeConfig
-				&& storeConfig.languageScoped
-				&& Number(languageId) !== Number(storeConfig.defaultLanguageId)
-			) {
-				return;
-			}
 
 			const seo = window.buildSeoValue(sourceText, languageId, storeId);
 
@@ -150,7 +137,6 @@ const fillSeo = (languageId, sourceText, onlyEmpty) => {
 
 			if (!onlyEmpty || !$el.val()) {
 				$el.val(seo).trigger('change');
-				syncUnifiedSeoGroup($el);
 				flashSeoField($el);
 			}
 		});
@@ -177,33 +163,6 @@ const parseSeoEntityField = (name) => {
 		storeId: Number(match[2]),
 		languageId: Number(match[3])
 	};
-};
-
-const syncUnifiedSeoGroup = ($input) => {
-	const parsed = parseSeoEntityField($input.attr('name'));
-
-	if (!parsed) {
-		return;
-	}
-
-	const storeConfig = window.seoStoreConfig
-		&& Object.prototype.hasOwnProperty.call(window.seoStoreConfig, parsed.storeId)
-		? window.seoStoreConfig[parsed.storeId]
-		: null;
-
-	if (!storeConfig || !storeConfig.languageScoped) {
-		return;
-	}
-
-	const selector = 'input[name^="' + parsed.field + '[' + parsed.storeId + ']"]';
-	const $group = $(selector);
-	const value = $input.val();
-
-	$group.each(function() {
-		if (this !== $input[0]) {
-			$(this).val(value);
-		}
-	});
 };
 
 const initUnifiedSeoFields = () => {
@@ -243,49 +202,21 @@ const initUnifiedSeoFields = () => {
 				return;
 			}
 
-			let primary = null;
-
 			items.forEach(item => {
 				if (Number(item.languageId) === Number(storeConfig.defaultLanguageId)) {
-					primary = item;
+					item.input.attr('data-primary-seo', '1');
+					return;
+				}
+
+				const $wrapper = item.input.closest('.input-group');
+				$wrapper.hide();
+
+				const $error = $wrapper.next('.text-danger');
+
+				if ($error.length) {
+					$error.hide();
 				}
 			});
-
-			if (!primary) {
-				return;
-			}
-
-			let value = $.trim(primary.input.val());
-
-			if (!value) {
-				for (let i = 0; i < items.length; i++) {
-					const candidate = $.trim(items[i].input.val());
-
-					if (candidate) {
-						value = candidate;
-						break;
-					}
-				}
-			}
-
-			items.forEach(item => {
-				item.input.val(value);
-
-				if (item !== primary) {
-					const $wrapper = item.input.closest('.input-group');
-					$wrapper.hide();
-
-					const $error = $wrapper.next('.text-danger');
-
-					if ($error.length) {
-						$error.hide();
-					}
-				}
-			});
-
-			primary.input
-				.attr('data-unified-seo', '1')
-				.attr('data-store-id', storeId);
 		});
 	});
 };
@@ -900,9 +831,6 @@ $(document).ready(function() {
 	// 9. Unified SEO URL fields
 	initUnifiedSeoFields();
 
-	$(document).on('input change', 'input[data-unified-seo="1"]', function() {
-		syncUnifiedSeoGroup($(this));
-	});
 
 	// 10. SEO URL Generator Events
 	$(document).on('blur', 'input[name$="][name]"], input[name$="][title]"], input[name="name"]', function() {
@@ -948,15 +876,6 @@ $(document).ready(function() {
 
 		if ($source.val()) {
 			fillSeo(langId, $source.val(), false);
-
-			if (parsed) {
-				const selector = 'input[name="' + parsed.field + '[' + parsed.storeId + '][' + langId + ']"]';
-				const $primary = $(selector);
-
-				if ($primary.length) {
-					syncUnifiedSeoGroup($primary);
-				}
-			}
 		}
 	});
 });
