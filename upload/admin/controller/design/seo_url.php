@@ -380,6 +380,8 @@ class ControllerDesignSeoUrl extends Controller {
 				'language_id'=> (int)$result['language_id'],
 				'source_name'=> isset($source['name']) ? $source['name'] : '',
 				'source_edit'=> $source_edit,
+				'preview'    => $this->model_design_seo_url->getSeoUrlPreview($result),
+				'preview_template' => $this->model_design_seo_url->getSeoUrlPreviewTemplate($result),
 				'issues'     => isset($audit['issues'][(int)$result['seo_url_id']])
 					? $audit['issues'][(int)$result['seo_url_id']]
 					: array(
