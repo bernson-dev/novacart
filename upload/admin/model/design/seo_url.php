@@ -154,6 +154,17 @@ class ModelDesignSeoUrl extends Model {
 
 		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
 			WHERE `store_id` = '" . $store_id . "'
+			AND `code` = 'config'
+			AND `key` = 'config_seo_language'
+			LIMIT 1");
+
+		if ($query->num_rows) {
+			$this->language_scope[$store_id] = !empty($query->row['value']);
+			return $this->language_scope[$store_id];
+		}
+
+		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
+			WHERE `store_id` = '" . $store_id . "'
 			AND `code` = 'module_seo_language'
 			AND `key` = 'module_seo_language_status'
 			LIMIT 1");
@@ -163,7 +174,6 @@ class ModelDesignSeoUrl extends Model {
 			return $this->language_scope[$store_id];
 		}
 
-		// Compatibility with the first test build before one-time migration.
 		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
 			WHERE `store_id` = '" . $store_id . "'
 			AND `code` = 'seo_language'
@@ -239,9 +249,17 @@ class ModelDesignSeoUrl extends Model {
 
 		$query = $this->db->query("SELECT `value`, `serialized` FROM `" . DB_PREFIX . "setting`
 			WHERE `store_id` = '" . (int)$store_id . "'
-			AND `code` = 'module_seo_language'
-			AND `key` = 'module_seo_language_prefix'
+			AND `code` = 'config'
+			AND `key` = 'config_seo_language_prefix'
 			LIMIT 1");
+
+		if (!$query->num_rows) {
+			$query = $this->db->query("SELECT `value`, `serialized` FROM `" . DB_PREFIX . "setting`
+				WHERE `store_id` = '" . (int)$store_id . "'
+				AND `code` = 'module_seo_language'
+				AND `key` = 'module_seo_language_prefix'
+				LIMIT 1");
+		}
 
 		if (!$query->num_rows) {
 			$query = $this->db->query("SELECT `value`, `serialized` FROM `" . DB_PREFIX . "setting`
