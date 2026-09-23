@@ -53,6 +53,8 @@ class ControllerStartupSeoUrl extends Controller {
 				$language_filter = " AND language_id = '" . $this->getSeoKeywordLanguageId() . "'";
 			}
 
+			$single_part_route = count(array_filter($parts, 'strlen')) === 1;
+
 			foreach ($parts as $part) {
 				$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "seo_url
                     WHERE keyword = '" . $this->db->escape($part) . "'
@@ -104,11 +106,36 @@ class ControllerStartupSeoUrl extends Controller {
 					&& $url[0] != 'blog_category_id'
 					&& $url[0] != 'article_id') {
 						$this->request->get['route'] = $query->row['query'];
+
+						if (
+							$query->row['query'] === 'common/home'
+							&& $single_part_route
+							&& $this->seo_language instanceof SeoLanguage
+							&& !$this->seo_language->isEnabled()
+						) {
+							$this->seo_language->resolveHomeAlias($part);
+						}
 					}
 				} else {
-					if (!$this->config->get('config_seo_pro')) {
+					$resolved_home = false;
+
+					if (
+						!$this->config->get('config_seo_pro')
+						&& $single_part_route
+						&& $this->seo_language instanceof SeoLanguage
+						&& !$this->seo_language->isEnabled()
+					) {
+						$resolved_home = $this->seo_language->resolveHomeAlias($part);
+
+						if ($resolved_home) {
+							$this->request->get['route'] = 'common/home';
+						}
+					}
+
+					if (!$resolved_home && !$this->config->get('config_seo_pro')) {
 						$this->request->get['route'] = 'error/not_found';
 					}
+
 					break;
 				}
 			}
@@ -257,13 +284,29 @@ class ControllerStartupSeoUrl extends Controller {
 			parse_str($url_info['query'], $data);
 		}
 
-		// Standard SEO keeps common/home at the store root. SeoLanguage is a
-		// separate rewrite layer and will add a non-default language prefix after
-		// this method returns.
+		// Homepage has one canonical URL per language in every SEO mode.
+		// With full language prefixes enabled, SeoLanguage adds the prefix as the
+		// second rewrite layer. Without them, only common/home gets its language
+		// alias so the homepage never collapses to one duplicate URL.
 		if (isset($data['route']) && $data['route'] == 'common/home' && !$this->config->get('config_seo_pro')) {
-			return $url_info['scheme'] . '://' . $url_info['host']
+			$result = $url_info['scheme'] . '://' . $url_info['host']
 				. (isset($url_info['port']) ? ':' . $url_info['port'] : '')
 				. str_replace('/index.php', '', $url_info['path']);
+
+			if (
+				$this->seo_language instanceof SeoLanguage
+				&& !$this->seo_language->isEnabled()
+			) {
+				$alias = $this->seo_language->getHomeAliasByLanguageId(
+					(int)$this->config->get('config_language_id')
+				);
+
+				if ($alias !== '') {
+					$result = rtrim($result, '/') . '/' . rawurlencode($alias) . '/';
+				}
+			}
+
+			return $result;
 		}
 
 		if ($this->config->get('config_seo_pro')) {
