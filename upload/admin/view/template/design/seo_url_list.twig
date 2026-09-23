@@ -39,35 +39,75 @@
                 </h3>
             </div>
             <div class="panel-body">
-                <p class="text-muted">{{ audit_summary_text }}</p>
-            </div>
-            <div class="list-group">
-                <a href="{{ audit_links.all }}" class="list-group-item{% if filter_issue == 'all' %} active{% endif %}">
-                    <span class="badge">{{ audit_summary.issue_rows }}</span>
-                    <strong>{{ text_issue_all }}</strong>
-                    <div class="small">{{ help_issue_all }}</div>
-                </a>
-                <a href="{{ audit_links.keyword }}" class="list-group-item{% if filter_issue == 'keyword' %} active{% endif %}">
-                    <span class="badge">{{ audit_summary.keyword_rows }}</span>
-                    {{ text_issue_keyword }}
-                </a>
-                <a href="{{ audit_links.query }}" class="list-group-item{% if filter_issue == 'query' %} active{% endif %}">
-                    <span class="badge">{{ audit_summary.query_rows }}</span>
-                    {{ text_issue_query }}
-                </a>
-                <a href="{{ audit_links.prefix }}" class="list-group-item{% if filter_issue == 'prefix' %} active{% endif %}">
-                    <span class="badge">{{ audit_summary.prefix_rows }}</span>
-                    {{ text_issue_prefix }}
-                </a>
-                <a href="{{ audit_links.orphan }}" class="list-group-item{% if filter_issue == 'orphan' %} active{% endif %}">
-                    <span class="badge">{{ audit_summary.orphan_rows }}</span>
-                    {{ text_issue_orphan }}
-                </a>
-                <a href="{{ audit_links.shared_language }}" class="list-group-item{% if filter_issue == 'shared_language' %} active{% endif %}">
-                    <span class="badge">{{ audit_summary.shared_language_rows }}</span>
-                    {{ text_issue_shared_language }}
-                    <div class="small">{{ help_issue_shared_language }}</div>
-                </a>
+                <div class="row seo-audit-grid">
+                    <div class="col-md-4 col-sm-6">
+                        <div class="seo-audit-list">
+                            <a href="{{ audit_links.all }}" class="seo-audit-item{% if filter_issue == 'all' %} active{% endif %}">
+                                <span class="badge">{{ audit_summary.issue_rows }}</span>
+                                <strong>{{ text_issue_all }}</strong>
+                                <div class="small">{{ help_issue_all }}</div>
+                            </a>
+                            <a href="{{ audit_links.keyword }}" class="seo-audit-item{% if filter_issue == 'keyword' %} active{% endif %}">
+                                <span class="badge">{{ audit_summary.keyword_rows }}</span>
+                                {{ text_issue_keyword }}
+                            </a>
+                            <a href="{{ audit_links.query }}" class="seo-audit-item{% if filter_issue == 'query' %} active{% endif %}">
+                                <span class="badge">{{ audit_summary.query_rows }}</span>
+                                {{ text_issue_query }}
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-sm-6">
+                        <div class="seo-audit-list">
+                            <a href="{{ audit_links.prefix }}" class="seo-audit-item{% if filter_issue == 'prefix' %} active{% endif %}">
+                                <span class="badge">{{ audit_summary.prefix_rows }}</span>
+                                {{ text_issue_prefix }}
+                            </a>
+                            <a href="{{ audit_links.orphan }}" class="seo-audit-item{% if filter_issue == 'orphan' %} active{% endif %}">
+                                <span class="badge">{{ audit_summary.orphan_rows }}</span>
+                                {{ text_issue_orphan }}
+                            </a>
+                            <a href="{{ audit_links.shared_language }}" class="seo-audit-item{% if filter_issue == 'shared_language' %} active{% endif %}">
+                                <span class="badge">{{ audit_summary.shared_language_rows }}</span>
+                                {{ text_issue_shared_language }}
+                                <div class="small">{{ help_issue_shared_language }}</div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-sm-12">
+                        <div class="seo-audit-stats">
+                            <div class="seo-audit-stats-title">{{ text_audit_stats }}</div>
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <div class="seo-stat-tile">
+                                        <div class="seo-stat-value">{{ audit_summary.all_rows }}</div>
+                                        <div class="seo-stat-label">{{ text_stat_total }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <div class="seo-stat-tile">
+                                        <div class="seo-stat-value">{{ audit_summary.issue_rows }}</div>
+                                        <div class="seo-stat-label">{{ text_stat_issues }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <div class="seo-stat-tile">
+                                        <div class="seo-stat-value">{{ audit_summary.keyword_groups }}</div>
+                                        <div class="seo-stat-label">{{ text_stat_keyword_groups }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <div class="seo-stat-tile">
+                                        <div class="seo-stat-value">{{ audit_summary.query_groups }}</div>
+                                        <div class="seo-stat-label">{{ text_stat_query_groups }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -295,8 +335,84 @@
         </div>
     </div>
     <style>
-        .seo-audit-panel .panel-body { padding-bottom: 8px; }
-        .seo-audit-panel .list-group-item .small { margin-top: 3px; opacity: .8; }
+        .seo-audit-panel .panel-body { padding: 15px; }
+        .seo-audit-grid > [class*="col-"] { margin-bottom: 0; }
+        .seo-audit-list {
+            border: 1px solid #e5e8ec;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .seo-audit-item {
+            position: relative;
+            display: block;
+            min-height: 44px;
+            padding: 10px 44px 10px 12px;
+            color: #4d5b67;
+            border-bottom: 1px solid #e8ebef;
+            text-decoration: none;
+        }
+        .seo-audit-item:last-child { border-bottom: 0; }
+        .seo-audit-item:hover,
+        .seo-audit-item:focus {
+            color: #2f4050;
+            background: #f7f9fb;
+            text-decoration: none;
+        }
+        .seo-audit-item.active {
+            color: #fff;
+            background: #337ab7;
+            border-color: #337ab7;
+        }
+        .seo-audit-item .badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .seo-audit-item .small {
+            margin-top: 3px;
+            padding-right: 4px;
+            opacity: .8;
+            line-height: 1.35;
+        }
+        .seo-audit-stats {
+            height: 100%;
+            padding: 0 5px;
+        }
+        .seo-audit-stats-title {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4d5b67;
+        }
+        .seo-stat-tile {
+            min-height: 76px;
+            margin-bottom: 10px;
+            padding: 10px 8px;
+            border: 1px solid #e5e8ec;
+            border-radius: 4px;
+            background: #f8fafc;
+            text-align: center;
+        }
+        .seo-stat-value {
+            font-size: 24px;
+            line-height: 1.1;
+            font-weight: 600;
+            color: #337ab7;
+        }
+        .seo-stat-label {
+            margin-top: 6px;
+            font-size: 12px;
+            line-height: 1.25;
+            color: #6f7d89;
+        }
+        @media (max-width: 991px) {
+            .seo-audit-grid > [class*="col-"] { margin-bottom: 12px; }
+            .seo-audit-grid > [class*="col-"]:last-child { margin-bottom: 0; }
+            .seo-audit-stats { padding: 0; }
+        }
+        @media (max-width: 767px) {
+            .seo-audit-item { min-height: 0; }
+        }
         .seo-source-name { margin-top: 5px; font-size: 12px; }
         .seo-keyword-cell { min-width: 300px; }
         .seo-keyword-cell .input-group { min-width: 260px; }
