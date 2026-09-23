@@ -185,9 +185,15 @@
                                             <td class="text-left">{{ status.render(article.status, article.status_text) }}</td>
                                             <td class="text-left">{{ article.noindex }}</td>
                                             <td class="text-right">
+                                                {% if article.status %}
                                                 <a target="_blank" href="{{ article.href_shop }}" data-toggle="tooltip" title="{{ button_shop }}" class="btn btn-success">
                                                     <i class="fa fa-eye"></i>
                                                 </a>
+                                                {% else %}
+                                                <button type="button" data-toggle="tooltip" title="{{ button_shop }}" class="btn btn-success disabled" disabled="disabled">
+                                                    <i class="fa fa-eye"></i>
+                                                </button>
+                                                {% endif %}
                                                 <a href="{{ article.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary">
                                                     <i class="fa fa-pencil"></i>
                                                 </a>
