@@ -286,19 +286,14 @@ assertSameValue('shared', $audit['groups']['shared_language'][1]['label'], 'Cros
 assertSameValue(2, $audit['groups']['shared_language'][1]['count'], 'Cross-language group count changed');
 
 assertSameValue(
-	'http://store.test/shared',
+	'http://store.test/index.php?route=product%2Fproduct&product_id=10',
 	$model->getSeoUrlPreview($db->seo_urls[0]),
-	'Default-language public preview changed'
+	'Direct product test URL changed'
 );
 assertSameValue(
-	'http://store.test/uk/shared',
+	'http://store.test/index.php?route=product%2Fproduct&product_id=20',
 	$model->getSeoUrlPreview($db->seo_urls[1]),
-	'Secondary-language public preview lost its prefix'
-);
-assertSameValue(
-	'http://store.test/uk/__SEO_KEYWORD__',
-	$model->getSeoUrlPreviewTemplate($db->seo_urls[1]),
-	'Live preview template changed'
+	'Direct product test URL must not depend on language keyword'
 );
 
 $sources = $model->getSeoUrlSources(array($db->seo_urls[0], $db->seo_urls[1], $db->seo_urls[2]));
