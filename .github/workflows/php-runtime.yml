@@ -249,6 +249,9 @@ jobs:
       - name: SEO shared-slug regression
         run: php tests/seo_language_shared_slugs_regression.php
 
+      - name: SEO URL audit regression
+        run: php tests/seo_url_audit_regression.php
+
       - name: SEO language settings regression
         run: php tests/seo_language_settings_regression.php
 
