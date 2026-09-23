@@ -37,7 +37,7 @@ $_['error_query_exists']   = 'Query already in use!';
 
 $_['text_all']                 = 'All';
 $_['text_audit']               = 'SEO URL audit:';
-$_['text_audit_summary']       = 'total rows: %d; rows with issues: %d; conflicting keyword groups: %d; duplicate query groups: %d; language-prefix conflicts: %d.';
+$_['text_audit_summary']       = 'total rows: %d; rows with issues: %d; conflicting keyword groups: %d; duplicate query groups: %d; language-prefix conflicts: %d; cross-language matches: %d; orphaned rows: %d.';
 $_['text_issue_all']           = 'All issues';
 $_['text_issue_keyword']       = 'SEO URL conflict';
 $_['text_issue_query']         = 'Duplicate query';
@@ -50,3 +50,10 @@ $_['entry_issue']              = 'Issue';
 $_['help_issue_keyword']       = 'The same keyword conflicts in the store\'s current routing mode. With multilingual SEO URLs, identical keywords in different languages are valid.';
 $_['help_issue_query']         = 'The same query is duplicated within one store and language.';
 $_['help_issue_prefix']        = 'The keyword collides with a reserved language prefix.';
+
+$_['text_issue_shared_language']       = 'Same across languages';
+$_['text_issue_orphan']                = 'Orphaned SEO URL';
+$_['text_issue_shared_language_short'] = 'Across languages';
+$_['text_issue_orphan_short']          = 'Orphaned';
+$_['help_issue_shared_language']       = 'The same keyword is used in different languages of one store. This is valid with multilingual SEO URLs enabled, but becomes a conflict if language prefixes are disabled.';
+$_['help_issue_orphan']                = 'The SEO URL points to an entity that no longer exists in the database.';
