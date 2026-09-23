@@ -233,17 +233,14 @@
                                             <td class="text-left seo-keyword-cell"
                                                 data-seo-url-id="{{ seo_url.seo_url_id }}"
                                                 data-store-id="{{ seo_url.store_id }}"
-                                                data-language-id="{{ seo_url.language_id }}"
-                                                data-language-code="{{ seo_url.language_code }}"
-                                                data-generator-prefix="{{ seo_url.generator_prefix }}"
-                                                data-generator-source="{{ seo_url.generator_source }}">
+                                                data-generator-value="{{ seo_url.generator_value }}">
                                                 <div class="input-group">
                                                     <input type="text"
                                                            class="form-control input-sm seo-keyword-input"
                                                            value="{{ seo_url.keyword }}"
                                                            data-original-value="{{ seo_url.keyword }}" />
                                                     <span class="input-group-btn">
-                                                        {% if seo_url.generator_source and not seo_url.issues.orphan %}
+                                                        {% if seo_url.generator_value and not seo_url.issues.orphan %}
                                                         <button type="button"
                                                                 class="btn btn-default btn-sm seo-generate"
                                                                 data-toggle="tooltip"
@@ -259,7 +256,6 @@
                                                         </button>
                                                     </span>
                                                 </div>
-                                                <div class="seo-inline-message small"></div>
                                             </td>
                                             <td class="text-left">{{ seo_url.store }}</td>
                                             <td class="text-left">{{ seo_url.language }}</td>
@@ -307,9 +303,6 @@
         .seo-keyword-cell .input-group { min-width: 260px; }
         .seo-public-preview { margin-top: 5px; word-break: break-all; }
         .seo-public-preview .fa { margin-right: 4px; }
-        .seo-inline-message { min-height: 18px; margin-top: 3px; }
-        .seo-inline-message.text-success { color: #3c763d; }
-        .seo-inline-message.text-danger { color: #a94442; }
         .seo-keyword-input.is-dirty { border-color: #f0ad4e; background: #fffdf5; }
         .seo-keyword-input.has-error { border-color: #a94442; }
         .seo-group-row td { padding: 9px 12px !important; }
@@ -375,22 +368,12 @@
             $input.removeClass('has-error');
 
             var $cell = $input.closest('.seo-keyword-cell');
-            $cell.find('.seo-inline-message').removeClass('text-danger text-success').text('');
+            $cell.find('.seo-inline-message').remove();
         });
 
         $(document).on('click', '.seo-generate', function() {
             var $cell = $(this).closest('.seo-keyword-cell');
-            var sourceName = String($cell.attr('data-generator-source') || '');
-            var languageId = Number($cell.attr('data-language-id') || 0);
-            var languageCode = String($cell.attr('data-language-code') || '');
-            var generatorPrefix = String($cell.attr('data-generator-prefix') || '');
-            var storeId = Number($cell.attr('data-store-id') || 0);
-
-            if (!sourceName || typeof window.buildSeoValue !== 'function') {
-                return;
-            }
-
-            var value = window.buildSeoValue(sourceName, languageId, storeId, languageCode, generatorPrefix);
+            var value = String($cell.attr('data-generator-value') || '');
 
             if (value) {
                 $cell.find('.seo-keyword-input').val(value).trigger('input').focus();
@@ -410,16 +393,28 @@
             }
         });
 
+        function showSeoInlineMessage($cell, text, type) {
+            $cell.find('.seo-inline-message').remove();
+
+            if (!text) {
+                return;
+            }
+
+            $('<div/>', {
+                'class': 'seo-inline-message small ' + (type === 'error' ? 'text-danger' : 'text-success'),
+                'text': text
+            }).appendTo($cell);
+        }
+
         $(document).on('click', '.seo-save', function() {
             var $button = $(this);
             var $cell = $button.closest('.seo-keyword-cell');
             var $input = $cell.find('.seo-keyword-input');
-            var $message = $cell.find('.seo-inline-message');
             var keyword = $.trim($input.val());
 
             $button.prop('disabled', true);
             $input.prop('disabled', true);
-            $message.removeClass('text-danger text-success').text('{{ text_saving }}');
+            showSeoInlineMessage($cell, '{{ text_saving }}', 'success');
 
             $.ajax({
                 url: 'index.php?route=design/seo_url/saveKeyword&user_token={{ user_token }}',
@@ -432,7 +427,7 @@
                 success: function(json) {
                     if (json.error) {
                         $input.addClass('has-error');
-                        $message.addClass('text-danger').text(json.error);
+                        showSeoInlineMessage($cell, json.error, 'error');
                         return;
                     }
 
@@ -440,7 +435,7 @@
                         .attr('data-original-value', json.keyword)
                         .removeClass('is-dirty has-error');
 
-                    $message.addClass('text-success').text(json.success);
+                    showSeoInlineMessage($cell, json.success, 'success');
 
                     window.setTimeout(function() {
                         window.location.reload();
@@ -452,7 +447,7 @@
                         : '{{ error_ajax }}';
 
                     $input.addClass('has-error');
-                    $message.addClass('text-danger').text(message);
+                    showSeoInlineMessage($cell, message, 'error');
                 },
                 complete: function() {
                     $button.prop('disabled', false);
