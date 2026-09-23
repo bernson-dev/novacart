@@ -197,7 +197,19 @@
                                     </thead>
                                     <tbody>
                                         {% if seo_urls %}
+                                        {% set current_group = '' %}
                                         {% for seo_url in seo_urls %}
+                                        {% if seo_url.group.key is defined and seo_url.group.key and seo_url.group.key != current_group %}
+                                        <tr class="active seo-group-row">
+                                            <td colspan="7">
+                                                <i class="fa fa-object-group"></i>
+                                                <strong>{{ seo_url.group.label }}</strong>
+                                                <span class="badge">{{ seo_url.group.count }}</span>
+                                                <span class="text-muted">{{ text_group_records }}</span>
+                                            </td>
+                                        </tr>
+                                        {% set current_group = seo_url.group.key %}
+                                        {% endif %}
                                         <tr{% if seo_url.issues.keyword or seo_url.issues.query or seo_url.issues.prefix or seo_url.issues.orphan %} class="warning"{% endif %}>
                                             <td class="text-center">{% if seo_url.seo_url_id in selected %}
                                                 <input type="checkbox" name="selected[]" value="{{ seo_url.seo_url_id }}" checked="checked" />
@@ -296,6 +308,8 @@
         .seo-inline-message.text-danger { color: #a94442; }
         .seo-keyword-input.is-dirty { border-color: #f0ad4e; background: #fffdf5; }
         .seo-keyword-input.has-error { border-color: #a94442; }
+        .seo-group-row td { padding: 9px 12px !important; }
+        .seo-group-row .badge { margin-left: 6px; }
         .text-nowrap { white-space: nowrap; }
     </style>
     <script type="text/javascript">
