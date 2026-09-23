@@ -449,9 +449,18 @@ class ControllerCatalogCategory extends Controller {
 			$category_info = $this->model_catalog_category->getCategory($this->request->get['category_id']);
 		}
 
+		$data['view_enabled'] = false;
+
 		if (isset($this->request->get['category_id'])) {
-			$data['category_id'] = $this->request->get['category_id'];
-			$data['href_shop'] = HTTP_CATALOG . 'index.php?route=product/category&path=' . $this->request->get['category_id'];
+			$category_id = (int)$this->request->get['category_id'];
+			$data['category_id'] = $category_id;
+			$data['href_shop'] = HTTP_CATALOG . 'index.php?route=product/category&path=' . $category_id;
+
+			$view_category_info = !empty($category_info)
+				? $category_info
+				: $this->model_catalog_category->getCategory($category_id);
+
+			$data['view_enabled'] = !empty($view_category_info) && !empty($view_category_info['status']);
 		}
 
 		$data['user_token'] = $this->session->data['user_token'];

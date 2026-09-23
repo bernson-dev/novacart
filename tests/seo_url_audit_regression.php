@@ -32,6 +32,15 @@ class SeoUrlAuditTestDb {
 		'blog_category' => array()
 	);
 
+	public $entity_status = array(
+		'product' => array(),
+		'category' => array(),
+		'manufacturer' => array(),
+		'information' => array(),
+		'article' => array(),
+		'blog_category' => array()
+	);
+
 	public function escape($value) {
 		return addslashes((string)$value);
 	}
@@ -122,7 +131,15 @@ class SeoUrlAuditTestDb {
 			}
 
 			foreach ($this->entities[$table] as $id) {
-				$result->rows[] = array($key => (int)$id);
+				$row = array($key => (int)$id);
+
+				if (strpos($sql, '`status`') !== false) {
+					$row['status'] = isset($this->entity_status[$table][(int)$id])
+						? (int)$this->entity_status[$table][(int)$id]
+						: 1;
+				}
+
+				$result->rows[] = $row;
 			}
 
 			$result->num_rows = count($result->rows);
@@ -262,6 +279,14 @@ $db->seo_urls = array(
 $db->entities['product'] = array(10, 20, 30, 40, 41, 99);
 $db->entities['category'] = array(5);
 $db->entities['information'] = array(6);
+$db->entities['article'] = array(7);
+$db->entities['blog_category'] = array(8);
+
+$db->entity_status['product'] = array(10 => 1, 20 => 0, 30 => 1, 40 => 1, 41 => 1, 99 => 1);
+$db->entity_status['category'] = array(5 => 0);
+$db->entity_status['information'] = array(6 => 1);
+$db->entity_status['article'] = array(7 => 0);
+$db->entity_status['blog_category'] = array(8 => 1);
 
 $registry = new Registry();
 $registry->set('db', $db);
@@ -323,6 +348,9 @@ assertSameValue('Тестовый товар', $sources[1]['name'], 'Product sou
 assertSameValue('catalog/product/edit', $sources[1]['route'], 'Product source edit route changed');
 assertSameValue('Тестовий товар', $sources[2]['name'], 'Language-specific product source name was not resolved');
 assertSameValue('Категория', $sources[3]['name'], 'Category source name was not resolved');
+assertSameValue(true, $sources[1]['enabled'], 'Enabled product preview state changed');
+assertSameValue(false, $sources[2]['enabled'], 'Disabled product preview state was not detected');
+assertSameValue(false, $sources[3]['enabled'], 'Disabled category preview state was not detected');
 
 $blog_rows = array(
 	array('seo_url_id' => 101, 'store_id' => 0, 'language_id' => 1, 'query' => 'article_id=7', 'keyword' => ''),
@@ -337,6 +365,9 @@ assertSameValue('blog/article/edit', $blog_sources[101]['route'], 'Blog article 
 assertSameValue('Тестова стаття', $blog_sources[102]['name'], 'Localized blog article source name was not resolved');
 assertSameValue('Новости блога', $blog_sources[103]['name'], 'Blog category source name was not resolved');
 assertSameValue('blog/category/edit', $blog_sources[103]['route'], 'Blog category edit route changed');
+assertSameValue(false, $blog_sources[101]['enabled'], 'Disabled blog article preview state was not detected');
+assertSameValue(false, $blog_sources[102]['enabled'], 'Localized disabled blog article preview state changed');
+assertSameValue(true, $blog_sources[103]['enabled'], 'Enabled blog category preview state changed');
 
 assertSameValue(
 	'testovaya-statya',

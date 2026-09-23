@@ -532,7 +532,8 @@ class ModelDesignSeoUrl extends Model {
 				'name' => 'name',
 				'language' => true,
 				'route' => 'catalog/product/edit',
-				'parameter' => 'product_id'
+				'parameter' => 'product_id',
+				'status_table' => 'product'
 			),
 			'category_id' => array(
 				'table' => 'category_description',
@@ -540,7 +541,8 @@ class ModelDesignSeoUrl extends Model {
 				'name' => 'name',
 				'language' => true,
 				'route' => 'catalog/category/edit',
-				'parameter' => 'category_id'
+				'parameter' => 'category_id',
+				'status_table' => 'category'
 			),
 			'manufacturer_id' => array(
 				'table' => 'manufacturer',
@@ -548,7 +550,8 @@ class ModelDesignSeoUrl extends Model {
 				'name' => 'name',
 				'language' => false,
 				'route' => 'catalog/manufacturer/edit',
-				'parameter' => 'manufacturer_id'
+				'parameter' => 'manufacturer_id',
+				'status_table' => ''
 			),
 			'information_id' => array(
 				'table' => 'information_description',
@@ -556,7 +559,8 @@ class ModelDesignSeoUrl extends Model {
 				'name' => 'title',
 				'language' => true,
 				'route' => 'catalog/information/edit',
-				'parameter' => 'information_id'
+				'parameter' => 'information_id',
+				'status_table' => 'information'
 			),
 			'article_id' => array(
 				'table' => 'article_description',
@@ -564,7 +568,8 @@ class ModelDesignSeoUrl extends Model {
 				'name' => 'name',
 				'language' => true,
 				'route' => 'blog/article/edit',
-				'parameter' => 'article_id'
+				'parameter' => 'article_id',
+				'status_table' => 'article'
 			),
 			'blog_category_id' => array(
 				'table' => 'blog_category_description',
@@ -572,7 +577,8 @@ class ModelDesignSeoUrl extends Model {
 				'name' => 'name',
 				'language' => true,
 				'route' => 'blog/category/edit',
-				'parameter' => 'blog_category_id'
+				'parameter' => 'blog_category_id',
+				'status_table' => 'blog_category'
 			)
 		);
 
@@ -649,6 +655,27 @@ class ModelDesignSeoUrl extends Model {
 			}
 		}
 
+		$statuses = array();
+
+		foreach ($groups as $type => $group) {
+			$definition = $definitions[$type];
+
+			if (empty($definition['status_table']) || !$group['ids']) {
+				continue;
+			}
+
+			$status_query = $this->db->query(
+				"SELECT `" . $definition['id'] . "`, `status`"
+				. " FROM `" . DB_PREFIX . $definition['status_table'] . "`"
+				. " WHERE `" . $definition['id'] . "` IN ("
+				. implode(',', array_map('intval', $group['ids'])) . ")"
+			);
+
+			foreach ($status_query->rows as $item) {
+				$statuses[$type . '|' . (int)$item[$definition['id']]] = !empty($item['status']);
+			}
+		}
+
 		$result = array();
 
 		foreach ($parsed as $seo_url_id => $source) {
@@ -656,11 +683,17 @@ class ModelDesignSeoUrl extends Model {
 			$key = $source['type'] . '|' . $source['id'] . '|'
 				. ($definition['language'] ? $source['language_id'] : 0);
 
+			$status_key = $source['type'] . '|' . $source['id'];
+			$enabled = empty($definition['status_table'])
+				? true
+				: (isset($statuses[$status_key]) ? (bool)$statuses[$status_key] : false);
+
 			$result[$seo_url_id] = array(
 				'name' => isset($names[$key]) ? $names[$key] : '',
 				'route' => $definition['route'],
 				'parameter' => $definition['parameter'],
-				'id' => $source['id']
+				'id' => $source['id'],
+				'enabled' => $enabled
 			);
 		}
 

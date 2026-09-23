@@ -4,8 +4,13 @@
         <div class="container-fluid">
             <div class="pull-right">
                 {% if category_id %}
-                <a href="{{ href_shop }}" target="_blank" data-toggle="tooltip" title="{{ button_shop }}" class="btn btn-default">
-                    <i class="fa fa-eye"></i></a>
+                    {% if view_enabled %}
+                    <a href="{{ href_shop }}" target="_blank" data-toggle="tooltip" title="{{ button_shop }}" class="btn btn-default">
+                        <i class="fa fa-eye"></i></a>
+                    {% else %}
+                    <button type="button" data-toggle="tooltip" title="{{ button_shop }}" class="btn btn-default disabled" disabled="disabled">
+                        <i class="fa fa-eye"></i></button>
+                    {% endif %}
                 {% endif %}
                 <button type="submit" form="form-category" name="save_new" value="1" data-toggle="tooltip" title="{{ button_save_new }}" class="btn btn-info">
                     <i class="fa fa-save"></i>

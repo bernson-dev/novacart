@@ -542,9 +542,18 @@ class ControllerCatalogInformation extends Controller {
 			$information_info = $this->model_catalog_information->getInformation($this->request->get['information_id']);
 		}
 
+		$data['view_enabled'] = false;
+
 		if (isset($this->request->get['information_id'])) {
-			$data['information_id'] = $this->request->get['information_id'];
-			$data['href_shop'] = HTTP_CATALOG . 'index.php?route=information/information&information_id=' . $this->request->get['information_id'];
+			$information_id = (int)$this->request->get['information_id'];
+			$data['information_id'] = $information_id;
+			$data['href_shop'] = HTTP_CATALOG . 'index.php?route=information/information&information_id=' . $information_id;
+
+			$view_information_info = !empty($information_info)
+				? $information_info
+				: $this->model_catalog_information->getInformation($information_id);
+
+			$data['view_enabled'] = !empty($view_information_info) && !empty($view_information_info['status']);
 		}
 
 		$data['user_token'] = $this->session->data['user_token'];
