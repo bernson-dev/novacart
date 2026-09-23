@@ -444,7 +444,9 @@ class ModelDesignSeoUrl extends Model {
 		$url = rtrim($base, '/') . '/index.php';
 
 		if ($route !== '') {
-			$url .= '?route=' . rawurlencode($route);
+			// Route names are application paths, not arbitrary query data. Keep the
+			// familiar OpenCart form: route=product/product instead of product%2Fproduct.
+			$url .= '?route=' . $route;
 
 			foreach ($params as $key => $value) {
 				if (is_scalar($value)) {
@@ -462,6 +464,8 @@ class ModelDesignSeoUrl extends Model {
 
 	private function getStoreBaseUrl($store_id) {
 		$store_id = (int)$store_id;
+		$secure = !empty($this->request->server['HTTPS'])
+			&& strtolower((string)$this->request->server['HTTPS']) !== 'off';
 
 		if ($store_id > 0) {
 			$query = $this->db->query("SELECT `url`, `ssl` FROM `" . DB_PREFIX . "store`
@@ -472,14 +476,36 @@ class ModelDesignSeoUrl extends Model {
 				$url = trim((string)$query->row['url']);
 				$ssl = trim((string)$query->row['ssl']);
 
+				if ($secure && $ssl !== '') {
+					return $ssl;
+				}
+
 				return $url !== '' ? $url : $ssl;
 			}
 		}
 
+		/*
+		 * The default storefront URL is normally defined in admin/config.php as
+		 * HTTP_CATALOG / HTTPS_CATALOG. It is not required to exist as config_url
+		 * in oc_setting, so relying on the settings table makes previews disappear.
+		 */
+		if ($secure && defined('HTTPS_CATALOG') && trim((string)HTTPS_CATALOG) !== '') {
+			return trim((string)HTTPS_CATALOG);
+		}
+
+		if (defined('HTTP_CATALOG') && trim((string)HTTP_CATALOG) !== '') {
+			return trim((string)HTTP_CATALOG);
+		}
+
+		if (defined('HTTPS_CATALOG') && trim((string)HTTPS_CATALOG) !== '') {
+			return trim((string)HTTPS_CATALOG);
+		}
+
+		// Compatibility fallback for non-standard installations.
 		$url = trim((string)$this->getStoreConfigValue(0, 'config_url', ''));
 		$ssl = trim((string)$this->getStoreConfigValue(0, 'config_ssl', ''));
 
-		return $url !== '' ? $url : $ssl;
+		return $secure && $ssl !== '' ? $ssl : ($url !== '' ? $url : $ssl);
 	}
 
 	private function getStoreConfigValue($store_id, $key, $default = null) {
