@@ -57,3 +57,13 @@ $_['text_issue_shared_language_short'] = 'Across languages';
 $_['text_issue_orphan_short']          = 'Orphaned';
 $_['help_issue_shared_language']       = 'The same keyword is used in different languages of one store. This is valid with multilingual SEO URLs enabled, but becomes a conflict if language prefixes are disabled.';
 $_['help_issue_orphan']                = 'The SEO URL points to an entity that no longer exists in the database.';
+
+$_['help_issue_all']          = 'Current conflicts that can already affect routing. Cross-language matches are excluded while language prefixes are enabled.';
+$_['button_generate']         = 'Generate from name';
+$_['button_inline_save']      = 'Save SEO URL';
+$_['text_inline_saved']       = 'SEO URL saved';
+$_['text_saving']             = 'Saving...';
+$_['text_open_source']        = 'Open source entity';
+$_['error_request_method']    = 'Invalid request method.';
+$_['error_not_found']         = 'SEO URL record was not found.';
+$_['error_ajax']              = 'Could not save the SEO URL. Check the error log and try again.';
