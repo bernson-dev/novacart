@@ -383,6 +383,7 @@ class ControllerDesignSeoUrl extends Controller {
 				$result,
 				$source_name
 			);
+			$generator_prefix = $this->model_design_seo_url->getSeoUrlGeneratorPrefix($result);
 
 			$data['seo_urls'][] = array(
 				'seo_url_id' => $result['seo_url_id'],
@@ -395,6 +396,7 @@ class ControllerDesignSeoUrl extends Controller {
 				'language_id'=> (int)$result['language_id'],
 				'source_name'=> $source_name,
 				'generator_source' => $generator_source,
+				'generator_prefix' => $generator_prefix,
 				'source_edit'=> $source_edit,
 				'preview'    => $this->model_design_seo_url->getSeoUrlPreview($result),
 				'issues'     => isset($audit['issues'][(int)$result['seo_url_id']])
