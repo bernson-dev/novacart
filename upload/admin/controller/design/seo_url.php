@@ -379,11 +379,10 @@ class ControllerDesignSeoUrl extends Controller {
 				);
 			}
 			$source_name = isset($source['name']) ? (string)$source['name'] : '';
-			$generator_source = $this->model_design_seo_url->getSeoUrlGeneratorSource(
+			$generator_value = $this->model_design_seo_url->getSeoUrlGeneratorValue(
 				$result,
 				$source_name
 			);
-			$generator_prefix = $this->model_design_seo_url->getSeoUrlGeneratorPrefix($result);
 
 			$data['seo_urls'][] = array(
 				'seo_url_id' => $result['seo_url_id'],
@@ -391,12 +390,10 @@ class ControllerDesignSeoUrl extends Controller {
 				'query'      => htmlspecialchars($result['query'], ENT_COMPAT, 'UTF-8'),
 				'store'      => $result['store_id'] ? $result['store'] : $this->language->get('text_default'),
 				'language'   => $result['language'],
-				'language_code' => isset($result['language_code']) ? (string)$result['language_code'] : '',
 				'store_id'   => (int)$result['store_id'],
 				'language_id'=> (int)$result['language_id'],
 				'source_name'=> $source_name,
-				'generator_source' => $generator_source,
-				'generator_prefix' => $generator_prefix,
+				'generator_value' => $generator_value,
 				'source_edit'=> $source_edit,
 				'preview'    => $this->model_design_seo_url->getSeoUrlPreview($result),
 				'issues'     => isset($audit['issues'][(int)$result['seo_url_id']])
