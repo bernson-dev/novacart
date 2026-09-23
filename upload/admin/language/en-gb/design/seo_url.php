@@ -64,6 +64,7 @@ $_['button_inline_save']      = 'Save SEO URL';
 $_['text_inline_saved']       = 'SEO URL saved';
 $_['text_saving']             = 'Saving...';
 $_['text_open_source']        = 'Open source entity';
+$_['text_open_storefront'] = 'Open storefront';
 $_['error_request_method']    = 'Invalid request method.';
 $_['error_not_found']         = 'SEO URL record was not found.';
 $_['error_ajax']              = 'Could not save the SEO URL. Check the error log and try again.';
