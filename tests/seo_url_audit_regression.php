@@ -370,4 +370,18 @@ assertSameValue(
 	'Disabled-language plain route generator value changed'
 );
 
+$unknown_module_query = array(
+	'seo_url_id' => 105,
+	'store_id' => 0,
+	'language_id' => 1,
+	'query' => 'blogcategory_id=1',
+	'keyword' => ''
+);
+
+assertSameValue(
+	'blogcategory',
+	$model->getSeoUrlGeneratorValue($unknown_module_query),
+	'Unknown module query must use generic generator fallback'
+);
+
 echo "SEO URL audit regression checks passed\n";
