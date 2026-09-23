@@ -43,9 +43,9 @@ class ControllerCommonHeader extends Controller {
 
 			if (!isset($store_state[$store_id])) {
 				$store_state[$store_id] = array(
-					'config_language' => '',
-					'config_seo_url' => false,
-					'seo_language_status' => false,
+					'config_language' => null,
+					'config_seo_url' => null,
+					'seo_language_status' => null,
 					'seo_language_native' => false,
 					'seo_language_module' => false
 				);
@@ -75,7 +75,37 @@ class ControllerCommonHeader extends Controller {
 			}
 		}
 
+		if (!isset($store_state[0])) {
+			$store_state[0] = array(
+				'config_language' => (string)$this->config->get('config_language'),
+				'config_seo_url' => (bool)$this->config->get('config_seo_url'),
+				'seo_language_status' => (bool)(
+					$this->config->has('config_seo_language')
+						? $this->config->get('config_seo_language')
+						: ($this->config->has('module_seo_language_status')
+							? $this->config->get('module_seo_language_status')
+							: $this->config->get('seo_language_status'))
+				),
+				'seo_language_native' => $this->config->has('config_seo_language'),
+				'seo_language_module' => $this->config->has('module_seo_language_status')
+			);
+		}
+
+		$default_state = $store_state[0];
+
 		foreach ($store_state as $store_id => $state) {
+			if ($state['config_language'] === null) {
+				$state['config_language'] = $default_state['config_language'];
+			}
+
+			if ($state['config_seo_url'] === null) {
+				$state['config_seo_url'] = $default_state['config_seo_url'];
+			}
+
+			if ($state['seo_language_status'] === null) {
+				$state['seo_language_status'] = $default_state['seo_language_status'];
+			}
+
 			$default_language_id = isset($language_ids[$state['config_language']])
 				? $language_ids[$state['config_language']]
 				: 0;
