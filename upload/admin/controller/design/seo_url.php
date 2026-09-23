@@ -390,6 +390,7 @@ class ControllerDesignSeoUrl extends Controller {
 				'query'      => htmlspecialchars($result['query'], ENT_COMPAT, 'UTF-8'),
 				'store'      => $result['store_id'] ? $result['store'] : $this->language->get('text_default'),
 				'language'   => $result['language'],
+				'language_code' => isset($result['language_code']) ? (string)$result['language_code'] : '',
 				'store_id'   => (int)$result['store_id'],
 				'language_id'=> (int)$result['language_id'],
 				'source_name'=> $source_name,
