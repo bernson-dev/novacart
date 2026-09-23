@@ -664,6 +664,14 @@ class ControllerBlogArticle extends Controller {
 	}
 
 	protected function validateForm() {
+		$this->load->model('design/seo_url');
+
+		if (isset($this->request->post['article_seo_url'])) {
+			$this->request->post['article_seo_url'] = $this->model_design_seo_url->normalizeLanguageScopedSeoUrls(
+				$this->request->post['article_seo_url']
+			);
+		}
+
 		if (!$this->validateModifyPermission()) {
 			return false;
 		}
@@ -691,8 +699,6 @@ class ControllerBlogArticle extends Controller {
 		}
 
 		if (!empty($this->request->post['article_seo_url']) && is_array($this->request->post['article_seo_url'])) {
-			$this->load->model('design/seo_url');
-
 			foreach ($this->request->post['article_seo_url'] as $store_id => $language) {
 				if (!is_array($language)) {
 					continue;
