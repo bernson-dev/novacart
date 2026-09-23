@@ -19,9 +19,15 @@ const context = {
 			1: 'ru-ru',
 			2: 'uk-ua'
 		},
-		seoLanguageEnabledStores: {
-			0: true,
-			1: false
+		seoStoreConfig: {
+			0: {
+				defaultLanguageId: 1,
+				languageScoped: true
+			},
+			1: {
+				defaultLanguageId: 2,
+				languageScoped: false
+			}
 		}
 	}
 };
@@ -42,21 +48,21 @@ assertSame(
 );
 
 assertSame(
-	'uk_test-tovar',
+	'test-tovar',
 	context.window.buildSeoValue('Тест товар', 2, 1),
-	'Legacy store must retain the non-default-language prefix'
+	'Legacy store must not prefix its own catalog default language'
+);
+
+assertSame(
+	'ru_test-tovar',
+	context.window.buildSeoValue('Тест товар', 1, 1),
+	'Legacy store must prefix a non-default language using that language code'
 );
 
 assertSame(
 	'test-tovar',
 	context.window.buildSeoValue('Тест товар', 1, 0),
 	'Default language slug changed in SEO Language mode'
-);
-
-assertSame(
-	'test-tovar',
-	context.window.buildSeoValue('Тест товар', 1, 1),
-	'Default language slug changed in legacy mode'
 );
 
 console.log('SEO generator regression checks passed');
