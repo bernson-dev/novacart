@@ -1,54 +1,75 @@
 <footer id="footer">
-    {{ text_footer }}
-    {% if text_version or extra_version %}
-        <br />{{ text_version }}{{ extra_version }}
-    {% endif %}
+    <div class="footer-main">{{ text_footer }}</div>
 
-    {% if show_https_indicator %}
-        {% if is_https %}
-            <span class="text-success"> | 🔒 Secure (HTTPS)</span>
-        {% else %}
-            <span class="text-danger"> | 🔓 Not Secure (HTTP)</span>
+    {% if text_version %}
+    <div class="footer-meta">
+        <span>{{ text_version }}</span>
+        <span>{{ text_php }} {{ php_version }}</span>
+        <span>{{ text_ioncube }} {{ ioncube_version }}</span>
+
+        {% if show_https_indicator %}
+        <span class="{{ is_https ? 'text-success' : 'text-danger' }}">
+            <i class="fa {{ is_https ? 'fa-lock' : 'fa-unlock-alt' }}"></i>
+            {{ is_https ? text_https_secure : text_https_insecure }}
+        </span>
         {% endif %}
-    {% endif %}
 
-    {% if server_time %}
-        <span id="server-time"></span>
+        {% if server_time %}
+        <span id="server-time"
+              data-server-time="{{ server_time }}"
+              data-timezone="{{ server_timezone }}"
+              data-label="{{ text_server_time }}">
+        </span>
+        {% endif %}
+    </div>
     {% endif %}
 
     {% if display_errors %}
-        <br /><span class="text-danger">{{ display_errors }}</span>
+    <div class="footer-warning">
+        <i class="fa fa-exclamation-triangle"></i>
+        <span>{{ text_display_errors }}</span>
+        {% if display_errors_url %}
+        <a href="{{ display_errors_url }}">{{ text_display_errors_link }}</a>
+        {% endif %}
+    </div>
     {% endif %}
 </footer>
 </div>
 
 {% if server_time %}
-<script>
-// Вычисляем разницу между сервером и клиентом один раз
-const serverStartTime = {{ server_time }} * 1000;
-const clientStartTime = Date.now();
-const timeOffset = serverStartTime - clientStartTime;
+<script type="text/javascript">
+(function() {
+    var element = document.getElementById('server-time');
 
-function updateClock() {
-    // Получаем актуальное время клиента + зафиксированное смещение
-    const now = new Date(Date.now() + timeOffset);
-    
-    const formatted = now.toLocaleString('ru-RU', {
-        timeZone: "{{ server_timezone }}",
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-    
-    document.getElementById('server-time').textContent = ' | Server time: ' + formatted;
-}
+    if (!element) {
+        return;
+    }
 
-// Запуск
-setInterval(updateClock, 1000);
-updateClock();
+    var serverStart = Number(element.getAttribute('data-server-time')) * 1000;
+    var clientStart = Date.now();
+    var offset = serverStart - clientStart;
+    var timezone = element.getAttribute('data-timezone') || 'UTC';
+    var label = element.getAttribute('data-label') || '';
+    var locale = document.documentElement.lang || 'en-GB';
+
+    function updateServerTime() {
+        var now = new Date(Date.now() + offset);
+        var formatted = now.toLocaleString(locale, {
+            timeZone: timezone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+
+        element.textContent = label + ': ' + formatted;
+    }
+
+    window.setInterval(updateServerTime, 1000);
+    updateServerTime();
+})();
 </script>
 {% endif %}
 </body>
