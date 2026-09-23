@@ -239,3 +239,6 @@ jobs:
 
       - name: SEO generator regression
         run: node tests/seo_generator_regression.js
+
+      - name: SEO direct-route canonical regression
+        run: php tests/seo_direct_route_canonical_regression.php
