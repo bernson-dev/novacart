@@ -70,3 +70,4 @@ $_['error_ajax']              = 'Could not save the SEO URL. Check the error log
 
 $_['entry_search']            = 'Quick search';
 $_['help_search']             = 'Search by any fragment of an SEO URL, query, or related product, category, manufacturer, page, or article name.';
+$_['text_group_records']       = 'records in group';
