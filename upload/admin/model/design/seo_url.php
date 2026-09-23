@@ -334,7 +334,10 @@ class ModelDesignSeoUrl extends Model {
 				'keyword_rows' => 0,
 				'query_groups' => 0,
 				'query_rows' => 0,
-				'prefix_rows' => 0
+				'prefix_rows' => 0,
+				'shared_language_groups' => 0,
+				'shared_language_rows' => 0,
+				'orphan_rows' => 0
 			)
 		);
 
@@ -357,7 +360,9 @@ class ModelDesignSeoUrl extends Model {
 			$audit['issues'][$seo_url_id] = array(
 				'query' => false,
 				'keyword' => false,
-				'prefix' => false
+				'prefix' => false,
+				'shared_language' => false,
+				'orphan' => false
 			);
 
 			if ($route_query !== '') {
@@ -385,6 +390,12 @@ class ModelDesignSeoUrl extends Model {
 
 				$keyword_groups[$keyword_key][] = $seo_url_id;
 
+				if (!isset($shared_language_groups[$store_id . '|' . $keyword])) {
+					$shared_language_groups[$store_id . '|' . $keyword] = array();
+				}
+
+				$shared_language_groups[$store_id . '|' . $keyword][$language_id][] = $seo_url_id;
+
 				if (
 					$this->isReservedLanguagePrefix($keyword, $store_id)
 					&& !(
@@ -395,6 +406,28 @@ class ModelDesignSeoUrl extends Model {
 					$audit['issues'][$seo_url_id]['prefix'] = true;
 					$audit['summary']['prefix_rows']++;
 				}
+			}
+
+			if (preg_match('/^(product_id|category_id|manufacturer_id|information_id|article_id|blog_category_id)=([0-9]+)$/', $route_query, $match)) {
+				$type_map = array(
+					'product_id' => 'product',
+					'category_id' => 'category',
+					'manufacturer_id' => 'manufacturer',
+					'information_id' => 'information',
+					'article_id' => 'article',
+					'blog_category_id' => 'blog_category'
+				);
+
+				$type = $type_map[$match[1]];
+				$entity_id = (int)$match[2];
+
+				$entity_ids[$type][$entity_id] = $entity_id;
+
+				if (!isset($entity_rows[$type][$entity_id])) {
+					$entity_rows[$type][$entity_id] = array();
+				}
+
+				$entity_rows[$type][$entity_id][] = $seo_url_id;
 			}
 		}
 
@@ -424,8 +457,72 @@ class ModelDesignSeoUrl extends Model {
 			}
 		}
 
+		foreach ($shared_language_groups as $languages) {
+			if (count($languages) < 2) {
+				continue;
+			}
+
+			$ids = array();
+
+			foreach ($languages as $language_ids) {
+				$ids = array_merge($ids, $language_ids);
+			}
+
+			$audit['summary']['shared_language_groups']++;
+			$audit['summary']['shared_language_rows'] += count($ids);
+
+			foreach ($ids as $seo_url_id) {
+				$audit['issues'][$seo_url_id]['shared_language'] = true;
+			}
+		}
+
+		$entity_tables = array(
+			'product' => 'product',
+			'category' => 'category',
+			'manufacturer' => 'manufacturer',
+			'information' => 'information',
+			'article' => 'article',
+			'blog_category' => 'blog_category'
+		);
+
+		$entity_keys = array(
+			'product' => 'product_id',
+			'category' => 'category_id',
+			'manufacturer' => 'manufacturer_id',
+			'information' => 'information_id',
+			'article' => 'article_id',
+			'blog_category' => 'blog_category_id'
+		);
+
+		foreach ($entity_ids as $type => $ids) {
+			if (!$ids) {
+				continue;
+			}
+
+			$key = $entity_keys[$type];
+			$exists = array();
+
+			$entity_query = $this->db->query("SELECT `" . $key . "` FROM `" . DB_PREFIX . $entity_tables[$type] . "`
+				WHERE `" . $key . "` IN (" . implode(',', array_map('intval', $ids)) . ")");
+
+			foreach ($entity_query->rows as $entity) {
+				$exists[(int)$entity[$key]] = true;
+			}
+
+			foreach ($entity_rows[$type] as $entity_id => $seo_url_ids) {
+				if (isset($exists[(int)$entity_id])) {
+					continue;
+				}
+
+				foreach ($seo_url_ids as $seo_url_id) {
+					$audit['issues'][$seo_url_id]['orphan'] = true;
+					$audit['summary']['orphan_rows']++;
+				}
+			}
+		}
+
 		foreach ($audit['issues'] as $seo_url_id => $issues) {
-			if ($issues['query'] || $issues['keyword'] || $issues['prefix']) {
+			if ($issues['query'] || $issues['keyword'] || $issues['prefix'] || $issues['orphan']) {
 				$audit['summary']['issue_rows']++;
 			}
 		}
@@ -441,7 +538,7 @@ class ModelDesignSeoUrl extends Model {
 
 		foreach ($audit['issues'] as $seo_url_id => $issues) {
 			if ($type === 'all') {
-				$matched = $issues['query'] || $issues['keyword'] || $issues['prefix'];
+				$matched = $issues['query'] || $issues['keyword'] || $issues['prefix'] || $issues['orphan'];
 			} else {
 				$matched = isset($issues[$type]) && $issues[$type];
 			}
