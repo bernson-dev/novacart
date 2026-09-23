@@ -178,9 +178,10 @@ class ModelDesignSeoUrl extends Model {
 		}
 
 		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
-			WHERE `store_id` = '" . $store_id . "'
+			WHERE `store_id` IN (0, '" . $store_id . "')
 			AND `code` = 'seo_language'
 			AND `key` = 'seo_language_status'
+			ORDER BY `store_id` DESC
 			LIMIT 1");
 
 		$this->language_scope[$store_id] = $query->num_rows && !empty($query->row['value']);
@@ -268,9 +269,10 @@ class ModelDesignSeoUrl extends Model {
 
 		if (!$query->num_rows) {
 			$query = $this->db->query("SELECT `value`, `serialized` FROM `" . DB_PREFIX . "setting`
-				WHERE `store_id` = '" . (int)$store_id . "'
+				WHERE `store_id` IN (0, '" . (int)$store_id . "')
 				AND `code` = 'seo_language'
 				AND `key` = 'seo_language_prefix'
+				ORDER BY `store_id` DESC
 				LIMIT 1");
 		}
 
