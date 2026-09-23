@@ -371,266 +371,93 @@ class ModelDesignSeoUrl extends Model {
 	}
 
 
-	public function getSeoUrlPreviewTemplate($row) {
-		if (!is_array($row) || empty($row['query'])) {
-			return '';
-		}
-
-		$placeholder = '__SEO_KEYWORD__';
-
-		return $this->buildSeoUrlPreview(
-			(string)$row['query'],
-			$placeholder,
-			(int)$row['store_id'],
-			(int)$row['language_id']
-		);
-	}
-
+	/**
+	 * Build a direct storefront URL without SEO rewriting.
+	 *
+	 * Opening this URL exercises the real catalog startup and therefore shows
+	 * whether the configured canonical redirect actually works.
+	 */
 	public function getSeoUrlPreview($row) {
 		if (!is_array($row) || empty($row['query'])) {
 			return '';
 		}
 
-		return $this->buildSeoUrlPreview(
+		return $this->buildDirectFrontendUrl(
 			(string)$row['query'],
-			(string)$row['keyword'],
-			(int)$row['store_id'],
-			(int)$row['language_id']
+			(int)$row['store_id']
 		);
 	}
 
-	private function buildSeoUrlPreview($route_query, $keyword, $store_id, $language_id) {
+	private function buildDirectFrontendUrl($route_query, $store_id) {
 		$base = $this->getStoreBaseUrl($store_id);
-
-		if ($this->usesLanguageScopedKeywords($store_id) && $route_query !== 'common/home') {
-			$default_language_id = $this->getStoreDefaultLanguageId($store_id);
-
-			if ($default_language_id > 0 && $language_id !== $default_language_id) {
-				$primary = $this->db->query("SELECT `keyword` FROM `" . DB_PREFIX . "seo_url`
-					WHERE `query` = '" . $this->db->escape($route_query) . "'
-					AND `store_id` = '" . (int)$store_id . "'
-					AND `language_id` = '" . (int)$default_language_id . "'
-					LIMIT 1");
-
-				if ($primary->num_rows && trim((string)$primary->row['keyword']) !== '') {
-					$keyword = trim((string)$primary->row['keyword']);
-				}
-			}
-		}
 
 		if ($base === '') {
 			return '';
 		}
 
-		$prefix = '';
-
-		if ($this->usesLanguageScopedKeywords($store_id)) {
-			$default_language_id = $this->getStoreDefaultLanguageId($store_id);
-
-			if ($default_language_id > 0 && $language_id !== $default_language_id) {
-				$language = $this->db->query("SELECT `code` FROM `" . DB_PREFIX . "language`
-					WHERE `language_id` = '" . (int)$language_id . "'
-					LIMIT 1");
-
-				if ($language->num_rows && !empty($language->row['code'])) {
-					$prefixes = $this->getLanguagePrefixMap($store_id);
-					$code = (string)$language->row['code'];
-
-					if (isset($prefixes[$code])) {
-						$prefix = $prefixes[$code];
-					}
-				}
-			}
-		}
+		$route_query = trim((string)$route_query);
+		$route = '';
+		$params = array();
 
 		if ($route_query === 'common/home') {
-			return rtrim($base, '/') . '/' . ($prefix !== '' ? rawurlencode($prefix) . '/' : '');
-		}
+			$route = 'common/home';
+		} elseif (preg_match('/^(product_id|category_id|manufacturer_id|information_id|article_id|blog_category_id)=([0-9]+)$/', $route_query, $match)) {
+			$id = (int)$match[2];
 
-		if (!preg_match('/^(product_id|category_id|manufacturer_id|information_id|article_id|blog_category_id)=([0-9]+)$/', $route_query, $match)) {
-			$segments = array();
-
-			if ($prefix !== '') {
-				$segments[] = $prefix;
+			switch ($match[1]) {
+				case 'product_id':
+					$route = 'product/product';
+					$params['product_id'] = $id;
+					break;
+				case 'category_id':
+					$route = 'product/category';
+					$params['path'] = $id;
+					break;
+				case 'manufacturer_id':
+					$route = 'product/manufacturer/info';
+					$params['manufacturer_id'] = $id;
+					break;
+				case 'information_id':
+					$route = 'information/information';
+					$params['information_id'] = $id;
+					break;
+				case 'article_id':
+					$route = 'blog/article';
+					$params['article_id'] = $id;
+					break;
+				case 'blog_category_id':
+					$route = 'blog/category';
+					$params['blog_category_id'] = $id;
+					break;
 			}
+		} elseif (strpos($route_query, '=') === false) {
+			$route = $route_query;
+		} else {
+			parse_str($route_query, $params);
 
-			if ($keyword !== '') {
-				$segments[] = $keyword;
-			}
-
-			return rtrim($base, '/') . '/' . implode('/', array_map('rawurlencode', $segments));
-		}
-
-		$type = $match[1];
-		$entity_id = (int)$match[2];
-		$seo_pro = (bool)$this->getStoreConfigValue($store_id, 'config_seo_pro', 0);
-		$include_path = (bool)$this->getStoreConfigValue($store_id, 'config_seo_url_include_path', 0);
-		$segments = array();
-
-		if ($prefix !== '') {
-			$segments[] = $prefix;
-		}
-
-		if ($seo_pro && $include_path && $type === 'product_id') {
-			$category = $this->db->query("SELECT `category_id` FROM `" . DB_PREFIX . "product_to_category`
-				WHERE `product_id` = '" . $entity_id . "'
-				ORDER BY `main_category` DESC
-				LIMIT 1");
-
-			if ($category->num_rows) {
-				$segments = array_merge(
-					$segments,
-					$this->getPreviewCategorySegments(
-						(int)$category->row['category_id'],
-						$store_id,
-						$language_id,
-						$route_query,
-						$keyword
-					)
-				);
-			}
-		} elseif ($seo_pro && $type === 'category_id') {
-			$category_segments = $this->getPreviewCategorySegments(
-				$entity_id,
-				$store_id,
-				$language_id,
-				$route_query,
-				$keyword
-			);
-
-			if ($category_segments) {
-				$segments = array_merge($segments, $category_segments);
-				$keyword = '';
-			}
-		} elseif ($seo_pro && $include_path && $type === 'article_id') {
-			$category = $this->db->query("SELECT `blog_category_id` FROM `" . DB_PREFIX . "article_to_blog_category`
-				WHERE `article_id` = '" . $entity_id . "'
-				ORDER BY `main_blog_category` DESC
-				LIMIT 1");
-
-			if ($category->num_rows && (int)$category->row['blog_category_id'] > 0) {
-				$segments = array_merge(
-					$segments,
-					$this->getPreviewBlogCategorySegments(
-						(int)$category->row['blog_category_id'],
-						$store_id,
-						$language_id,
-						$route_query,
-						$keyword
-					)
-				);
-			}
-		} elseif ($seo_pro && $type === 'blog_category_id') {
-			$blog_segments = $this->getPreviewBlogCategorySegments(
-				$entity_id,
-				$store_id,
-				$language_id,
-				$route_query,
-				$keyword
-			);
-
-			if ($blog_segments) {
-				$segments = array_merge($segments, $blog_segments);
-				$keyword = '';
+			if (!empty($params['route'])) {
+				$route = (string)$params['route'];
+				unset($params['route']);
 			}
 		}
 
-		if ($keyword !== '') {
-			$segments[] = $keyword;
-		}
+		$url = rtrim($base, '/') . '/index.php';
 
-		$url = rtrim($base, '/') . '/';
+		if ($route !== '') {
+			$url .= '?route=' . rawurlencode($route);
 
-		if ($segments) {
-			$url .= implode('/', array_map('rawurlencode', $segments));
-		}
-
-		if ($seo_pro) {
-			$has_postfix = in_array($type, array('product_id', 'manufacturer_id', 'information_id', 'article_id'), true);
-			$postfix = (string)$this->getStoreConfigValue($store_id, 'config_page_postfix', '');
-
-			if ($has_postfix && $postfix !== '') {
-				$url .= $postfix;
-			} elseif ($this->getStoreConfigValue($store_id, 'config_seopro_addslash', 0)) {
-				$url = rtrim($url, '/') . '/';
-			}
-		}
-
-		return $url;
-	}
-
-	private function getPreviewCategorySegments($category_id, $store_id, $language_id, $override_query, $override_keyword) {
-		$segments = array();
-		$query = $this->db->query("SELECT `path_id` FROM `" . DB_PREFIX . "category_path`
-			WHERE `category_id` = '" . (int)$category_id . "'
-			ORDER BY `level` ASC");
-
-		foreach ($query->rows as $row) {
-			$seo_query = 'category_id=' . (int)$row['path_id'];
-			$keyword = $this->getPreviewKeyword(
-				$seo_query,
-				$store_id,
-				$language_id,
-				$override_query,
-				$override_keyword
-			);
-
-			if ($keyword === '') {
-				return array();
+			foreach ($params as $key => $value) {
+				if (is_scalar($value)) {
+					$url .= '&' . rawurlencode((string)$key) . '=' . rawurlencode((string)$value);
+				}
 			}
 
-			$segments[] = $keyword;
+			return $url;
 		}
 
-		return $segments;
-	}
-
-	private function getPreviewBlogCategorySegments($category_id, $store_id, $language_id, $override_query, $override_keyword) {
-		$segments = array();
-		$query = $this->db->query("SELECT `path_id` FROM `" . DB_PREFIX . "blog_category_path`
-			WHERE `blog_category_id` = '" . (int)$category_id . "'
-			ORDER BY `level` ASC");
-
-		foreach ($query->rows as $row) {
-			$seo_query = 'blog_category_id=' . (int)$row['path_id'];
-			$keyword = $this->getPreviewKeyword(
-				$seo_query,
-				$store_id,
-				$language_id,
-				$override_query,
-				$override_keyword
-			);
-
-			if ($keyword === '') {
-				return array();
-			}
-
-			$segments[] = $keyword;
-		}
-
-		return $segments;
-	}
-
-	private function getPreviewKeyword($query, $store_id, $language_id, $override_query, $override_keyword) {
-		if ($this->usesLanguageScopedKeywords($store_id)) {
-			$default_language_id = $this->getStoreDefaultLanguageId($store_id);
-
-			if ($default_language_id > 0) {
-				$language_id = $default_language_id;
-			}
-		}
-
-		if ($query === $override_query) {
-			return (string)$override_keyword;
-		}
-
-		$seo = $this->db->query("SELECT `keyword` FROM `" . DB_PREFIX . "seo_url`
-			WHERE `query` = '" . $this->db->escape($query) . "'
-			AND `store_id` = '" . (int)$store_id . "'
-			AND `language_id` = '" . (int)$language_id . "'
-			LIMIT 1");
-
-		return $seo->num_rows ? trim((string)$seo->row['keyword']) : '';
+		return $route_query !== ''
+			? $url . '?' . ltrim($route_query, '?&')
+			: $url;
 	}
 
 	private function getStoreBaseUrl($store_id) {
