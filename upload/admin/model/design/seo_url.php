@@ -6,14 +6,22 @@ class ModelDesignSeoUrl extends Model {
 	private $audit_cache = null;
 	public function addSeoUrl($data) {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$data['store_id'] . "', `language_id` = '" . (int)$data['language_id'] . "', `query` = '" . $this->db->escape(html_entity_decode($data['query'], ENT_QUOTES, 'UTF-8')) . "', `keyword` = '" . $this->db->escape($data['keyword']) . "'");
+		$this->clearSeoCache();
 	}
 
 	public function editSeoUrl($seo_url_id, $data) {
 		$this->db->query("UPDATE `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$data['store_id'] . "', `language_id` = '" . (int)$data['language_id'] . "', `query` = '" . $this->db->escape(html_entity_decode($data['query'], ENT_QUOTES, 'UTF-8')) . "', `keyword` = '" . $this->db->escape($data['keyword']) . "' WHERE `seo_url_id` = '" . (int)$seo_url_id . "'");
+		$this->clearSeoCache();
+	}
+
+	public function editSeoUrlKeyword($seo_url_id, $keyword) {
+		$this->db->query("UPDATE `" . DB_PREFIX . "seo_url` SET `keyword` = '" . $this->db->escape((string)$keyword) . "' WHERE `seo_url_id` = '" . (int)$seo_url_id . "'");
+		$this->clearSeoCache();
 	}
 
 	public function deleteSeoUrl($seo_url_id) {
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url` WHERE `seo_url_id` = '" . (int)$seo_url_id . "'");
+		$this->clearSeoCache();
 	}
 
 	public function getSeoUrl($seo_url_id) {
@@ -319,6 +327,156 @@ class ModelDesignSeoUrl extends Model {
 
 		return null;
 	}
+
+	public function getSeoUrlSources($rows) {
+		$definitions = array(
+			'product_id' => array(
+				'table' => 'product_description',
+				'id' => 'product_id',
+				'name' => 'name',
+				'language' => true,
+				'route' => 'catalog/product/edit',
+				'parameter' => 'product_id'
+			),
+			'category_id' => array(
+				'table' => 'category_description',
+				'id' => 'category_id',
+				'name' => 'name',
+				'language' => true,
+				'route' => 'catalog/category/edit',
+				'parameter' => 'category_id'
+			),
+			'manufacturer_id' => array(
+				'table' => 'manufacturer',
+				'id' => 'manufacturer_id',
+				'name' => 'name',
+				'language' => false,
+				'route' => 'catalog/manufacturer/edit',
+				'parameter' => 'manufacturer_id'
+			),
+			'information_id' => array(
+				'table' => 'information_description',
+				'id' => 'information_id',
+				'name' => 'title',
+				'language' => true,
+				'route' => 'catalog/information/edit',
+				'parameter' => 'information_id'
+			),
+			'article_id' => array(
+				'table' => 'article_description',
+				'id' => 'article_id',
+				'name' => 'name',
+				'language' => true,
+				'route' => 'blog/article/edit',
+				'parameter' => 'article_id'
+			),
+			'blog_category_id' => array(
+				'table' => 'blog_category_description',
+				'id' => 'blog_category_id',
+				'name' => 'name',
+				'language' => true,
+				'route' => 'blog/category/edit',
+				'parameter' => 'blog_category_id'
+			)
+		);
+
+		$groups = array();
+		$parsed = array();
+
+		foreach ($rows as $row) {
+			if (!preg_match('/^([a-z_]+)=([0-9]+)$/', (string)$row['query'], $match)) {
+				continue;
+			}
+
+			$type = $match[1];
+
+			if (!isset($definitions[$type])) {
+				continue;
+			}
+
+			$id = (int)$match[2];
+			$language_id = (int)$row['language_id'];
+			$parsed[(int)$row['seo_url_id']] = array(
+				'type' => $type,
+				'id' => $id,
+				'language_id' => $language_id
+			);
+
+			if (!isset($groups[$type])) {
+				$groups[$type] = array(
+					'ids' => array(),
+					'languages' => array()
+				);
+			}
+
+			$groups[$type]['ids'][$id] = $id;
+
+			if ($definitions[$type]['language']) {
+				$groups[$type]['languages'][$language_id] = $language_id;
+			}
+		}
+
+		$names = array();
+
+		foreach ($groups as $type => $group) {
+			$definition = $definitions[$type];
+
+			if (!$group['ids']) {
+				continue;
+			}
+
+			$sql = "SELECT `" . $definition['id'] . "`, `" . $definition['name'] . "`";
+
+			if ($definition['language']) {
+				$sql .= ", `language_id`";
+			}
+
+			$sql .= " FROM `" . DB_PREFIX . $definition['table'] . "`
+				WHERE `" . $definition['id'] . "` IN (" . implode(',', array_map('intval', $group['ids'])) . ")";
+
+			if ($definition['language'] && $group['languages']) {
+				$sql .= " AND `language_id` IN (" . implode(',', array_map('intval', $group['languages'])) . ")";
+			}
+
+			$query = $this->db->query($sql);
+
+			foreach ($query->rows as $item) {
+				$key = $type . '|' . (int)$item[$definition['id']] . '|';
+
+				if ($definition['language']) {
+					$key .= (int)$item['language_id'];
+				} else {
+					$key .= '0';
+				}
+
+				$names[$key] = (string)$item[$definition['name']];
+			}
+		}
+
+		$result = array();
+
+		foreach ($parsed as $seo_url_id => $source) {
+			$definition = $definitions[$source['type']];
+			$key = $source['type'] . '|' . $source['id'] . '|'
+				. ($definition['language'] ? $source['language_id'] : 0);
+
+			$result[$seo_url_id] = array(
+				'name' => isset($names[$key]) ? $names[$key] : '',
+				'route' => $definition['route'],
+				'parameter' => $definition['parameter'],
+				'id' => $source['id']
+			);
+		}
+
+		return $result;
+	}
+
+	private function clearSeoCache() {
+		if ($this->config->get('config_seo_pro')) {
+			$this->cache->delete('seopro');
+		}
+	}
+
 
 	public function getSeoUrlAudit() {
 		if ($this->audit_cache !== null) {
