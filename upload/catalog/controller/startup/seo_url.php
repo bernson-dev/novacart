@@ -40,7 +40,7 @@ class ControllerStartupSeoUrl extends Controller {
 			$language_filter = '';
 
 			if ($this->seo_language instanceof SeoLanguage && $this->seo_language->isEnabled()) {
-				$language_filter = " AND language_id = '" . (int)$this->config->get('config_language_id') . "'";
+				$language_filter = " AND language_id = '" . $this->getSeoKeywordLanguageId() . "'";
 			}
 
 			foreach ($parts as $part) {
@@ -138,6 +138,29 @@ class ControllerStartupSeoUrl extends Controller {
 			}
 		}
 		//seopro validate
+	}
+
+	/**
+	 * In prefix mode all public entity slugs come from the catalog default
+	 * language. The active language is represented only by the URL prefix.
+	 */
+	private function getSeoKeywordLanguageId() {
+		if ($this->seo_language instanceof SeoLanguage && $this->seo_language->isEnabled()) {
+			$code = (string)$this->config->get('config_language');
+
+			if ($code !== '') {
+				$query = $this->db->query("SELECT language_id FROM " . DB_PREFIX . "language
+					WHERE code = '" . $this->db->escape($code) . "'
+					AND status = '1'
+					LIMIT 1");
+
+				if ($query->num_rows) {
+					return (int)$query->row['language_id'];
+				}
+			}
+		}
+
+		return (int)$this->config->get('config_language_id');
 	}
 
 	private function getDirectRouteCanonicalUrl() {
@@ -256,7 +279,7 @@ class ControllerStartupSeoUrl extends Controller {
 					$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "seo_url
                         WHERE `query` = '" . $this->db->escape($key . '=' . (int)$value) . "'
                           AND store_id = '" . (int)$this->config->get('config_store_id') . "'
-                          AND language_id = '" . (int)$this->config->get('config_language_id') . "'");
+                          AND language_id = '" . $this->getSeoKeywordLanguageId() . "'");
 
 					if ($query->num_rows && $query->row['keyword']) {
 						$url .= '/' . $query->row['keyword'];
@@ -269,7 +292,7 @@ class ControllerStartupSeoUrl extends Controller {
 						$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "seo_url
                             WHERE `query` = 'category_id=" . (int)$category . "'
                               AND store_id = '" . (int)$this->config->get('config_store_id') . "'
-                              AND language_id = '" . (int)$this->config->get('config_language_id') . "'");
+                              AND language_id = '" . $this->getSeoKeywordLanguageId() . "'");
 
 						if ($query->num_rows && $query->row['keyword']) {
 							$url .= '/' . $query->row['keyword'];
@@ -291,7 +314,7 @@ class ControllerStartupSeoUrl extends Controller {
 						$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "seo_url
                             WHERE `query` = 'blog_category_id=" . (int)$blog_category_id . "'
                               AND store_id = '" . (int)$this->config->get('config_store_id') . "'
-                              AND language_id = '" . (int)$this->config->get('config_language_id') . "'");
+                              AND language_id = '" . $this->getSeoKeywordLanguageId() . "'");
 
 						if ($query->num_rows && $query->row['keyword']) {
 							$url .= '/' . $query->row['keyword'];
@@ -308,7 +331,7 @@ class ControllerStartupSeoUrl extends Controller {
 					$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "seo_url
                         WHERE `query` = 'article_id=" . (int)$value . "'
                           AND store_id = '" . (int)$this->config->get('config_store_id') . "'
-                          AND language_id = '" . (int)$this->config->get('config_language_id') . "'");
+                          AND language_id = '" . $this->getSeoKeywordLanguageId() . "'");
 
 					if ($query->num_rows && $query->row['keyword']) {
 						$url .= '/' . $query->row['keyword'];
