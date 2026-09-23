@@ -34,6 +34,14 @@ class ControllerDesignSeoUrl extends Controller {
 				$url .= '&filter_query=' . urlencode(html_entity_decode((string)$this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
 			}
 
+			if (isset($this->request->get['filter_search']) && $this->request->get['filter_search'] !== '') {
+				$url .= '&filter_search=' . urlencode((string)$this->request->get['filter_search']);
+			}
+
+			if (isset($this->request->get['filter_issue']) && $this->request->get['filter_issue'] !== '') {
+				$url .= '&filter_issue=' . urlencode((string)$this->request->get['filter_issue']);
+			}
+
 			if (isset($this->request->get['filter_store_id'])) {
 				$url .= '&filter_store_id=' . (int)$this->request->get['filter_store_id'];
 			}
