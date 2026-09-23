@@ -19,28 +19,39 @@ class ControllerCommonLanguage extends Controller {
 			}
 		}
 
-		// Формируем параметры редиректа
-		if (!isset($this->request->get['route'])) {
-			$redirect_data = ['route' => 'common/home', 'params' => '', 'protocol' => $this->isSecure()];
-		} else {
-			$url_data = $this->request->get;
-			unset($url_data['_route_']);
+		/*
+		 * Preserve the current entity when switching language.
+		 *
+		 * On an SEO URL the original "route" parameter may already be absent by
+		 * the time this controller renders. Falling back directly to common/home
+		 * therefore sends product/category/article pages to the homepage.
+		 * Reconstruct the route from the decoded entity parameters instead.
+		 */
+		$url_data = $this->request->get;
+		unset($url_data['_route_']);
 
-			$route = isset($url_data['route']) && is_scalar($url_data['route']) ? (string)$url_data['route'] : 'common/home';
-			unset($url_data['route']);
+		$route = isset($url_data['route']) && is_scalar($url_data['route'])
+			? (string)$url_data['route']
+			: $this->resolveCurrentRoute($url_data);
 
-			if (!preg_match('/^[a-zA-Z0-9_\/]+$/', $route)) {
-				$route = 'common/home';
-				$url_data = array();
-			}
+		unset($url_data['route']);
 
-			$params = '';
-			if ($url_data) {
-				$params = '&' . urldecode(http_build_query($url_data, '', '&'));
-			}
-
-			$redirect_data = ['route' => $route, 'params' => $params, 'protocol' => $this->isSecure()];
+		if (!preg_match('/^[a-zA-Z0-9_\/]+$/', $route)) {
+			$route = 'common/home';
+			$url_data = array();
 		}
+
+		$params = '';
+
+		if ($url_data) {
+			$params = '&' . urldecode(http_build_query($url_data, '', '&'));
+		}
+
+		$redirect_data = array(
+			'route' => $route,
+			'params' => $params,
+			'protocol' => $this->isSecure()
+		);
 
 		$data['redirect'] = base64_encode(json_encode($redirect_data));
 
@@ -98,6 +109,44 @@ class ControllerCommonLanguage extends Controller {
 		// теперь язык уже обновлён, и url->link отдаст правильный SEO URL
 		$this->response->redirect($this->url->link($route, $params, $protocol));
 	}
+
+	/**
+	 * Recover the logical OpenCart route from parameters produced by SEO URL
+	 * decoding. This keeps language switching on the same page even when the
+	 * original pretty URL no longer has an explicit route parameter.
+	 */
+	private function resolveCurrentRoute($url_data) {
+		if (!is_array($url_data)) {
+			return 'common/home';
+		}
+
+		if (isset($url_data['product_id'])) {
+			return 'product/product';
+		}
+
+		if (isset($url_data['path'])) {
+			return 'product/category';
+		}
+
+		if (isset($url_data['manufacturer_id'])) {
+			return 'product/manufacturer/info';
+		}
+
+		if (isset($url_data['information_id'])) {
+			return 'information/information';
+		}
+
+		if (isset($url_data['article_id'])) {
+			return 'blog/article';
+		}
+
+		if (isset($url_data['blog_category_id'])) {
+			return 'blog/category';
+		}
+
+		return 'common/home';
+	}
+
 
 	// Вспомогательный метод для проверки HTTPS
 	private function isSecure() {
