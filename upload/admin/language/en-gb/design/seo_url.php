@@ -37,6 +37,11 @@ $_['error_query_exists']   = 'Query already in use!';
 
 $_['text_all']                 = 'All';
 $_['text_audit']               = 'SEO URL audit:';
+$_['text_audit_stats']          = 'Overall statistics';
+$_['text_stat_total']           = 'Total rows';
+$_['text_stat_issues']          = 'Rows with issues';
+$_['text_stat_keyword_groups']  = 'SEO URL conflict groups';
+$_['text_stat_query_groups']    = 'Duplicate query groups';
 $_['text_audit_summary']       = 'total rows: %d; rows with issues: %d; conflicting keyword groups: %d; duplicate query groups: %d; language-prefix conflicts: %d; cross-language matches: %d; orphaned rows: %d.';
 $_['text_issue_all']           = 'All issues';
 $_['text_issue_keyword']       = 'SEO URL conflict';
