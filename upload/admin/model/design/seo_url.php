@@ -4,6 +4,7 @@ class ModelDesignSeoUrl extends Model {
 	private $language_prefixes = array();
 	private $language_prefix_map = array();
 	private $audit_cache = null;
+	private $search_condition_cache = array();
 	public function addSeoUrl($data) {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$data['store_id'] . "', `language_id` = '" . (int)$data['language_id'] . "', `query` = '" . $this->db->escape(html_entity_decode($data['query'], ENT_QUOTES, 'UTF-8')) . "', `keyword` = '" . $this->db->escape($data['keyword']) . "'");
 		$this->clearSeoCache();
