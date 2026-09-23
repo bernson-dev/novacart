@@ -220,4 +220,31 @@ assertSameValue(
 	'Already rewritten SEO path must not redirect'
 );
 
+
+
+/*
+ * Standard seo_url must keep homepage language URLs unique even when the full
+ * language-prefix mode is disabled: default language uses '/', secondary
+ * language uses its stable home alias.
+ */
+$config->set('config_seo_language', 0);
+$config->set('config_seo_pro', 0);
+$config->set('config_language', 'ru-ru');
+$config->set('config_language_id', 1);
+
+assertSameValue(
+	'http://store.test/',
+	$controller->rewrite('http://store.test/index.php?route=common/home'),
+	'Default-language homepage must stay at the store root'
+);
+
+$config->set('config_language_id', 2);
+
+assertSameValue(
+	'http://store.test/uk/',
+	$controller->rewrite('http://store.test/index.php?route=common/home'),
+	'Secondary-language homepage must have a unique alias with standard seo_url'
+);
+
+
 echo "SEO direct-route canonical regression checks passed\n";
