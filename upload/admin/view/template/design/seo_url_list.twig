@@ -96,6 +96,8 @@
                                 <option value="keyword"{% if filter_issue == 'keyword' %} selected="selected"{% endif %}>{{ text_issue_keyword }}</option>
                                 <option value="query"{% if filter_issue == 'query' %} selected="selected"{% endif %}>{{ text_issue_query }}</option>
                                 <option value="prefix"{% if filter_issue == 'prefix' %} selected="selected"{% endif %}>{{ text_issue_prefix }}</option>
+                                <option value="shared_language"{% if filter_issue == 'shared_language' %} selected="selected"{% endif %}>{{ text_issue_shared_language }}</option>
+                                <option value="orphan"{% if filter_issue == 'orphan' %} selected="selected"{% endif %}>{{ text_issue_orphan }}</option>
                             </select>
                         </div>
                         <div class="text-right">
@@ -146,7 +148,7 @@
                                     <tbody>
                                         {% if seo_urls %}
                                         {% for seo_url in seo_urls %}
-                                        <tr{% if seo_url.issues.keyword or seo_url.issues.query or seo_url.issues.prefix %} class="warning"{% endif %}>
+                                        <tr{% if seo_url.issues.keyword or seo_url.issues.query or seo_url.issues.prefix or seo_url.issues.orphan %} class="warning"{% endif %}>
                                             <td class="text-center">{% if seo_url.seo_url_id in selected %}
                                                 <input type="checkbox" name="selected[]" value="{{ seo_url.seo_url_id }}" checked="checked" />
                                                 {% else %}
@@ -160,7 +162,9 @@
                                                 {% if seo_url.issues.keyword %}<span class="label label-danger" data-toggle="tooltip" title="{{ help_issue_keyword }}">{{ text_issue_keyword_short }}</span>{% endif %}
                                                 {% if seo_url.issues.query %}<span class="label label-warning" data-toggle="tooltip" title="{{ help_issue_query }}">{{ text_issue_query_short }}</span>{% endif %}
                                                 {% if seo_url.issues.prefix %}<span class="label label-info" data-toggle="tooltip" title="{{ help_issue_prefix }}">{{ text_issue_prefix_short }}</span>{% endif %}
-                                                {% if not seo_url.issues.keyword and not seo_url.issues.query and not seo_url.issues.prefix %}<span class="text-muted">—</span>{% endif %}
+                                                {% if seo_url.issues.shared_language %}<span class="label label-default" data-toggle="tooltip" title="{{ help_issue_shared_language }}">{{ text_issue_shared_language_short }}</span>{% endif %}
+                                                {% if seo_url.issues.orphan %}<span class="label label-danger" data-toggle="tooltip" title="{{ help_issue_orphan }}">{{ text_issue_orphan_short }}</span>{% endif %}
+                                                {% if not seo_url.issues.keyword and not seo_url.issues.query and not seo_url.issues.prefix and not seo_url.issues.shared_language and not seo_url.issues.orphan %}<span class="text-muted">—</span>{% endif %}
                                             </td>
                                             <td class="text-right">
                                                 <a href="{{ seo_url.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary">
