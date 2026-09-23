@@ -665,6 +665,51 @@ class ModelDesignSeoUrl extends Model {
 		return $result;
 	}
 
+
+	/**
+	 * Return a human-readable source for inline keyword generation.
+	 *
+	 * Entity rows use their real localized title/name. Plain route rows do not
+	 * have a database entity behind them, so use the final route segment
+	 * (extension/feed/ocfilter_sitemap -> ocfilter sitemap).
+	 */
+	public function getSeoUrlGeneratorSource($row, $source_name = '') {
+		$source_name = trim((string)$source_name);
+
+		if ($source_name !== '') {
+			return $source_name;
+		}
+
+		if (!is_array($row) || empty($row['query'])) {
+			return '';
+		}
+
+		$route_query = trim((string)$row['query']);
+
+		// Homepage URLs are controlled by the language-home canonical rule.
+		if ($route_query === 'common/home') {
+			return '';
+		}
+
+		// A missing known entity is an orphan. Never generate product_id-123 etc.
+		if (preg_match('/^(product_id|category_id|manufacturer_id|information_id|article_id|blog_category_id)=[0-9]+$/', $route_query)) {
+			return '';
+		}
+
+		// Plain OpenCart route: use only its final meaningful segment.
+		if (preg_match('/^[a-zA-Z0-9_\/.-]+$/', $route_query)) {
+			$parts = preg_split('#/+#', trim($route_query, '/'));
+			$last = $parts ? end($parts) : '';
+
+			if ($last !== false && $last !== '') {
+				return trim(preg_replace('/[_-]+/', ' ', (string)$last));
+			}
+		}
+
+		return '';
+	}
+
+
 	private function buildSeoUrlSearchCondition($value) {
 		$value = $this->db->escape(trim((string)$value));
 		$like = "'%" . $value . "%'";
