@@ -17,9 +17,19 @@ class ControllerStartupSeoUrl extends Controller {
 
 	public function index() {
 
-		// Add rewrite to url class
+		// Add rewrite layers in a deterministic order:
+		// 1) seo_url / SeoPro builds the canonical public path;
+		// 2) SeoLanguage adds the active non-default language prefix.
 		if ($this->config->get('config_seo_url')) {
 			$this->url->addRewrite($this);
+
+			if (
+				$this->registry->has('seo_language')
+				&& $this->seo_language instanceof SeoLanguage
+				&& $this->seo_language->isEnabled()
+			) {
+				$this->url->addRewrite($this->seo_language);
+			}
 		}
 
 		// Decode URL
@@ -247,16 +257,13 @@ class ControllerStartupSeoUrl extends Controller {
 			parse_str($url_info['query'], $data);
 		}
 
-		// Standard SEO keeps common/home at the store root. Language prefixes
-		// are applied afterwards by SeoLanguage and are not seo_url keywords.
+		// Standard SEO keeps common/home at the store root. SeoLanguage is a
+		// separate rewrite layer and will add a non-default language prefix after
+		// this method returns.
 		if (isset($data['route']) && $data['route'] == 'common/home' && !$this->config->get('config_seo_pro')) {
-			$result = $url_info['scheme'] . '://' . $url_info['host'] . (isset($url_info['port']) ? ':' . $url_info['port'] : '') . str_replace('/index.php', '', $url_info['path']);
-
-			if ($this->seo_language instanceof SeoLanguage) {
-				$result = $this->seo_language->rewrite($result);
-			}
-
-			return $result;
+			return $url_info['scheme'] . '://' . $url_info['host']
+				. (isset($url_info['port']) ? ':' . $url_info['port'] : '')
+				. str_replace('/index.php', '', $url_info['path']);
 		}
 
 		if ($this->config->get('config_seo_pro')) {
@@ -371,13 +378,9 @@ class ControllerStartupSeoUrl extends Controller {
 				}
 			}
 
-			$result = $url_info['scheme'] . '://' . $url_info['host'] . (isset($url_info['port']) ? ':' . $url_info['port'] : '') . str_replace('/index.php', '', $url_info['path']) . $url . $query;
-
-			if ($this->seo_language instanceof SeoLanguage) {
-				$result = $this->seo_language->rewrite($result);
-			}
-
-			return $result;
+			return $url_info['scheme'] . '://' . $url_info['host']
+				. (isset($url_info['port']) ? ':' . $url_info['port'] : '')
+				. str_replace('/index.php', '', $url_info['path']) . $url . $query;
 		} else {
 			return $link;
 		}
