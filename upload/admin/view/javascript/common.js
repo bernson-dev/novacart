@@ -64,7 +64,7 @@ window.translit = function(text) {
 	.replace(/^-+/g, '');                // убрать дефисы в начале
 };
 
-window.buildSeoValue = (text, languageId, storeId, languageCode) => {
+window.buildSeoValue = (text, languageId, storeId, languageCode, explicitPrefix) => {
 	let seo = window.translit(text);
 
 	if (!seo) {
@@ -80,6 +80,22 @@ window.buildSeoValue = (text, languageId, storeId, languageCode) => {
 		? Number(storeConfig.defaultLanguageId)
 		: (window.defaultLanguageId ? Number(window.defaultLanguageId) : null);
 	const current = Number(languageId);
+
+	/*
+	 * design/seo_url may pass an explicit server-calculated prefix. This makes
+	 * generation independent of the admin's active-language list, so disabled
+	 * languages keep working. Other admin forms continue using the legacy
+	 * language metadata fallback below.
+	 */
+	if (typeof explicitPrefix !== 'undefined' && explicitPrefix !== null) {
+		const prefix = String(explicitPrefix).replace(/[^a-z0-9]/gi, '').toLowerCase();
+
+		if (prefix) {
+			seo = prefix + '_' + seo;
+		}
+
+		return seo;
+	}
 
 	/*
 	 * Keep language-specific fallback keywords in storage. Prefix mode only
