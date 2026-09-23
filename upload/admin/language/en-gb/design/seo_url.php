@@ -9,7 +9,7 @@ $_['text_add']             = 'Add SEO URL';
 $_['text_edit']            = 'Edit SEO URL';
 $_['text_filter']          = 'Filter';
 $_['text_default']         = 'Default';
-$_['text_information']     = 'Information<p><strong>SEO URL (keyword)</strong> must be unique within the URL namespace where an actual routing conflict can occur. With multilingual SEO URLs enabled, the same <strong>keyword</strong> in different languages is valid because language is resolved by a separate prefix. Duplicates within the same store and language remain invalid.</p><p>Use Latin letters, numbers, hyphens (-) and underscores (_). Language prefixes are reserved and must not be used as normal SEO URLs.</p>';
+$_['text_information']     = 'Information<p>With language prefixes enabled, the public <strong>SEO URL</strong> is taken from the catalog default language and reused for every language; only the language prefix changes. Other language SEO URLs remain stored as fallbacks and become active again if prefixes are disabled.</p><p>Keywords remain unique within a store. Use Latin letters, numbers, hyphens (-) and underscores (_). Language prefixes are reserved.</p>';
 
 // Column
 $_['column_query']         = 'Query';
