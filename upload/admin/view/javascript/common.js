@@ -72,17 +72,22 @@ const buildSeoValue = (text, languageId, storeId) => {
 	}
 
 	const store = Number(storeId);
-	const languageScoped = window.seoLanguageEnabledStores
-		&& Object.prototype.hasOwnProperty.call(window.seoLanguageEnabledStores, store)
-		&& window.seoLanguageEnabledStores[store] === true;
+	const storeConfig = window.seoStoreConfig
+		&& Object.prototype.hasOwnProperty.call(window.seoStoreConfig, store)
+		? window.seoStoreConfig[store]
+		: null;
+	const languageScoped = !!(storeConfig && storeConfig.languageScoped);
 
 	/*
 	 * When SEO Language owns the language prefix in the public URL, the stored
 	 * keyword must remain a clean slug. Otherwise preserve the legacy generator
 	 * behavior so standard OpenCart keeps distinct keywords between languages.
+	 * The default language must come from this storefront, not from admin UI.
 	 */
 	if (!languageScoped) {
-		const def = window.defaultLanguageId ? Number(window.defaultLanguageId) : null;
+		const def = storeConfig && storeConfig.defaultLanguageId
+			? Number(storeConfig.defaultLanguageId)
+			: (window.defaultLanguageId ? Number(window.defaultLanguageId) : null);
 		const current = Number(languageId);
 
 		if (def && current && current !== def && window.languages && window.languages[languageId]) {
