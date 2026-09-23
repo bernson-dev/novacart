@@ -64,6 +64,93 @@ class ModelSettingSeoLanguage extends Model {
 		);
 	}
 
+	/**
+	 * Build the small SEO UI context required by entity edit forms.
+	 *
+	 * This intentionally lives outside common/header so the header does not
+	 * execute store/language settings queries on every admin page.
+	 */
+	public function getAdminUiContext($languages) {
+		$languages = is_array($languages) ? $languages : array();
+		$language_ids = array();
+		$short_ids = array();
+		$short_ambiguous = array();
+
+		foreach ($languages as $language) {
+			$code = strtolower(str_replace('_', '-', (string)$language['code']));
+			$language_id = (int)$language['language_id'];
+			$language_ids[$code] = $language_id;
+
+			$parts = explode('-', $code);
+			$short = isset($parts[0]) ? $parts[0] : '';
+
+			if ($short !== '') {
+				if (isset($short_ids[$short]) && $short_ids[$short] !== $language_id) {
+					$short_ambiguous[$short] = true;
+				} else {
+					$short_ids[$short] = $language_id;
+				}
+			}
+		}
+
+		$default_config = $this->getSettingRows('config', 0);
+
+		if (!isset($default_config['config_language'])) {
+			$default_config['config_language'] = (string)$this->config->get('config_language');
+		}
+
+		if (!isset($default_config['config_seo_url'])) {
+			$default_config['config_seo_url'] = (int)$this->config->get('config_seo_url');
+		}
+
+		$store_ids = array(0);
+		$stores = $this->db->query("SELECT `store_id` FROM `" . DB_PREFIX . "store`");
+
+		foreach ($stores->rows as $store) {
+			$store_ids[] = (int)$store['store_id'];
+		}
+
+		$store_config = array();
+
+		foreach (array_unique($store_ids) as $store_id) {
+			$config = $default_config;
+
+			if ($store_id !== 0) {
+				$config = array_replace($config, $this->getSettingRows('config', $store_id));
+			}
+
+			$language_code = isset($config['config_language'])
+				? (string)$config['config_language']
+				: (string)$default_config['config_language'];
+			$normalized = strtolower(str_replace('_', '-', $language_code));
+			$default_language_id = isset($language_ids[$normalized])
+				? (int)$language_ids[$normalized]
+				: 0;
+
+			if ($default_language_id === 0) {
+				$parts = explode('-', $normalized);
+				$short = isset($parts[0]) ? $parts[0] : '';
+
+				if (
+					$short !== ''
+					&& empty($short_ambiguous[$short])
+					&& isset($short_ids[$short])
+				) {
+					$default_language_id = (int)$short_ids[$short];
+				}
+			}
+
+			$seo_language = $this->getSettings($store_id);
+
+			$store_config[$store_id] = array(
+				'default_language_id' => $default_language_id,
+				'language_scoped' => !empty($config['config_seo_url']) && !empty($seo_language['status'])
+			);
+		}
+
+		return $store_config;
+	}
+
 	public function normalizePrefixes($prefixes) {
 		$result = array();
 
