@@ -74,9 +74,12 @@
             {{ language.language_id }}: '{{ language.code }}'{% if not loop.last %},{% endif %}
             {% endfor %}
         };
-        var seoLanguageEnabledStores = {
-            {% for store_id, enabled in seo_language_enabled_stores %}
-            {{ store_id }}: {{ enabled ? 'true' : 'false' }}{% if not loop.last %},{% endif %}
+        var seoStoreConfig = {
+            {% for store_id, config in seo_store_config %}
+            {{ store_id }}: {
+                defaultLanguageId: {{ config.default_language_id }},
+                languageScoped: {{ config.language_scoped ? 'true' : 'false' }}
+            }{% if not loop.last %},{% endif %}
             {% endfor %}
         };
     </script>
