@@ -24,9 +24,24 @@ class ControllerCommonHeader extends Controller {
 		 * missing config values from store 0 and still need correct admin behavior.
 		 */
 		$language_ids = array();
+		$language_short_ids = array();
+		$language_short_ambiguous = array();
 
 		foreach ($data['languages'] as $language) {
-			$language_ids[(string)$language['code']] = (int)$language['language_id'];
+			$code = strtolower(str_replace('_', '-', (string)$language['code']));
+			$language_id = (int)$language['language_id'];
+			$language_ids[$code] = $language_id;
+
+			$parts = explode('-', $code);
+			$short = isset($parts[0]) ? $parts[0] : '';
+
+			if ($short !== '') {
+				if (isset($language_short_ids[$short]) && $language_short_ids[$short] !== $language_id) {
+					$language_short_ambiguous[$short] = true;
+				} else {
+					$language_short_ids[$short] = $language_id;
+				}
+			}
 		}
 
 		$default_config = $this->model_setting_setting->getSetting('config', 0);
@@ -61,9 +76,23 @@ class ControllerCommonHeader extends Controller {
 			$language_code = isset($config['config_language'])
 				? (string)$config['config_language']
 				: (string)$default_config['config_language'];
-			$default_language_id = isset($language_ids[$language_code])
-				? (int)$language_ids[$language_code]
+			$normalized_language_code = strtolower(str_replace('_', '-', $language_code));
+			$default_language_id = isset($language_ids[$normalized_language_code])
+				? (int)$language_ids[$normalized_language_code]
 				: 0;
+
+			if ($default_language_id === 0) {
+				$parts = explode('-', $normalized_language_code);
+				$short = isset($parts[0]) ? $parts[0] : '';
+
+				if (
+					$short !== ''
+					&& empty($language_short_ambiguous[$short])
+					&& isset($language_short_ids[$short])
+				) {
+					$default_language_id = (int)$language_short_ids[$short];
+				}
+			}
 
 			$data['seo_store_config'][$store_id] = array(
 				'default_language_id' => $default_language_id,
