@@ -407,11 +407,6 @@ class ControllerDesignSeoUrl extends Controller {
 		}
 
 		$data['user_token'] = $this->session->data['user_token'];
-		$data['save_keyword'] = $this->url->link(
-			'design/seo_url/saveKeyword',
-			'user_token=' . $this->session->data['user_token'],
-			true
-		);
 
 		$data['audit_links'] = array();
 
