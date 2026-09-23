@@ -708,20 +708,19 @@ class ControllerBlogArticle extends Controller {
 					$keyword = trim((string)$keyword);
 
 					if ($keyword !== '') {
-						$language_scoped = $this->model_design_seo_url->usesLanguageScopedKeywords((int)$store_id);
 
 						if ($this->model_design_seo_url->isReservedLanguagePrefix($keyword, (int)$store_id)) {
 							$this->error['keyword'][$store_id][$language_id] = $this->language->get('error_keyword');
 						}
 
-						if (!$language_scoped && count(array_keys($language, $keyword, true)) > 1) {
+						if (count(array_keys($language, $keyword, true)) > 1) {
 							$this->error['keyword'][$store_id][$language_id] = $this->language->get('error_unique');
 						}
 
 						$seo_urls = $this->model_design_seo_url->getSeoUrlsByKeyword(
 							$keyword,
 							(int)$store_id,
-							$language_scoped ? (int)$language_id : null
+							null
 						);
 
 						foreach ($seo_urls as $seo_url) {
