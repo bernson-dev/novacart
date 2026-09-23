@@ -3,6 +3,7 @@ class ModelDesignSeoUrl extends Model {
 	private $language_scope = array();
 	private $language_prefixes = array();
 	private $language_prefix_map = array();
+	private $audit_cache = null;
 	public function addSeoUrl($data) {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$data['store_id'] . "', `language_id` = '" . (int)$data['language_id'] . "', `query` = '" . $this->db->escape(html_entity_decode($data['query'], ENT_QUOTES, 'UTF-8')) . "', `keyword` = '" . $this->db->escape($data['keyword']) . "'");
 	}
@@ -42,8 +43,18 @@ class ModelDesignSeoUrl extends Model {
 			$implode[] = "su.`store_id` = '" . (int)$data['filter_store_id'] . "'";
 		}
 
-		if (!empty($data['filter_language_id']) && $data['filter_language_id'] !== '') {
+		if (isset($data['filter_language_id']) && $data['filter_language_id'] !== '') {
 			$implode[] = "su.`language_id` = '" . (int)$data['filter_language_id'] . "'";
+		}
+
+		if (!empty($data['filter_issue'])) {
+			$issue_ids = $this->getSeoUrlIssueIds($data['filter_issue']);
+
+			if ($issue_ids) {
+				$implode[] = "su.`seo_url_id` IN (" . implode(',', array_map('intval', $issue_ids)) . ")";
+			} else {
+				$implode[] = "1 = 0";
+			}
 		}
 
 		if ($implode) {
@@ -84,24 +95,34 @@ class ModelDesignSeoUrl extends Model {
 	}
 
 	public function getTotalSeoUrls($data = array()) {
-		$sql = "SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "seo_url`";
+		$sql = "SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "seo_url` su";
 
 		$implode = array();
 
 		if (!empty($data['filter_query'])) {
-			$implode[] = "`query` LIKE '" . $this->db->escape($data['filter_query']) . "'";
+			$implode[] = "su.`query` LIKE '" . $this->db->escape($data['filter_query']) . "'";
 		}
 
 		if (!empty($data['filter_keyword'])) {
-			$implode[] = "`keyword` LIKE '" . $this->db->escape($data['filter_keyword']) . "'";
+			$implode[] = "su.`keyword` LIKE '%" . $this->db->escape($data['filter_keyword']) . "%'";
 		}
 
-		if (!empty($data['filter_store_id']) && $data['filter_store_id'] !== '') {
-			$implode[] = "`store_id` = '" . (int)$data['filter_store_id'] . "'";
+		if (isset($data['filter_store_id']) && $data['filter_store_id'] !== '') {
+			$implode[] = "su.`store_id` = '" . (int)$data['filter_store_id'] . "'";
 		}
 
-		if (!empty($data['filter_language_id']) && $data['filter_language_id'] !== '') {
-			$implode[] = "`language_id` = '" . (int)$data['filter_language_id'] . "'";
+		if (isset($data['filter_language_id']) && $data['filter_language_id'] !== '') {
+			$implode[] = "su.`language_id` = '" . (int)$data['filter_language_id'] . "'";
+		}
+
+		if (!empty($data['filter_issue'])) {
+			$issue_ids = $this->getSeoUrlIssueIds($data['filter_issue']);
+
+			if ($issue_ids) {
+				$implode[] = "su.`seo_url_id` IN (" . implode(',', array_map('intval', $issue_ids)) . ")";
+			} else {
+				$implode[] = "1 = 0";
+			}
 		}
 
 		if ($implode) {
@@ -298,6 +319,141 @@ class ModelDesignSeoUrl extends Model {
 
 		return null;
 	}
+
+	public function getSeoUrlAudit() {
+		if ($this->audit_cache !== null) {
+			return $this->audit_cache;
+		}
+
+		$audit = array(
+			'issues' => array(),
+			'summary' => array(
+				'all_rows' => 0,
+				'issue_rows' => 0,
+				'keyword_groups' => 0,
+				'keyword_rows' => 0,
+				'query_groups' => 0,
+				'query_rows' => 0,
+				'prefix_rows' => 0
+			)
+		);
+
+		$query = $this->db->query("SELECT `seo_url_id`, `store_id`, `language_id`, `query`, `keyword`
+			FROM `" . DB_PREFIX . "seo_url`
+			ORDER BY `seo_url_id` ASC");
+
+		$audit['summary']['all_rows'] = count($query->rows);
+
+		$query_groups = array();
+		$keyword_groups = array();
+
+		foreach ($query->rows as $row) {
+			$seo_url_id = (int)$row['seo_url_id'];
+			$store_id = (int)$row['store_id'];
+			$language_id = (int)$row['language_id'];
+			$route_query = (string)$row['query'];
+			$keyword = trim((string)$row['keyword']);
+
+			$audit['issues'][$seo_url_id] = array(
+				'query' => false,
+				'keyword' => false,
+				'prefix' => false
+			);
+
+			if ($route_query !== '') {
+				$query_key = $store_id . '|' . $language_id . '|' . $route_query;
+
+				if (!isset($query_groups[$query_key])) {
+					$query_groups[$query_key] = array();
+				}
+
+				$query_groups[$query_key][] = $seo_url_id;
+			}
+
+			if ($keyword !== '') {
+				$keyword_key = $store_id . '|';
+
+				if ($this->usesLanguageScopedKeywords($store_id)) {
+					$keyword_key .= $language_id . '|';
+				}
+
+				$keyword_key .= $keyword;
+
+				if (!isset($keyword_groups[$keyword_key])) {
+					$keyword_groups[$keyword_key] = array();
+				}
+
+				$keyword_groups[$keyword_key][] = $seo_url_id;
+
+				if (
+					$this->isReservedLanguagePrefix($keyword, $store_id)
+					&& !(
+						$route_query === 'common/home'
+						&& $this->isOwnLanguagePrefix($keyword, $store_id, $language_id)
+					)
+				) {
+					$audit['issues'][$seo_url_id]['prefix'] = true;
+					$audit['summary']['prefix_rows']++;
+				}
+			}
+		}
+
+		foreach ($query_groups as $ids) {
+			if (count($ids) < 2) {
+				continue;
+			}
+
+			$audit['summary']['query_groups']++;
+			$audit['summary']['query_rows'] += count($ids);
+
+			foreach ($ids as $seo_url_id) {
+				$audit['issues'][$seo_url_id]['query'] = true;
+			}
+		}
+
+		foreach ($keyword_groups as $ids) {
+			if (count($ids) < 2) {
+				continue;
+			}
+
+			$audit['summary']['keyword_groups']++;
+			$audit['summary']['keyword_rows'] += count($ids);
+
+			foreach ($ids as $seo_url_id) {
+				$audit['issues'][$seo_url_id]['keyword'] = true;
+			}
+		}
+
+		foreach ($audit['issues'] as $seo_url_id => $issues) {
+			if ($issues['query'] || $issues['keyword'] || $issues['prefix']) {
+				$audit['summary']['issue_rows']++;
+			}
+		}
+
+		$this->audit_cache = $audit;
+
+		return $this->audit_cache;
+	}
+
+	public function getSeoUrlIssueIds($type = 'all') {
+		$audit = $this->getSeoUrlAudit();
+		$ids = array();
+
+		foreach ($audit['issues'] as $seo_url_id => $issues) {
+			if ($type === 'all') {
+				$matched = $issues['query'] || $issues['keyword'] || $issues['prefix'];
+			} else {
+				$matched = isset($issues[$type]) && $issues[$type];
+			}
+
+			if ($matched) {
+				$ids[] = (int)$seo_url_id;
+			}
+		}
+
+		return $ids;
+	}
+
 
 	public function getSeoUrlsByQuery($query) {
 		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "seo_url` WHERE `query` = '" . $this->db->escape($query) . "'");
