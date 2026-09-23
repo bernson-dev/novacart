@@ -64,7 +64,7 @@ window.translit = function(text) {
 	.replace(/^-+/g, '');                // убрать дефисы в начале
 };
 
-window.buildSeoValue = (text, languageId, storeId) => {
+window.buildSeoValue = (text, languageId, storeId, languageCode) => {
 	let seo = window.translit(text);
 
 	if (!seo) {
@@ -85,9 +85,14 @@ window.buildSeoValue = (text, languageId, storeId) => {
 	 * Keep language-specific fallback keywords in storage. Prefix mode only
 	 * changes which keyword is used publicly; it must not destroy fallback data.
 	 */
-	if (def && current && current !== def && window.languages && window.languages[languageId]) {
-		const raw = String(window.languages[languageId]);
-		const prefix = raw.split('-')[0];
+	if (def && current && current !== def) {
+		let raw = languageCode ? String(languageCode) : '';
+
+		if (!raw && window.languages && window.languages[languageId]) {
+			raw = String(window.languages[languageId]);
+		}
+
+		const prefix = raw ? raw.replace('_', '-').split('-')[0] : '';
 
 		if (prefix) {
 			seo = prefix + '_' + seo;
