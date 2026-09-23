@@ -378,6 +378,12 @@ class ControllerDesignSeoUrl extends Controller {
 					true
 				);
 			}
+			$source_name = isset($source['name']) ? (string)$source['name'] : '';
+			$generator_source = $this->model_design_seo_url->getSeoUrlGeneratorSource(
+				$result,
+				$source_name
+			);
+
 			$data['seo_urls'][] = array(
 				'seo_url_id' => $result['seo_url_id'],
 				'keyword'    => $result['keyword'],
@@ -386,7 +392,8 @@ class ControllerDesignSeoUrl extends Controller {
 				'language'   => $result['language'],
 				'store_id'   => (int)$result['store_id'],
 				'language_id'=> (int)$result['language_id'],
-				'source_name'=> isset($source['name']) ? $source['name'] : '',
+				'source_name'=> $source_name,
+				'generator_source' => $generator_source,
 				'source_edit'=> $source_edit,
 				'preview'    => $this->model_design_seo_url->getSeoUrlPreview($result),
 				'issues'     => isset($audit['issues'][(int)$result['seo_url_id']])
