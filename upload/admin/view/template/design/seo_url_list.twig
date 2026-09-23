@@ -83,6 +83,23 @@
                     </div>
                     <div class="panel-body">
                         <div class="form-group">
+                            <label class="control-label" for="input-search">{{ entry_search }}</label>
+                            <div class="input-group">
+                                <input type="text"
+                                       name="filter_search"
+                                       value="{{ filter_search }}"
+                                       placeholder="{{ help_search }}"
+                                       id="input-search"
+                                       class="form-control" />
+                                <span class="input-group-btn">
+                                    <button type="button" id="button-search" class="btn btn-primary" data-toggle="tooltip" title="{{ button_filter }}">
+                                        <i class="fa fa-search"></i>
+                                    </button>
+                                </span>
+                            </div>
+                            <p class="help-block">{{ help_search }}</p>
+                        </div>
+                        <div class="form-group">
                             <label class="control-label" for="input-query">{{ entry_query }}</label>
                             <input type="text" name="filter_query" value="{{ filter_query }}" placeholder="{{ entry_query }}" id="input-query" class="form-control" />
                         </div>
@@ -285,6 +302,12 @@
         $('#button-filter').on('click', function() {
             var url = 'index.php?route=design/seo_url&user_token={{ user_token }}';
 
+            var filter_search = $('input[name=\'filter_search\']').val();
+
+            if (filter_search) {
+                url += '&filter_search=' + encodeURIComponent(filter_search);
+            }
+
             var filter_query = $('input[name=\'filter_query\']').val();
 
             if (filter_query) {
@@ -317,6 +340,17 @@
 
             location = url;
         });
+        $('#button-search').on('click', function() {
+            $('#button-filter').trigger('click');
+        });
+
+        $('#filter-seo').on('keydown', 'input, select', function(e) {
+            if (e.keyCode === 13) {
+                e.preventDefault();
+                $('#button-filter').trigger('click');
+            }
+        });
+
         $(document).on('input', '.seo-keyword-input', function() {
             var $input = $(this);
             $input.toggleClass('is-dirty', $input.val() !== $input.attr('data-original-value'));
