@@ -105,4 +105,39 @@ assertSameValue('https://store.test/', $links['uk-UA'], 'Default UA hreflang URL
 assertSameValue('https://store.test/', $links['x-default'], 'UA x-default URL');
 assertSameValue(1, (int)$config->get('config_language_id'), 'Active language changed after second hreflang generation');
 
+
+
+/*
+ * Public rewrite regression: SeoLanguage must be able to work as the second
+ * Url rewrite layer, including the storefront root. Internal index.php actions
+ * must remain untouched.
+ */
+$config->set('config_language', 'ru-ru');
+$config->set('config_language_id', 2);
+$config->set('config_seo_language', 1);
+$config->set('config_seo_url', 1);
+$config->set('config_seo_language_prefix', array(
+	'ru-ru' => 'ru',
+	'uk-ua' => 'ua'
+));
+
+assertSameValue(
+	'https://store.test/ua/',
+	html_entity_decode($seo_language->rewrite('https://store.test/'), ENT_QUOTES, 'UTF-8'),
+	'Non-default homepage lost its language prefix'
+);
+
+assertSameValue(
+	'https://store.test/ua/test-product',
+	html_entity_decode($seo_language->rewrite('https://store.test/test-product'), ENT_QUOTES, 'UTF-8'),
+	'Non-default entity URL lost its language prefix'
+);
+
+assertSameValue(
+	'https://store.test/index.php?route=common/language/language',
+	html_entity_decode($seo_language->rewrite('https://store.test/index.php?route=common/language/language'), ENT_QUOTES, 'UTF-8'),
+	'Internal language action was incorrectly prefixed'
+);
+
+
 echo "SEO hreflang regression checks passed\n";
