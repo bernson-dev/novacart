@@ -234,8 +234,7 @@
                                                 data-seo-url-id="{{ seo_url.seo_url_id }}"
                                                 data-store-id="{{ seo_url.store_id }}"
                                                 data-language-id="{{ seo_url.language_id }}"
-                                                data-source-name="{{ seo_url.source_name }}"
-                                                data-preview-template="{{ seo_url.preview_template }}">
+                                                data-source-name="{{ seo_url.source_name }}">
                                                 <div class="input-group">
                                                     <input type="text"
                                                            class="form-control input-sm seo-keyword-input"
@@ -376,32 +375,6 @@
             }
         });
 
-        function updateSeoPreview($cell) {
-            var template = String($cell.attr('data-preview-template') || '');
-            var keyword = $.trim($cell.find('.seo-keyword-input').val());
-            var $preview = $cell.find('.seo-preview-link');
-
-            if (!template) {
-                $preview.replaceWith('<span class="text-muted seo-preview-link">—</span>');
-                return;
-            }
-
-            var url = template.replace('__SEO_KEYWORD__', encodeURIComponent(keyword));
-
-            if ($preview.is('a')) {
-                $preview.attr('href', url).text(url);
-            } else {
-                $preview.replaceWith(
-                    $('<a/>', {
-                        'class': 'seo-preview-link',
-                        'href': url,
-                        'target': '_blank',
-                        'text': url
-                    })
-                );
-            }
-        }
-
         $(document).on('input', '.seo-keyword-input', function() {
             var $input = $(this);
             $input.toggleClass('is-dirty', $input.val() !== $input.attr('data-original-value'));
@@ -409,7 +382,6 @@
 
             var $cell = $input.closest('.seo-keyword-cell');
             $cell.find('.seo-inline-message').removeClass('text-danger text-success').text('');
-            updateSeoPreview($cell);
         });
 
         $(document).on('click', '.seo-generate', function() {
