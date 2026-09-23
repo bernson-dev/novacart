@@ -243,12 +243,12 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 			$code = (string)$language['code'];
 			$prefix = isset($prefixes[$code]) ? $prefixes[$code] : '';
 
-			if ($status && $prefix === '') {
-				$this->error['prefix'][$code] = $this->language->get('error_prefix_required');
+			if (!$status) {
 				continue;
 			}
 
 			if ($prefix === '') {
+				$this->error['prefix'][$code] = $this->language->get('error_prefix_required');
 				continue;
 			}
 
