@@ -142,9 +142,10 @@ class ModelDesignSeoUrl extends Model {
 		}
 
 		$seo_query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
-			WHERE `store_id` = '" . $store_id . "'
+			WHERE `store_id` IN (0, '" . $store_id . "')
 			AND `code` = 'config'
 			AND `key` = 'config_seo_url'
+			ORDER BY `store_id` DESC
 			LIMIT 1");
 
 		if (!$seo_query->num_rows || empty($seo_query->row['value'])) {
@@ -153,9 +154,10 @@ class ModelDesignSeoUrl extends Model {
 		}
 
 		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
-			WHERE `store_id` = '" . $store_id . "'
+			WHERE `store_id` IN (0, '" . $store_id . "')
 			AND `code` = 'config'
 			AND `key` = 'config_seo_language'
+			ORDER BY `store_id` DESC
 			LIMIT 1");
 
 		if ($query->num_rows) {
@@ -164,9 +166,10 @@ class ModelDesignSeoUrl extends Model {
 		}
 
 		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
-			WHERE `store_id` = '" . $store_id . "'
+			WHERE `store_id` IN (0, '" . $store_id . "')
 			AND `code` = 'module_seo_language'
 			AND `key` = 'module_seo_language_status'
+			ORDER BY `store_id` DESC
 			LIMIT 1");
 
 		if ($query->num_rows) {
@@ -248,16 +251,18 @@ class ModelDesignSeoUrl extends Model {
 		$this->language_prefix_map[$store_id] = array();
 
 		$query = $this->db->query("SELECT `value`, `serialized` FROM `" . DB_PREFIX . "setting`
-			WHERE `store_id` = '" . (int)$store_id . "'
+			WHERE `store_id` IN (0, '" . (int)$store_id . "')
 			AND `code` = 'config'
 			AND `key` = 'config_seo_language_prefix'
+			ORDER BY `store_id` DESC
 			LIMIT 1");
 
 		if (!$query->num_rows) {
 			$query = $this->db->query("SELECT `value`, `serialized` FROM `" . DB_PREFIX . "setting`
-				WHERE `store_id` = '" . (int)$store_id . "'
+				WHERE `store_id` IN (0, '" . (int)$store_id . "')
 				AND `code` = 'module_seo_language'
 				AND `key` = 'module_seo_language_prefix'
+				ORDER BY `store_id` DESC
 				LIMIT 1");
 		}
 
