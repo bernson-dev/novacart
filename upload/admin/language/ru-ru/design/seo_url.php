@@ -67,6 +67,7 @@ $_['button_inline_save']      = 'Сохранить SEO URL';
 $_['text_inline_saved']       = 'SEO URL сохранён';
 $_['text_saving']             = 'Сохранение...';
 $_['text_open_source']        = 'Открыть исходный объект';
+$_['text_open_storefront'] = 'Открыть на витрине';
 $_['error_request_method']    = 'Недопустимый метод запроса.';
 $_['error_not_found']         = 'Запись SEO URL не найдена.';
 $_['error_ajax']              = 'Не удалось сохранить SEO URL. Проверьте журнал ошибок и повторите попытку.';
