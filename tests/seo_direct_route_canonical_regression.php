@@ -150,6 +150,15 @@ assertSameValue(
 	'Default-language direct route was not canonicalized'
 );
 
+$config->set('module_seo_language_status', 0);
+
+assertSameValue(
+	'http://store.test/test-product',
+	callPrivate($controller, 'getDirectRouteCanonicalUrl'),
+	'Direct route must remain canonicalized when SEO Language is disabled'
+);
+
+$config->set('module_seo_language_status', 1);
 $config->set('config_language_id', 2);
 
 assertSameValue(
