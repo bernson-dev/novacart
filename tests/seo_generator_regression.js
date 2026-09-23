@@ -64,4 +64,12 @@ assertSame(
 	'Default language slug changed in SEO Language mode'
 );
 
+
+
+assertSame(
+	'en_ocfilter-sitemap',
+	context.window.buildSeoValue('ocfilter sitemap', 3, 0, 'en-gb'),
+	'Disabled language row must generate from its explicit language code'
+);
+
 console.log('SEO generator regression checks passed');
