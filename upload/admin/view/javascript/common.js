@@ -64,7 +64,7 @@ window.translit = function(text) {
 	.replace(/^-+/g, '');                // убрать дефисы в начале
 };
 
-const buildSeoValue = (text, languageId, storeId) => {
+window.buildSeoValue = (text, languageId, storeId) => {
 	let seo = window.translit(text);
 
 	if (!seo) {
@@ -129,7 +129,7 @@ const fillSeo = (languageId, sourceText, onlyEmpty) => {
 			const fieldName = String($el.attr('name') || '');
 			const storeMatch = fieldName.match(/^[^[]+\[(\d+)\]\[(\d+)\]$/);
 			const storeId = storeMatch ? Number(storeMatch[1]) : 0;
-			const seo = buildSeoValue(sourceText, languageId, storeId);
+			const seo = window.buildSeoValue(sourceText, languageId, storeId);
 
 			if (!seo) {
 				return;
