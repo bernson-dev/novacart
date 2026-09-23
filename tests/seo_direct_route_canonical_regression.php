@@ -64,11 +64,17 @@ class SeoCanonicalTestUrl {
 		parse_str(str_replace('&amp;', '&', (string)$args), $params);
 
 		if ($route === 'product/product' && isset($params['product_id']) && (int)$params['product_id'] === 50) {
-			if ((int)$this->config->get('config_language_id') === 2) {
-				return 'http://store.test/uk/test-product';
+			$target = (int)$this->config->get('config_language_id') === 2
+				? 'http://store.test/uk/test-product'
+				: 'http://store.test/test-product';
+
+			unset($params['product_id']);
+
+			if ($params) {
+				$target .= '?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
 			}
 
-			return 'http://store.test/test-product';
+			return $target;
 		}
 
 		return 'http://store.test/index.php?route=' . $route . ($args !== '' ? '&' . $args : '');
@@ -167,6 +173,27 @@ assertSameValue(
 	'Non-default-language direct route lost its language prefix'
 );
 
+$request->get['utm_source'] = 'campaign';
+$request->server['REQUEST_URI'] = '/index.php?route=product/product&product_id=50&utm_source=campaign';
+
+assertSameValue(
+	'http://store.test/uk/test-product?utm_source=campaign',
+	callPrivate($controller, 'getDirectRouteCanonicalUrl'),
+	'Direct route canonicalization lost unrelated query parameters'
+);
+
+unset($request->get['utm_source']);
+$request->server['REQUEST_URI'] = '/index.php?route=product/product&product_id=50';
+
+$config->set('config_seo_url', 0);
+
+assertSameValue(
+	'',
+	callPrivate($controller, 'getDirectRouteCanonicalUrl'),
+	'Disabled standard SEO URLs must not trigger canonical redirect'
+);
+
+$config->set('config_seo_url', 1);
 $request->server['REQUEST_METHOD'] = 'POST';
 
 assertSameValue(
