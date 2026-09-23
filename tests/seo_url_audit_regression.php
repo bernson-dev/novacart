@@ -110,6 +110,37 @@ class SeoUrlAuditTestDb {
 			return $result;
 		}
 
+		if (strpos($sql, 'FROM `oc_product_description`') !== false) {
+			$result->rows = array(
+				array('product_id' => 10, 'language_id' => 1, 'name' => 'Тестовый товар'),
+				array('product_id' => 20, 'language_id' => 2, 'name' => 'Тестовий товар')
+			);
+			$result->num_rows = count($result->rows);
+			$result->row = $result->rows[0];
+
+			return $result;
+		}
+
+		if (strpos($sql, 'FROM `oc_category_description`') !== false) {
+			$result->rows = array(
+				array('category_id' => 5, 'language_id' => 1, 'name' => 'Категория')
+			);
+			$result->num_rows = 1;
+			$result->row = $result->rows[0];
+
+			return $result;
+		}
+
+		if (strpos($sql, 'FROM `oc_information_description`') !== false) {
+			$result->rows = array(
+				array('information_id' => 6, 'language_id' => 1, 'title' => 'Информация')
+			);
+			$result->num_rows = 1;
+			$result->row = $result->rows[0];
+
+			return $result;
+		}
+
 		return $result;
 	}
 
@@ -223,5 +254,11 @@ assertSameValue(array(5, 6), $model->getSeoUrlIssueIds('query'), 'Query issue fi
 assertSameValue(array(7), $model->getSeoUrlIssueIds('prefix'), 'Prefix issue filter returned wrong rows');
 assertSameValue(array(1, 2, 9, 10), $model->getSeoUrlIssueIds('shared_language'), 'Cross-language issue filter returned wrong rows');
 assertSameValue(array(11), $model->getSeoUrlIssueIds('orphan'), 'Orphan issue filter returned wrong rows');
+
+$sources = $model->getSeoUrlSources(array($db->seo_urls[0], $db->seo_urls[1], $db->seo_urls[2]));
+assertSameValue('Тестовый товар', $sources[1]['name'], 'Product source name was not resolved');
+assertSameValue('catalog/product/edit', $sources[1]['route'], 'Product source edit route changed');
+assertSameValue('Тестовий товар', $sources[2]['name'], 'Language-specific product source name was not resolved');
+assertSameValue('Категория', $sources[3]['name'], 'Category source name was not resolved');
 
 echo "SEO URL audit regression checks passed\n";
