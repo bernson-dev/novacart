@@ -22,6 +22,15 @@ class SeoUrlAuditTestDb {
 		2 => 'uk-ua'
 	);
 
+	public $entities = array(
+		'product' => array(),
+		'category' => array(),
+		'manufacturer' => array(),
+		'information' => array(),
+		'article' => array(),
+		'blog_category' => array()
+	);
+
 	public function escape($value) {
 		return addslashes((string)$value);
 	}
@@ -73,6 +82,30 @@ class SeoUrlAuditTestDb {
 					}
 				}
 			}
+
+			return $result;
+		}
+
+		$entity_map = array(
+			'product' => 'product_id',
+			'category' => 'category_id',
+			'manufacturer' => 'manufacturer_id',
+			'information' => 'information_id',
+			'article' => 'article_id',
+			'blog_category' => 'blog_category_id'
+		);
+
+		foreach ($entity_map as $table => $key) {
+			if (strpos($sql, 'FROM `oc_' . $table . '`') === false) {
+				continue;
+			}
+
+			foreach ($this->entities[$table] as $id) {
+				$result->rows[] = array($key => (int)$id);
+			}
+
+			$result->num_rows = count($result->rows);
+			$result->row = $result->num_rows ? $result->rows[0] : array();
 
 			return $result;
 		}
@@ -146,8 +179,13 @@ $db->seo_urls = array(
 	array('seo_url_id' => 8, 'store_id' => 0, 'language_id' => 2, 'query' => 'common/home', 'keyword' => 'uk'),
 
 	array('seo_url_id' => 9, 'store_id' => 1, 'language_id' => 1, 'query' => 'product_id=40', 'keyword' => 'legacy'),
-	array('seo_url_id' => 10, 'store_id' => 1, 'language_id' => 2, 'query' => 'product_id=41', 'keyword' => 'legacy')
+	array('seo_url_id' => 10, 'store_id' => 1, 'language_id' => 2, 'query' => 'product_id=41', 'keyword' => 'legacy'),
+	array('seo_url_id' => 11, 'store_id' => 0, 'language_id' => 1, 'query' => 'product_id=999', 'keyword' => 'orphan-product')
 );
+
+$db->entities['product'] = array(10, 20, 30, 40, 41, 99);
+$db->entities['category'] = array(5);
+$db->entities['information'] = array(6);
 
 $registry = new Registry();
 $registry->set('db', $db);
@@ -155,7 +193,7 @@ $registry->set('db', $db);
 $model = new ModelDesignSeoUrl($registry);
 $audit = $model->getSeoUrlAudit();
 
-assertSameValue(10, $audit['summary']['all_rows'], 'Unexpected SEO URL row count');
+assertSameValue(11, $audit['summary']['all_rows'], 'Unexpected SEO URL row count');
 
 assertSameValue(false, $audit['issues'][1]['keyword'], 'Shared multilingual keyword was incorrectly marked as duplicate');
 assertSameValue(false, $audit['issues'][2]['keyword'], 'Shared multilingual keyword was incorrectly marked as duplicate');
@@ -172,8 +210,18 @@ assertSameValue(false, $audit['issues'][8]['prefix'], 'Own common/home language 
 assertSameValue(true, $audit['issues'][9]['keyword'], 'Legacy global keyword collision was not detected');
 assertSameValue(true, $audit['issues'][10]['keyword'], 'Legacy global keyword collision was not detected');
 
+assertSameValue(true, $audit['issues'][1]['shared_language'], 'Cross-language match was not detected');
+assertSameValue(true, $audit['issues'][2]['shared_language'], 'Cross-language match was not detected');
+assertSameValue(true, $audit['issues'][9]['shared_language'], 'Legacy cross-language match was not detected');
+assertSameValue(true, $audit['issues'][10]['shared_language'], 'Legacy cross-language match was not detected');
+
+assertSameValue(false, $audit['issues'][10]['orphan'], 'Existing product was incorrectly marked orphaned');
+assertSameValue(true, $audit['issues'][11]['orphan'], 'Missing product SEO URL was not marked orphaned');
+
 assertSameValue(array(3, 4, 9, 10), $model->getSeoUrlIssueIds('keyword'), 'Keyword issue filter returned wrong rows');
 assertSameValue(array(5, 6), $model->getSeoUrlIssueIds('query'), 'Query issue filter returned wrong rows');
 assertSameValue(array(7), $model->getSeoUrlIssueIds('prefix'), 'Prefix issue filter returned wrong rows');
+assertSameValue(array(1, 2, 9, 10), $model->getSeoUrlIssueIds('shared_language'), 'Cross-language issue filter returned wrong rows');
+assertSameValue(array(11), $model->getSeoUrlIssueIds('orphan'), 'Orphan issue filter returned wrong rows');
 
 echo "SEO URL audit regression checks passed\n";
