@@ -202,8 +202,8 @@ class ModelDesignSeoUrl extends Model {
 			return false;
 		}
 
-		$query = $this->db->query("SELECT code FROM `" . DB_PREFIX . "language`
-			WHERE language_id = '" . (int)$language_id . "'
+		$query = $this->db->query("SELECT `code` FROM `" . DB_PREFIX . "language`
+			WHERE `language_id` = '" . (int)$language_id . "'
 			LIMIT 1");
 
 		if (!$query->num_rows || empty($query->row['code'])) {
