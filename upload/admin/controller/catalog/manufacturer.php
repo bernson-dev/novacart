@@ -635,6 +635,14 @@ class ControllerCatalogManufacturer extends Controller {
 	}
 
 	protected function validateForm() {
+		$this->load->model('design/seo_url');
+
+		if (isset($this->request->post['manufacturer_seo_url'])) {
+			$this->request->post['manufacturer_seo_url'] = $this->model_design_seo_url->normalizeLanguageScopedSeoUrls(
+				$this->request->post['manufacturer_seo_url']
+			);
+		}
+
 		if (!$this->user->hasPermission('modify', 'catalog/manufacturer')) {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
@@ -654,8 +662,6 @@ class ControllerCatalogManufacturer extends Controller {
 		}
 
 		if ($this->request->post['manufacturer_seo_url']) {
-			$this->load->model('design/seo_url');
-
 			foreach ($this->request->post['manufacturer_seo_url'] as $store_id => $language) {
 				foreach ($language as $language_id => $keyword) {
 					if (!empty($keyword)) {
