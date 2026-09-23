@@ -234,6 +234,7 @@
                                                 data-seo-url-id="{{ seo_url.seo_url_id }}"
                                                 data-store-id="{{ seo_url.store_id }}"
                                                 data-language-id="{{ seo_url.language_id }}"
+                                                data-language-code="{{ seo_url.language_code }}"
                                                 data-generator-source="{{ seo_url.generator_source }}">
                                                 <div class="input-group">
                                                     <input type="text"
@@ -380,13 +381,14 @@
             var $cell = $(this).closest('.seo-keyword-cell');
             var sourceName = String($cell.attr('data-generator-source') || '');
             var languageId = Number($cell.attr('data-language-id') || 0);
+            var languageCode = String($cell.attr('data-language-code') || '');
             var storeId = Number($cell.attr('data-store-id') || 0);
 
             if (!sourceName || typeof window.buildSeoValue !== 'function') {
                 return;
             }
 
-            var value = window.buildSeoValue(sourceName, languageId, storeId);
+            var value = window.buildSeoValue(sourceName, languageId, storeId, languageCode);
 
             if (value) {
                 $cell.find('.seo-keyword-input').val(value).trigger('input').focus();
