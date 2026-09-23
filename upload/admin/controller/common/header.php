@@ -10,94 +10,37 @@ class ControllerCommonHeader extends Controller {
 			$data['base'] = HTTP_SERVER;
 		}
 
-		$this->load->model('localisation/language');
-		$this->load->model('setting/setting');
-		$this->load->model('setting/store');
-		$this->load->model('setting/seo_language');
-
-		$data['default_language_id'] = (int)$this->config->get('config_language_id');
-		$data['languages'] = $this->model_localisation_language->getLanguages();
-
 		/*
-		 * Build SEO UI state for every storefront explicitly. Do not infer it from
-		 * whichever setting rows happen to exist: additional stores may inherit
-		 * missing config values from store 0 and still need correct admin behavior.
+		 * SEO form context is needed only on entity edit/add pages. Keeping this
+		 * route-scoped avoids language/store settings queries on every admin page.
 		 */
-		$language_ids = array();
-		$language_short_ids = array();
-		$language_short_ambiguous = array();
-
-		foreach ($data['languages'] as $language) {
-			$code = strtolower(str_replace('_', '-', (string)$language['code']));
-			$language_id = (int)$language['language_id'];
-			$language_ids[$code] = $language_id;
-
-			$parts = explode('-', $code);
-			$short = isset($parts[0]) ? $parts[0] : '';
-
-			if ($short !== '') {
-				if (isset($language_short_ids[$short]) && $language_short_ids[$short] !== $language_id) {
-					$language_short_ambiguous[$short] = true;
-				} else {
-					$language_short_ids[$short] = $language_id;
-				}
-			}
-		}
-
-		$default_config = $this->model_setting_setting->getSetting('config', 0);
-
-		if (!isset($default_config['config_language'])) {
-			$default_config['config_language'] = (string)$this->config->get('config_language');
-		}
-
-		if (!isset($default_config['config_seo_url'])) {
-			$default_config['config_seo_url'] = (int)$this->config->get('config_seo_url');
-		}
-
-		$store_ids = array(0);
-
-		foreach ($this->model_setting_store->getStores() as $store) {
-			$store_ids[] = (int)$store['store_id'];
-		}
-
+		$data['default_language_id'] = 0;
+		$data['languages'] = array();
 		$data['seo_store_config'] = array();
 
-		foreach (array_unique($store_ids) as $store_id) {
-			$config = $default_config;
+		$route = isset($this->request->get['route']) ? (string)$this->request->get['route'] : '';
+		$seo_routes = array(
+			'catalog/product/add',
+			'catalog/product/edit',
+			'catalog/category/add',
+			'catalog/category/edit',
+			'catalog/manufacturer/add',
+			'catalog/manufacturer/edit',
+			'catalog/information/add',
+			'catalog/information/edit',
+			'blog/article/add',
+			'blog/article/edit',
+			'blog/category/add',
+			'blog/category/edit'
+		);
 
-			if ($store_id !== 0) {
-				$config = array_replace(
-					$config,
-					$this->model_setting_setting->getSetting('config', $store_id)
-				);
-			}
+		if (in_array($route, $seo_routes, true)) {
+			$this->load->model('localisation/language');
+			$this->load->model('setting/seo_language');
 
-			$seo_language = $this->model_setting_seo_language->getSettings($store_id);
-			$language_code = isset($config['config_language'])
-				? (string)$config['config_language']
-				: (string)$default_config['config_language'];
-			$normalized_language_code = strtolower(str_replace('_', '-', $language_code));
-			$default_language_id = isset($language_ids[$normalized_language_code])
-				? (int)$language_ids[$normalized_language_code]
-				: 0;
-
-			if ($default_language_id === 0) {
-				$parts = explode('-', $normalized_language_code);
-				$short = isset($parts[0]) ? $parts[0] : '';
-
-				if (
-					$short !== ''
-					&& empty($language_short_ambiguous[$short])
-					&& isset($language_short_ids[$short])
-				) {
-					$default_language_id = (int)$language_short_ids[$short];
-				}
-			}
-
-			$data['seo_store_config'][$store_id] = array(
-				'default_language_id' => $default_language_id,
-				'language_scoped' => !empty($config['config_seo_url']) && !empty($seo_language['status'])
-			);
+			$data['default_language_id'] = (int)$this->config->get('config_language_id');
+			$data['languages'] = $this->model_localisation_language->getLanguages();
+			$data['seo_store_config'] = $this->model_setting_seo_language->getAdminUiContext($data['languages']);
 		}
 
 		$data['description'] = $this->document->getDescription();
