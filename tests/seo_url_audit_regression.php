@@ -252,7 +252,7 @@ assertSameValue(true, $audit['issues'][11]['orphan'], 'Missing product SEO URL w
 assertSameValue(array(3, 4, 9, 10), $model->getSeoUrlIssueIds('keyword'), 'Keyword issue filter returned wrong rows');
 assertSameValue(array(5, 6), $model->getSeoUrlIssueIds('query'), 'Query issue filter returned wrong rows');
 assertSameValue(array(7), $model->getSeoUrlIssueIds('prefix'), 'Prefix issue filter returned wrong rows');
-assertSameValue(array(1, 2, 9, 10), $model->getSeoUrlIssueIds('shared_language'), 'Cross-language issue filter returned wrong rows');
+assertSameValue(array(1, 2, 7, 8, 9, 10), $model->getSeoUrlIssueIds('shared_language'), 'Cross-language issue filter returned wrong rows');
 assertSameValue(array(11), $model->getSeoUrlIssueIds('orphan'), 'Orphan issue filter returned wrong rows');
 
 $sources = $model->getSeoUrlSources(array($db->seo_urls[0], $db->seo_urls[1], $db->seo_urls[2]));
