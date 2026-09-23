@@ -58,6 +58,22 @@ class SeoSharedSlugTestDb {
 			return $result;
 		}
 
+		if (strpos($sql, 'FROM `oc_language`') !== false) {
+			$language_id = $this->extractInt($sql, 'language_id');
+			$languages = array(
+				1 => 'ru-ru',
+				2 => 'uk-ua'
+			);
+
+			if (isset($languages[$language_id])) {
+				$result->row = array('code' => $languages[$language_id]);
+				$result->rows = array($result->row);
+				$result->num_rows = 1;
+			}
+
+			return $result;
+		}
+
 		if (strpos($sql, 'FROM `oc_seo_url`') !== false && strpos($sql, '`keyword` = ') !== false) {
 			$keyword = $this->extractString($sql, 'keyword');
 			$store_id = $this->hasField($sql, 'store_id') ? $this->extractInt($sql, 'store_id') : null;
@@ -202,6 +218,8 @@ assertSameValue(true, $model->isReservedLanguagePrefix('uk', 0), 'Configured lan
 assertSameValue(true, $model->isReservedLanguagePrefix('/RU/', 0), 'Reserved prefix normalization changed');
 assertSameValue(false, $model->isReservedLanguagePrefix('shared-slug', 0), 'Normal SEO keyword was treated as a prefix');
 assertSameValue(false, $model->isReservedLanguagePrefix('uk', 1), 'Disabled SEO Language store reserved a prefix');
+assertSameValue(true, $model->isOwnLanguagePrefix('uk', 0, 2), 'Language did not own its configured prefix');
+assertSameValue(false, $model->isOwnLanguagePrefix('uk', 0, 1), 'Language incorrectly owned another language prefix');
 
 assertSameValue(
 	false,
