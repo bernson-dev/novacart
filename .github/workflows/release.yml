@@ -125,14 +125,22 @@ jobs:
 
           echo "Required writable directories are present in the release archive."
 
-      - name: Create GitHub Release
+      - name: Publish GitHub Release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
           ARCHIVE: ${{ steps.archive.outputs.name }}
         run: |
-          gh release create "$TAG" "$ARCHIVE" \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "NovaCart ${TAG}" \
-            --generate-notes
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists. Replacing ${ARCHIVE}..."
+            gh release upload "$TAG" "$ARCHIVE" \
+              --repo "$GITHUB_REPOSITORY" \
+              --clobber
+          else
+            echo "Creating release ${TAG}..."
+            gh release create "$TAG" "$ARCHIVE" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "NovaCart ${TAG}" \
+              --generate-notes
+          fi
