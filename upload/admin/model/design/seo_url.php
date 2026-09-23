@@ -32,7 +32,7 @@ class ModelDesignSeoUrl extends Model {
 
 	public function getSeoUrls($data = array()) {
 		// Заменяем подзапросы на JOIN для корректной сортировки
-		$sql = "SELECT su.*, s.`name` AS `store`, l.`name` AS `language`
+		$sql = "SELECT su.*, s.`name` AS `store`, l.`name` AS `language`, l.`code` AS `language_code`
             FROM `" . DB_PREFIX . "seo_url` su
             LEFT JOIN `" . DB_PREFIX . "store` s ON s.`store_id` = su.`store_id`
             LEFT JOIN `" . DB_PREFIX . "language` l ON l.`language_id` = su.`language_id`";
