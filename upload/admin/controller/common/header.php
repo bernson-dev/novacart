@@ -11,15 +11,17 @@ class ControllerCommonHeader extends Controller {
 		}
 
 		$this->load->model('localisation/language');
+		$this->load->model('setting/setting');
+		$this->load->model('setting/store');
+		$this->load->model('setting/seo_language');
 
-		$data['default_language_id'] = $this->config->get('config_language_id');
+		$data['default_language_id'] = (int)$this->config->get('config_language_id');
 		$data['languages'] = $this->model_localisation_language->getLanguages();
 
 		/*
-		 * SEO URL generation is shared by all admin entity forms. Expose the
-		 * effective SEO mode and catalog default language per store so the
-		 * generator never confuses the admin UI language with the storefront
-		 * default language.
+		 * Build SEO UI state for every storefront explicitly. Do not infer it from
+		 * whichever setting rows happen to exist: additional stores may inherit
+		 * missing config values from store 0 and still need correct admin behavior.
 		 */
 		$language_ids = array();
 
@@ -27,92 +29,45 @@ class ControllerCommonHeader extends Controller {
 			$language_ids[(string)$language['code']] = (int)$language['language_id'];
 		}
 
+		$default_config = $this->model_setting_setting->getSetting('config', 0);
+
+		if (!isset($default_config['config_language'])) {
+			$default_config['config_language'] = (string)$this->config->get('config_language');
+		}
+
+		if (!isset($default_config['config_seo_url'])) {
+			$default_config['config_seo_url'] = (int)$this->config->get('config_seo_url');
+		}
+
+		$store_ids = array(0);
+
+		foreach ($this->model_setting_store->getStores() as $store) {
+			$store_ids[] = (int)$store['store_id'];
+		}
+
 		$data['seo_store_config'] = array();
 
-		$seo_setting_query = $this->db->query("SELECT store_id, code, `key`, `value`
-			FROM `" . DB_PREFIX . "setting`
-			WHERE (code = 'config' AND `key` IN ('config_language', 'config_seo_url', 'config_seo_language'))
-			   OR (code = 'module_seo_language' AND `key` = 'module_seo_language_status')
-			   OR (code = 'seo_language' AND `key` = 'seo_language_status')
-			ORDER BY store_id");
+		foreach (array_unique($store_ids) as $store_id) {
+			$config = $default_config;
 
-		$store_state = array();
-
-		foreach ($seo_setting_query->rows as $row) {
-			$store_id = (int)$row['store_id'];
-
-			if (!isset($store_state[$store_id])) {
-				$store_state[$store_id] = array(
-					'config_language' => null,
-					'config_seo_url' => null,
-					'seo_language_status' => null,
-					'seo_language_native' => false,
-					'seo_language_module' => false
+			if ($store_id !== 0) {
+				$config = array_replace(
+					$config,
+					$this->model_setting_setting->getSetting('config', $store_id)
 				);
 			}
 
-			if ($row['code'] === 'config' && $row['key'] === 'config_language') {
-				$store_state[$store_id]['config_language'] = (string)$row['value'];
-			} elseif ($row['code'] === 'config' && $row['key'] === 'config_seo_url') {
-				$store_state[$store_id]['config_seo_url'] = !empty($row['value']);
-			} elseif ($row['code'] === 'config' && $row['key'] === 'config_seo_language') {
-				$store_state[$store_id]['seo_language_status'] = !empty($row['value']);
-				$store_state[$store_id]['seo_language_native'] = true;
-			} elseif (
-				$row['code'] === 'module_seo_language'
-				&& $row['key'] === 'module_seo_language_status'
-				&& !$store_state[$store_id]['seo_language_native']
-			) {
-				$store_state[$store_id]['seo_language_status'] = !empty($row['value']);
-				$store_state[$store_id]['seo_language_module'] = true;
-			} elseif (
-				$row['code'] === 'seo_language'
-				&& $row['key'] === 'seo_language_status'
-				&& !$store_state[$store_id]['seo_language_native']
-				&& !$store_state[$store_id]['seo_language_module']
-			) {
-				$store_state[$store_id]['seo_language_status'] = !empty($row['value']);
-			}
-		}
-
-		if (!isset($store_state[0])) {
-			$store_state[0] = array(
-				'config_language' => (string)$this->config->get('config_language'),
-				'config_seo_url' => (bool)$this->config->get('config_seo_url'),
-				'seo_language_status' => (bool)(
-					$this->config->has('config_seo_language')
-						? $this->config->get('config_seo_language')
-						: ($this->config->has('module_seo_language_status')
-							? $this->config->get('module_seo_language_status')
-							: $this->config->get('seo_language_status'))
-				),
-				'seo_language_native' => $this->config->has('config_seo_language'),
-				'seo_language_module' => $this->config->has('module_seo_language_status')
-			);
-		}
-
-		$default_state = $store_state[0];
-
-		foreach ($store_state as $store_id => $state) {
-			if ($state['config_language'] === null) {
-				$state['config_language'] = $default_state['config_language'];
-			}
-
-			if ($state['config_seo_url'] === null) {
-				$state['config_seo_url'] = $default_state['config_seo_url'];
-			}
-
-			if ($state['seo_language_status'] === null) {
-				$state['seo_language_status'] = $default_state['seo_language_status'];
-			}
-
-			$default_language_id = isset($language_ids[$state['config_language']])
-				? $language_ids[$state['config_language']]
+			$seo_language = $this->model_setting_seo_language->getSettings($store_id);
+			$language_code = isset($config['config_language'])
+				? (string)$config['config_language']
+				: (string)$default_config['config_language'];
+			$default_language_id = isset($language_ids[$language_code])
+				? (int)$language_ids[$language_code]
 				: 0;
 
 			$data['seo_store_config'][$store_id] = array(
 				'default_language_id' => $default_language_id,
-				'language_scoped' => $state['config_seo_url'] && $state['seo_language_status']
+				'language_scoped' => !empty($config['config_seo_url']) && !empty($seo_language['status'])
 			);
 		}
 
