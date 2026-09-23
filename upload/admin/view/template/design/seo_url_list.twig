@@ -31,6 +31,19 @@
             <button type="button" class="close" data-dismiss="alert">&times;</button>
         </div>
         {% endif %}
+
+        <div class="alert {% if audit_summary.issue_rows %}alert-warning{% else %}alert-success{% endif %}">
+            <i class="fa {% if audit_summary.issue_rows %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %}"></i>
+            <strong>{{ text_audit }}</strong>
+            {{ text_audit_summary|format(
+                audit_summary.all_rows,
+                audit_summary.issue_rows,
+                audit_summary.keyword_groups,
+                audit_summary.query_groups,
+                audit_summary.prefix_rows
+            ) }}
+        </div>
+
         <div class="row">
             <div id="filter-seo" class="oc-side-filter col-md-3 col-md-push-9 col-sm-12 hidden-sm hidden-xs">
                 <button class="open-close-filter btn btn-success" data-target="#filter-seo">
@@ -81,6 +94,16 @@
                                 {% endfor %}
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label class="control-label" for="input-issue">{{ entry_issue }}</label>
+                            <select name="filter_issue" id="input-issue" class="form-control">
+                                <option value="">{{ text_all }}</option>
+                                <option value="all"{% if filter_issue == 'all' %} selected="selected"{% endif %}>{{ text_issue_all }}</option>
+                                <option value="keyword"{% if filter_issue == 'keyword' %} selected="selected"{% endif %}>{{ text_issue_keyword }}</option>
+                                <option value="query"{% if filter_issue == 'query' %} selected="selected"{% endif %}>{{ text_issue_query }}</option>
+                                <option value="prefix"{% if filter_issue == 'prefix' %} selected="selected"{% endif %}>{{ text_issue_prefix }}</option>
+                            </select>
+                        </div>
                         <div class="text-right">
                             <button type="button" id="button-clear-filter" class="btn btn-default">
                                 <i class="fa fa-times"></i><span class="hidden-sm"> {{ button_clear }}</span></button>
@@ -122,13 +145,14 @@
                                                 {% if sort == 'language' %}
                                                 <a href="{{ sort_language }}" class="{{ order|lower }}">{{ column_language }}</a>{% else %}<a href="{{ sort_language }}">{{ column_language }}</a>{% endif %}
                                             </td>
+                                            <td class="text-left">{{ column_issue }}</td>
                                             <td class="text-right">{{ column_action }}</td>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% if seo_urls %}
                                         {% for seo_url in seo_urls %}
-                                        <tr>
+                                        <tr{% if seo_url.issues.keyword or seo_url.issues.query or seo_url.issues.prefix %} class="warning"{% endif %}>
                                             <td class="text-center">{% if seo_url.seo_url_id in selected %}
                                                 <input type="checkbox" name="selected[]" value="{{ seo_url.seo_url_id }}" checked="checked" />
                                                 {% else %}
@@ -138,6 +162,12 @@
                                             <td class="text-left">{{ seo_url.keyword }}</td>
                                             <td class="text-left">{{ seo_url.store }}</td>
                                             <td class="text-left">{{ seo_url.language }}</td>
+                                            <td class="text-left">
+                                                {% if seo_url.issues.keyword %}<span class="label label-danger" data-toggle="tooltip" title="{{ help_issue_keyword }}">{{ text_issue_keyword_short }}</span>{% endif %}
+                                                {% if seo_url.issues.query %}<span class="label label-warning" data-toggle="tooltip" title="{{ help_issue_query }}">{{ text_issue_query_short }}</span>{% endif %}
+                                                {% if seo_url.issues.prefix %}<span class="label label-info" data-toggle="tooltip" title="{{ help_issue_prefix }}">{{ text_issue_prefix_short }}</span>{% endif %}
+                                                {% if not seo_url.issues.keyword and not seo_url.issues.query and not seo_url.issues.prefix %}<span class="text-muted">—</span>{% endif %}
+                                            </td>
                                             <td class="text-right">
                                                 <a href="{{ seo_url.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary">
                                                     <i class="fa fa-pencil"></i></a></td>
@@ -145,7 +175,7 @@
                                         {% endfor %}
                                         {% else %}
                                         <tr>
-                                            <td class="text-center" colspan="6">{{ text_no_results }}</td>
+                                            <td class="text-center" colspan="7">{{ text_no_results }}</td>
                                         </tr>
                                         {% endif %}
                                     </tbody>
@@ -187,6 +217,12 @@
 
             if (filter_language_id) {
                 url += '&filter_language_id=' + encodeURIComponent(filter_language_id);
+            }
+
+            var filter_issue = $('select[name=\'filter_issue\']').val();
+
+            if (filter_issue) {
+                url += '&filter_issue=' + encodeURIComponent(filter_issue);
             }
 
             location = url;
