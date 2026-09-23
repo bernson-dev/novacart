@@ -366,3 +366,15 @@ $_['error_upload_size']                  = 'Maximum file size cannot exceed the 
 
 $_['warning_favicon_generate']          = 'Failed to generate favicon from the selected SVG.';
 $_['warning_imagick_missing']           = 'The PHP Imagick extension is not available. SVG favicon generation will not work.';
+
+$_['entry_seo_language'] = 'Multilingual SEO URLs';
+$_['text_seo_language_prefixes'] = 'Language prefixes';
+$_['text_seo_language_default'] = 'default language';
+$_['help_seo_language'] = 'Adds a language prefix before SEO URLs for non-default languages. The default language always uses unprefixed URLs.';
+$_['help_seo_language_prefixes'] = 'Set a unique first URL segment for every enabled language, for example ru, uk or en. The default language prefix is reserved but not rendered.';
+$_['error_seo_language_requires_seo'] = 'Enable standard SEO URLs before enabling multilingual SEO URLs.';
+$_['error_seo_language_disable_shared'] = 'Multilingual SEO URLs cannot be disabled while identical SEO URLs exist across languages. Make those URLs unique first.';
+$_['error_seo_language_prefix_required'] = 'A prefix is required for every enabled language.';
+$_['error_seo_language_prefix_format'] = 'Use only a-z, 0-9, hyphen and underscore, up to 32 characters.';
+$_['error_seo_language_prefix_duplicate'] = 'This prefix is already used by another language.';
+$_['error_seo_language_prefix_collision'] = 'This prefix collides with an existing store SEO URL.';
