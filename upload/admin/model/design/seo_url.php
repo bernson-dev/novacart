@@ -328,6 +328,80 @@ class ModelDesignSeoUrl extends Model {
 		return null;
 	}
 
+	public function normalizeLanguageScopedSeoUrls($seo_urls) {
+		if (!is_array($seo_urls)) {
+			return array();
+		}
+
+		$language_query = $this->db->query("SELECT `language_id` FROM `" . DB_PREFIX . "language`
+			WHERE `status` = '1'
+			ORDER BY `sort_order`, `name`");
+
+		$active_language_ids = array();
+
+		foreach ($language_query->rows as $language) {
+			$active_language_ids[] = (int)$language['language_id'];
+		}
+
+		foreach ($seo_urls as $store_id => $language_values) {
+			if (!is_array($language_values) || !$this->usesLanguageScopedKeywords((int)$store_id)) {
+				continue;
+			}
+
+			$default_language_id = $this->getStoreDefaultLanguageId((int)$store_id);
+			$keyword = '';
+
+			if (
+				$default_language_id > 0
+				&& isset($language_values[$default_language_id])
+			) {
+				$keyword = trim((string)$language_values[$default_language_id]);
+			}
+
+			/*
+			 * Upgrade-safe fallback: old installations may have a blank default
+			 * language keyword but a populated secondary-language keyword.
+			 * Preserve an existing slug instead of deleting all localized rows.
+			 */
+			if ($keyword === '') {
+				foreach ($language_values as $value) {
+					$value = trim((string)$value);
+
+					if ($value !== '') {
+						$keyword = $value;
+						break;
+					}
+				}
+			}
+
+			foreach ($active_language_ids as $language_id) {
+				$seo_urls[$store_id][$language_id] = $keyword;
+			}
+		}
+
+		return $seo_urls;
+	}
+
+	public function getStoreDefaultLanguageId($store_id) {
+		$setting = $this->getEffectiveLanguageSetting(
+			(int)$store_id,
+			array(
+				array('config', 'config_language')
+			)
+		);
+
+		if ($setting === null || empty($setting['value'])) {
+			return 0;
+		}
+
+		$query = $this->db->query("SELECT `language_id` FROM `" . DB_PREFIX . "language`
+			WHERE `code` = '" . $this->db->escape((string)$setting['value']) . "'
+			LIMIT 1");
+
+		return $query->num_rows ? (int)$query->row['language_id'] : 0;
+	}
+
+
 	public function getSeoUrlSources($rows) {
 		$definitions = array(
 			'product_id' => array(
