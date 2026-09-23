@@ -386,6 +386,7 @@ class ControllerDesignSeoUrl extends Controller {
 				'generator_value' => $generator_value,
 				'source_edit'=> $source_edit,
 				'preview'    => $this->model_design_seo_url->getSeoUrlPreview($result),
+				'preview_enabled' => !isset($source['enabled']) || !empty($source['enabled']),
 				'issues'     => isset($audit['issues'][(int)$result['seo_url_id']])
 					? $audit['issues'][(int)$result['seo_url_id']]
 					: array(
