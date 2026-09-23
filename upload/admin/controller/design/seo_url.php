@@ -190,7 +190,7 @@ class ControllerDesignSeoUrl extends Controller {
 		if (isset($this->request->get['filter_language_id'])) {
 			$filter_language_id = (int)$this->request->get['filter_language_id'];
 		} else {
-			$filter_language_id = 0;
+			$filter_language_id = '';
 		}
 
 		if (isset($this->request->get['filter_issue'])) {
