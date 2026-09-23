@@ -65,6 +65,7 @@ $_['button_inline_save']      = 'Зберегти SEO URL';
 $_['text_inline_saved']       = 'SEO URL збережено';
 $_['text_saving']             = 'Збереження...';
 $_['text_open_source']        = 'Відкрити вихідний об’єкт';
+$_['text_open_storefront'] = 'Відкрити на вітрині';
 $_['error_request_method']    = 'Неприпустимий метод запиту.';
 $_['error_not_found']         = 'Запис SEO URL не знайдено.';
 $_['error_ajax']              = 'Не вдалося зберегти SEO URL. Перевірте журнал помилок і повторіть спробу.';
