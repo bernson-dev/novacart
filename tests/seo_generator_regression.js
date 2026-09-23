@@ -41,9 +41,9 @@ function assertSame(expected, actual, message) {
 }
 
 assertSame(
-	'test-tovar',
+	'uk_test-tovar',
 	context.window.buildSeoValue('Тест товар', 2, 0),
-	'SEO Language store must generate a clean non-default-language slug'
+	'Prefix mode must preserve the secondary-language fallback slug'
 );
 
 assertSame(
