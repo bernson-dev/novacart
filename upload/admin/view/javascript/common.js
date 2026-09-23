@@ -105,6 +105,36 @@ const flashSeoField = ($el) => {
 	}, 1000);
 };
 
+const getSeoStoreConfig = (storeId) => {
+	const store = Number(storeId);
+
+	if (
+		window.seoStoreConfig
+		&& Object.prototype.hasOwnProperty.call(window.seoStoreConfig, store)
+	) {
+		return window.seoStoreConfig[store];
+	}
+
+	return null;
+};
+
+const setSeoInputValue = ($input, sourceText, languageId, storeId, onlyEmpty) => {
+	if (!$input || !$input.length) {
+		return false;
+	}
+
+	const seo = window.buildSeoValue(sourceText, languageId, storeId);
+
+	if (!seo || (onlyEmpty && $input.val())) {
+		return false;
+	}
+
+	$input.val(seo).trigger('change');
+	flashSeoField($input);
+
+	return true;
+};
+
 const fillSeo = (languageId, sourceText, onlyEmpty) => {
 	const fieldNames = [
 		'category_seo_url',
@@ -123,22 +153,7 @@ const fillSeo = (languageId, sourceText, onlyEmpty) => {
 			const fieldName = String($el.attr('name') || '');
 			const storeMatch = fieldName.match(/^[^[]+\[(\d+)\]\[(\d+)\]$/);
 			const storeId = storeMatch ? Number(storeMatch[1]) : 0;
-			const storeConfig = window.seoStoreConfig
-				&& Object.prototype.hasOwnProperty.call(window.seoStoreConfig, storeId)
-				? window.seoStoreConfig[storeId]
-				: null;
-
-
-			const seo = window.buildSeoValue(sourceText, languageId, storeId);
-
-			if (!seo) {
-				return;
-			}
-
-			if (!onlyEmpty || !$el.val()) {
-				$el.val(seo).trigger('change');
-				flashSeoField($el);
-			}
+			setSeoInputValue($el, sourceText, languageId, storeId, onlyEmpty);
 		});
 	});
 };
@@ -193,10 +208,7 @@ const initUnifiedSeoFields = () => {
 		Object.keys(groups).forEach(key => {
 			const items = groups[key];
 			const storeId = items[0].storeId;
-			const storeConfig = window.seoStoreConfig
-				&& Object.prototype.hasOwnProperty.call(window.seoStoreConfig, storeId)
-				? window.seoStoreConfig[storeId]
-				: null;
+			const storeConfig = getSeoStoreConfig(storeId);
 
 			if (!storeConfig || !storeConfig.languageScoped || !storeConfig.defaultLanguageId) {
 				return;
@@ -209,7 +221,7 @@ const initUnifiedSeoFields = () => {
 				}
 
 				const $wrapper = item.input.closest('.input-group');
-				$wrapper.hide();
+				$wrapper.attr('data-seo-fallback-hidden', '1').hide();
 
 				const $error = $wrapper.next('.text-danger');
 
@@ -858,26 +870,39 @@ $(document).ready(function() {
 	$(document).on('click', '.regenerate-seo', function(e) {
 		e.preventDefault();
 
-		const $seoInput = $(this).closest('.input-group').find('input[name*="_seo_url["]').first();
-		const parsed = $seoInput.length ? parseSeoEntityField($seoInput.attr('name')) : null;
-		let langId = Number($(this).data('language-id'));
+		const $button = $(this);
+		const $clickedInput = $button.closest('.input-group').find('input[name*="_seo_url["]').first();
+		const parsed = $clickedInput.length ? parseSeoEntityField($clickedInput.attr('name')) : null;
 
-		if (parsed && window.seoStoreConfig && window.seoStoreConfig[parsed.storeId]
-			&& window.seoStoreConfig[parsed.storeId].languageScoped
-			&& window.seoStoreConfig[parsed.storeId].defaultLanguageId) {
-			langId = Number(window.seoStoreConfig[parsed.storeId].defaultLanguageId);
+		if (!parsed) {
+			return;
 		}
 
-		let $source = $('input[name$="[' + langId + '][name]"], input[name$="[' + langId + '][title]"]').first();
+		const storeConfig = getSeoStoreConfig(parsed.storeId);
+		let languageId = Number($button.data('language-id') || parsed.languageId);
 
-		if (!$source.length || !$source.val()) {
+		if (storeConfig && storeConfig.languageScoped && storeConfig.defaultLanguageId) {
+			languageId = Number(storeConfig.defaultLanguageId);
+		}
+
+		let $source = $('input[name$="[' + languageId + '][name]"], input[name$="[' + languageId + '][title]"]').first();
+
+		if (!$source.length || !$.trim($source.val())) {
 			$source = $('input[name="name"]').first();
 		}
 
-		if ($source.val()) {
-			fillSeo(langId, $source.val(), false);
+		if (!$source.length || !$.trim($source.val())) {
+			return;
+		}
+
+		const selector = 'input[name="' + parsed.field + '[' + parsed.storeId + '][' + languageId + ']"]';
+		const $target = $(selector).first();
+
+		if (setSeoInputValue($target, $.trim($source.val()), languageId, parsed.storeId, false)) {
+			$target.focus();
 		}
 	});
+
 });
 
 // Autocomplete Plugin
