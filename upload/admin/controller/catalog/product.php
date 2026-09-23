@@ -1943,6 +1943,14 @@ $data['action'] = $this->url->link('catalog/product/edit', 'user_token=' . $this
 	}
 
 	protected function validateForm() {
+		$this->load->model('design/seo_url');
+
+		if (isset($this->request->post['product_seo_url'])) {
+			$this->request->post['product_seo_url'] = $this->model_design_seo_url->normalizeLanguageScopedSeoUrls(
+				$this->request->post['product_seo_url']
+			);
+		}
+
 		if (!$this->user->hasPermission('modify', 'catalog/product')) {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
@@ -1967,8 +1975,6 @@ $data['action'] = $this->url->link('catalog/product/edit', 'user_token=' . $this
 		//}
 
 		if ($this->request->post['product_seo_url']) {
-			$this->load->model('design/seo_url');
-
 			foreach ($this->request->post['product_seo_url'] as $store_id => $language) {
 				foreach ($language as $language_id => $keyword) {
 					if (!empty($keyword)) {
