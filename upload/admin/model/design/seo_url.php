@@ -32,7 +32,7 @@ class ModelDesignSeoUrl extends Model {
 
 	public function getSeoUrls($data = array()) {
 		// Заменяем подзапросы на JOIN для корректной сортировки
-		$sql = "SELECT su.*, s.`name` AS `store`, l.`name` AS `language`, l.`code` AS `language_code`
+		$sql = "SELECT su.*, s.`name` AS `store`, l.`name` AS `language`
             FROM `" . DB_PREFIX . "seo_url` su
             LEFT JOIN `" . DB_PREFIX . "store` s ON s.`store_id` = su.`store_id`
             LEFT JOIN `" . DB_PREFIX . "language` l ON l.`language_id` = su.`language_id`";
@@ -668,57 +668,37 @@ class ModelDesignSeoUrl extends Model {
 
 
 	/**
-	 * Return the fallback keyword prefix for an SEO row.
+	 * Build the keyword used by the inline generator in design/seo_url.
 	 *
-	 * This is intentionally calculated on the server from oc_language and the
-	 * store's catalog default language. Disabled languages remain valid here:
-	 * their status must not affect existing seo_url rows or inline generation.
+	 * Everything is resolved on the server so disabled languages and non-entity
+	 * routes behave exactly like normal rows and the browser does not need to
+	 * reconstruct store/language rules.
 	 */
-	public function getSeoUrlGeneratorPrefix($row) {
-		if (!is_array($row) || empty($row['language_id'])) {
+	public function getSeoUrlGeneratorValue($row, $source_name = '') {
+		$source = $this->getSeoUrlGeneratorSource($row, $source_name);
+
+		if ($source === '') {
 			return '';
 		}
 
-		$language_id = (int)$row['language_id'];
-		$store_id = isset($row['store_id']) ? (int)$row['store_id'] : 0;
-		$default_language_id = $this->getStoreDefaultLanguageId($store_id);
+		$keyword = $this->transliterateSeoKeyword($source);
 
-		if ($default_language_id > 0 && $language_id === $default_language_id) {
+		if ($keyword === '') {
 			return '';
 		}
 
-		$code = isset($row['language_code']) ? trim((string)$row['language_code']) : '';
+		$prefix = $this->getSeoUrlGeneratorPrefix($row);
 
-		if ($code === '') {
-			$query = $this->db->query("SELECT `code` FROM `" . DB_PREFIX . "language`
-				WHERE `language_id` = '" . $language_id . "'
-				LIMIT 1");
-
-			if ($query->num_rows) {
-				$code = trim((string)$query->row['code']);
-			}
-		}
-
-		if ($code === '') {
-			return '';
-		}
-
-		$code = strtolower(str_replace('_', '-', $code));
-		$parts = explode('-', $code);
-		$prefix = isset($parts[0]) ? preg_replace('/[^a-z0-9]/', '', $parts[0]) : '';
-
-		return $prefix !== '' ? $prefix : '';
+		return $prefix !== '' ? $prefix . '_' . $keyword : $keyword;
 	}
 
-
 	/**
-	 * Return a human-readable source for inline keyword generation.
+	 * Return a human-readable source for keyword generation.
 	 *
-	 * Entity rows use their real localized title/name. Plain route rows do not
-	 * have a database entity behind them, so use the final route segment
-	 * (extension/feed/ocfilter_sitemap -> ocfilter sitemap).
+	 * Entity rows use the actual localized title/name. Plain OpenCart routes use
+	 * their final route segment (extension/feed/ocfilter_sitemap -> ocfilter sitemap).
 	 */
-	public function getSeoUrlGeneratorSource($row, $source_name = '') {
+	private function getSeoUrlGeneratorSource($row, $source_name = '') {
 		$source_name = trim((string)$source_name);
 
 		if ($source_name !== '') {
@@ -731,18 +711,17 @@ class ModelDesignSeoUrl extends Model {
 
 		$route_query = trim((string)$row['query']);
 
-		// Homepage URLs are controlled by the language-home canonical rule.
+		// Homepage URL is controlled by the language-home canonical rule.
 		if ($route_query === 'common/home') {
 			return '';
 		}
 
-		// A missing known entity is an orphan. Never generate product_id-123 etc.
+		// Do not manufacture product-id-50 style URLs for missing entities.
 		if (preg_match('/^(product_id|category_id|manufacturer_id|information_id|article_id|blog_category_id)=[0-9]+$/', $route_query)) {
 			return '';
 		}
 
-		// Plain OpenCart route: use only its final meaningful segment.
-		if (preg_match('/^[a-zA-Z0-9_\/.-]+$/', $route_query)) {
+		if (preg_match('/^[a-zA-Z0-9_\\/.-]+$/', $route_query)) {
 			$parts = preg_split('#/+#', trim($route_query, '/'));
 			$last = $parts ? end($parts) : '';
 
@@ -752,6 +731,73 @@ class ModelDesignSeoUrl extends Model {
 		}
 
 		return '';
+	}
+
+	private function getSeoUrlGeneratorPrefix($row) {
+		if (!is_array($row) || empty($row['language_id'])) {
+			return '';
+		}
+
+		$language_id = (int)$row['language_id'];
+		$store_id = isset($row['store_id']) ? (int)$row['store_id'] : 0;
+		$default_language_id = $this->getStoreDefaultLanguageId($store_id);
+
+		if ($default_language_id > 0 && $language_id === $default_language_id) {
+			return '';
+		}
+
+		$query = $this->db->query("SELECT `code` FROM `" . DB_PREFIX . "language`
+			WHERE `language_id` = '" . $language_id . "'
+			LIMIT 1");
+
+		if (!$query->num_rows || empty($query->row['code'])) {
+			return '';
+		}
+
+		$code = strtolower(str_replace('_', '-', (string)$query->row['code']));
+		$parts = explode('-', $code);
+		$prefix = isset($parts[0]) ? preg_replace('/[^a-z0-9]/', '', $parts[0]) : '';
+
+		return (string)$prefix;
+	}
+
+	private function transliterateSeoKeyword($text) {
+		$text = trim((string)$text);
+
+		if ($text === '') {
+			return '';
+		}
+
+		if (function_exists('utf8_strtolower')) {
+			$text = utf8_strtolower($text);
+		} elseif (function_exists('mb_strtolower')) {
+			$text = mb_strtolower($text, 'UTF-8');
+		} else {
+			$text = strtr($text, array(
+				'А'=>'а','Б'=>'б','В'=>'в','Г'=>'г','Д'=>'д','Е'=>'е','Ё'=>'ё','Ж'=>'ж','З'=>'з','И'=>'и','Й'=>'й',
+				'К'=>'к','Л'=>'л','М'=>'м','Н'=>'н','О'=>'о','П'=>'п','Р'=>'р','С'=>'с','Т'=>'т','У'=>'у','Ф'=>'ф',
+				'Х'=>'х','Ц'=>'ц','Ч'=>'ч','Ш'=>'ш','Щ'=>'щ','Ы'=>'ы','Э'=>'э','Ю'=>'ю','Я'=>'я','Ъ'=>'ъ','Ь'=>'ь',
+				'Ґ'=>'ґ','І'=>'і','Є'=>'є','Ї'=>'ї'
+			));
+			$text = strtolower($text);
+		}
+
+		$text = strtr($text, array(
+			'а'=>'a','б'=>'b','в'=>'v','г'=>'g','д'=>'d','е'=>'e','ё'=>'yo',
+			'ж'=>'zh','з'=>'z','и'=>'i','й'=>'y','к'=>'k','л'=>'l','м'=>'m',
+			'н'=>'n','о'=>'o','п'=>'p','р'=>'r','с'=>'s','т'=>'t','у'=>'u',
+			'ф'=>'f','х'=>'kh','ц'=>'ts','ч'=>'ch','ш'=>'sh','щ'=>'shch',
+			'ы'=>'y','э'=>'e','ю'=>'yu','я'=>'ya','ъ'=>'','ь'=>'',
+			'ґ'=>'g','і'=>'i','є'=>'ye','ї'=>'yi','&'=>'and'
+		));
+
+		$text = preg_replace('/\\s+/u', '-', $text);
+		$text = str_replace('.', '-', $text);
+		$text = preg_replace('/[^a-z0-9\\-_]/', '', $text);
+		$text = preg_replace('/-+/', '-', $text);
+		$text = preg_replace('/_+/', '_', $text);
+
+		return trim($text, '-');
 	}
 
 
