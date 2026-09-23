@@ -67,3 +67,6 @@ $_['text_open_source']        = 'Open source entity';
 $_['error_request_method']    = 'Invalid request method.';
 $_['error_not_found']         = 'SEO URL record was not found.';
 $_['error_ajax']              = 'Could not save the SEO URL. Check the error log and try again.';
+
+$_['entry_search']            = 'Quick search';
+$_['help_search']             = 'Search by any fragment of an SEO URL, query, or related product, category, manufacturer, page, or article name.';
