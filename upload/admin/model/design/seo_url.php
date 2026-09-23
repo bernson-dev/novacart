@@ -757,16 +757,26 @@ class ModelDesignSeoUrl extends Model {
 			}
 
 			if ($keyword !== '') {
-				// Keep keyword unique across the whole store so fallback language
-				// rows are immediately safe when prefix mode is disabled.
-				$keyword_key = $store_id . '|' . $keyword;
+				/*
+				 * common/home may contain a legacy language-prefix alias. That row is
+				 * structural routing metadata, not an entity slug, so do not let it
+				 * create a normal keyword-duplicate group.
+				 */
+				$structural_home_prefix = $route_query === 'common/home'
+					&& $this->isOwnLanguagePrefix($keyword, $store_id, $language_id);
 
-				if (!isset($keyword_groups[$keyword_key])) {
-					$keyword_groups[$keyword_key] = array();
+				if (!$structural_home_prefix) {
+					// Keep entity keywords unique across the whole store so fallback
+					// language rows are safe when prefix mode is disabled.
+					$keyword_key = $store_id . '|' . $keyword;
+
+					if (!isset($keyword_groups[$keyword_key])) {
+						$keyword_groups[$keyword_key] = array();
+					}
+
+					$keyword_groups[$keyword_key][] = $seo_url_id;
+					$keyword_group_labels[$keyword_key] = $keyword;
 				}
-
-				$keyword_groups[$keyword_key][] = $seo_url_id;
-				$keyword_group_labels[$keyword_key] = $keyword;
 
 				if (!isset($shared_language_groups[$store_id . '|' . $keyword])) {
 					$shared_language_groups[$store_id . '|' . $keyword] = array();
