@@ -67,8 +67,8 @@ function assertSameValue($expected, $actual, $message) {
 
 $config = new Config();
 $config->set('config_seo_url', 1);
-$config->set('module_seo_language_status', 1);
-$config->set('module_seo_language_prefix', array(
+$config->set('config_seo_language', 1);
+$config->set('config_seo_language_prefix', array(
 	'ru-ru' => 'ru',
 	'uk-ua' => 'ua'
 ));
