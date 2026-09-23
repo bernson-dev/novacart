@@ -1491,7 +1491,15 @@ $data['action'] = $this->url->link('catalog/product/edit', 'user_token=' . $this
 			$data['stock_status_id'] = 0;
 		}
 
-		$data['view_button_class'] = (!empty($product_info) && !$product_info['status']) ? 'disabled' : '';
+		$data['view_enabled'] = false;
+
+		if ($product_id) {
+			$view_product_info = !empty($product_info)
+				? $product_info
+				: $this->model_catalog_product->getProduct((int)$product_id);
+
+			$data['view_enabled'] = !empty($view_product_info) && !empty($view_product_info['status']);
+		}
 
 		if (isset($this->request->post['status'])) {
 			$data['status'] = $this->request->post['status'];
