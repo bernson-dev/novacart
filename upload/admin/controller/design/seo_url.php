@@ -756,23 +756,12 @@ class ControllerDesignSeoUrl extends Controller {
 	}
 
 	/**
-	 * Check duplicate query/keyword values in the namespace that can actually
-	 * collide on the storefront.
-	 *
-	 * With SEO Language enabled, the language prefix is resolved before the SEO
-	 * keyword, so identical keywords are safe in different languages. If the
-	 * module is disabled, preserve OpenCart's legacy per-store keyword scope.
+	 * Keep keyword uniqueness per store even in prefix mode. Secondary-language
+	 * values remain valid fallbacks when prefixes are disabled later.
 	 */
 	protected function hasDuplicate($type, $value, $store_id, $language_id, $exclude_id) {
-		$language_scoped = false;
-
 		if ($type === 'keyword') {
-			$language_scoped = $this->model_design_seo_url->usesLanguageScopedKeywords($store_id);
-			$rows = $this->model_design_seo_url->getSeoUrlsByKeyword(
-				$value,
-				$store_id,
-				$language_scoped ? $language_id : null
-			);
+			$rows = $this->model_design_seo_url->getSeoUrlsByKeyword($value, $store_id, null);
 		} else {
 			$rows = $this->model_design_seo_url->getSeoUrlsByQuery($value);
 		}
@@ -782,10 +771,7 @@ class ControllerDesignSeoUrl extends Controller {
 				continue;
 			}
 
-			if (
-				($type !== 'keyword' || $language_scoped)
-				&& (int)$row['language_id'] !== $language_id
-			) {
+			if ($type !== 'keyword' && (int)$row['language_id'] !== $language_id) {
 				continue;
 			}
 
