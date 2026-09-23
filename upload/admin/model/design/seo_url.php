@@ -600,6 +600,11 @@ class ModelDesignSeoUrl extends Model {
 
 		$audit = array(
 			'issues' => array(),
+			'groups' => array(
+				'query' => array(),
+				'keyword' => array(),
+				'shared_language' => array()
+			),
 			'summary' => array(
 				'all_rows' => 0,
 				'issue_rows' => 0,
@@ -621,7 +626,27 @@ class ModelDesignSeoUrl extends Model {
 		$audit['summary']['all_rows'] = count($query->rows);
 
 		$query_groups = array();
+		$query_group_labels = array();
 		$keyword_groups = array();
+		$keyword_group_labels = array();
+		$shared_language_groups = array();
+		$shared_language_group_labels = array();
+		$entity_ids = array(
+			'product' => array(),
+			'category' => array(),
+			'manufacturer' => array(),
+			'information' => array(),
+			'article' => array(),
+			'blog_category' => array()
+		);
+		$entity_rows = array(
+			'product' => array(),
+			'category' => array(),
+			'manufacturer' => array(),
+			'information' => array(),
+			'article' => array(),
+			'blog_category' => array()
+		);
 
 		foreach ($query->rows as $row) {
 			$seo_url_id = (int)$row['seo_url_id'];
@@ -646,6 +671,7 @@ class ModelDesignSeoUrl extends Model {
 				}
 
 				$query_groups[$query_key][] = $seo_url_id;
+				$query_group_labels[$query_key] = $route_query;
 			}
 
 			if ($keyword !== '') {
@@ -662,12 +688,15 @@ class ModelDesignSeoUrl extends Model {
 				}
 
 				$keyword_groups[$keyword_key][] = $seo_url_id;
+				$keyword_group_labels[$keyword_key] = $keyword;
 
 				if (!isset($shared_language_groups[$store_id . '|' . $keyword])) {
 					$shared_language_groups[$store_id . '|' . $keyword] = array();
 				}
 
-				$shared_language_groups[$store_id . '|' . $keyword][$language_id][] = $seo_url_id;
+				$shared_key = $store_id . '|' . $keyword;
+				$shared_language_groups[$shared_key][$language_id][] = $seo_url_id;
+				$shared_language_group_labels[$shared_key] = $keyword;
 
 				if (
 					$this->isReservedLanguagePrefix($keyword, $store_id)
@@ -704,33 +733,45 @@ class ModelDesignSeoUrl extends Model {
 			}
 		}
 
-		foreach ($query_groups as $ids) {
+		foreach ($query_groups as $group_key => $ids) {
 			if (count($ids) < 2) {
 				continue;
 			}
 
+			$count = count($ids);
 			$audit['summary']['query_groups']++;
-			$audit['summary']['query_rows'] += count($ids);
+			$audit['summary']['query_rows'] += $count;
 
 			foreach ($ids as $seo_url_id) {
 				$audit['issues'][$seo_url_id]['query'] = true;
+				$audit['groups']['query'][$seo_url_id] = array(
+					'key' => $group_key,
+					'label' => isset($query_group_labels[$group_key]) ? $query_group_labels[$group_key] : '',
+					'count' => $count
+				);
 			}
 		}
 
-		foreach ($keyword_groups as $ids) {
+		foreach ($keyword_groups as $group_key => $ids) {
 			if (count($ids) < 2) {
 				continue;
 			}
 
+			$count = count($ids);
 			$audit['summary']['keyword_groups']++;
-			$audit['summary']['keyword_rows'] += count($ids);
+			$audit['summary']['keyword_rows'] += $count;
 
 			foreach ($ids as $seo_url_id) {
 				$audit['issues'][$seo_url_id]['keyword'] = true;
+				$audit['groups']['keyword'][$seo_url_id] = array(
+					'key' => $group_key,
+					'label' => isset($keyword_group_labels[$group_key]) ? $keyword_group_labels[$group_key] : '',
+					'count' => $count
+				);
 			}
 		}
 
-		foreach ($shared_language_groups as $languages) {
+		foreach ($shared_language_groups as $group_key => $languages) {
 			if (count($languages) < 2) {
 				continue;
 			}
@@ -741,11 +782,19 @@ class ModelDesignSeoUrl extends Model {
 				$ids = array_merge($ids, $language_ids);
 			}
 
+			$count = count($ids);
 			$audit['summary']['shared_language_groups']++;
-			$audit['summary']['shared_language_rows'] += count($ids);
+			$audit['summary']['shared_language_rows'] += $count;
 
 			foreach ($ids as $seo_url_id) {
 				$audit['issues'][$seo_url_id]['shared_language'] = true;
+				$audit['groups']['shared_language'][$seo_url_id] = array(
+					'key' => $group_key,
+					'label' => isset($shared_language_group_labels[$group_key])
+						? $shared_language_group_labels[$group_key]
+						: '',
+					'count' => $count
+				);
 			}
 		}
 
