@@ -72,4 +72,18 @@ assertSame(
 	'Disabled language row must generate from its explicit language code'
 );
 
+
+
+assertSame(
+	'en_ocfilter-sitemap',
+	context.window.buildSeoValue('ocfilter sitemap', 3, 0, '', 'en'),
+	'Server-calculated prefix must work even when the language is absent from window.languages'
+);
+
+assertSame(
+	'ocfilter-sitemap',
+	context.window.buildSeoValue('ocfilter sitemap', 1, 0, '', ''),
+	'Explicit empty prefix must keep the default-language slug clean'
+);
+
 console.log('SEO generator regression checks passed');
