@@ -110,8 +110,8 @@ function callPrivate($object, $name) {
 $config = new Config();
 $config->set('config_seo_url', 1);
 $config->set('config_seo_pro', 0);
-$config->set('module_seo_language_status', 1);
-$config->set('module_seo_language_prefix', array(
+$config->set('config_seo_language', 1);
+$config->set('config_seo_language_prefix', array(
 	'ru-ru' => 'ru',
 	'uk-ua' => 'uk'
 ));
@@ -156,7 +156,7 @@ assertSameValue(
 	'Default-language direct route was not canonicalized'
 );
 
-$config->set('module_seo_language_status', 0);
+$config->set('config_seo_language', 0);
 
 assertSameValue(
 	'http://store.test/test-product',
@@ -164,7 +164,7 @@ assertSameValue(
 	'Direct route must remain canonicalized when SEO Language is disabled'
 );
 
-$config->set('module_seo_language_status', 1);
+$config->set('config_seo_language', 1);
 $config->set('config_language_id', 2);
 
 assertSameValue(
