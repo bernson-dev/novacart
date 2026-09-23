@@ -193,6 +193,12 @@ class ControllerDesignSeoUrl extends Controller {
 			$filter_language_id = 0;
 		}
 
+		if (isset($this->request->get['filter_issue'])) {
+			$filter_issue = (string)$this->request->get['filter_issue'];
+		} else {
+			$filter_issue = '';
+		}
+
 		if (isset($this->request->get['sort'])) {
 			$sort = (string)$this->request->get['sort'];
 		} else {
@@ -229,6 +235,10 @@ class ControllerDesignSeoUrl extends Controller {
 			$url .= '&filter_language_id=' . (int)$this->request->get['filter_language_id'];
 		}
 
+		if (isset($this->request->get['filter_issue']) && $this->request->get['filter_issue'] !== '') {
+			$url .= '&filter_issue=' . urlencode((string)$this->request->get['filter_issue']);
+		}
+
 		if (isset($this->request->get['sort'])) {
 			$url .= '&sort=' . (string)$this->request->get['sort'];
 		}
@@ -263,11 +273,15 @@ class ControllerDesignSeoUrl extends Controller {
 			'filter_query'       => $filter_query,
 			'filter_store_id'    => $filter_store_id,
 			'filter_language_id' => $filter_language_id,
+			'filter_issue'       => $filter_issue,
 			'sort'               => $sort,
 			'order'              => $order,
 			'start'              => ($page - 1) * $this->config->get('config_limit_admin'),
 			'limit'              => $this->config->get('config_limit_admin')
 		);
+
+		$audit = $this->model_design_seo_url->getSeoUrlAudit();
+		$data['audit_summary'] = $audit['summary'];
 
 		$seo_url_total = $this->model_design_seo_url->getTotalSeoUrls($filter_data);
 
@@ -280,6 +294,9 @@ class ControllerDesignSeoUrl extends Controller {
 				'query'      => htmlspecialchars($result['query'], ENT_COMPAT, 'UTF-8'),
 				'store'      => $result['store_id'] ? $result['store'] : $this->language->get('text_default'),
 				'language'   => $result['language'],
+				'issues'     => isset($audit['issues'][(int)$result['seo_url_id']])
+					? $audit['issues'][(int)$result['seo_url_id']]
+					: array('query' => false, 'keyword' => false, 'prefix' => false),
 				'edit'       => $this->url->link('design/seo_url/edit', 'user_token=' . $this->session->data['user_token'] . '&seo_url_id=' . $result['seo_url_id'] . $url, true)
 			);
 		}
@@ -324,6 +341,10 @@ class ControllerDesignSeoUrl extends Controller {
 			$url .= '&filter_language_id=' . (int)$this->request->get['filter_language_id'];
 		}
 
+		if (isset($this->request->get['filter_issue']) && $this->request->get['filter_issue'] !== '') {
+			$url .= '&filter_issue=' . urlencode((string)$this->request->get['filter_issue']);
+		}
+
 		if ($order == 'ASC') {
 			$url .= '&order=DESC';
 		} else {
@@ -357,6 +378,10 @@ class ControllerDesignSeoUrl extends Controller {
 			$url .= '&filter_language_id=' . (int)$this->request->get['filter_language_id'];
 		}
 
+		if (isset($this->request->get['filter_issue']) && $this->request->get['filter_issue'] !== '') {
+			$url .= '&filter_issue=' . urlencode((string)$this->request->get['filter_issue']);
+		}
+
 		if (isset($this->request->get['sort'])) {
 			$url .= '&sort=' . (string)$this->request->get['sort'];
 		}
@@ -379,6 +404,7 @@ class ControllerDesignSeoUrl extends Controller {
 		$data['filter_query'] = $filter_query;
 		$data['filter_store_id'] = $filter_store_id;
 		$data['filter_language_id'] = $filter_language_id;
+		$data['filter_issue'] = $filter_issue;
 
 		$data['sort'] = $sort;
 		$data['order'] = $order;
