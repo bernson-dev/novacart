@@ -227,6 +227,12 @@ class ControllerDesignSeoUrl extends Controller {
 			$filter_query = '';
 		}
 
+		if (isset($this->request->get['filter_search'])) {
+			$filter_search = (string)$this->request->get['filter_search'];
+		} else {
+			$filter_search = '';
+		}
+
 		if (isset($this->request->get['filter_store_id'])) {
 			$filter_store_id = (int)$this->request->get['filter_store_id'];
 		} else {
@@ -273,6 +279,10 @@ class ControllerDesignSeoUrl extends Controller {
 			$url .= '&filter_query=' . urlencode(html_entity_decode((string)$this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
 		}
 
+		if (isset($this->request->get['filter_search']) && $this->request->get['filter_search'] !== '') {
+			$url .= '&filter_search=' . urlencode((string)$this->request->get['filter_search']);
+		}
+
 		if (isset($this->request->get['filter_store_id'])) {
 			$url .= '&filter_store_id=' . (int)$this->request->get['filter_store_id'];
 		}
@@ -317,6 +327,7 @@ class ControllerDesignSeoUrl extends Controller {
 		$filter_data = array(
 			'filter_keyword'     => $filter_keyword,
 			'filter_query'       => $filter_query,
+			'filter_search'      => $filter_search,
 			'filter_store_id'    => $filter_store_id,
 			'filter_language_id' => $filter_language_id,
 			'filter_issue'       => $filter_issue,
@@ -430,6 +441,10 @@ class ControllerDesignSeoUrl extends Controller {
 			$url .= '&filter_query=' . urlencode(html_entity_decode((string)$this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
 		}
 
+		if (isset($this->request->get['filter_search']) && $this->request->get['filter_search'] !== '') {
+			$url .= '&filter_search=' . urlencode((string)$this->request->get['filter_search']);
+		}
+
 		if (isset($this->request->get['filter_store_id'])) {
 			$url .= '&filter_store_id=' . (int)$this->request->get['filter_store_id'];
 		}
@@ -467,6 +482,10 @@ class ControllerDesignSeoUrl extends Controller {
 			$url .= '&filter_query=' . urlencode(html_entity_decode((string)$this->request->get['filter_query'], ENT_QUOTES, 'UTF-8'));
 		}
 
+		if (isset($this->request->get['filter_search']) && $this->request->get['filter_search'] !== '') {
+			$url .= '&filter_search=' . urlencode((string)$this->request->get['filter_search']);
+		}
+
 		if (isset($this->request->get['filter_store_id'])) {
 			$url .= '&filter_store_id=' . (int)$this->request->get['filter_store_id'];
 		}
@@ -499,6 +518,7 @@ class ControllerDesignSeoUrl extends Controller {
 
 		$data['filter_keyword'] = $filter_keyword;
 		$data['filter_query'] = $filter_query;
+		$data['filter_search'] = $filter_search;
 		$data['filter_store_id'] = $filter_store_id;
 		$data['filter_language_id'] = $filter_language_id;
 		$data['filter_issue'] = $filter_issue;
