@@ -517,17 +517,18 @@ class ModelDesignSeoUrl extends Model {
 				);
 			}
 		} elseif ($seo_pro && $type === 'category_id') {
-			$segments = array_merge(
-				$segments,
-				$this->getPreviewCategorySegments(
-					$entity_id,
-					$store_id,
-					$language_id,
-					$route_query,
-					$keyword
-				)
+			$category_segments = $this->getPreviewCategorySegments(
+				$entity_id,
+				$store_id,
+				$language_id,
+				$route_query,
+				$keyword
 			);
-			$keyword = '';
+
+			if ($category_segments) {
+				$segments = array_merge($segments, $category_segments);
+				$keyword = '';
+			}
 		} elseif ($seo_pro && $include_path && $type === 'article_id') {
 			$category = $this->db->query("SELECT `blog_category_id` FROM `" . DB_PREFIX . "article_to_blog_category`
 				WHERE `article_id` = '" . $entity_id . "'
@@ -547,17 +548,18 @@ class ModelDesignSeoUrl extends Model {
 				);
 			}
 		} elseif ($seo_pro && $type === 'blog_category_id') {
-			$segments = array_merge(
-				$segments,
-				$this->getPreviewBlogCategorySegments(
-					$entity_id,
-					$store_id,
-					$language_id,
-					$route_query,
-					$keyword
-				)
+			$blog_segments = $this->getPreviewBlogCategorySegments(
+				$entity_id,
+				$store_id,
+				$language_id,
+				$route_query,
+				$keyword
 			);
-			$keyword = '';
+
+			if ($blog_segments) {
+				$segments = array_merge($segments, $blog_segments);
+				$keyword = '';
+			}
 		}
 
 		if ($keyword !== '') {
