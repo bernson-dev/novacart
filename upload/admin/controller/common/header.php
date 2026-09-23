@@ -31,10 +31,10 @@ class ControllerCommonHeader extends Controller {
 
 		$seo_setting_query = $this->db->query("SELECT store_id, code, `key`, `value`
 			FROM `" . DB_PREFIX . "setting`
-			WHERE (code = 'config' AND `key` IN ('config_language', 'config_seo_url'))
+			WHERE (code = 'config' AND `key` IN ('config_language', 'config_seo_url', 'config_seo_language'))
 			   OR (code = 'module_seo_language' AND `key` = 'module_seo_language_status')
 			   OR (code = 'seo_language' AND `key` = 'seo_language_status')
-			ORDER BY store_id, (code = 'module_seo_language') ASC");
+			ORDER BY store_id");
 
 		$store_state = array();
 
@@ -45,7 +45,9 @@ class ControllerCommonHeader extends Controller {
 				$store_state[$store_id] = array(
 					'config_language' => '',
 					'config_seo_url' => false,
-					'seo_language_status' => false
+					'seo_language_status' => false,
+					'seo_language_native' => false,
+					'seo_language_module' => false
 				);
 			}
 
@@ -53,9 +55,21 @@ class ControllerCommonHeader extends Controller {
 				$store_state[$store_id]['config_language'] = (string)$row['value'];
 			} elseif ($row['code'] === 'config' && $row['key'] === 'config_seo_url') {
 				$store_state[$store_id]['config_seo_url'] = !empty($row['value']);
+			} elseif ($row['code'] === 'config' && $row['key'] === 'config_seo_language') {
+				$store_state[$store_id]['seo_language_status'] = !empty($row['value']);
+				$store_state[$store_id]['seo_language_native'] = true;
 			} elseif (
-				($row['code'] === 'module_seo_language' && $row['key'] === 'module_seo_language_status')
-				|| ($row['code'] === 'seo_language' && $row['key'] === 'seo_language_status')
+				$row['code'] === 'module_seo_language'
+				&& $row['key'] === 'module_seo_language_status'
+				&& !$store_state[$store_id]['seo_language_native']
+			) {
+				$store_state[$store_id]['seo_language_status'] = !empty($row['value']);
+				$store_state[$store_id]['seo_language_module'] = true;
+			} elseif (
+				$row['code'] === 'seo_language'
+				&& $row['key'] === 'seo_language_status'
+				&& !$store_state[$store_id]['seo_language_native']
+				&& !$store_state[$store_id]['seo_language_module']
 			) {
 				$store_state[$store_id]['seo_language_status'] = !empty($row['value']);
 			}
