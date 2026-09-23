@@ -930,13 +930,9 @@ class ModelDesignSeoUrl extends Model {
 			}
 
 			if ($keyword !== '') {
-				$keyword_key = $store_id . '|';
-
-				if ($this->usesLanguageScopedKeywords($store_id)) {
-					$keyword_key .= $language_id . '|';
-				}
-
-				$keyword_key .= $keyword;
+				// Keep keyword unique across the whole store so fallback language
+				// rows are immediately safe when prefix mode is disabled.
+				$keyword_key = $store_id . '|' . $keyword;
 
 				if (!isset($keyword_groups[$keyword_key])) {
 					$keyword_groups[$keyword_key] = array();
