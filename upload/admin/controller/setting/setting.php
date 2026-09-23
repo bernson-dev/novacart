@@ -184,6 +184,10 @@ class ControllerSettingSetting extends Controller {
 			$data['error_file_max_size'] = '';
 		}
 
+		$data['error_seo_language_prefix'] = isset($this->error['seo_language_prefix'])
+			? $this->error['seo_language_prefix']
+			: array();
+
 		$data['error_mail_smtp_hostname'] = isset($this->error['mail_smtp_hostname']) ? $this->error['mail_smtp_hostname'] : '';
 		$data['error_mail_smtp_port'] = isset($this->error['mail_smtp_port']) ? $this->error['mail_smtp_port'] : '';
 		$data['error_mail_smtp_timeout'] = isset($this->error['mail_smtp_timeout']) ? $this->error['mail_smtp_timeout'] : '';
@@ -1146,6 +1150,33 @@ class ControllerSettingSetting extends Controller {
 			$data['config_seo_url'] = $this->config->get('config_seo_url');
 		}
 
+		$this->load->model('setting/seo_language');
+
+		$seo_language_settings = $this->model_setting_seo_language->getSettings(0);
+
+		if (isset($this->request->post['config_seo_language'])) {
+			$data['config_seo_language'] = (int)$this->request->post['config_seo_language'];
+		} else {
+			$data['config_seo_language'] = (int)$seo_language_settings['status'];
+		}
+
+		if (isset($this->request->post['config_seo_language_prefix'])) {
+			$data['config_seo_language_prefix'] = $this->model_setting_seo_language->normalizePrefixes(
+				$this->request->post['config_seo_language_prefix']
+			);
+		} else {
+			$data['config_seo_language_prefix'] = $seo_language_settings['prefix'];
+		}
+
+		$data['seo_language_languages'] = $this->model_setting_seo_language->getLanguageRows(
+			0,
+			$data['languages'],
+			isset($this->request->post['config_language'])
+				? $this->request->post['config_language']
+				: $data['config_language'],
+			$data['config_seo_language_prefix']
+		);
+
 		if (isset($this->request->post['config_canonical_method'])) {
 			$data['config_canonical_method'] = $this->request->post['config_canonical_method'];
 		} else {
@@ -1315,6 +1346,41 @@ class ControllerSettingSetting extends Controller {
 	protected function validate() {
 		if (!$this->user->hasPermission('modify', 'setting/setting')) {
 			$this->error['warning'] = $this->language->get('error_permission');
+		}
+
+		$this->load->model('setting/seo_language');
+		$this->load->model('localisation/language');
+
+		$seo_status = !empty($this->request->post['config_seo_language']);
+
+		if ($seo_status && empty($this->request->post['config_seo_url'])) {
+			$this->error['warning'] = $this->language->get('error_seo_language_requires_seo');
+		}
+
+		$seo_validation = $this->model_setting_seo_language->validate(
+			0,
+			$seo_status,
+			isset($this->request->post['config_seo_language_prefix'])
+				? $this->request->post['config_seo_language_prefix']
+				: array(),
+			$this->model_localisation_language->getLanguages()
+		);
+
+		if ($seo_validation['warning'] === 'disable_shared_keywords') {
+			$this->error['warning'] = $this->language->get('error_seo_language_disable_shared');
+		}
+
+		$seo_error_map = array(
+			'prefix_required' => 'error_seo_language_prefix_required',
+			'prefix_format' => 'error_seo_language_prefix_format',
+			'prefix_duplicate' => 'error_seo_language_prefix_duplicate',
+			'prefix_collision' => 'error_seo_language_prefix_collision'
+		);
+
+		foreach ($seo_validation['prefix'] as $code => $error_code) {
+			if (isset($seo_error_map[$error_code])) {
+				$this->error['seo_language_prefix'][$code] = $this->language->get($seo_error_map[$error_code]);
+			}
 		}
 
 		if (!$this->request->post['config_meta_title']) {
