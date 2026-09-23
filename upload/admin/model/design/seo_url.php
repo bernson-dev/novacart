@@ -140,6 +140,17 @@ class ModelDesignSeoUrl extends Model {
 			return $this->language_scope[$store_id];
 		}
 
+		$seo_query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
+			WHERE `store_id` = '" . $store_id . "'
+			AND `code` = 'config'
+			AND `key` = 'config_seo_url'
+			LIMIT 1");
+
+		if (!$seo_query->num_rows || empty($seo_query->row['value'])) {
+			$this->language_scope[$store_id] = false;
+			return false;
+		}
+
 		$query = $this->db->query("SELECT `value` FROM `" . DB_PREFIX . "setting`
 			WHERE `store_id` = '" . $store_id . "'
 			AND `code` = 'module_seo_language'
