@@ -49,10 +49,30 @@ class SeoUrlAuditTestDb {
 		}
 
 		if (strpos($sql, 'FROM `oc_language`') !== false) {
+			$code = $this->extractString($sql, 'code');
+
+			if ($code !== '') {
+				$language_id = array_search($code, $this->languages, true);
+
+				if ($language_id !== false) {
+					$result->row = array(
+						'language_id' => (int)$language_id,
+						'code' => $code
+					);
+					$result->rows = array($result->row);
+					$result->num_rows = 1;
+				}
+
+				return $result;
+			}
+
 			$language_id = $this->extractInt($sql, 'language_id');
 
 			if (isset($this->languages[$language_id])) {
-				$result->row = array('code' => $this->languages[$language_id]);
+				$result->row = array(
+					'language_id' => $language_id,
+					'code' => $this->languages[$language_id]
+				);
 				$result->rows = array($result->row);
 				$result->num_rows = 1;
 			}
@@ -183,6 +203,9 @@ function assertSameValue($expected, $actual, $message) {
 $db = new SeoUrlAuditTestDb();
 
 $db->settings = array(
+	array('store_id' => 0, 'code' => 'config', 'key' => 'config_url', 'value' => 'http://store.test/'),
+	array('store_id' => 0, 'code' => 'config', 'key' => 'config_ssl', 'value' => ''),
+	array('store_id' => 0, 'code' => 'config', 'key' => 'config_language', 'value' => 'ru-ru'),
 	array('store_id' => 0, 'code' => 'config', 'key' => 'config_seo_url', 'value' => '1'),
 	array('store_id' => 0, 'code' => 'config', 'key' => 'config_seo_language', 'value' => '1'),
 	array(
@@ -254,6 +277,29 @@ assertSameValue(array(5, 6), $model->getSeoUrlIssueIds('query'), 'Query issue fi
 assertSameValue(array(7), $model->getSeoUrlIssueIds('prefix'), 'Prefix issue filter returned wrong rows');
 assertSameValue(array(1, 2, 7, 8, 9, 10), $model->getSeoUrlIssueIds('shared_language'), 'Cross-language issue filter returned wrong rows');
 assertSameValue(array(11), $model->getSeoUrlIssueIds('orphan'), 'Orphan issue filter returned wrong rows');
+
+assertSameValue('duplicate', $audit['groups']['keyword'][3]['label'], 'Keyword group label changed');
+assertSameValue(2, $audit['groups']['keyword'][3]['count'], 'Keyword group count changed');
+assertSameValue('product_id=30', $audit['groups']['query'][5]['label'], 'Query group label changed');
+assertSameValue(2, $audit['groups']['query'][5]['count'], 'Query group count changed');
+assertSameValue('shared', $audit['groups']['shared_language'][1]['label'], 'Cross-language group label changed');
+assertSameValue(2, $audit['groups']['shared_language'][1]['count'], 'Cross-language group count changed');
+
+assertSameValue(
+	'http://store.test/shared',
+	$model->getSeoUrlPreview($db->seo_urls[0]),
+	'Default-language public preview changed'
+);
+assertSameValue(
+	'http://store.test/uk/shared',
+	$model->getSeoUrlPreview($db->seo_urls[1]),
+	'Secondary-language public preview lost its prefix'
+);
+assertSameValue(
+	'http://store.test/uk/__SEO_KEYWORD__',
+	$model->getSeoUrlPreviewTemplate($db->seo_urls[1]),
+	'Live preview template changed'
+);
 
 $sources = $model->getSeoUrlSources(array($db->seo_urls[0], $db->seo_urls[1], $db->seo_urls[2]));
 assertSameValue('Тестовый товар', $sources[1]['name'], 'Product source name was not resolved');
