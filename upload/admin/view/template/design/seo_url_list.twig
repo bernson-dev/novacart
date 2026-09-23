@@ -35,12 +35,12 @@
         <div class="panel panel-default seo-audit-panel">
             <div class="panel-heading clearfix">
                 {% if filter_issue %}
-                <a href="{{ audit_reset }}"
-                   class="btn btn-default btn-xs pull-right seo-audit-reset"
-                   data-toggle="tooltip"
-                   title="{{ button_clear }}">
+                <button type="button"
+                        class="btn btn-default btn-xs pull-right seo-audit-reset"
+                        data-toggle="tooltip"
+                        title="{{ button_clear }}">
                     <i class="fa fa-times"></i> {{ button_clear }}
-                </a>
+                </button>
                 {% endif %}
                 <h3 class="panel-title">
                     <i class="fa fa-search"></i> {{ text_audit }}
@@ -50,37 +50,49 @@
                 <div class="row seo-audit-grid">
                     <div class="col-md-4 col-sm-6">
                         <div class="seo-audit-list">
-                            <a href="{{ audit_links.all }}" class="seo-audit-item{% if filter_issue == 'all' %} active{% endif %}">
+                            <button type="button"
+                                    class="seo-audit-item seo-audit-filter{% if filter_issue == 'all' %} active{% endif %}"
+                                    data-issue="all">
                                 <span class="badge">{{ audit_summary.issue_rows }}</span>
                                 <strong>{{ text_issue_all }}</strong>
                                 <div class="small">{{ help_issue_all }}</div>
-                            </a>
-                            <a href="{{ audit_links.keyword }}" class="seo-audit-item{% if filter_issue == 'keyword' %} active{% endif %}">
+                            </button>
+                            <button type="button"
+                                    class="seo-audit-item seo-audit-filter{% if filter_issue == 'keyword' %} active{% endif %}"
+                                    data-issue="keyword">
                                 <span class="badge">{{ audit_summary.keyword_rows }}</span>
                                 {{ text_issue_keyword }}
-                            </a>
-                            <a href="{{ audit_links.query }}" class="seo-audit-item{% if filter_issue == 'query' %} active{% endif %}">
+                            </button>
+                            <button type="button"
+                                    class="seo-audit-item seo-audit-filter{% if filter_issue == 'query' %} active{% endif %}"
+                                    data-issue="query">
                                 <span class="badge">{{ audit_summary.query_rows }}</span>
                                 {{ text_issue_query }}
-                            </a>
+                            </button>
                         </div>
                     </div>
 
                     <div class="col-md-4 col-sm-6">
                         <div class="seo-audit-list">
-                            <a href="{{ audit_links.prefix }}" class="seo-audit-item{% if filter_issue == 'prefix' %} active{% endif %}">
+                            <button type="button"
+                                    class="seo-audit-item seo-audit-filter{% if filter_issue == 'prefix' %} active{% endif %}"
+                                    data-issue="prefix">
                                 <span class="badge">{{ audit_summary.prefix_rows }}</span>
                                 {{ text_issue_prefix }}
-                            </a>
-                            <a href="{{ audit_links.orphan }}" class="seo-audit-item{% if filter_issue == 'orphan' %} active{% endif %}">
+                            </button>
+                            <button type="button"
+                                    class="seo-audit-item seo-audit-filter{% if filter_issue == 'orphan' %} active{% endif %}"
+                                    data-issue="orphan">
                                 <span class="badge">{{ audit_summary.orphan_rows }}</span>
                                 {{ text_issue_orphan }}
-                            </a>
-                            <a href="{{ audit_links.shared_language }}" class="seo-audit-item{% if filter_issue == 'shared_language' %} active{% endif %}">
+                            </button>
+                            <button type="button"
+                                    class="seo-audit-item seo-audit-filter{% if filter_issue == 'shared_language' %} active{% endif %}"
+                                    data-issue="shared_language">
                                 <span class="badge">{{ audit_summary.shared_language_rows }}</span>
                                 {{ text_issue_shared_language }}
                                 <div class="small">{{ help_issue_shared_language }}</div>
-                            </a>
+                            </button>
                         </div>
                     </div>
 
@@ -355,11 +367,17 @@
         .seo-audit-item {
             position: relative;
             display: block;
+            width: 100%;
             min-height: 44px;
             padding: 10px 44px 10px 12px;
             color: #4d5b67;
+            background: #fff;
+            border: 0;
             border-bottom: 1px solid #e8ebef;
+            text-align: left;
+            font: inherit;
             text-decoration: none;
+            cursor: pointer;
         }
         .seo-audit-item:last-child { border-bottom: 0; }
         .seo-audit-item:hover,
@@ -432,6 +450,30 @@
         .text-nowrap { white-space: nowrap; }
     </style>
     <script type="text/javascript">
+        function setSeoAuditFilter(issue) {
+            var params = new URLSearchParams(window.location.search);
+            var currentIssue = params.get('filter_issue') || '';
+
+            if (issue && currentIssue !== issue) {
+                params.set('filter_issue', issue);
+            } else {
+                params.delete('filter_issue');
+            }
+
+            // A changed result set may not have the currently selected page.
+            params.delete('page');
+
+            window.location.search = params.toString();
+        }
+
+        $(document).on('click', '.seo-audit-filter', function() {
+            setSeoAuditFilter(String($(this).data('issue') || ''));
+        });
+
+        $(document).on('click', '.seo-audit-reset', function() {
+            setSeoAuditFilter('');
+        });
+
         $('#button-filter').on('click', function() {
             var url = 'index.php?route=design/seo_url&user_token={{ user_token }}';
 
