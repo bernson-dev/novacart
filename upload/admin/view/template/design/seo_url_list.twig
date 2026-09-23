@@ -278,8 +278,8 @@
                                                 {% if not seo_url.issues.keyword and not seo_url.issues.query and not seo_url.issues.prefix and not seo_url.issues.shared_language and not seo_url.issues.orphan %}<span class="text-muted">—</span>{% endif %}
                                             </td>
                                             <td class="text-right text-nowrap">
-                                                {% if seo_url.source_edit %}
-                                                <a href="{{ seo_url.source_edit }}" target="_blank" data-toggle="tooltip" title="{{ text_open_source }}" class="btn btn-default">
+                                                {% if seo_url.preview %}
+                                                <a href="{{ seo_url.preview }}" target="_blank" data-toggle="tooltip" title="{{ text_open_storefront }}" class="btn btn-default">
                                                     <i class="fa fa-external-link"></i></a>
                                                 {% endif %}
                                                 <a href="{{ seo_url.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary">
@@ -426,7 +426,7 @@
             $message.removeClass('text-danger text-success').text('{{ text_saving }}');
 
             $.ajax({
-                url: '{{ save_keyword }}',
+                url: 'index.php?route=design/seo_url/saveKeyword&user_token={{ user_token }}',
                 type: 'post',
                 dataType: 'json',
                 data: {
