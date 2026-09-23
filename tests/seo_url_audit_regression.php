@@ -19,7 +19,8 @@ class SeoUrlAuditTestDb {
 	public $seo_urls = array();
 	public $languages = array(
 		1 => 'ru-ru',
-		2 => 'uk-ua'
+		2 => 'uk-ua',
+		3 => 'en-gb'
 	);
 
 	public $entities = array(
@@ -154,6 +155,27 @@ class SeoUrlAuditTestDb {
 		if (strpos($sql, 'FROM `oc_information_description`') !== false) {
 			$result->rows = array(
 				array('information_id' => 6, 'language_id' => 1, 'title' => 'Информация')
+			);
+			$result->num_rows = 1;
+			$result->row = $result->rows[0];
+
+			return $result;
+		}
+
+		if (strpos($sql, 'FROM `oc_article_description`') !== false) {
+			$result->rows = array(
+				array('article_id' => 7, 'language_id' => 1, 'name' => 'Тестовая статья'),
+				array('article_id' => 7, 'language_id' => 2, 'name' => 'Тестова стаття')
+			);
+			$result->num_rows = count($result->rows);
+			$result->row = $result->rows[0];
+
+			return $result;
+		}
+
+		if (strpos($sql, 'FROM `oc_blog_category_description`') !== false) {
+			$result->rows = array(
+				array('blog_category_id' => 8, 'language_id' => 1, 'name' => 'Новости блога')
 			);
 			$result->num_rows = 1;
 			$result->row = $result->rows[0];
@@ -301,5 +323,51 @@ assertSameValue('Тестовый товар', $sources[1]['name'], 'Product sou
 assertSameValue('catalog/product/edit', $sources[1]['route'], 'Product source edit route changed');
 assertSameValue('Тестовий товар', $sources[2]['name'], 'Language-specific product source name was not resolved');
 assertSameValue('Категория', $sources[3]['name'], 'Category source name was not resolved');
+
+$blog_rows = array(
+	array('seo_url_id' => 101, 'store_id' => 0, 'language_id' => 1, 'query' => 'article_id=7', 'keyword' => ''),
+	array('seo_url_id' => 102, 'store_id' => 0, 'language_id' => 2, 'query' => 'article_id=7', 'keyword' => ''),
+	array('seo_url_id' => 103, 'store_id' => 0, 'language_id' => 1, 'query' => 'blog_category_id=8', 'keyword' => '')
+);
+
+$blog_sources = $model->getSeoUrlSources($blog_rows);
+
+assertSameValue('Тестовая статья', $blog_sources[101]['name'], 'Blog article source name was not resolved');
+assertSameValue('blog/article/edit', $blog_sources[101]['route'], 'Blog article edit route changed');
+assertSameValue('Тестова стаття', $blog_sources[102]['name'], 'Localized blog article source name was not resolved');
+assertSameValue('Новости блога', $blog_sources[103]['name'], 'Blog category source name was not resolved');
+assertSameValue('blog/category/edit', $blog_sources[103]['route'], 'Blog category edit route changed');
+
+assertSameValue(
+	'testovaya-statya',
+	$model->getSeoUrlGeneratorValue($blog_rows[0], $blog_sources[101]['name']),
+	'Blog article generator value changed'
+);
+
+assertSameValue(
+	'uk_testova-stattya',
+	$model->getSeoUrlGeneratorValue($blog_rows[1], $blog_sources[102]['name']),
+	'Localized blog article generator value changed'
+);
+
+assertSameValue(
+	'novosti-bloga',
+	$model->getSeoUrlGeneratorValue($blog_rows[2], $blog_sources[103]['name']),
+	'Blog category generator value changed'
+);
+
+$disabled_route = array(
+	'seo_url_id' => 104,
+	'store_id' => 0,
+	'language_id' => 3,
+	'query' => 'extension/feed/ocfilter_sitemap',
+	'keyword' => ''
+);
+
+assertSameValue(
+	'en_ocfilter-sitemap',
+	$model->getSeoUrlGeneratorValue($disabled_route),
+	'Disabled-language plain route generator value changed'
+);
 
 echo "SEO URL audit regression checks passed\n";
