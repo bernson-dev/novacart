@@ -35,13 +35,7 @@
         <div class="alert {% if audit_summary.issue_rows %}alert-warning{% else %}alert-success{% endif %}">
             <i class="fa {% if audit_summary.issue_rows %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %}"></i>
             <strong>{{ text_audit }}</strong>
-            {{ text_audit_summary|format(
-                audit_summary.all_rows,
-                audit_summary.issue_rows,
-                audit_summary.keyword_groups,
-                audit_summary.query_groups,
-                audit_summary.prefix_rows
-            ) }}
+            {{ audit_summary_text }}
         </div>
 
         <div class="row">
