@@ -28,9 +28,14 @@ class SeoLanguage {
 	}
 
 	public function isEnabled() {
-		$status = $this->config->has('module_seo_language_status')
-			? $this->config->get('module_seo_language_status')
-			: $this->config->get('seo_language_status');
+		if ($this->config->has('config_seo_language')) {
+			$status = $this->config->get('config_seo_language');
+		} elseif ($this->config->has('module_seo_language_status')) {
+			// Compatibility with releases where this feature was an extension.
+			$status = $this->config->get('module_seo_language_status');
+		} else {
+			$status = $this->config->get('seo_language_status');
+		}
 
 		return (bool)$this->config->get('config_seo_url') && (bool)$status;
 	}
@@ -595,10 +600,12 @@ class SeoLanguage {
 		if ($this->prefixes === null) {
 			$this->prefixes = array();
 
-			if ($this->config->has('module_seo_language_prefix')) {
+			if ($this->config->has('config_seo_language_prefix')) {
+				$configured = $this->config->get('config_seo_language_prefix');
+			} elseif ($this->config->has('module_seo_language_prefix')) {
+				// Compatibility with releases where this feature was an extension.
 				$configured = $this->config->get('module_seo_language_prefix');
 			} else {
-				// Compatibility with settings saved by the first test build.
 				$configured = $this->config->get('seo_language_prefix');
 			}
 
