@@ -8,8 +8,13 @@
                     <i class="fa fa-refresh"></i>
                 </button>
                 {% if view %}
-                <a href="{{ view }}" data-toggle="tooltip" title="{{ button_view }}" class="btn btn-default {{ view_button_class }}" target="_blank">
-                    <i class="fa fa-eye"></i></a>
+                    {% if view_enabled %}
+                    <a href="{{ view }}" data-toggle="tooltip" title="{{ button_view }}" class="btn btn-default" target="_blank">
+                        <i class="fa fa-eye"></i></a>
+                    {% else %}
+                    <button type="button" data-toggle="tooltip" title="{{ button_view }}" class="btn btn-default disabled" disabled="disabled">
+                        <i class="fa fa-eye"></i></button>
+                    {% endif %}
                 {% endif %}
                 <button type="submit" form="form-product" name="save_new" value="1" data-toggle="tooltip" title="{{ button_save_new }}" class="btn btn-info">
                     <i class="fa fa-save"></i>
