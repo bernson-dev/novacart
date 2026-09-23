@@ -293,6 +293,10 @@ class ControllerStartupSeoUrl extends Controller {
 				. (isset($url_info['port']) ? ':' . $url_info['port'] : '')
 				. str_replace('/index.php', '', $url_info['path']);
 
+			// Canonical storefront root always ends with a slash. This keeps
+			// common/home stable and prevents an unnecessary root redirect pair.
+			$result = rtrim($result, '/') . '/';
+
 			if (
 				$this->seo_language instanceof SeoLanguage
 				&& !$this->seo_language->isEnabled()
