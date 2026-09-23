@@ -9,7 +9,7 @@ $_['text_add']             = 'Add SEO URL';
 $_['text_edit']            = 'Edit SEO URL';
 $_['text_filter']          = 'Filter';
 $_['text_default']         = 'Default';
-$_['text_information']     = 'Information<p><strong>SEO URL (keyword)</strong> is a unique identifier for URLs. It must be unique for each object (product, category, manufacturer) within the same store and language. Use only lowercase Latin letters, numbers, and hyphens (-). For example: <code>my-product-1</code>.</p><p>From an SEO perspective, it\'s better to use unique <strong>keywords</strong> for each language to improve the site\'s ranking and visibility.</p><p>Using the same <strong>keyword</strong> for different languages is not recommended, as it can create duplicate content for search engines, especially if they index both language versions.</p>';
+$_['text_information']     = 'Information<p><strong>SEO URL (keyword)</strong> must be unique within the URL namespace where an actual routing conflict can occur. With multilingual SEO URLs enabled, the same <strong>keyword</strong> in different languages is valid because language is resolved by a separate prefix. Duplicates within the same store and language remain invalid.</p><p>Use Latin letters, numbers, hyphens (-) and underscores (_). Language prefixes are reserved and must not be used as normal SEO URLs.</p>';
 
 // Column
 $_['column_query']         = 'Query';
