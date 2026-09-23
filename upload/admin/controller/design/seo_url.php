@@ -405,60 +405,6 @@ class ControllerDesignSeoUrl extends Controller {
 
 		$data['user_token'] = $this->session->data['user_token'];
 
-		/*
-		 * Audit filters behave as toggles and preserve the rest of the current
-		 * filtering context. Page is intentionally not preserved because a new
-		 * issue filter can reduce the result set below the current page number.
-		 */
-		$audit_url = '';
-
-		if ($filter_search !== '') {
-			$audit_url .= '&filter_search=' . urlencode($filter_search);
-		}
-
-		if ($filter_query !== '') {
-			$audit_url .= '&filter_query=' . urlencode($filter_query);
-		}
-
-		if ($filter_keyword !== '') {
-			$audit_url .= '&filter_keyword=' . urlencode($filter_keyword);
-		}
-
-		if ($filter_store_id !== '') {
-			$audit_url .= '&filter_store_id=' . (int)$filter_store_id;
-		}
-
-		if ($filter_language_id !== '') {
-			$audit_url .= '&filter_language_id=' . (int)$filter_language_id;
-		}
-
-		if ($sort !== '') {
-			$audit_url .= '&sort=' . urlencode($sort);
-		}
-
-		if ($order !== '') {
-			$audit_url .= '&order=' . urlencode($order);
-		}
-
-		$data['audit_reset'] = $this->url->link(
-			'design/seo_url',
-			'user_token=' . $this->session->data['user_token'] . $audit_url,
-			true
-		);
-
-		$data['audit_links'] = array();
-
-		foreach (array('all', 'keyword', 'query', 'prefix', 'shared_language', 'orphan') as $issue_type) {
-			$data['audit_links'][$issue_type] = $filter_issue === $issue_type
-				? $data['audit_reset']
-				: $this->url->link(
-					'design/seo_url',
-					'user_token=' . $this->session->data['user_token']
-						. $audit_url
-						. '&filter_issue=' . $issue_type,
-					true
-				);
-		}
 
 		if (isset($this->error['warning'])) {
 			$data['error_warning'] = $this->error['warning'];
