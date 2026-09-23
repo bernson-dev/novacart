@@ -172,9 +172,10 @@ class ModelDesignSeoUrl extends Model {
 	}
 
 	/**
-	 * Language-prefixed SEO URLs make identical keywords safe across languages.
-	 * Without the SEO Language module, keep OpenCart's legacy global-per-store
-	 * uniqueness rule so disabling the module cannot introduce ambiguous URLs.
+	 * Return whether the store uses language-prefixed public URLs.
+	 *
+	 * Keyword storage still remains unique per store because localized fallback
+	 * rows must become usable immediately if prefix mode is disabled.
 	 */
 	public function usesLanguageScopedKeywords($store_id) {
 		$store_id = (int)$store_id;
