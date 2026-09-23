@@ -43,7 +43,10 @@ class ControllerCommonFooter extends Controller {
 			if ($this->config->get('config_error_display')) {
 				$data['display_errors'] = true;
 
-				if ($this->user->hasPermission('access', 'setting/setting')) {
+				if (
+					$this->user->hasPermission('access', 'setting/setting')
+					&& $this->user->hasPermission('modify', 'setting/setting')
+				) {
 					$data['display_errors_url'] = $this->url->link(
 						'setting/setting',
 						'user_token=' . $this->session->data['user_token'],
