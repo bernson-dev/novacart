@@ -38,6 +38,11 @@ $_['error_query_exists']   = 'Такий запит (посилання) існ�
 
 $_['text_all']                 = 'Усі';
 $_['text_audit']               = 'Аудит SEO URL:';
+$_['text_audit_stats']          = 'Загальна статистика';
+$_['text_stat_total']           = 'Усього записів';
+$_['text_stat_issues']          = 'Проблемних записів';
+$_['text_stat_keyword_groups']  = 'Груп конфліктів SEO URL';
+$_['text_stat_query_groups']    = 'Груп дублів посилань';
 $_['text_audit_summary']       = 'усього записів: %d; проблемних записів: %d; груп конфліктних SEO URL: %d; груп дубльованих посилань: %d; конфліктів із мовними префіксами: %d; збігів між мовами: %d; осиротілих записів: %d.';
 $_['text_issue_all']           = 'Усі проблеми';
 $_['text_issue_keyword']       = 'Конфлікт SEO URL';
