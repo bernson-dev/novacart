@@ -129,6 +129,19 @@ const fillSeo = (languageId, sourceText, onlyEmpty) => {
 			const fieldName = String($el.attr('name') || '');
 			const storeMatch = fieldName.match(/^[^[]+\[(\d+)\]\[(\d+)\]$/);
 			const storeId = storeMatch ? Number(storeMatch[1]) : 0;
+			const storeConfig = window.seoStoreConfig
+				&& Object.prototype.hasOwnProperty.call(window.seoStoreConfig, storeId)
+				? window.seoStoreConfig[storeId]
+				: null;
+
+			if (
+				storeConfig
+				&& storeConfig.languageScoped
+				&& Number(languageId) !== Number(storeConfig.defaultLanguageId)
+			) {
+				return;
+			}
+
 			const seo = window.buildSeoValue(sourceText, languageId, storeId);
 
 			if (!seo) {
@@ -137,6 +150,7 @@ const fillSeo = (languageId, sourceText, onlyEmpty) => {
 
 			if (!onlyEmpty || !$el.val()) {
 				$el.val(seo).trigger('change');
+				syncUnifiedSeoGroup($el);
 				flashSeoField($el);
 			}
 		});
