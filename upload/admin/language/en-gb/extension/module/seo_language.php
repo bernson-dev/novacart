@@ -16,3 +16,5 @@ $_['error_prefix_required'] = 'A prefix is required for every enabled language.'
 $_['error_prefix_format'] = 'Use only a-z, 0-9, hyphen and underscore, up to 32 characters.';
 $_['error_prefix_duplicate'] = 'This prefix is already used by another language.';
 $_['error_prefix_collision'] = 'This prefix collides with an existing store SEO URL.';
+$_['error_seo_disabled'] = 'Enable standard SEO URLs in the selected store settings first.';
+$_['error_disable_shared_keywords'] = 'Language SEO URLs cannot be disabled while identical SEO keywords exist across languages. Make those keywords unique first.';
