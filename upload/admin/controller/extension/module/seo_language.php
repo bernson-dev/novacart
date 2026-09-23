@@ -209,6 +209,25 @@ class ControllerExtensionModuleSeoLanguage extends Controller {
 		$languages = $this->model_localisation_language->getLanguages();
 		$store_settings = $this->model_setting_setting->getSetting('config', $store_id);
 		$status = !empty($this->request->post['module_seo_language_status']);
+
+		if ($status && empty($store_settings['config_seo_url'])) {
+			$this->error['warning'] = $this->language->get('error_seo_disabled');
+		}
+
+		if (!$status) {
+			$shared_keyword = $this->db->query("SELECT keyword
+				FROM " . DB_PREFIX . "seo_url
+				WHERE store_id = '" . (int)$store_id . "'
+				AND keyword <> ''
+				GROUP BY keyword
+				HAVING COUNT(DISTINCT language_id) > 1
+				LIMIT 1");
+
+			if ($shared_keyword->num_rows) {
+				$this->error['warning'] = $this->language->get('error_disable_shared_keywords');
+			}
+		}
+
 		$prefixes = $this->normalizePrefixes(
 			isset($this->request->post['module_seo_language_prefix'])
 				? $this->request->post['module_seo_language_prefix']
