@@ -10,7 +10,6 @@ if (start === -1 || end === -1 || end <= start) {
 }
 
 let helpers = source.slice(start, end);
-helpers = helpers.replace('const buildSeoValue =', 'window.buildSeoValue =');
 
 const context = {
 	window: {
