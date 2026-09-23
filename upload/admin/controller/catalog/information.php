@@ -652,6 +652,14 @@ class ControllerCatalogInformation extends Controller {
 	}
 
 	protected function validateForm() {
+		$this->load->model('design/seo_url');
+
+		if (isset($this->request->post['information_seo_url'])) {
+			$this->request->post['information_seo_url'] = $this->model_design_seo_url->normalizeLanguageScopedSeoUrls(
+				$this->request->post['information_seo_url']
+			);
+		}
+
 		if (!$this->user->hasPermission('modify', 'catalog/information')) {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
@@ -675,16 +683,23 @@ class ControllerCatalogInformation extends Controller {
 		}
 
 		if ($this->request->post['information_seo_url']) {
-			$this->load->model('design/seo_url');
-
 			foreach ($this->request->post['information_seo_url'] as $store_id => $language) {
 				foreach ($language as $language_id => $keyword) {
 					if (!empty($keyword)) {
+
+						if ($this->model_design_seo_url->isReservedLanguagePrefix($keyword, (int)$store_id)) {
+							$this->error['keyword'][$store_id][$language_id] = $this->language->get('error_keyword');
+						}
+
 						if (count(array_keys($language, $keyword)) > 1) {
 							$this->error['keyword'][$store_id][$language_id] = $this->language->get('error_unique');
 						}
 
-						$seo_urls = $this->model_design_seo_url->getSeoUrlsByKeyword($keyword);
+						$seo_urls = $this->model_design_seo_url->getSeoUrlsByKeyword(
+							$keyword,
+							(int)$store_id,
+							null
+						);
 
 						foreach ($seo_urls as $seo_url) {
 							if (($seo_url['store_id'] == $store_id) && (!isset($this->request->get['information_id']) || ($seo_url['query'] != 'information_id=' . $this->request->get['information_id']))) {

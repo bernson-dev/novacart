@@ -8,6 +8,23 @@ on:
       - 'upload/system/**/*.php'
       - 'upload/image/placeholder.png'
       - 'upload/admin/language/**'
+      - 'upload/admin/controller/catalog/product.php'
+      - 'upload/admin/controller/catalog/category.php'
+      - 'upload/admin/controller/catalog/manufacturer.php'
+      - 'upload/admin/controller/catalog/information.php'
+      - 'upload/admin/controller/blog/article.php'
+      - 'upload/admin/controller/blog/category.php'
+      - 'upload/admin/controller/design/seo_url.php'
+      - 'upload/admin/model/design/seo_url.php'
+      - 'upload/admin/controller/common/header.php'
+      - 'upload/admin/view/template/common/header.twig'
+      - 'upload/admin/view/javascript/common.js'
+      - 'upload/admin/controller/setting/setting.php'
+      - 'upload/admin/controller/setting/store.php'
+      - 'upload/admin/model/setting/seo_language.php'
+      - 'upload/admin/view/template/setting/setting.twig'
+      - 'upload/admin/view/template/setting/store_form.twig'
+      - 'tests/**/*.js'
       - 'tests/**/*.php'
       - '.github/workflows/php-runtime.yml'
   pull_request:
@@ -17,6 +34,23 @@ on:
       - 'upload/system/**/*.php'
       - 'upload/image/placeholder.png'
       - 'upload/admin/language/**'
+      - 'upload/admin/controller/catalog/product.php'
+      - 'upload/admin/controller/catalog/category.php'
+      - 'upload/admin/controller/catalog/manufacturer.php'
+      - 'upload/admin/controller/catalog/information.php'
+      - 'upload/admin/controller/blog/article.php'
+      - 'upload/admin/controller/blog/category.php'
+      - 'upload/admin/controller/design/seo_url.php'
+      - 'upload/admin/model/design/seo_url.php'
+      - 'upload/admin/controller/common/header.php'
+      - 'upload/admin/view/template/common/header.twig'
+      - 'upload/admin/view/javascript/common.js'
+      - 'upload/admin/controller/setting/setting.php'
+      - 'upload/admin/controller/setting/store.php'
+      - 'upload/admin/model/setting/seo_language.php'
+      - 'upload/admin/view/template/setting/setting.twig'
+      - 'upload/admin/view/template/setting/store_form.twig'
+      - 'tests/**/*.js'
       - 'tests/**/*.php'
       - '.github/workflows/php-runtime.yml'
   workflow_dispatch:
@@ -211,3 +245,18 @@ jobs:
 
       - name: SEO hreflang regression
         run: php tests/seo_hreflang_regression.php
+
+      - name: SEO shared-slug regression
+        run: php tests/seo_language_shared_slugs_regression.php
+
+      - name: SEO URL audit regression
+        run: php tests/seo_url_audit_regression.php
+
+      - name: SEO language settings regression
+        run: php tests/seo_language_settings_regression.php
+
+      - name: SEO generator regression
+        run: node tests/seo_generator_regression.js
+
+      - name: SEO direct-route canonical regression
+        run: php tests/seo_direct_route_canonical_regression.php

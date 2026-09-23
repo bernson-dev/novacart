@@ -148,3 +148,15 @@ $_['error_svg_icon']                   = 'Потрібно вибрати кор
 $_['error_favicon_color']              = 'Колір favicon має бути у форматі #RRGGBB.';
 $_['warning_favicon_generate']         = 'Favicon не було згенеровано. Перевірте SVG та наявність Imagick.';
 $_['error_geocode_request']            = 'Помилка при запиті геокоду';
+
+$_['entry_seo_language'] = 'Багатомовні SEO URL';
+$_['text_seo_language_prefixes'] = 'Префікси мов';
+$_['text_seo_language_default'] = 'основна мова';
+$_['help_seo_language'] = 'Додає мовний префікс перед SEO URL для неосновних мов.';
+$_['help_seo_language_prefixes'] = 'Для кожної активної мови задайте унікальний перший сегмент URL.';
+$_['error_seo_language_requires_seo'] = 'Для багатомовних SEO URL спочатку увімкніть стандартні SEO URL в основному магазині.';
+$_['error_seo_language_disable_shared'] = 'Не можна вимкнути багатомовні SEO URL: уже існують однакові SEO URL для різних мов.';
+$_['error_seo_language_prefix_required'] = 'Для кожної активної мови потрібен префікс.';
+$_['error_seo_language_prefix_format'] = 'Дозволені лише a-z, 0-9, дефіс і підкреслення; довжина до 32 символів.';
+$_['error_seo_language_prefix_duplicate'] = 'Такий префікс уже використовується іншою мовою.';
+$_['error_seo_language_prefix_collision'] = 'Префікс збігається з наявним SEO URL магазину.';

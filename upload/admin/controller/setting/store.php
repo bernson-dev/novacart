@@ -607,6 +607,38 @@ class ControllerSettingStore extends Controller {
 
 		$data['languages'] = $this->model_localisation_language->getLanguages();
 
+		$this->load->model('setting/seo_language');
+
+		$seo_store_id = isset($this->request->get['store_id'])
+			? (int)$this->request->get['store_id']
+			: 0;
+		$seo_language_settings = $this->model_setting_seo_language->getSettings($seo_store_id);
+
+		if (isset($this->request->post['config_seo_language'])) {
+			$data['config_seo_language'] = (int)$this->request->post['config_seo_language'];
+		} else {
+			$data['config_seo_language'] = (int)$seo_language_settings['status'];
+		}
+
+		if (isset($this->request->post['config_seo_language_prefix'])) {
+			$data['config_seo_language_prefix'] = $this->model_setting_seo_language->normalizePrefixes(
+				$this->request->post['config_seo_language_prefix']
+			);
+		} else {
+			$data['config_seo_language_prefix'] = $seo_language_settings['prefix'];
+		}
+
+		$data['seo_language_languages'] = $this->model_setting_seo_language->getLanguageRows(
+			isset($this->request->get['store_id']) ? (int)$this->request->get['store_id'] : null,
+			$data['languages'],
+			$data['config_language'],
+			$data['config_seo_language_prefix']
+		);
+
+		$data['error_seo_language_prefix'] = isset($this->error['seo_language_prefix'])
+			? $this->error['seo_language_prefix']
+			: array();
+
 		if (isset($this->request->post['config_currency'])) {
 			$data['config_currency'] = $this->request->post['config_currency'];
 		} elseif (isset($store_info['config_currency'])) {
@@ -826,6 +858,41 @@ class ControllerSettingStore extends Controller {
 
 		if (!empty($this->request->post['config_customer_group_display']) && !in_array($this->request->post['config_customer_group_id'], $this->request->post['config_customer_group_display'])) {
 			$this->error['customer_group_display'] = $this->language->get('error_customer_group_display');
+		}
+
+		$this->load->model('setting/seo_language');
+		$this->load->model('localisation/language');
+
+		$seo_status = !empty($this->request->post['config_seo_language']);
+
+		if ($seo_status && !$this->config->get('config_seo_url')) {
+			$this->error['warning'] = $this->language->get('error_seo_language_requires_seo');
+		}
+
+		$seo_validation = $this->model_setting_seo_language->validate(
+			isset($this->request->get['store_id']) ? (int)$this->request->get['store_id'] : null,
+			$seo_status,
+			isset($this->request->post['config_seo_language_prefix'])
+				? $this->request->post['config_seo_language_prefix']
+				: array(),
+			$this->model_localisation_language->getLanguages()
+		);
+
+		if ($seo_validation['warning'] === 'disable_shared_keywords') {
+			$this->error['warning'] = $this->language->get('error_seo_language_disable_shared');
+		}
+
+		$seo_error_map = array(
+			'prefix_required' => 'error_seo_language_prefix_required',
+			'prefix_format' => 'error_seo_language_prefix_format',
+			'prefix_duplicate' => 'error_seo_language_prefix_duplicate',
+			'prefix_collision' => 'error_seo_language_prefix_collision'
+		);
+
+		foreach ($seo_validation['prefix'] as $code => $error_code) {
+			if (isset($seo_error_map[$error_code])) {
+				$this->error['seo_language_prefix'][$code] = $this->language->get($seo_error_map[$error_code]);
+			}
 		}
 
 		if ($this->error && !isset($this->error['warning'])) {

@@ -74,6 +74,14 @@
             {{ language.language_id }}: '{{ language.code }}'{% if not loop.last %},{% endif %}
             {% endfor %}
         };
+        var seoStoreConfig = {
+            {% for store_id, config in seo_store_config %}
+            {{ store_id }}: {
+                defaultLanguageId: {{ config.default_language_id }},
+                languageScoped: {{ config.language_scoped ? 'true' : 'false' }}
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        };
     </script>
     {% for script in scripts %}
     <script type="text/javascript" src="{{ script }}"> </script>

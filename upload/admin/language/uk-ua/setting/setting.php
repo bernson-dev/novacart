@@ -406,3 +406,15 @@ $_['warning_imagick_missing']           = 'PHP-розширення Imagick не
 
 $_['error_svg_icon_client']             = 'Помилка! Можно використовувати лише SVG файл.';
 $_['error_geocode_request']             = 'Помилка при запиті геокоду';
+
+$_['entry_seo_language'] = 'Багатомовні SEO URL';
+$_['text_seo_language_prefixes'] = 'Префікси мов';
+$_['text_seo_language_default'] = 'основна мова';
+$_['help_seo_language'] = 'Додає мовний префікс перед SEO URL для неосновних мов. Основна мова завжди використовує URL без префікса.';
+$_['help_seo_language_prefixes'] = 'Для кожної активної мови задайте унікальний перший сегмент URL, наприклад ru, uk або en. Префікс основної мови резервується, але не виводиться.';
+$_['error_seo_language_requires_seo'] = 'Для багатомовних SEO URL спочатку увімкніть стандартні SEO URL.';
+$_['error_seo_language_disable_shared'] = 'Не можна вимкнути багатомовні SEO URL: уже існують однакові SEO URL для різних мов. Спочатку зробіть їх унікальними.';
+$_['error_seo_language_prefix_required'] = 'Для кожної активної мови потрібен префікс.';
+$_['error_seo_language_prefix_format'] = 'Дозволені лише a-z, 0-9, дефіс і підкреслення; довжина до 32 символів.';
+$_['error_seo_language_prefix_duplicate'] = 'Такий префікс уже використовується іншою мовою.';
+$_['error_seo_language_prefix_collision'] = 'Префікс збігається з наявним SEO URL магазину.';

@@ -28,9 +28,14 @@ class SeoLanguage {
 	}
 
 	public function isEnabled() {
-		$status = $this->config->has('module_seo_language_status')
-			? $this->config->get('module_seo_language_status')
-			: $this->config->get('seo_language_status');
+		if ($this->config->has('config_seo_language')) {
+			$status = $this->config->get('config_seo_language');
+		} elseif ($this->config->has('module_seo_language_status')) {
+			// Compatibility with releases where this feature was an extension.
+			$status = $this->config->get('module_seo_language_status');
+		} else {
+			$status = $this->config->get('seo_language_status');
+		}
 
 		return (bool)$this->config->get('config_seo_url') && (bool)$status;
 	}
@@ -162,6 +167,25 @@ class SeoLanguage {
 			return $url;
 		}
 
+		/*
+		 * SeoLanguage is the second URL rewrite layer. It must only decorate
+		 * already rewritten public URLs. Internal index.php actions (language
+		 * switch, cart/AJAX endpoints, account actions, etc.) stay untouched.
+		 */
+		$path = isset($url_info['path']) ? (string)$url_info['path'] : '/';
+		$query_data = array();
+
+		if (!empty($url_info['query'])) {
+			parse_str((string)$url_info['query'], $query_data);
+		}
+
+		if (
+			basename($path) === 'index.php'
+			|| isset($query_data['route'])
+		) {
+			return $url;
+		}
+
 		$base = $this->getBaseUrlForScheme($url_info['scheme']);
 		$base_info = parse_url($base);
 
@@ -174,7 +198,6 @@ class SeoLanguage {
 		}
 
 		$base_path = $this->normalizeBasePath(isset($base_info['path']) ? $base_info['path'] : '/');
-		$path = isset($url_info['path']) ? (string)$url_info['path'] : '/';
 		$base_without_slash = rtrim($base_path, '/');
 
 		if ($base_without_slash === '') {
@@ -219,6 +242,67 @@ class SeoLanguage {
 		}
 
 		return str_replace('&', '&amp;', $result);
+	}
+
+	/**
+	 * Return the canonical homepage alias for a language when full prefix mode
+	 * is disabled. The catalog default language always owns the bare store root.
+	 *
+	 * Prefer an existing common/home keyword so current installations keep their
+	 * URLs. If none exists, use the same deterministic language alias as SeoPro.
+	 */
+	public function getHomeAliasByLanguageId($language_id) {
+		$languages = $this->getLanguages();
+		$language = $this->getLanguageById((int)$language_id, $languages);
+		$default = $this->getDefaultLanguage($languages);
+
+		if (!$language || !$default || $language['code'] === $default['code']) {
+			return '';
+		}
+
+		$query = $this->db->query("SELECT keyword FROM " . DB_PREFIX . "seo_url
+			WHERE query = 'common/home'
+			AND store_id = '" . (int)$this->config->get('config_store_id') . "'
+			AND language_id = '" . (int)$language['language_id'] . "'
+			LIMIT 1");
+
+		if ($query->num_rows) {
+			$keyword = strtolower(trim((string)$query->row['keyword'], " /\\"));
+
+			if ($keyword !== '') {
+				return $keyword;
+			}
+		}
+
+		return $this->getLanguageHomeAlias($language['code']);
+	}
+
+	/**
+	 * Resolve a single homepage alias and synchronize the active language.
+	 * Normal seo_url keywords must be checked before calling this method.
+	 */
+	public function resolveHomeAlias($alias) {
+		$alias = strtolower(trim((string)$alias, " /\\"));
+
+		if ($alias === '') {
+			return false;
+		}
+
+		$languages = $this->getLanguages();
+		$default = $this->getDefaultLanguage($languages);
+
+		foreach ($languages as $language) {
+			if ($default && $language['code'] === $default['code']) {
+				continue;
+			}
+
+			if ($this->getHomeAliasByLanguageId((int)$language['language_id']) === $alias) {
+				$this->applyLanguage($language);
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public function getPrefixByLanguageId($language_id) {
@@ -531,6 +615,21 @@ class SeoLanguage {
 		return implode('-', $normalized);
 	}
 
+	private function getLanguageHomeAlias($code) {
+		$code = strtolower(str_replace('_', '-', (string)$code));
+		$parts = explode('-', $code);
+		$alias = !empty($parts[0]) ? $parts[0] : '';
+
+		// Octemplates Deals traditionally exposes Ukrainian as "ua".
+		$theme = strtolower((string)$this->config->get('config_theme'));
+
+		if (($theme === 'oct_deals' || strpos($theme, 'oct_deals') !== false) && $alias === 'uk') {
+			$alias = 'ua';
+		}
+
+		return $alias;
+	}
+
 	private function getLanguages() {
 		if ($this->languages !== null) {
 			return $this->languages;
@@ -595,10 +694,12 @@ class SeoLanguage {
 		if ($this->prefixes === null) {
 			$this->prefixes = array();
 
-			if ($this->config->has('module_seo_language_prefix')) {
+			if ($this->config->has('config_seo_language_prefix')) {
+				$configured = $this->config->get('config_seo_language_prefix');
+			} elseif ($this->config->has('module_seo_language_prefix')) {
+				// Compatibility with releases where this feature was an extension.
 				$configured = $this->config->get('module_seo_language_prefix');
 			} else {
-				// Compatibility with settings saved by the first test build.
 				$configured = $this->config->get('seo_language_prefix');
 			}
 

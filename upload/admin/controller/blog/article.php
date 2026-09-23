@@ -664,6 +664,14 @@ class ControllerBlogArticle extends Controller {
 	}
 
 	protected function validateForm() {
+		$this->load->model('design/seo_url');
+
+		if (isset($this->request->post['article_seo_url'])) {
+			$this->request->post['article_seo_url'] = $this->model_design_seo_url->normalizeLanguageScopedSeoUrls(
+				$this->request->post['article_seo_url']
+			);
+		}
+
 		if (!$this->validateModifyPermission()) {
 			return false;
 		}
@@ -691,8 +699,6 @@ class ControllerBlogArticle extends Controller {
 		}
 
 		if (!empty($this->request->post['article_seo_url']) && is_array($this->request->post['article_seo_url'])) {
-			$this->load->model('design/seo_url');
-
 			foreach ($this->request->post['article_seo_url'] as $store_id => $language) {
 				if (!is_array($language)) {
 					continue;
@@ -702,11 +708,20 @@ class ControllerBlogArticle extends Controller {
 					$keyword = trim((string)$keyword);
 
 					if ($keyword !== '') {
+
+						if ($this->model_design_seo_url->isReservedLanguagePrefix($keyword, (int)$store_id)) {
+							$this->error['keyword'][$store_id][$language_id] = $this->language->get('error_keyword');
+						}
+
 						if (count(array_keys($language, $keyword, true)) > 1) {
 							$this->error['keyword'][$store_id][$language_id] = $this->language->get('error_unique');
 						}
 
-						$seo_urls = $this->model_design_seo_url->getSeoUrlsByKeyword($keyword);
+						$seo_urls = $this->model_design_seo_url->getSeoUrlsByKeyword(
+							$keyword,
+							(int)$store_id,
+							null
+						);
 
 						foreach ($seo_urls as $seo_url) {
 							if ((int)$seo_url['store_id'] == (int)$store_id && (!isset($this->request->get['article_id']) || ($seo_url['query'] != 'article_id=' . (int)$this->request->get['article_id']))) {

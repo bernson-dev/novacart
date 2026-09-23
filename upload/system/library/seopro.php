@@ -487,7 +487,17 @@ class SeoPro {
 		$query = null;
 		$store_id = (int)$this->config->get('config_store_id');
 
-		if (!$language_id) {
+		if (
+			$this->registry->has('seo_language')
+			&& ($seo_language = $this->registry->get('seo_language')) instanceof SeoLanguage
+			&& $seo_language->isEnabled()
+		) {
+			$default_language_id = $this->getDefaultLanguageId();
+
+			if ($default_language_id > 0) {
+				$language_id = $default_language_id;
+			}
+		} elseif (!$language_id) {
 			$language_id = (int)$this->config->get('config_language_id');
 		}
 
@@ -514,7 +524,17 @@ class SeoPro {
 		$keyword = null;
 		$store_id = (int)$this->config->get('config_store_id');
 
-		if (!$language_id) {
+		if (
+			$this->registry->has('seo_language')
+			&& ($seo_language = $this->registry->get('seo_language')) instanceof SeoLanguage
+			&& $seo_language->isEnabled()
+		) {
+			$default_language_id = $this->getDefaultLanguageId();
+
+			if ($default_language_id > 0) {
+				$language_id = $default_language_id;
+			}
+		} elseif (!$language_id) {
 			$language_id = (int)$this->config->get('config_language_id');
 		}
 

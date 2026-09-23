@@ -11,9 +11,94 @@ class ControllerCommonHeader extends Controller {
 		}
 
 		$this->load->model('localisation/language');
+		$this->load->model('setting/setting');
+		$this->load->model('setting/store');
+		$this->load->model('setting/seo_language');
 
-		$data['default_language_id'] = $this->config->get('config_language_id');
+		$data['default_language_id'] = (int)$this->config->get('config_language_id');
 		$data['languages'] = $this->model_localisation_language->getLanguages();
+
+		/*
+		 * Build SEO UI state for every storefront explicitly. Do not infer it from
+		 * whichever setting rows happen to exist: additional stores may inherit
+		 * missing config values from store 0 and still need correct admin behavior.
+		 */
+		$language_ids = array();
+		$language_short_ids = array();
+		$language_short_ambiguous = array();
+
+		foreach ($data['languages'] as $language) {
+			$code = strtolower(str_replace('_', '-', (string)$language['code']));
+			$language_id = (int)$language['language_id'];
+			$language_ids[$code] = $language_id;
+
+			$parts = explode('-', $code);
+			$short = isset($parts[0]) ? $parts[0] : '';
+
+			if ($short !== '') {
+				if (isset($language_short_ids[$short]) && $language_short_ids[$short] !== $language_id) {
+					$language_short_ambiguous[$short] = true;
+				} else {
+					$language_short_ids[$short] = $language_id;
+				}
+			}
+		}
+
+		$default_config = $this->model_setting_setting->getSetting('config', 0);
+
+		if (!isset($default_config['config_language'])) {
+			$default_config['config_language'] = (string)$this->config->get('config_language');
+		}
+
+		if (!isset($default_config['config_seo_url'])) {
+			$default_config['config_seo_url'] = (int)$this->config->get('config_seo_url');
+		}
+
+		$store_ids = array(0);
+
+		foreach ($this->model_setting_store->getStores() as $store) {
+			$store_ids[] = (int)$store['store_id'];
+		}
+
+		$data['seo_store_config'] = array();
+
+		foreach (array_unique($store_ids) as $store_id) {
+			$config = $default_config;
+
+			if ($store_id !== 0) {
+				$config = array_replace(
+					$config,
+					$this->model_setting_setting->getSetting('config', $store_id)
+				);
+			}
+
+			$seo_language = $this->model_setting_seo_language->getSettings($store_id);
+			$language_code = isset($config['config_language'])
+				? (string)$config['config_language']
+				: (string)$default_config['config_language'];
+			$normalized_language_code = strtolower(str_replace('_', '-', $language_code));
+			$default_language_id = isset($language_ids[$normalized_language_code])
+				? (int)$language_ids[$normalized_language_code]
+				: 0;
+
+			if ($default_language_id === 0) {
+				$parts = explode('-', $normalized_language_code);
+				$short = isset($parts[0]) ? $parts[0] : '';
+
+				if (
+					$short !== ''
+					&& empty($language_short_ambiguous[$short])
+					&& isset($language_short_ids[$short])
+				) {
+					$default_language_id = (int)$language_short_ids[$short];
+				}
+			}
+
+			$data['seo_store_config'][$store_id] = array(
+				'default_language_id' => $default_language_id,
+				'language_scoped' => !empty($config['config_seo_url']) && !empty($seo_language['status'])
+			);
+		}
 
 		$data['description'] = $this->document->getDescription();
 		$data['keywords'] = $this->document->getKeywords();

@@ -31,6 +31,106 @@
             <button type="button" class="close" data-dismiss="alert">&times;</button>
         </div>
         {% endif %}
+
+        <div class="panel panel-default seo-audit-panel">
+            <div class="panel-heading clearfix">
+                {% if filter_issue %}
+                <button type="button"
+                        class="btn btn-default btn-xs pull-right seo-audit-reset"
+                        data-toggle="tooltip"
+                        title="{{ button_clear }}">
+                    <i class="fa fa-times"></i> {{ button_clear }}
+                </button>
+                {% endif %}
+                <h3 class="panel-title">
+                    <i class="fa fa-search"></i> {{ text_audit }}
+                </h3>
+            </div>
+            <div class="panel-body">
+                <div class="row seo-audit-grid">
+                    <div class="col-md-4 col-sm-6">
+                        <div class="seo-audit-list">
+                            <button type="button"
+                                    class="seo-audit-item seo-audit-filter{% if filter_issue == 'all' %} active{% endif %}"
+                                    data-issue="all">
+                                <span class="badge">{{ audit_summary.issue_rows }}</span>
+                                <strong>{{ text_issue_all }}</strong>
+                                <div class="small">{{ help_issue_all }}</div>
+                            </button>
+                            <button type="button"
+                                    class="seo-audit-item seo-audit-filter{% if filter_issue == 'keyword' %} active{% endif %}"
+                                    data-issue="keyword">
+                                <span class="badge">{{ audit_summary.keyword_rows }}</span>
+                                {{ text_issue_keyword }}
+                            </button>
+                            <button type="button"
+                                    class="seo-audit-item seo-audit-filter{% if filter_issue == 'query' %} active{% endif %}"
+                                    data-issue="query">
+                                <span class="badge">{{ audit_summary.query_rows }}</span>
+                                {{ text_issue_query }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-sm-6">
+                        <div class="seo-audit-list">
+                            <button type="button"
+                                    class="seo-audit-item seo-audit-filter{% if filter_issue == 'prefix' %} active{% endif %}"
+                                    data-issue="prefix">
+                                <span class="badge">{{ audit_summary.prefix_rows }}</span>
+                                {{ text_issue_prefix }}
+                            </button>
+                            <button type="button"
+                                    class="seo-audit-item seo-audit-filter{% if filter_issue == 'orphan' %} active{% endif %}"
+                                    data-issue="orphan">
+                                <span class="badge">{{ audit_summary.orphan_rows }}</span>
+                                {{ text_issue_orphan }}
+                            </button>
+                            <button type="button"
+                                    class="seo-audit-item seo-audit-filter{% if filter_issue == 'shared_language' %} active{% endif %}"
+                                    data-issue="shared_language">
+                                <span class="badge">{{ audit_summary.shared_language_rows }}</span>
+                                {{ text_issue_shared_language }}
+                                <div class="small">{{ help_issue_shared_language }}</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-sm-12">
+                        <div class="seo-audit-stats">
+                            <div class="seo-audit-stats-title">{{ text_audit_stats }}</div>
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <div class="seo-stat-tile">
+                                        <div class="seo-stat-value">{{ audit_summary.all_rows }}</div>
+                                        <div class="seo-stat-label">{{ text_stat_total }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <div class="seo-stat-tile">
+                                        <div class="seo-stat-value">{{ audit_summary.issue_rows }}</div>
+                                        <div class="seo-stat-label">{{ text_stat_issues }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <div class="seo-stat-tile">
+                                        <div class="seo-stat-value">{{ audit_summary.keyword_groups }}</div>
+                                        <div class="seo-stat-label">{{ text_stat_keyword_groups }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <div class="seo-stat-tile">
+                                        <div class="seo-stat-value">{{ audit_summary.query_groups }}</div>
+                                        <div class="seo-stat-label">{{ text_stat_query_groups }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
             <div id="filter-seo" class="oc-side-filter col-md-3 col-md-push-9 col-sm-12 hidden-sm hidden-xs">
                 <button class="open-close-filter btn btn-success" data-target="#filter-seo">
@@ -42,6 +142,23 @@
                             <i class="fa fa-filter"></i> {{ text_filter }}</h3>
                     </div>
                     <div class="panel-body">
+                        <div class="form-group">
+                            <label class="control-label" for="input-search">{{ entry_search }}</label>
+                            <div class="input-group">
+                                <input type="text"
+                                       name="filter_search"
+                                       value="{{ filter_search }}"
+                                       placeholder="{{ help_search }}"
+                                       id="input-search"
+                                       class="form-control" />
+                                <span class="input-group-btn">
+                                    <button type="button" id="button-search" class="btn btn-primary" data-toggle="tooltip" title="{{ button_filter }}">
+                                        <i class="fa fa-search"></i>
+                                    </button>
+                                </span>
+                            </div>
+                            <p class="help-block">{{ help_search }}</p>
+                        </div>
                         <div class="form-group">
                             <label class="control-label" for="input-query">{{ entry_query }}</label>
                             <input type="text" name="filter_query" value="{{ filter_query }}" placeholder="{{ entry_query }}" id="input-query" class="form-control" />
@@ -79,6 +196,18 @@
                                 <option value="{{ language.language_id }}">{{ language.name }}</option>
                                 {% endif %}
                                 {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label" for="input-issue">{{ entry_issue }}</label>
+                            <select name="filter_issue" id="input-issue" class="form-control">
+                                <option value="">{{ text_all }}</option>
+                                <option value="all"{% if filter_issue == 'all' %} selected="selected"{% endif %}>{{ text_issue_all }}</option>
+                                <option value="keyword"{% if filter_issue == 'keyword' %} selected="selected"{% endif %}>{{ text_issue_keyword }}</option>
+                                <option value="query"{% if filter_issue == 'query' %} selected="selected"{% endif %}>{{ text_issue_query }}</option>
+                                <option value="prefix"{% if filter_issue == 'prefix' %} selected="selected"{% endif %}>{{ text_issue_prefix }}</option>
+                                <option value="shared_language"{% if filter_issue == 'shared_language' %} selected="selected"{% endif %}>{{ text_issue_shared_language }}</option>
+                                <option value="orphan"{% if filter_issue == 'orphan' %} selected="selected"{% endif %}>{{ text_issue_orphan }}</option>
                             </select>
                         </div>
                         <div class="text-right">
@@ -122,30 +251,94 @@
                                                 {% if sort == 'language' %}
                                                 <a href="{{ sort_language }}" class="{{ order|lower }}">{{ column_language }}</a>{% else %}<a href="{{ sort_language }}">{{ column_language }}</a>{% endif %}
                                             </td>
+                                            <td class="text-left">{{ column_issue }}</td>
                                             <td class="text-right">{{ column_action }}</td>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% if seo_urls %}
+                                        {% set current_group = '' %}
                                         {% for seo_url in seo_urls %}
-                                        <tr>
+                                        {% if seo_url.group.key is defined and seo_url.group.key and seo_url.group.key != current_group %}
+                                        <tr class="active seo-group-row">
+                                            <td colspan="7">
+                                                <i class="fa fa-object-group"></i>
+                                                <strong>{{ seo_url.group.label }}</strong>
+                                                <span class="badge">{{ seo_url.group.count }}</span>
+                                                <span class="text-muted">{{ text_group_records }}</span>
+                                            </td>
+                                        </tr>
+                                        {% set current_group = seo_url.group.key %}
+                                        {% endif %}
+                                        <tr{% if seo_url.issues.keyword or seo_url.issues.query or seo_url.issues.prefix or seo_url.issues.orphan %} class="warning"{% endif %}>
                                             <td class="text-center">{% if seo_url.seo_url_id in selected %}
                                                 <input type="checkbox" name="selected[]" value="{{ seo_url.seo_url_id }}" checked="checked" />
                                                 {% else %}
                                                 <input type="checkbox" name="selected[]" value="{{ seo_url.seo_url_id }}" />
                                                 {% endif %}</td>
-                                            <td class="text-left">{{ seo_url.query }}</td>
-                                            <td class="text-left">{{ seo_url.keyword }}</td>
+                                            <td class="text-left">
+                                                <code>{{ seo_url.query }}</code>
+                                                {% if seo_url.source_name %}
+                                                <div class="seo-source-name">
+                                                    {% if seo_url.source_edit %}
+                                                    <a href="{{ seo_url.source_edit }}" target="_blank" data-toggle="tooltip" title="{{ text_open_source }}">
+                                                        <i class="fa fa-external-link"></i> {{ seo_url.source_name }}
+                                                    </a>
+                                                    {% else %}
+                                                    {{ seo_url.source_name }}
+                                                    {% endif %}
+                                                </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-left seo-keyword-cell"
+                                                data-seo-url-id="{{ seo_url.seo_url_id }}"
+                                                data-generator-value="{{ seo_url.generator_value }}">
+                                                <div class="input-group">
+                                                    <input type="text"
+                                                           class="form-control input-sm seo-keyword-input"
+                                                           value="{{ seo_url.keyword }}"
+                                                           data-original-value="{{ seo_url.keyword }}" />
+                                                    <span class="input-group-btn">
+                                                        {% if seo_url.generator_value and not seo_url.issues.orphan %}
+                                                        <button type="button"
+                                                                class="btn btn-default btn-sm seo-generate"
+                                                                data-toggle="tooltip"
+                                                                title="{{ button_generate }}">
+                                                            <i class="fa fa-magic"></i>
+                                                        </button>
+                                                        {% endif %}
+                                                        <button type="button"
+                                                                class="btn btn-success btn-sm seo-save"
+                                                                data-toggle="tooltip"
+                                                                title="{{ button_inline_save }}">
+                                                            <i class="fa fa-save"></i>
+                                                        </button>
+                                                    </span>
+                                                </div>
+                                            </td>
                                             <td class="text-left">{{ seo_url.store }}</td>
                                             <td class="text-left">{{ seo_url.language }}</td>
-                                            <td class="text-right">
+                                            <td class="text-left">
+                                                {% if seo_url.issues.keyword %}<span class="label label-danger" data-toggle="tooltip" title="{{ help_issue_keyword }}">{{ text_issue_keyword_short }}</span>{% endif %}
+                                                {% if seo_url.issues.query %}<span class="label label-warning" data-toggle="tooltip" title="{{ help_issue_query }}">{{ text_issue_query_short }}</span>{% endif %}
+                                                {% if seo_url.issues.prefix %}<span class="label label-info" data-toggle="tooltip" title="{{ help_issue_prefix }}">{{ text_issue_prefix_short }}</span>{% endif %}
+                                                {% if seo_url.issues.shared_language %}<span class="label label-default" data-toggle="tooltip" title="{{ help_issue_shared_language }}">{{ text_issue_shared_language_short }}</span>{% endif %}
+                                                {% if seo_url.issues.orphan %}<span class="label label-danger" data-toggle="tooltip" title="{{ help_issue_orphan }}">{{ text_issue_orphan_short }}</span>{% endif %}
+                                                {% if not seo_url.issues.keyword and not seo_url.issues.query and not seo_url.issues.prefix and not seo_url.issues.shared_language and not seo_url.issues.orphan %}<span class="text-muted">—</span>{% endif %}
+                                            </td>
+                                            <td class="text-right text-nowrap">
+                                                {% if seo_url.preview %}
+                                                <a href="{{ seo_url.preview }}" target="_blank" data-toggle="tooltip" title="{{ text_open_storefront }}" class="btn btn-default">
+                                                    <i class="fa fa-external-link"></i></a>
+                                                {% endif %}
                                                 <a href="{{ seo_url.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary">
-                                                    <i class="fa fa-pencil"></i></a></td>
+                                                    <i class="fa fa-pencil"></i></a>
+                                            </td>
                                         </tr>
                                         {% endfor %}
                                         {% else %}
                                         <tr>
-                                            <td class="text-center" colspan="6">{{ text_no_results }}</td>
+                                            <td class="text-center" colspan="7">{{ text_no_results }}</td>
                                         </tr>
                                         {% endif %}
                                     </tbody>
@@ -161,9 +354,134 @@
             </div>
         </div>
     </div>
+    <style>
+        .seo-audit-panel .panel-body { padding: 15px; }
+        .seo-audit-reset { margin-top: -3px; }
+        .seo-audit-grid > [class*="col-"] { margin-bottom: 0; }
+        .seo-audit-list {
+            border: 1px solid #e5e8ec;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .seo-audit-item {
+            position: relative;
+            display: block;
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 44px 10px 12px;
+            color: #4d5b67;
+            background: #fff;
+            border: 0;
+            border-bottom: 1px solid #e8ebef;
+            text-align: left;
+            font: inherit;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .seo-audit-item:last-child { border-bottom: 0; }
+        .seo-audit-item:hover,
+        .seo-audit-item:focus {
+            color: #2f4050;
+            background: #f7f9fb;
+            text-decoration: none;
+        }
+        .seo-audit-item.active {
+            color: #fff;
+            background: #337ab7;
+            border-color: #337ab7;
+        }
+        .seo-audit-item .badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .seo-audit-item .small {
+            margin-top: 3px;
+            padding-right: 4px;
+            opacity: .8;
+            line-height: 1.35;
+        }
+        .seo-audit-stats {
+            height: 100%;
+            padding: 0 5px;
+        }
+        .seo-audit-stats-title {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4d5b67;
+        }
+        .seo-stat-tile {
+            min-height: 76px;
+            margin-bottom: 10px;
+            padding: 10px 8px;
+            border: 1px solid #e5e8ec;
+            border-radius: 4px;
+            background: #f8fafc;
+            text-align: center;
+        }
+        .seo-stat-value {
+            font-size: 24px;
+            line-height: 1.1;
+            font-weight: 600;
+            color: #337ab7;
+        }
+        .seo-stat-label {
+            margin-top: 6px;
+            font-size: 12px;
+            line-height: 1.25;
+            color: #6f7d89;
+        }
+        @media (max-width: 991px) {
+            .seo-audit-grid > [class*="col-"] { margin-bottom: 12px; }
+            .seo-audit-grid > [class*="col-"]:last-child { margin-bottom: 0; }
+            .seo-audit-stats { padding: 0; }
+        }
+        @media (max-width: 767px) {
+            .seo-audit-item { min-height: 0; }
+        }
+        .seo-source-name { margin-top: 5px; font-size: 12px; }
+        .seo-keyword-cell { min-width: 300px; }
+        .seo-keyword-cell .input-group { min-width: 260px; }
+        .seo-keyword-input.is-dirty { border-color: #f0ad4e; background: #fffdf5; }
+        .seo-keyword-input.has-error { border-color: #a94442; }
+        .seo-group-row td { padding: 9px 12px !important; }
+        .seo-group-row .badge { margin-left: 6px; }
+        .text-nowrap { white-space: nowrap; }
+    </style>
     <script type="text/javascript">
+        function setSeoAuditFilter(issue) {
+            var params = new URLSearchParams(window.location.search);
+            var currentIssue = params.get('filter_issue') || '';
+
+            if (issue && currentIssue !== issue) {
+                params.set('filter_issue', issue);
+            } else {
+                params.delete('filter_issue');
+            }
+
+            // A changed result set may not have the currently selected page.
+            params.delete('page');
+
+            window.location.search = params.toString();
+        }
+
+        $(document).on('click', '.seo-audit-filter', function() {
+            setSeoAuditFilter(String($(this).data('issue') || ''));
+        });
+
+        $(document).on('click', '.seo-audit-reset', function() {
+            setSeoAuditFilter('');
+        });
+
         $('#button-filter').on('click', function() {
             var url = 'index.php?route=design/seo_url&user_token={{ user_token }}';
+
+            var filter_search = $('input[name=\'filter_search\']').val();
+
+            if (filter_search) {
+                url += '&filter_search=' + encodeURIComponent(filter_search);
+            }
 
             var filter_query = $('input[name=\'filter_query\']').val();
 
@@ -179,7 +497,7 @@
 
             var filter_store_id = $('select[name=\'filter_store_id\']').val();
 
-            if (filter_store_id) {
+            if (filter_store_id !== '') {
                 url += '&filter_store_id=' + encodeURIComponent(filter_store_id);
             }
 
@@ -189,8 +507,119 @@
                 url += '&filter_language_id=' + encodeURIComponent(filter_language_id);
             }
 
+            var filter_issue = $('select[name=\'filter_issue\']').val();
+
+            if (filter_issue) {
+                url += '&filter_issue=' + encodeURIComponent(filter_issue);
+            }
+
             location = url;
         });
+        $('#button-search').on('click', function() {
+            $('#button-filter').trigger('click');
+        });
+
+        $('#filter-seo').on('keydown', 'input, select', function(e) {
+            if (e.keyCode === 13) {
+                e.preventDefault();
+                $('#button-filter').trigger('click');
+            }
+        });
+
+        $(document).on('input', '.seo-keyword-input', function() {
+            var $input = $(this);
+            $input.toggleClass('is-dirty', $input.val() !== $input.attr('data-original-value'));
+            $input.removeClass('has-error');
+
+            var $cell = $input.closest('.seo-keyword-cell');
+            $cell.find('.seo-inline-message').remove();
+        });
+
+        $(document).on('click', '.seo-generate', function() {
+            var $cell = $(this).closest('.seo-keyword-cell');
+            var value = String($cell.attr('data-generator-value') || '');
+
+            if (value) {
+                $cell.find('.seo-keyword-input').val(value).trigger('input').focus();
+            }
+        });
+
+        $(document).on('keydown', '.seo-keyword-input', function(e) {
+            if (e.keyCode === 13) {
+                e.preventDefault();
+                $(this).closest('.seo-keyword-cell').find('.seo-save').trigger('click');
+            }
+
+            if (e.keyCode === 27) {
+                e.preventDefault();
+                var $input = $(this);
+                $input.val($input.attr('data-original-value')).trigger('input');
+            }
+        });
+
+        function showSeoInlineMessage($cell, text, type) {
+            $cell.find('.seo-inline-message').remove();
+
+            if (!text) {
+                return;
+            }
+
+            $('<div/>', {
+                'class': 'seo-inline-message small ' + (type === 'error' ? 'text-danger' : 'text-success'),
+                'text': text
+            }).appendTo($cell);
+        }
+
+        $(document).on('click', '.seo-save', function() {
+            var $button = $(this);
+            var $cell = $button.closest('.seo-keyword-cell');
+            var $input = $cell.find('.seo-keyword-input');
+            var keyword = $.trim($input.val());
+
+            $button.prop('disabled', true);
+            $input.prop('disabled', true);
+            showSeoInlineMessage($cell, '{{ text_saving }}', 'success');
+
+            $.ajax({
+                url: 'index.php?route=design/seo_url/saveKeyword&user_token={{ user_token }}',
+                type: 'post',
+                dataType: 'json',
+                data: {
+                    seo_url_id: $cell.attr('data-seo-url-id'),
+                    keyword: keyword
+                },
+                success: function(json) {
+                    if (json.error) {
+                        $input.addClass('has-error');
+                        showSeoInlineMessage($cell, json.error, 'error');
+                        return;
+                    }
+
+                    $input
+                        .attr('data-original-value', json.keyword)
+                        .removeClass('is-dirty has-error');
+
+                    showSeoInlineMessage($cell, json.success, 'success');
+
+                    window.setTimeout(function() {
+                        window.location.reload();
+                    }, 350);
+                },
+                error: function(xhr) {
+                    var message = xhr.responseJSON && xhr.responseJSON.error
+                        ? xhr.responseJSON.error
+                        : '{{ error_ajax }}';
+
+                    $input.addClass('has-error');
+                    showSeoInlineMessage($cell, message, 'error');
+                },
+                complete: function() {
+                    $button.prop('disabled', false);
+                    $input.prop('disabled', false);
+                }
+            });
+        });
+
         $('#button-clear-filter').on('click', function() {
             location = 'index.php?route=design/seo_url&user_token={{ user_token }}';
         });
