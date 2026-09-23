@@ -249,8 +249,8 @@ $audit = $model->getSeoUrlAudit();
 
 assertSameValue(11, $audit['summary']['all_rows'], 'Unexpected SEO URL row count');
 
-assertSameValue(false, $audit['issues'][1]['keyword'], 'Shared multilingual keyword was incorrectly marked as duplicate');
-assertSameValue(false, $audit['issues'][2]['keyword'], 'Shared multilingual keyword was incorrectly marked as duplicate');
+assertSameValue(true, $audit['issues'][1]['keyword'], 'Cross-language fallback collision was not detected');
+assertSameValue(true, $audit['issues'][2]['keyword'], 'Cross-language fallback collision was not detected');
 
 assertSameValue(true, $audit['issues'][3]['keyword'], 'Same-language duplicate keyword was not detected');
 assertSameValue(true, $audit['issues'][4]['keyword'], 'Same-language duplicate keyword was not detected');
@@ -272,7 +272,7 @@ assertSameValue(true, $audit['issues'][10]['shared_language'], 'Legacy cross-lan
 assertSameValue(false, $audit['issues'][10]['orphan'], 'Existing product was incorrectly marked orphaned');
 assertSameValue(true, $audit['issues'][11]['orphan'], 'Missing product SEO URL was not marked orphaned');
 
-assertSameValue(array(3, 4, 9, 10), $model->getSeoUrlIssueIds('keyword'), 'Keyword issue filter returned wrong rows');
+assertSameValue(array(1, 2, 3, 4, 9, 10), $model->getSeoUrlIssueIds('keyword'), 'Keyword issue filter returned wrong rows');
 assertSameValue(array(5, 6), $model->getSeoUrlIssueIds('query'), 'Query issue filter returned wrong rows');
 assertSameValue(array(7), $model->getSeoUrlIssueIds('prefix'), 'Prefix issue filter returned wrong rows');
 assertSameValue(array(1, 2, 7, 8, 9, 10), $model->getSeoUrlIssueIds('shared_language'), 'Cross-language issue filter returned wrong rows');
