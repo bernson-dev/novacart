@@ -347,16 +347,6 @@ class ControllerDesignSeoUrl extends Controller {
 
 		$audit = $this->model_design_seo_url->getSeoUrlAudit();
 		$data['audit_summary'] = $audit['summary'];
-		$data['audit_summary_text'] = sprintf(
-			$this->language->get('text_audit_summary'),
-			$audit['summary']['all_rows'],
-			$audit['summary']['issue_rows'],
-			$audit['summary']['keyword_groups'],
-			$audit['summary']['query_groups'],
-			$audit['summary']['prefix_rows'],
-			$audit['summary']['shared_language_groups'],
-			$audit['summary']['orphan_rows']
-		);
 
 		$seo_url_total = $this->model_design_seo_url->getTotalSeoUrls($filter_data);
 
