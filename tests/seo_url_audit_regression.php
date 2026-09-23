@@ -286,12 +286,12 @@ assertSameValue('shared', $audit['groups']['shared_language'][1]['label'], 'Cros
 assertSameValue(2, $audit['groups']['shared_language'][1]['count'], 'Cross-language group count changed');
 
 assertSameValue(
-	'http://store.test/index.php?route=product%2Fproduct&product_id=10',
+	'http://store.test/index.php?route=product/product&product_id=10',
 	$model->getSeoUrlPreview($db->seo_urls[0]),
 	'Direct product test URL changed'
 );
 assertSameValue(
-	'http://store.test/index.php?route=product%2Fproduct&product_id=20',
+	'http://store.test/index.php?route=product/product&product_id=20',
 	$model->getSeoUrlPreview($db->seo_urls[1]),
 	'Direct product test URL must not depend on language keyword'
 );
