@@ -661,17 +661,17 @@ class ModelDesignSeoUrl extends Model {
 				LIMIT 1");
 
 			if ($query->num_rows) {
-				$ssl = trim((string)$query->row['ssl']);
 				$url = trim((string)$query->row['url']);
+				$ssl = trim((string)$query->row['ssl']);
 
-				return $ssl !== '' ? $ssl : $url;
+				return $url !== '' ? $url : $ssl;
 			}
 		}
 
-		$ssl = trim((string)$this->getStoreConfigValue(0, 'config_ssl', ''));
 		$url = trim((string)$this->getStoreConfigValue(0, 'config_url', ''));
+		$ssl = trim((string)$this->getStoreConfigValue(0, 'config_ssl', ''));
 
-		return $ssl !== '' ? $ssl : $url;
+		return $url !== '' ? $url : $ssl;
 	}
 
 	private function getStoreConfigValue($store_id, $key, $default = null) {
