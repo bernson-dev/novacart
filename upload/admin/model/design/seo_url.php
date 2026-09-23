@@ -711,26 +711,47 @@ class ModelDesignSeoUrl extends Model {
 
 		$route_query = trim((string)$row['query']);
 
-		// Homepage URL is controlled by the language-home canonical rule.
+		// Homepage is structural and never receives a generated keyword.
 		if ($route_query === 'common/home') {
 			return '';
 		}
 
-		// Do not manufacture product-id-50 style URLs for missing entities.
+		/*
+		 * Closed protected set: these are core/entity query formats we understand.
+		 * If their source entity is missing, do not manufacture an ID-based slug.
+		 * Every other query belongs to the generic extension path below.
+		 */
 		if (preg_match('/^(product_id|category_id|manufacturer_id|information_id|article_id|blog_category_id)=[0-9]+$/', $route_query)) {
 			return '';
 		}
 
-		if (preg_match('/^[a-zA-Z0-9_\\/.-]+$/', $route_query)) {
+		// Plain route: extension/feed/ocfilter_sitemap -> ocfilter sitemap.
+		if (strpos($route_query, '=') === false) {
 			$parts = preg_split('#/+#', trim($route_query, '/'));
 			$last = $parts ? end($parts) : '';
 
-			if ($last !== false && $last !== '') {
-				return trim(preg_replace('/[_-]+/', ' ', (string)$last));
-			}
+			return $last !== false
+				? trim(preg_replace('/[_\\-.]+/', ' ', (string)$last))
+				: '';
 		}
 
-		return '';
+		/*
+		 * Unknown module/legacy query: use only its semantic key and ignore the
+		 * numeric ID. No module-specific guessing is done here.
+		 * blogcategory_id=1 -> blogcategory
+		 */
+		$first = explode('&', $route_query, 2);
+		$pair = explode('=', $first[0], 2);
+		$key = isset($pair[0]) ? trim((string)$pair[0]) : '';
+
+		if ($key === '') {
+			return '';
+		}
+
+		$key = preg_replace('/_id$/', '', $key);
+		$key = preg_replace('/[_\\-.]+/', ' ', $key);
+
+		return trim((string)$key);
 	}
 
 	private function getSeoUrlGeneratorPrefix($row) {
@@ -802,31 +823,83 @@ class ModelDesignSeoUrl extends Model {
 
 
 	private function buildSeoUrlSearchCondition($value) {
-		$value = $this->db->escape(trim((string)$value));
-		$like = "'%" . $value . "%'";
+		$value = trim((string)$value);
+		$escaped = $this->db->escape($value);
+		$like = "'%" . $escaped . "%'";
+		$conditions = array(
+			"su.`query` LIKE " . $like,
+			"su.`keyword` LIKE " . $like
+		);
 
-		return "("
-			. "su.`query` LIKE " . $like
-			. " OR su.`keyword` LIKE " . $like
-			. " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "product_description` pd"
-				. " WHERE su.`query` = CONCAT('product_id=', pd.`product_id`)"
-				. " AND pd.`name` LIKE " . $like . ")"
-			. " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "category_description` cd"
-				. " WHERE su.`query` = CONCAT('category_id=', cd.`category_id`)"
-				. " AND cd.`name` LIKE " . $like . ")"
-			. " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "manufacturer` m"
-				. " WHERE su.`query` = CONCAT('manufacturer_id=', m.`manufacturer_id`)"
-				. " AND m.`name` LIKE " . $like . ")"
-			. " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "information_description` id"
-				. " WHERE su.`query` = CONCAT('information_id=', id.`information_id`)"
-				. " AND id.`title` LIKE " . $like . ")"
-			. " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "article_description` ad"
-				. " WHERE su.`query` = CONCAT('article_id=', ad.`article_id`)"
-				. " AND ad.`name` LIKE " . $like . ")"
-			. " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "blog_category_description` bcd"
-				. " WHERE su.`query` = CONCAT('blog_category_id=', bcd.`blog_category_id`)"
-				. " AND bcd.`name` LIKE " . $like . ")"
-			. ")";
+		$entity_queries = $this->getSeoUrlSearchEntityQueries($value);
+
+		if ($entity_queries) {
+			$quoted = array();
+
+			foreach ($entity_queries as $entity_query) {
+				$quoted[] = "'" . $this->db->escape($entity_query) . "'";
+			}
+
+			$conditions[] = "su.`query` IN (" . implode(',', $quoted) . ")";
+		}
+
+		return '(' . implode(' OR ', $conditions) . ')';
+	}
+
+	/**
+	 * Resolve matching entity names once per request, then filter seo_url by its
+	 * compact query column. This avoids six correlated EXISTS subqueries for
+	 * every seo_url row and avoids repeating the source scans for COUNT + list.
+	 */
+	private function getSeoUrlSearchEntityQueries($value) {
+		$value = trim((string)$value);
+		$cache_key = md5($value);
+
+		if (isset($this->search_condition_cache[$cache_key])) {
+			return $this->search_condition_cache[$cache_key];
+		}
+
+		$result = array();
+
+		// One-character source-name scans are unbounded on large description
+		// tables. Query/keyword search above still works for any input length.
+		$length = function_exists('utf8_strlen') ? utf8_strlen($value) : strlen($value);
+
+		if ($value === '' || $length < 2) {
+			$this->search_condition_cache[$cache_key] = array();
+			return array();
+		}
+
+		$definitions = array(
+			array('table' => 'product_description', 'id' => 'product_id', 'name' => 'name', 'query' => 'product_id'),
+			array('table' => 'category_description', 'id' => 'category_id', 'name' => 'name', 'query' => 'category_id'),
+			array('table' => 'manufacturer', 'id' => 'manufacturer_id', 'name' => 'name', 'query' => 'manufacturer_id'),
+			array('table' => 'information_description', 'id' => 'information_id', 'name' => 'title', 'query' => 'information_id'),
+			array('table' => 'article_description', 'id' => 'article_id', 'name' => 'name', 'query' => 'article_id'),
+			array('table' => 'blog_category_description', 'id' => 'blog_category_id', 'name' => 'name', 'query' => 'blog_category_id')
+		);
+
+		$like = "'%" . $this->db->escape($value) . "%'";
+
+		foreach ($definitions as $definition) {
+			$query = $this->db->query(
+				"SELECT DISTINCT `" . $definition['id'] . "`"
+				. " FROM `" . DB_PREFIX . $definition['table'] . "`"
+				. " WHERE `" . $definition['name'] . "` LIKE " . $like
+			);
+
+			foreach ($query->rows as $row) {
+				$id = isset($row[$definition['id']]) ? (int)$row[$definition['id']] : 0;
+
+				if ($id > 0) {
+					$result[$definition['query'] . '=' . $id] = $definition['query'] . '=' . $id;
+				}
+			}
+		}
+
+		$this->search_condition_cache[$cache_key] = array_values($result);
+
+		return $this->search_condition_cache[$cache_key];
 	}
 
 
