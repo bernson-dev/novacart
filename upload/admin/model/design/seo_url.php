@@ -40,7 +40,7 @@ class ModelDesignSeoUrl extends Model {
 		$implode = array();
 
 		if (!empty($data['filter_query'])) {
-			$implode[] = "`query` LIKE '" . $this->db->escape($data['filter_query']) . "'";
+			$implode[] = "su.`query` LIKE '%" . $this->db->escape($data['filter_query']) . "%'";
 		}
 
 		if (!empty($data['filter_keyword'])) {
@@ -53,6 +53,10 @@ class ModelDesignSeoUrl extends Model {
 
 		if (isset($data['filter_language_id']) && $data['filter_language_id'] !== '') {
 			$implode[] = "su.`language_id` = '" . (int)$data['filter_language_id'] . "'";
+		}
+
+		if (!empty($data['filter_search'])) {
+			$implode[] = $this->buildSeoUrlSearchCondition($data['filter_search']);
 		}
 
 		if (!empty($data['filter_issue'])) {
@@ -79,7 +83,11 @@ class ModelDesignSeoUrl extends Model {
 		'language'
 		);
 
-		if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
+		if (!empty($data['filter_issue']) && in_array($data['filter_issue'], array('keyword', 'shared_language', 'prefix'))) {
+			$sql .= " ORDER BY su.`store_id`, su.`keyword`, su.`language_id`, su.`seo_url_id`";
+		} elseif (!empty($data['filter_issue']) && $data['filter_issue'] === 'query') {
+			$sql .= " ORDER BY su.`store_id`, su.`language_id`, su.`query`, su.`seo_url_id`";
+		} elseif (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
 			$sql .= " ORDER BY `" . $this->db->escape($data['sort']) . "`";
 		} else {
 			$sql .= " ORDER BY `query`";
@@ -108,7 +116,7 @@ class ModelDesignSeoUrl extends Model {
 		$implode = array();
 
 		if (!empty($data['filter_query'])) {
-			$implode[] = "su.`query` LIKE '" . $this->db->escape($data['filter_query']) . "'";
+			$implode[] = "su.`query` LIKE '%" . $this->db->escape($data['filter_query']) . "%'";
 		}
 
 		if (!empty($data['filter_keyword'])) {
@@ -121,6 +129,10 @@ class ModelDesignSeoUrl extends Model {
 
 		if (isset($data['filter_language_id']) && $data['filter_language_id'] !== '') {
 			$implode[] = "su.`language_id` = '" . (int)$data['filter_language_id'] . "'";
+		}
+
+		if (!empty($data['filter_search'])) {
+			$implode[] = $this->buildSeoUrlSearchCondition($data['filter_search']);
 		}
 
 		if (!empty($data['filter_issue'])) {
@@ -544,6 +556,35 @@ class ModelDesignSeoUrl extends Model {
 
 		return $result;
 	}
+
+	private function buildSeoUrlSearchCondition($value) {
+		$value = $this->db->escape(trim((string)$value));
+		$like = "'%" . $value . "%'";
+
+		return "("
+			. "su.`query` LIKE " . $like
+			. " OR su.`keyword` LIKE " . $like
+			. " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "product_description` pd"
+				. " WHERE su.`query` = CONCAT('product_id=', pd.`product_id`)"
+				. " AND pd.`name` LIKE " . $like . ")"
+			. " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "category_description` cd"
+				. " WHERE su.`query` = CONCAT('category_id=', cd.`category_id`)"
+				. " AND cd.`name` LIKE " . $like . ")"
+			. " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "manufacturer` m"
+				. " WHERE su.`query` = CONCAT('manufacturer_id=', m.`manufacturer_id`)"
+				. " AND m.`name` LIKE " . $like . ")"
+			. " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "information_description` id"
+				. " WHERE su.`query` = CONCAT('information_id=', id.`information_id`)"
+				. " AND id.`title` LIKE " . $like . ")"
+			. " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "article_description` ad"
+				. " WHERE su.`query` = CONCAT('article_id=', ad.`article_id`)"
+				. " AND ad.`name` LIKE " . $like . ")"
+			. " OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "blog_category_description` bcd"
+				. " WHERE su.`query` = CONCAT('blog_category_id=', bcd.`blog_category_id`)"
+				. " AND bcd.`name` LIKE " . $like . ")"
+			. ")";
+	}
+
 
 	private function clearSeoCache() {
 		if ($this->config->get('config_seo_pro')) {
