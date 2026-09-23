@@ -666,6 +666,51 @@ class ModelDesignSeoUrl extends Model {
 	}
 
 
+
+	/**
+	 * Return the fallback keyword prefix for an SEO row.
+	 *
+	 * This is intentionally calculated on the server from oc_language and the
+	 * store's catalog default language. Disabled languages remain valid here:
+	 * their status must not affect existing seo_url rows or inline generation.
+	 */
+	public function getSeoUrlGeneratorPrefix($row) {
+		if (!is_array($row) || empty($row['language_id'])) {
+			return '';
+		}
+
+		$language_id = (int)$row['language_id'];
+		$store_id = isset($row['store_id']) ? (int)$row['store_id'] : 0;
+		$default_language_id = $this->getStoreDefaultLanguageId($store_id);
+
+		if ($default_language_id > 0 && $language_id === $default_language_id) {
+			return '';
+		}
+
+		$code = isset($row['language_code']) ? trim((string)$row['language_code']) : '';
+
+		if ($code === '') {
+			$query = $this->db->query("SELECT `code` FROM `" . DB_PREFIX . "language`
+				WHERE `language_id` = '" . $language_id . "'
+				LIMIT 1");
+
+			if ($query->num_rows) {
+				$code = trim((string)$query->row['code']);
+			}
+		}
+
+		if ($code === '') {
+			return '';
+		}
+
+		$code = strtolower(str_replace('_', '-', $code));
+		$parts = explode('-', $code);
+		$prefix = isset($parts[0]) ? preg_replace('/[^a-z0-9]/', '', $parts[0]) : '';
+
+		return $prefix !== '' ? $prefix : '';
+	}
+
+
 	/**
 	 * Return a human-readable source for inline keyword generation.
 	 *
