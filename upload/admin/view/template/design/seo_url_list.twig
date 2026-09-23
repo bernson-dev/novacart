@@ -234,7 +234,8 @@
                                                 data-seo-url-id="{{ seo_url.seo_url_id }}"
                                                 data-store-id="{{ seo_url.store_id }}"
                                                 data-language-id="{{ seo_url.language_id }}"
-                                                data-source-name="{{ seo_url.source_name }}">
+                                                data-source-name="{{ seo_url.source_name }}"
+                                                data-preview-template="{{ seo_url.preview_template }}">
                                                 <div class="input-group">
                                                     <input type="text"
                                                            class="form-control input-sm seo-keyword-input"
@@ -256,6 +257,14 @@
                                                             <i class="fa fa-save"></i>
                                                         </button>
                                                     </span>
+                                                </div>
+                                                <div class="seo-public-preview small">
+                                                    <i class="fa fa-link"></i>
+                                                    {% if seo_url.preview %}
+                                                    <a href="{{ seo_url.preview }}" target="_blank" class="seo-preview-link">{{ seo_url.preview }}</a>
+                                                    {% else %}
+                                                    <span class="text-muted seo-preview-link">—</span>
+                                                    {% endif %}
                                                 </div>
                                                 <div class="seo-inline-message small"></div>
                                             </td>
@@ -303,6 +312,8 @@
         .seo-source-name { margin-top: 5px; font-size: 12px; }
         .seo-keyword-cell { min-width: 300px; }
         .seo-keyword-cell .input-group { min-width: 260px; }
+        .seo-public-preview { margin-top: 5px; word-break: break-all; }
+        .seo-public-preview .fa { margin-right: 4px; }
         .seo-inline-message { min-height: 18px; margin-top: 3px; }
         .seo-inline-message.text-success { color: #3c763d; }
         .seo-inline-message.text-danger { color: #a94442; }
@@ -336,7 +347,7 @@
 
             var filter_store_id = $('select[name=\'filter_store_id\']').val();
 
-            if (filter_store_id) {
+            if (filter_store_id !== '') {
                 url += '&filter_store_id=' + encodeURIComponent(filter_store_id);
             }
 
@@ -365,11 +376,40 @@
             }
         });
 
+        function updateSeoPreview($cell) {
+            var template = String($cell.attr('data-preview-template') || '');
+            var keyword = $.trim($cell.find('.seo-keyword-input').val());
+            var $preview = $cell.find('.seo-preview-link');
+
+            if (!template) {
+                $preview.replaceWith('<span class="text-muted seo-preview-link">—</span>');
+                return;
+            }
+
+            var url = template.replace('__SEO_KEYWORD__', encodeURIComponent(keyword));
+
+            if ($preview.is('a')) {
+                $preview.attr('href', url).text(url);
+            } else {
+                $preview.replaceWith(
+                    $('<a/>', {
+                        'class': 'seo-preview-link',
+                        'href': url,
+                        'target': '_blank',
+                        'text': url
+                    })
+                );
+            }
+        }
+
         $(document).on('input', '.seo-keyword-input', function() {
             var $input = $(this);
             $input.toggleClass('is-dirty', $input.val() !== $input.attr('data-original-value'));
             $input.removeClass('has-error');
-            $input.closest('.seo-keyword-cell').find('.seo-inline-message').removeClass('text-danger text-success').text('');
+
+            var $cell = $input.closest('.seo-keyword-cell');
+            $cell.find('.seo-inline-message').removeClass('text-danger text-success').text('');
+            updateSeoPreview($cell);
         });
 
         $(document).on('click', '.seo-generate', function() {
