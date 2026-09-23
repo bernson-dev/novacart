@@ -389,6 +389,10 @@ class ControllerDesignSeoUrl extends Controller {
 						'shared_language' => false,
 						'orphan' => false
 					),
+				'group'      => (
+					in_array($filter_issue, array('keyword', 'query', 'shared_language'))
+					&& isset($audit['groups'][$filter_issue][(int)$result['seo_url_id']])
+				) ? $audit['groups'][$filter_issue][(int)$result['seo_url_id']] : array(),
 				'edit'       => $this->url->link('design/seo_url/edit', 'user_token=' . $this->session->data['user_token'] . '&seo_url_id=' . $result['seo_url_id'] . $url, true)
 			);
 		}
