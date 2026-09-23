@@ -1,10 +1,9 @@
 <?php
 /**
- * Regression checks for language-scoped SEO keywords.
+ * Regression checks for reversible language-prefix SEO mode.
  *
- * Identical keywords are safe across languages only while SEO Language is
- * enabled for that store. With the module disabled, legacy OpenCart
- * per-store uniqueness must remain in force.
+ * Prefix mode reuses the catalog default-language keyword publicly while
+ * preserving language-specific database rows as fallbacks.
  */
 
 error_reporting(E_ALL);
@@ -273,7 +272,7 @@ $normalized = $model->normalizeLanguageScopedSeoUrls(array(
 ));
 
 assertSameValue('default-slug', $normalized[0][1], 'Default-language slug changed during normalization');
-assertSameValue('default-slug', $normalized[0][2], 'Secondary language did not inherit the unified slug');
+assertSameValue('translated-slug', $normalized[0][2], 'Secondary fallback slug was overwritten');
 assertSameValue('legacy-ru', $normalized[1][1], 'Legacy store slug was unexpectedly normalized');
 assertSameValue('legacy-uk', $normalized[1][2], 'Legacy store language-specific slug was unexpectedly changed');
 
@@ -284,8 +283,8 @@ $migrated = $model->normalizeLanguageScopedSeoUrls(array(
 	)
 ));
 
-assertSameValue('existing-secondary', $migrated[0][1], 'Upgrade fallback discarded an existing secondary slug');
-assertSameValue('existing-secondary', $migrated[0][2], 'Upgrade fallback did not synchronize the retained slug');
+assertSameValue('', $migrated[0][1], 'Blank default-language fallback was unexpectedly rewritten');
+assertSameValue('existing-secondary', $migrated[0][2], 'Existing secondary fallback slug was changed');
 
 assertSameValue(true, $model->isReservedLanguagePrefix('uk', 0), 'Configured language prefix was not reserved');
 assertSameValue(true, $model->isReservedLanguagePrefix('/RU/', 0), 'Reserved prefix normalization changed');
@@ -295,9 +294,9 @@ assertSameValue(true, $model->isOwnLanguagePrefix('uk', 0, 2), 'Language did not
 assertSameValue(false, $model->isOwnLanguagePrefix('uk', 0, 1), 'Language incorrectly owned another language prefix');
 
 assertSameValue(
-	false,
+	true,
 	callProtected($controller, 'hasDuplicate', array('keyword', 'shared-slug', 0, 2, 0)),
-	'Same keyword in another language must be allowed when SEO Language is enabled'
+	'Fallback keywords must remain globally unique for reversible prefix mode'
 );
 
 assertSameValue(
