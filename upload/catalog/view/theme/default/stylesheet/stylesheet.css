@@ -136,6 +136,7 @@ h5 {
 
 h6 {
   font-size: 14px;
+  transition: all ease-in 0.2s;
 }
 
 p {
@@ -296,11 +297,6 @@ select.form-control {
    ТАБЛИЦЫ
    ==========================================================================
  */
-
-.table {
-  font-size: 15px;
-  border-collapse: inherit;
-}
 
 .table-bordered {
   border: none;
@@ -667,10 +663,6 @@ select.form-control {
   border: none;
 }
 
-header {
-  background-color: var(--bg-color);
-}
-
 header .row {
   display: flex;
   align-items: center;
@@ -699,23 +691,12 @@ header > .container > .row > .col-sm-5 {
   width: 100%;
 }
 
-#logo img {
-  max-width: 70%;
-}
-
 .header-search {
   width: 55%;
 }
 
 #search {
   width: 100%;
-}
-
-#search .btn {
-  position: absolute;
-  z-index: 3;
-  transition: all ease-in 0.2s;
-  text-align: center;
 }
 
 #search button .fa {
@@ -733,13 +714,6 @@ header > .container > .row > .col-sm-5 {
 .form-control::placeholder {
   color: var(--text-color);
   opacity: 0.5;
-}
-
-#search .form-control {
-  line-height: 20px;
-  font-size: 15px;
-  transition: all ease-in 0.2s;
-  background-color: var(--search-bg);
 }
 
 .table-striped > tbody > tr:nth-of-type(2n + 1) {
@@ -761,22 +735,6 @@ header > .container > .row > .col-sm-5 {
 
 #cart {
   text-align: right;
-}
-
-#cart > .btn {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 18px;
-  width: auto;
-  float: none;
-  display: inline-block;
-  text-transform: none;
-  color: var(--text-color);
-}
-
-#cart > .btn:hover, #cart > .btn:focus {
-  transform: none;
-  color: var(--text-color-alt);
 }
 
 #cart .dropdown-menu {
@@ -955,28 +913,6 @@ header + .container {
   z-index: 1000;
 }
 
-#menu {
-  background-color: var(--main-color);
-  width: auto;
-  margin-bottom: 15px;
-  border: none;
-}
-
-#menu .nav > li > a {
-  color: var(--nav-text-color);
-  background-color: transparent;
-  position: relative;
-}
-
-#menu .nav > li > a:hover, #menu .nav > li.open > a {
-  color: var(--text-color);
-  background-color: var(--nav-text-color);
-}
-
-#menu .dropdown-menu {
-  min-width: 260px;
-}
-
 #menu .dropdown-inner {
   display: table;
 }
@@ -987,24 +923,6 @@ header + .container {
 
 #menu .dropdown-inner li {
   min-width: 200px;
-}
-
-#menu .dropdown-inner li a {
-  line-height: 20px;
-  color: var(--text-color);
-  font-size: 15px;
-}
-
-#menu .dropdown-inner li a:hover, #menu .dropdown-inner li a:focus {
-  color: var(--main-color);
-}
-
-#menu .see-all {
-  display: inline-block;
-  font-size: 15px;
-  color: var(--main-color);
-  white-space: nowrap;
-  position: relative;
 }
 
 #menu .see-all:hover, #menu .see-all:focus {
@@ -1532,35 +1450,6 @@ html[dir="rtl"] .breadcrumb > li::after {
    ==========================================================================
  */
 
-.pagination {
-  margin: 20px 0 0;
-  border-radius: 0;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.pagination > li > a, .pagination > li > span {
-  transition: all ease-in 0.2s;
-  text-align: center;
-  margin-right: 5px;
-  background-color: transparent;
-}
-
-.pagination > .active > a, .pagination > .active > a:focus, .pagination > .active > a:hover,
-.pagination > .active > span, .pagination > .active > span:focus, .pagination > .active > span:hover {
-  background-color: var(--main-color);
-}
-
-.pagination > li > a:focus, .pagination > li > a:hover, .pagination > li > span:focus, .pagination > li > span:hover {
-  background-color: var(--btn-default-bg-hover);
-  color: var(--text-color-alt);
-}
-
-.pagination > li:first-child > a, .pagination > li:first-child > span,
-.pagination > li:last-child > a, .pagination > li:last-child > span {
-  border-radius: 0;
-}
-
 .display-control {
   margin-bottom: 30px;
 }
@@ -1569,37 +1458,6 @@ html[dir="rtl"] .breadcrumb > li::after {
    LIST-GROUP / ПАНЕЛИ
    ==========================================================================
  */
-
-.list-group {
-  position: relative;
-  background-color: var(--main-color);
-  margin-bottom: 20px;
-  box-shadow: rgba(0, 0, 0, .1) 0 0 10px;
-}
-
-a.list-group-item {
-  transition: all ease-in 0.2s;
-  position: relative;
-}
-
-.list-group-item:last-child {
-  border-radius: 0;
-}
-
-.list-group a.active, .list-group a.active:hover, .list-group a.active:focus {
-  font-weight: 600;
-}
-
-.list-group-item:first-child {
-  border-radius: 0;
-}
-
-.well {
-  box-shadow: none;
-  background-color: transparent;
-  border-color: var(--border-color);
-  border-radius: 0;
-}
 
 .well h2 {
   margin: 0 0 10px;
@@ -1687,15 +1545,6 @@ a.list-group-item {
   margin-bottom: 20px;
 }
 
-.product-list .product-thumb .caption {
-  min-height: unset;
-}
-
-.product-thumb .image a {
-  position: relative;
-  display: block;
-}
-
 .product-grid .product-thumb .image {
   float: none;
 }
@@ -1714,36 +1563,8 @@ a.list-group-item {
   padding: 0 20px 0 0;
 }
 
-.product-list .product-thumb .caption {
-  padding: 0;
-}
-
-.product-list .product-thumb .caption h4 {
-  margin-top: 20px;
-}
-
-.product-list .product-thumb .button-group {
-  padding: 0 0 20px;
-}
-
-.product-thumb h4 {
-  line-height: 1.4;
-}
-
-.product-thumb h4 a {
-  color: var(--text-color);
-  position: relative;
-  display: inline-block;
-  font-weight: 700;
-}
-
 .product-thumb h4 a:hover {
   color: var(--text-color-alt);
-}
-
-.product-thumb p {
-  font-size: 15px;
-  font-weight: 400;
 }
 
 .rating p {
@@ -1813,34 +1634,6 @@ h2.price {
   color: var(--price-new-color);
 }
 
-.product-thumb .button-group {
-  display: inline-block;
-  width: 100%;
-}
-
-.product-thumb .button-group button {
-  transition: all ease-in 0.2s;
-  background: none;
-  border: none;
-}
-
-.product-thumb .button-group button:first-child {
-  background-color: var(--main-color);
-  font-family: var(--font-alt);
-  color: #fff;
-  float: right;
-  margin: 0;
-  padding: 8px 12px;
-  font-size: 13px;
-  font-weight: 500;
-  text-transform: uppercase;
-  transition: all ease-in 0.25s;
-  position: relative;
-  overflow: hidden;
-  width: 50%;
-  height: 40px;
-}
-
 .product-thumb .button-group button:first-child span {
   display: block;
   position: absolute;
@@ -1876,13 +1669,6 @@ h2.price {
 
 .product-thumb .button-group button:first-child:hover .fa {
   transform: translateY(-29px) translateZ(0);
-}
-
-.product-thumb .button-group button + button {
-  width: auto;
-  float: left;
-  margin: 0 30px 0 0;
-  color: var(--text-color);
 }
 
 .product-thumb .button-group button:hover {
@@ -2055,34 +1841,6 @@ body .mfp-counter {
    ТАБЫ
    ==========================================================================
  */
-
-.nav-tabs {
-  border-top: solid 1px var(--border-color);
-  border-bottom: none;
-}
-
-.nav-tabs > li {
-  font-weight: 600;
-}
-
-.nav-tabs li, .nav-tabs li a {
-  color: var(--text-color-alt);
-  background: none;
-}
-
-.nav-tabs li a {
-  border-top: solid 3px transparent;
-  margin: 0;
-}
-
-.nav-tabs li a:hover, .nav-tabs li a:focus {
-  background-color: transparent;
-  border-top: solid 3px transparent;
-}
-
-.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
-  border-top: solid 3px var(--main-color);
-}
 
 .tab-content {
   margin-bottom: 30px;
@@ -2278,31 +2036,8 @@ body .bootstrap-datetimepicker-widget td span {
   display: none;
 }
 
-.panel {
-  box-shadow: none;
-}
-
-.panel > .panel-heading {
-  background-color: var(--bg-color-alt);
-  border: none;
-}
-
-.panel-group .panel, .panel-heading {
-  box-shadow: none;
-  border-radius: 0;
-}
-
 .panel-default > .panel-heading + .panel-collapse > .panel-body {
   border-top-color: var(--border-color);
-}
-
-.panel-heading {
-  padding: 15px;
-}
-
-.panel-title > a {
-  display: inline-block;
-  width: 100%;
 }
 
 .panel-title > a:hover {
@@ -4396,8 +4131,9 @@ header {
 }
 
 #logo img {
-  max-height: 54px;
   width: auto;
+  max-width: 70%;
+  max-height: 54px;
 }
 
 #search .form-control {
@@ -4407,6 +4143,9 @@ header {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xs);
+  font-size: 15px;
+  line-height: 20px;
+  transition: all ease-in 0.2s;
 }
 
 #search .form-control:hover {
@@ -4419,13 +4158,17 @@ header {
 }
 
 #search .btn {
+  position: absolute;
   top: 3px;
   right: 3px;
+  z-index: 3;
   width: 44px;
   height: 44px;
   padding: 0;
   border-radius: 10px;
   background: transparent;
+  text-align: center;
+  transition: all ease-in 0.2s;
 }
 
 #search .btn:hover, #search .btn:focus {
@@ -4434,17 +4177,27 @@ header {
 }
 
 #cart > .btn {
+  display: inline-block;
+  float: none;
+  width: auto;
   min-height: 46px;
   padding: 10px 14px;
+  color: var(--text-color);
+  background: var(--surface-color);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  background: var(--surface-color);
   box-shadow: var(--shadow-xs);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  text-transform: none;
 }
 
 #cart > .btn:hover, #cart > .btn:focus {
-  border-color: var(--border-color-strong);
+  color: var(--text-color-alt);
   background: var(--surface-muted);
+  border-color: var(--border-color-strong);
+  transform: none;
 }
 
 #cart .dropdown-menu {
@@ -4476,17 +4229,22 @@ header + .container {
 }
 
 #menu {
+  width: auto;
   max-width: 1400px;
   min-height: 52px;
   margin: 14px auto 26px;
-  border-radius: var(--radius-md);
   background: var(--main-color);
+  border: none;
+  border-radius: var(--radius-md);
   box-shadow: 0 7px 20px rgba(18, 70, 171, 0.18);
 }
 
 #menu .nav > li > a {
+  position: relative;
   min-height: 52px;
-  padding: 16px 16px;
+  padding: 16px;
+  color: var(--nav-text-color);
+  background: transparent;
   border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 700;
@@ -4503,6 +4261,7 @@ header + .container {
 
 #menu .dropdown-menu {
   top: calc(100% - 1px);
+  min-width: 260px;
   margin-top: 0;
   padding: 10px;
   border: 1px solid var(--border-color);
@@ -4517,17 +4276,26 @@ header + .container {
 #menu .dropdown-inner li a {
   display: block;
   padding: 8px 12px;
+  color: var(--text-color);
   border-radius: var(--radius-xs);
+  font-size: 15px;
+  line-height: 20px;
 }
 
 #menu .dropdown-inner li a:hover, #menu .dropdown-inner li a:focus {
+  color: var(--main-color);
   background: var(--surface-muted);
 }
 
 #menu .see-all {
+  position: relative;
+  display: inline-block;
   margin: 8px 0 0;
   padding: 10px 12px;
+  color: var(--main-color);
   border-top: 1px solid var(--border-color);
+  font-size: 15px;
+  white-space: nowrap;
 }
 
 .dropdown-menu {
@@ -4605,6 +4373,8 @@ header + .container {
 
 .panel-group .panel {
   border-color: var(--border-color);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .panel > .panel-heading {
@@ -4613,6 +4383,7 @@ header + .container {
   background: var(--surface-muted);
   border-bottom: 1px solid var(--border-color);
   border-radius: 0;
+  box-shadow: none;
 }
 
 .panel-title {
@@ -4621,6 +4392,8 @@ header + .container {
 }
 
 .panel-title > a {
+  display: inline-block;
+  width: 100%;
   color: var(--text-color);
 }
 
@@ -4633,12 +4406,15 @@ header + .container {
 }
 
 .list-group {
+  position: relative;
   overflow: hidden;
+  margin-bottom: 20px;
   padding: 6px;
   background: var(--surface-color);
 }
 
 a.list-group-item {
+  position: relative;
   margin: 0;
   padding: 11px 14px;
   color: var(--text-color);
@@ -4656,6 +4432,7 @@ a.list-group-item:hover, a.list-group-item:focus {
 .list-group a.active, .list-group a.active:hover, .list-group a.active:focus {
   color: #FFFFFF;
   background: var(--main-color);
+  font-weight: 600;
 }
 
 /* КАРТОЧКИ ТОВАРОВ */
@@ -4680,6 +4457,8 @@ a.list-group-item:hover, a.list-group-item:focus {
 }
 
 .product-thumb .image a {
+  position: relative;
+  display: block;
   margin-bottom: 0;
   padding: 20px;
 }
@@ -4702,15 +4481,22 @@ a.list-group-item:hover, a.list-group-item:focus {
 .product-thumb h4 {
   margin-top: 0;
   margin-bottom: 10px;
+  line-height: 1.4;
 }
 
 .product-thumb h4 a {
+  position: relative;
+  display: inline-block;
+  color: var(--text-color);
   font-size: 16px;
+  font-weight: 700;
   line-height: 1.45;
 }
 
 .product-thumb p {
   color: var(--text-color-alt);
+  font-size: 15px;
+  font-weight: 400;
   line-height: 1.55;
 }
 
@@ -4721,24 +4507,46 @@ a.list-group-item:hover, a.list-group-item:focus {
 }
 
 .product-thumb .button-group {
+  display: inline-block;
+  width: 100%;
   padding: 0 20px 20px;
 }
 
 .product-thumb .button-group button {
+  background: none;
+  border: none;
   border-radius: var(--radius-sm);
+  transition: all ease-in 0.2s;
 }
 
 .product-thumb .button-group button:first-child {
+  position: relative;
+  float: right;
+  overflow: hidden;
+  width: 50%;
+  height: 40px;
   min-height: 40px;
+  margin: 0;
+  padding: 8px 12px;
+  color: #fff;
+  background-color: var(--main-color);
   border-radius: var(--radius-sm);
   box-shadow: 0 4px 12px rgba(18, 70, 171, 0.14);
+  font-family: var(--font-alt);
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  transition: all ease-in 0.25s;
 }
 
 .product-thumb .button-group button + button {
+  float: left;
+  width: auto;
   min-width: 38px;
   min-height: 38px;
-  margin-right: 10px;
+  margin: 0 10px 0 0;
   padding: 8px;
+  color: var(--text-color);
   border-radius: var(--radius-sm);
 }
 
@@ -4763,6 +4571,7 @@ a.list-group-item:hover, a.list-group-item:focus {
 }
 
 .product-list .product-thumb .caption, #blog-latest .product-list .blog-article-card .caption, #blog-category .product-list .blog-article-card .caption {
+  min-height: unset;
   padding: 22px 22px 12px;
 }
 
@@ -4843,10 +4652,14 @@ a.list-group-item:hover, a.list-group-item:focus {
   float: none;
   margin: 0;
   font-size: 14px;
+  font-weight: 600;
 }
 
 .nav-tabs li a {
+  margin: 0;
   padding: 10px 14px;
+  color: var(--text-color-alt);
+  background: none;
   border: none;
   border-radius: var(--radius-sm);
 }
@@ -4872,6 +4685,8 @@ a.list-group-item:hover, a.list-group-item:focus {
 
 .table {
   background: var(--surface-color);
+  border-collapse: inherit;
+  font-size: 15px;
 }
 
 .table > thead > tr > td, .table > thead > tr > th {
@@ -4962,7 +4777,9 @@ a.list-group-item:hover, a.list-group-item:focus {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 22px;
+  margin: 22px 0 0;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .pagination > li {
@@ -4981,6 +4798,7 @@ a.list-group-item:hover, a.list-group-item:focus {
   background: var(--surface-color);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
+  transition: all ease-in 0.2s;
 }
 
 .pagination > li > a:hover, .pagination > li > a:focus, .pagination > li > span:hover, .pagination > li > span:focus {
