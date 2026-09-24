@@ -34,6 +34,9 @@ class ControllerCommonHeader extends Controller {
 		$data['robots'] = $this->document->getRobots();
 		$data['styles'] = $this->document->getStyles();
 
+		$stylesheet_file = DIR_APPLICATION . 'view/theme/default/stylesheet/stylesheet.css';
+		$data['stylesheet_version'] = is_file($stylesheet_file) ? (string)filemtime($stylesheet_file) : '';
+
 		$data['scripts'] = $this->document->getScripts('header');
 		$data['lang'] = $this->language->get('code');
 		$data['direction'] = $this->language->get('direction');
