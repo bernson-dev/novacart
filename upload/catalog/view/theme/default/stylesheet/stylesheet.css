@@ -3033,7 +3033,9 @@ body > .container + .container > .row > #content > h2 {
 }
 
 
-/* Blog storefront */
+/* Blog storefront
+   Blog listing cards intentionally reuse the same product-list/product-grid
+   structure and switching logic as catalog product cards. */
 #blog-latest .blog-article-list,
 #blog-category .blog-article-list,
 #blog-article .blog-article-list,
@@ -3044,35 +3046,89 @@ body > .container + .container > .row > #content > h2 {
 
 #blog-latest .blog-article-list > .product-layout,
 #blog-category .blog-article-list > .product-layout,
-#blog-article .blog-article-list > [class*="col-"],
 .blog-article-list > .product-layout {
     display: flex;
 }
 
 #blog-latest .blog-article-card,
-#blog-category .blog-article-card,
-#blog-article .blog-article-card,
-.blog-article-card {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
+#blog-category .blog-article-card {
     width: 100%;
 }
 
-#blog-latest .blog-article-card .caption,
-#blog-category .blog-article-card .caption,
-#blog-article .blog-article-card .caption,
-.blog-article-card .caption {
+#blog-latest .product-grid .blog-article-card,
+#blog-category .product-grid .blog-article-card {
     display: flex;
-    flex-direction: column;
     flex: 1 1 auto;
+    flex-direction: column;
+}
+
+#blog-latest .product-list .blog-article-card,
+#blog-category .product-list .blog-article-card {
+    display: flex;
+    flex-direction: row;
+}
+
+#blog-latest .blog-article-body,
+#blog-category .blog-article-body {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-direction: column;
+}
+
+#blog-latest .product-list .blog-article-card .image + .blog-article-body,
+#blog-category .product-list .blog-article-card .image + .blog-article-body {
+    width: 70%;
+    padding: 0 20px 0 0;
+}
+
+#blog-latest .product-grid .blog-article-card .caption,
+#blog-category .product-grid .blog-article-card .caption {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
+#blog-latest .product-list .blog-article-card .caption,
+#blog-category .product-list .blog-article-card .caption {
+    margin: 0;
+    padding: 0;
+}
+
+#blog-latest .product-list .blog-article-card .caption h4,
+#blog-category .product-list .blog-article-card .caption h4 {
+    margin-top: 20px;
 }
 
 #blog-latest .blog-article-card .button-group,
-#blog-category .blog-article-card .button-group,
-#blog-article .blog-article-card .button-group,
-.blog-article-card .button-group {
+#blog-category .blog-article-card .button-group {
     margin-top: auto;
+}
+
+@media (max-width: 767px) {
+    #blog-latest .product-list .blog-article-card,
+    #blog-category .product-list .blog-article-card {
+        flex-direction: column;
+    }
+
+    #blog-latest .product-list .blog-article-card .image,
+    #blog-category .product-list .blog-article-card .image,
+    #blog-latest .product-list .blog-article-card .image + .blog-article-body,
+    #blog-category .product-list .blog-article-card .image + .blog-article-body {
+        width: 100%;
+        padding-right: 0;
+        padding-left: 0;
+    }
+
+    #blog-latest .product-list .blog-article-card .caption,
+    #blog-category .product-list .blog-article-card .caption {
+        padding: 0 20px 10px;
+    }
+
+    #blog-latest .product-list .blog-article-card .button-group,
+    #blog-category .product-list .blog-article-card .button-group {
+        padding: 0 20px 20px;
+    }
 }
 
 /* The theme globally replaces .fa-eye with the order/list SVG.
