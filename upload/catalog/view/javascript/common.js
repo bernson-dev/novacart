@@ -537,6 +537,10 @@ var compare = {
 					$('#content').parent().before('<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
 
 					$('#compare-total').html(json['total']);
+					$('#compare-total-top')
+						.attr('title', json['total'])
+						.find('.top-link-label')
+						.text(json['total']);
 
 					$('html, body').animate({ scrollTop: 0 }, 'slow');
 				}
