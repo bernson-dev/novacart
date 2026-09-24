@@ -3618,10 +3618,15 @@ html[dir="rtl"] #cart .dropdown-menu {
   line-height: 1.35;
 }
 
-.btn.stock-cart-in-cart, .btn.stock-cart-in-cart:hover, .btn.stock-cart-in-cart:focus {
+.btn.stock-cart-in-cart,
+.btn.stock-cart-in-cart:hover,
+.btn.stock-cart-in-cart:focus,
+.product-thumb .button-group button.stock-cart-button.stock-cart-in-cart,
+.product-thumb .button-group button.stock-cart-button.stock-cart-in-cart:hover,
+.product-thumb .button-group button.stock-cart-button.stock-cart-in-cart:focus {
+  color: #fff;
   background-color: #5cb85c;
   border-color: #4cae4c;
-  color: #fff;
 }
 
 @media (prefers-reduced-motion: reduce) {
