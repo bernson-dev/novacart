@@ -31,7 +31,7 @@
                         {% endif %}
                     </ul>
                     {% endif %}
-                    <ul class="nav nav-tabs">
+                    <ul class="nav nav-tabs product-tabs">
                         <li class="active"><a href="#tab-description" data-toggle="tab">{{ tab_description }}</a></li>
                         {% if attribute_groups %}
                         <li><a href="#tab-specification" data-toggle="tab">{{ tab_attribute }}</a></li>
@@ -40,7 +40,7 @@
                         <li><a href="#tab-review" data-toggle="tab">{{ tab_review }}</a></li>
                         {% endif %}
                     </ul>
-                    <div class="tab-content">
+                    <div class="tab-content product-tab-content">
                         <div class="tab-pane active" id="tab-description">{{ description }}</div>
                         {% if attribute_groups %}
                         <div class="tab-pane" id="tab-specification">
@@ -120,7 +120,7 @@
                 {% else %}
                 {% set class = 'col-sm-4' %}
                 {% endif %}
-                <div class="sticky {{ class }}">
+                <div class="sticky product-summary-column {{ class }}">
                     <div class="btn-group">
                         <button type="button" data-toggle="tooltip" class="btn btn-default" title="{{ button_wishlist }}" onclick="wishlist.add('{{ product_id }}');">
                             <i class="fa fa-heart"></i></button>
@@ -305,8 +305,8 @@
                             <div id="stock-purchase-message" class="help-block stock-purchase-message"{% if stock_preorder_allowed %}>{{ text_stock_preorder_allowed }}{% else %} style="display:none;">{% endif %}</div>
                         </div>
                         {% if minimum > 1 %}
-                        <div class="alert alert-info">
-                            <i class="fa fa-info-circle"></i> {{ text_minimum }}</div>
+                        <div class="alert alert-info product-minimum-alert">
+                            <i class="fa fa-info-circle"></i> <span>{{ text_minimum }}</span></div>
                         {% endif %}</div>
                     {% if review_status %}
                     <div class="rating">
