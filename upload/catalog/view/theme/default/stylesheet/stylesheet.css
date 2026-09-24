@@ -6572,3 +6572,30 @@ body.product-sticky-buy-active {
         transition: none;
     }
 }
+
+
+/* Sticky buy bar follows the actual product content width. */
+#product-product .product-sticky-buy {
+    right: auto;
+}
+
+#product-product .product-sticky-buy-container {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding-right: 0;
+    padding-left: 0;
+}
+
+@media (max-width: 767px) {
+    #product-product .product-sticky-buy {
+        left: 0 !important;
+        width: 100% !important;
+    }
+
+    #product-product .product-sticky-buy-container {
+        width: 100%;
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+}
