@@ -335,7 +335,7 @@
 
             {% if stock_can_buy or stock_button_mode != 'hide' %}
             <div id="product-sticky-buy" class="product-sticky-buy" aria-hidden="true">
-                <div class="container product-sticky-buy-container">
+                <div class="product-sticky-buy-container">
                     <div class="product-sticky-buy-panel">
                         <div class="product-sticky-buy-info">
                             <strong class="product-sticky-buy-title">{{ heading_title }}</strong>
@@ -724,12 +724,26 @@
         var stickyButton = document.getElementById('button-cart-sticky');
         var originalQuantity = document.getElementById('input-quantity');
         var stickyQuantity = document.getElementById('sticky-input-quantity');
+        var productContent = document.querySelector('#product-product #content');
 
         if (!originalButton || !stickyBar || !stickyButton || !originalQuantity || !stickyQuantity) {
             return;
         }
 
         var ticking = false;
+
+        function updateStickyGeometry() {
+            if (!productContent) {
+                stickyBar.style.left = '0';
+                stickyBar.style.width = '100%';
+                return;
+            }
+
+            var contentRect = productContent.getBoundingClientRect();
+
+            stickyBar.style.left = Math.max(0, contentRect.left) + 'px';
+            stickyBar.style.width = Math.max(0, contentRect.width) + 'px';
+        }
 
         function syncStickyButton() {
             stickyButton.className = originalButton.className
@@ -791,7 +805,10 @@
         function requestVisibilityUpdate() {
             if (!ticking) {
                 ticking = true;
-                window.requestAnimationFrame(updateStickyVisibility);
+                window.requestAnimationFrame(function() {
+                    updateStickyGeometry();
+                    updateStickyVisibility();
+                });
             }
         }
 
@@ -829,8 +846,15 @@
         window.addEventListener('scroll', requestVisibilityUpdate, { passive: true });
         window.addEventListener('resize', requestVisibilityUpdate);
 
+        if (window.ResizeObserver && productContent) {
+            new ResizeObserver(function() {
+                updateStickyGeometry();
+            }).observe(productContent);
+        }
+
         syncStickyButton();
         syncQuantityFromOriginal();
+        updateStickyGeometry();
         updateStickyVisibility();
     })();
     </script>
