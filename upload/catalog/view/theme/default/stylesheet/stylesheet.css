@@ -3595,7 +3595,7 @@ body > .container + .container > .row > #content > h2 {
   }
 
   #menu div.dropdown-menu {
-    margin-left: 0 !important;
+    margin-left: 0;
     background-color: var(--bg-color);
     box-shadow: none;
     border: none;
@@ -5101,7 +5101,7 @@ footer hr {
 }
 
 footer p {
-  margin: 0 !important;
+  margin: 0;
   color: #8492A6;
   font-size: 12px;
 }
@@ -5195,7 +5195,7 @@ footer p {
   }
 
   #menu div.dropdown-menu {
-    margin: 0 !important;
+    margin: 0;
     padding: 8px;
     background: var(--surface-muted);
     border-top: 1px solid var(--border-color);
@@ -5626,33 +5626,6 @@ footer p {
   }
 }
 
-.category-refine-row {
-  margin-right: 0;
-  margin-left: 0;
-}
-
-.category-refine-column {
-  padding-right: 12px;
-  padding-left: 12px;
-}
-
-.category-refine-list {
-  margin: 0 0 18px;
-  list-style: none;
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-xs);
-}
-
-.category-refine-list > li > a {
-  display: block;
-  border-radius: var(--radius-xs);
-}
-
-.category-refine-list > li > a:hover, .category-refine-list > li > a:focus {
-  color: var(--main-color);
-}
 
 .catalog-toolbar {
   display: flex;
@@ -5685,7 +5658,7 @@ footer p {
   color: var(--text-color-alt);
   background: transparent;
   border: 0;
-  font-size: 13px !important;
+  font-size: 13px;
 }
 
 .catalog-toolbar .catalog-control .form-control {
@@ -5696,7 +5669,7 @@ footer p {
   color: var(--text-color);
   background-color: #FFFFFF;
   border: 1px solid var(--border-color-strong);
-  border-radius: var(--radius-sm) !important;
+  border-radius: var(--radius-sm);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
@@ -5831,24 +5804,6 @@ footer p {
   background: var(--main-color);
 }
 
-.category-refine-list {
-  padding: 7px;
-}
-
-.category-refine-list > li + li {
-  margin-top: 5px;
-}
-
-.category-refine-list > li > a {
-  padding: 9px 12px;
-  background: var(--surface-muted);
-  border: 1px solid transparent;
-}
-
-.category-refine-list > li > a:hover, .category-refine-list > li > a:focus {
-  background: var(--main-color-soft);
-  border-color: rgba(18, 70, 171, 0.16);
-}
 
 .category-refine-title {
   margin-bottom: 14px;
@@ -5959,31 +5914,6 @@ footer p {
   margin-bottom: 0;
 }
 
-#product-product .product-minimum-alert {
-  min-height: 42px;
-  color: #0F766E;
-  background: #ECFDF5;
-  border: 1px solid #A7F3D0;
-  border-radius: var(--radius-sm);
-  box-shadow: none;
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-@media (min-width: 992px) {
-  #product-product .product-summary-column {
-    position: sticky;
-    top: 16px;
-    align-self: flex-start;
-  }
-}
-
-@media (max-width: 991px) {
-  #product-product .product-summary-column {
-    position: static;
-    top: auto;
-  }
-}
 
 @media (max-width: 767px) {
   #product-product .product-tab-content {
@@ -6037,11 +5967,19 @@ footer p {
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 100% !important;
-  max-width: none !important;
+  width: 100%;
+  max-width: none;
+  min-height: 42px;
   margin: 12px 0 18px;
   padding: 12px 14px;
   box-sizing: border-box;
+  color: #0F766E;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 #product-product .product-minimum-alert .fa {
@@ -6075,15 +6013,12 @@ footer p {
   }
 }
 
-#product-product .product-summary-column {
-  position: static;
-  top: auto;
-}
 
 /* STICKY BUY */
 
 #product-product .product-sticky-buy {
   position: fixed;
+  right: auto;
   bottom: 0;
   left: 0;
   z-index: 1050;
@@ -6102,8 +6037,10 @@ footer p {
 }
 
 #product-product .product-sticky-buy-container {
-  padding-top: 0;
-  padding-bottom: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
 #product-product .product-sticky-buy-panel {
@@ -6242,22 +6179,11 @@ body.product-sticky-buy-active {
   }
 }
 
-#product-product .product-sticky-buy {
-  right: auto;
-}
-
-#product-product .product-sticky-buy-container {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding-right: 0;
-  padding-left: 0;
-}
 
 @media (max-width: 767px) {
   #product-product .product-sticky-buy {
-    left: 0 !important;
-    width: 100% !important;
+    left: 0;
+    width: 100%;
   }
 
   #product-product .product-sticky-buy-container {
