@@ -91,7 +91,7 @@ jobs:
         run: |
           ARCHIVE="novacart-${{ steps.version.outputs.version }}.zip"
 
-          zip -r "$ARCHIVE" upload CHANGELOG.md \
+          zip -r "$ARCHIVE" upload README.md CHANGELOG.md \
             -x '*/.DS_Store' \
             -x '*/Thumbs.db'
 
@@ -105,6 +105,8 @@ jobs:
           ARCHIVE: ${{ steps.archive.outputs.name }}
         run: |
           required_files=(
+            README.md
+            CHANGELOG.md
             upload/system/storage/cache/index.html
             upload/system/storage/logs/index.html
             upload/system/storage/download/index.html
@@ -123,7 +125,7 @@ jobs:
             fi
           done
 
-          echo "Required writable directories are present in the release archive."
+          echo "README, CHANGELOG and required writable directories are present in the release archive."
 
       - name: Publish GitHub Release
         shell: bash
