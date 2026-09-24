@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
 *,*::before,*::after {
     padding: 0;
@@ -24,6 +23,16 @@
     --bg-color-alt: #F8F8F8;
     --dropdown-bg: #fff;
     --rating-color: #EABE12;
+
+    /* Shared interaction and fallback colors. Keep these centralized so
+       Bootstrap components and custom storefront controls use one palette. */
+    --link-hover-color: var(--main-color-alt);
+    --body-border-color: var(--border-color);
+    --border-color-alt: var(--border-color);
+    --btn-color: var(--text-color);
+    --focus-ring-color: rgba(18, 70, 171, 0.28);
+    --radio-hover-color: rgba(94, 171, 18, 0.24);
+    --checkbox-hover-color: rgba(94, 171, 18, 0.24);
 
     --btn-primary-color: #fff;
     --btn-default-color: #333;
@@ -156,7 +165,17 @@ a:hover {
 }
 a,
 button {
-    transition: all ease-in 0.2s;
+    transition: color 0.2s ease-in,
+                background-color 0.2s ease-in,
+                border-color 0.2s ease-in,
+                opacity 0.2s ease-in;
+}
+
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible {
+    outline: 2px solid var(--main-color);
+    outline-offset: 2px;
 }
 p a {
     font-weight: 700;
@@ -192,7 +211,7 @@ hr {
     vertical-align: middle;
 }
 .table-hover > tbody > tr {
-    transition: all ease-in 0.2s;
+    transition: background-color 0.2s ease-in;
 }
 .table-hover > tbody > tr:hover {
     background-color: var(--bg-color-alt);
@@ -236,7 +255,10 @@ input[type="color"].form-control,
     padding: 12px;
     height: 48px;
     box-shadow: none;
-    transition: all ease-in 0.2s;
+    transition: color 0.2s ease-in,
+                background-color 0.2s ease-in,
+                border-color 0.2s ease-in,
+                box-shadow 0.2s ease-in;
     background-color: var(--input-bg);
     border-radius: 0;
     border: solid 1px transparent;
@@ -310,10 +332,14 @@ div.required .control-label:before {
 .has-error .form-control {
     border-color: var(--danger-color);
 }
-.form-control:focus,
+.form-control:focus {
+    box-shadow: 0 0 0 3px var(--focus-ring-color);
+    border-color: var(--main-color);
+}
+
 .has-error .form-control:focus {
     box-shadow: none;
-    border-color: var(--body-border-color);
+    border-color: var(--danger-color);
 }
 .checkbox label,
 .radio label {
@@ -416,13 +442,14 @@ input[type="checkbox"]:focus-visible {
     font-weight: 600;
     text-transform: uppercase;
     border: none;
-    transition: all ease-in 0.2s;
+    transition: color 0.2s ease-in,
+                background-color 0.2s ease-in,
+                border-color 0.2s ease-in,
+                box-shadow 0.2s ease-in,
+                opacity 0.2s ease-in;
     color: var(--btn-primary-color);
     background-color: var(--main-color);
     border-radius: 0;
-}
-.btn:hover,
-.btn:focus {
 }
 .btn.active,
 .btn:active {
@@ -823,8 +850,6 @@ header > .container > .row > .col-sm-5 {
     padding: 0 0 4px;
     text-align: center;
 }
-#search .btn:hover {
-}
 #search button .fa {
     background-image: url('data:image/svg+xml,<svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.75 0C29.0887 0 37.5 8.41116 37.5 18.75C37.5 23.2456 35.9091 27.3762 33.2615 30.6097L48 45.3484L45.3483 48L30.6098 33.2615C27.3761 35.9091 23.2456 37.5 18.75 37.5C8.41125 37.5 0 29.0888 0 18.75C0 8.41116 8.41125 0 18.75 0ZM18.75 33.75C27.0211 33.75 33.75 27.021 33.75 18.75C33.75 10.479 27.0211 3.75 18.75 3.75C10.4789 3.75 3.75 10.479 3.75 18.75C3.75 27.021 10.4789 33.75 18.75 33.75Z" fill="%23767676"/></svg>');
     width: 20px;
@@ -1218,11 +1243,12 @@ header + .container {
     left: 0;
     right: 0;
     z-index: 1001;
-    width: 400px !important;
+    width: calc(100% - 30px) !important;
+    max-width: 450px;
+    min-width: 0;
     line-height: 1.5;
     top: calc(50% - 110px);
     box-shadow: rgba(0, 0, 0, 0.2) 0 0 30px;
-    min-width: 450px;
     animation:signup-response 0.5s 1;
     -webkit-animation:signup-response 0.5s 1;
     animation-fill-mode: forwards;
@@ -1698,9 +1724,6 @@ a.list-group-item:focus {
     text-align: center;
     padding: 1px 0 0;
     margin-top: -25px;
-}
-#content .carousel .swiper-button-next:hover,
-#content .carousel .swiper-button-prev:hover {
 }
 #content .carousel .swiper-button-next:before,
 #content .carousel .swiper-button-prev:before {
@@ -3129,7 +3152,7 @@ body > .container + .container > .row > #content > h2 {
         width: auto;
     }
 }
-@media (max-width: 1600px) {
+@media (max-width: 1599px) {
     header > .container > .row {
         width: 1170px;
         margin: 0 auto;
@@ -3169,7 +3192,7 @@ body > .container + .container > .row > #content > h2 {
         width: 20%;
     }
 }
-@media (max-width: 1200px) {
+@media (max-width: 1199px) {
     #content .carousel {
         width: 960px;
     }
@@ -3250,7 +3273,7 @@ body > .container + .container > .row > #content > h2 {
         width: 71%;
     }
 }
-@media (max-width: 992px) {
+@media (max-width: 991px) {
     header > .container > .row > .col-sm-5 {
         width: 55%;
     }
@@ -3357,7 +3380,7 @@ body > .container + .container > .row > #content > h2 {
         padding: 0 20px;
     }
 }
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     header .row {
         display: block;
     }
@@ -3517,9 +3540,6 @@ body > .container + .container > .row > #content > h2 {
     }
     #collapse-payment-address > .panel-body > .row > .col-sm-6:first-child > fieldset#account + fieldset {
         margin: 0;
-    }
-    .alert {
-        width: 100%;
     }
     .pull-right,
     .pull-left,
@@ -3717,7 +3737,7 @@ body > .container + .container > .row > #content > h2 {
         margin-bottom: 0;
     }
 }
-@media (max-width: 576px) {
+@media (max-width: 575px) {
     #top .pull-left {
         width: 30%;
     }
@@ -3838,11 +3858,57 @@ html[dir="rtl"] #cart .dropdown-menu {
     }
 }
 
-.cookie-notification{position:fixed;bottom:0;left:0;right:0;background:rgba(0 0 0 / .7);color:#fff;padding:15px 0;z-index: 9999}
-.cookie-notification__container{display:flex;justify-content:center;align-items:center}
-.cookie-notification__info{padding:0 30px 0 0}
-.cookie-notification__info a{white-space:nowrap}
-.cookie-notification__btn{height:fit-content}
+.cookie-notification {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 9999;
+    padding: 15px 0;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.78);
+}
+
+.cookie-notification__container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.cookie-notification__info {
+    min-width: 0;
+    padding: 0;
+}
+
+.cookie-notification__info a {
+    color: inherit;
+}
+
+.cookie-notification__btn {
+    flex: 0 0 auto;
+    height: fit-content;
+}
+
+@media (max-width: 767px) {
+    .cookie-notification {
+        padding: 15px;
+    }
+
+    .cookie-notification__container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .cookie-notification__info a {
+        white-space: normal;
+    }
+
+    .cookie-notification__btn {
+        width: 100%;
+    }
+}
 
 
 /* Stock shortage popup */
@@ -3985,4 +4051,16 @@ html[dir="rtl"] #cart .dropdown-menu {
 	background-color: #5cb85c !important;
 	border-color: #4cae4c !important;
 	color: #fff !important;
+}
+
+/* Respect the user's reduced-motion preference without changing normal animations. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
