@@ -6030,3 +6030,115 @@ footer p {
         padding-bottom: 4px;
     }
 }
+
+
+/* Blog secondary action buttons */
+.blog-article-card .button-group button:not(.blog-more) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+    margin: 0 8px 0 0;
+    padding: 0;
+    color: var(--text-color);
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-xs);
+}
+
+.blog-article-card .button-group button:not(.blog-more):hover,
+.blog-article-card .button-group button:not(.blog-more):focus {
+    color: var(--main-color);
+    background: var(--surface-muted);
+    border-color: #CBD5E1;
+    transform: none;
+}
+
+/* Clear visual hierarchy for category side menus */
+.category-menu {
+    padding: 6px;
+}
+
+.category-menu .category-menu-parent,
+.category-menu .category-menu-child {
+    position: relative;
+    margin: 0;
+}
+
+.category-menu .category-menu-parent {
+    font-weight: 600;
+}
+
+.category-menu .category-menu-parent + .category-menu-child {
+    margin-top: 4px;
+}
+
+.category-menu .category-menu-child {
+    margin-left: 10px;
+    padding-left: 22px;
+    color: var(--text-color-alt);
+    background: var(--surface-muted);
+    border-left: 2px solid var(--border-color);
+    border-radius: var(--radius-xs);
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.category-menu .category-menu-child:before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 9px;
+    width: 6px;
+    height: 1px;
+    background: #94A3B8;
+    transform: translateY(-50%);
+}
+
+.category-menu .category-menu-child:hover,
+.category-menu .category-menu-child:focus {
+    color: var(--main-color);
+    background: #EEF4FF;
+    border-left-color: rgba(18, 70, 171, 0.35);
+}
+
+.category-menu .category-menu-child.active,
+.category-menu .category-menu-child.active:hover,
+.category-menu .category-menu-child.active:focus {
+    color: var(--main-color);
+    background: #EAF1FF;
+    border-left-color: var(--main-color);
+    font-weight: 600;
+}
+
+.category-menu .category-menu-parent.active,
+.category-menu .category-menu-parent.active:hover,
+.category-menu .category-menu-parent.active:focus {
+    color: #FFFFFF;
+    background: var(--main-color);
+}
+
+/* Refine-subcategory block: make individual options more distinct. */
+.category-refine-list {
+    padding: 7px;
+}
+
+.category-refine-list > li + li {
+    margin-top: 5px;
+}
+
+.category-refine-list > li > a {
+    padding: 9px 12px;
+    background: var(--surface-muted);
+    border: 1px solid transparent;
+}
+
+.category-refine-list > li > a:hover,
+.category-refine-list > li > a:focus {
+    background: #EEF4FF;
+    border-color: rgba(18, 70, 171, 0.16);
+}
