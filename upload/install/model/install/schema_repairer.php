@@ -80,11 +80,11 @@ class SchemaRepairer {
         $schema_file = DIR_APPLICATION . 'opencart.sql';
 
         if (!is_file($schema_file)) {
-            throw new \\Exception('Could not load schema file: ' . $schema_file);
+            throw new \Exception('Could not load schema file: ' . $schema_file);
         }
 
         if (!is_file($dump_file)) {
-            throw new \\Exception('Could not load dump file: ' . $dump_file);
+            throw new \Exception('Could not load dump file: ' . $dump_file);
         }
 
         $schema_real = realpath($schema_file);
@@ -99,22 +99,22 @@ class SchemaRepairer {
         $dump_sql = file_get_contents($dump_file);
 
         if ($schema_sql === false || trim($schema_sql) === '') {
-            throw new \\Exception('Schema file is empty: ' . $schema_file);
+            throw new \Exception('Schema file is empty: ' . $schema_file);
         }
 
         if ($dump_sql === false || trim($dump_sql) === '') {
-            throw new \\Exception('Dump file is empty: ' . $dump_file);
+            throw new \Exception('Dump file is empty: ' . $dump_file);
         }
 
         $schema_tables = $this->parseCreateTables($this->cleanSqlComments($schema_sql));
         $dump_tables = $this->parseCreateTables($this->cleanSqlComments($dump_sql));
 
         if (!$schema_tables) {
-            throw new \\Exception('No CREATE TABLE statements found in schema file: ' . $schema_file);
+            throw new \Exception('No CREATE TABLE statements found in schema file: ' . $schema_file);
         }
 
         if (!$dump_tables) {
-            throw new \\Exception('No compatible CREATE TABLE statements found in dump file: ' . $dump_file);
+            throw new \Exception('No compatible CREATE TABLE statements found in dump file: ' . $dump_file);
         }
 
         foreach ($schema_tables as $table_name => $schema_table) {
