@@ -1972,7 +1972,15 @@ h2.price {
 .product-thumb .button-group button:hover {
     text-decoration: none;
     cursor: pointer;
-    color: var(--text-color-alt);
+}
+
+.product-thumb .button-group button:first-child:hover {
+    color: #fff;
+}
+
+.product-thumb .button-group button + button:hover,
+.product-thumb .button-group button + button:focus {
+    color: var(--main-color);
 }
 #content .swiper-viewport {
     box-shadow: none;
