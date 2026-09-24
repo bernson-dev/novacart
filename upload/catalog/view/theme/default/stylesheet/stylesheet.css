@@ -3532,10 +3532,6 @@ body > .container + .container > .row > #content > h2 {
     margin: 0 0 20px 0;
   }
 
-  .product-layout {
-    padding: 0;
-  }
-
   #product-category #content h3 + .row + .row, #product-search #content h2 + .row, #product-search #content h2 + .row + .row {
     margin-bottom: 20px;
   }
@@ -6286,4 +6282,28 @@ body.route-product-product header + .container {
   position: static;
   top: auto;
   z-index: auto;
+}
+
+
+/* Shared catalog/blog result grid gutters */
+.catalog-results-row {
+    margin-right: -10px;
+    margin-left: -10px;
+}
+
+.catalog-results-row > .product-layout {
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+@media (max-width: 767px) {
+    .catalog-results-row {
+        margin-right: -8px;
+        margin-left: -8px;
+    }
+
+    .catalog-results-row > .product-layout {
+        padding-right: 8px;
+        padding-left: 8px;
+    }
 }
