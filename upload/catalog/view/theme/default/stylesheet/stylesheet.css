@@ -6142,3 +6142,10 @@ footer p {
     background: #EEF4FF;
     border-color: rgba(18, 70, 171, 0.16);
 }
+
+
+/* Blog listing spacing: keep a clear gap between controls and article cards. */
+#blog-latest .catalog-toolbar,
+#blog-category .catalog-toolbar {
+    margin-bottom: 20px;
+}
