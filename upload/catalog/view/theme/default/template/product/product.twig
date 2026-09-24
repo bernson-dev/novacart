@@ -777,7 +777,7 @@
         var ticking = false;
 
         function updateStickyGeometry() {
-            if (!productContent) {
+            if (window.matchMedia('(max-width: 767px)').matches || !productContent) {
                 stickyBar.style.left = '0';
                 stickyBar.style.width = '100%';
                 return;
