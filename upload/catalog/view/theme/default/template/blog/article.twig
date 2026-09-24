@@ -160,7 +160,7 @@
                                 </p>
                                 {% endif %}
                             </div>
-                            <div class="button-group">
+                            <div class="blog-card-actions">
                                 {% if product.can_buy %}
                                 <button type="button" class="stock-cart-button" data-product-id="{{ product.product_id }}" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');">
                                     <i class="fa {{ product.in_cart ? 'fa-check' : 'fa-shopping-cart' }}"></i> <span class="hidden-xs hidden-sm hidden-md">{{ product.in_cart ? product.cart_button_text : (product.button_text ?: button_cart) }}</span></button>
@@ -209,7 +209,7 @@
                                 </div>
                                 {% endif %}
                                 </div>
-                                <div class="button-group">
+                                <div class="blog-card-actions">
                                 <button type="button" class="blog-more" onclick="location='{{ article.href }}'">
                                     <i class="fa fa-arrow-right"></i> <span class="hidden-xs hidden-sm hidden-md">{{ button_more }}</span></button>
                                 <span class="blog-meta-item blog-meta-date" title="{{ article.date_added }}">
