@@ -5035,6 +5035,35 @@ a.list-group-item:focus {
     text-overflow: ellipsis;
 }
 
+
+/* The article action owns its icon. Hide any legacy nested Font Awesome icon
+ * that may still be present in a cached OCMOD Twig copy. */
+.blog-article-card .blog-more > .fa {
+    display: none !important;
+}
+
+/* Featured/recommended module:
+ * - main content: visible date/views metadata;
+ * - side columns: compact icon actions.
+ */
+.blog-card--featured .blog-card-meta {
+    display: flex;
+}
+
+.blog-card--featured .blog-meta-action {
+    display: none;
+}
+
+#column-left .blog-card--featured .blog-card-meta,
+#column-right .blog-card--featured .blog-card-meta {
+    display: none;
+}
+
+#column-left .blog-card--featured .blog-meta-action,
+#column-right .blog-card--featured .blog-meta-action {
+    display: inline-flex;
+}
+
 .blog-article-card .blog-meta-action {
     flex: 0 0 42px;
     width: 42px;
@@ -5187,8 +5216,9 @@ a.list-group-item:focus {
 
 #blog-category .blog-article-list > .product-grid .blog-more,
 #blog-latest .blog-article-list > .product-grid .blog-more {
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 12px;
 }
 
 /* Related articles inside an article remain a dedicated list layout and keep
@@ -5268,6 +5298,21 @@ a.list-group-item:focus {
 
 .blog-card--featured .blog-card-actions--featured .blog-more {
     width: 100%;
+}
+
+/* Main-content recommendation keeps metadata above a full-width button. */
+#content .blog-card--featured .blog-card-actions--featured {
+    display: block;
+}
+
+#content .blog-card--featured .blog-card-actions--featured .blog-more {
+    width: 100%;
+}
+
+/* Sidebar recommendation returns to the compact action row. */
+#column-left .blog-card--featured .blog-card-actions--featured,
+#column-right .blog-card--featured .blog-card-actions--featured {
+    display: flex;
 }
 
 /* Side-column blog modules use the same vertical card style but a tighter
