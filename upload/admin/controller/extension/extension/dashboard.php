@@ -84,11 +84,12 @@ class ControllerExtensionExtensionDashboard extends Controller {
 		if ($files) {
 			foreach ($files as $file) {
 				$extension = basename($file, '.php');
+				$installed = in_array($extension, $extensions, true);
 				
 				if ($this->user->hasPermission('access', 'extension/dashboard/' . $extension)) {
 					// Compatibility code for old extension folders
 					$this->load->language('extension/dashboard/' . $extension, 'extension');
-					$enabled = (bool)$this->config->get('dashboard_' . $extension . '_status');
+					$enabled = $installed && (bool)$this->config->get('dashboard_' . $extension . '_status');
 
 					$data['extensions'][] = array(
 						'name'       => $this->language->get('extension')->get('heading_title'),
@@ -98,7 +99,7 @@ class ControllerExtensionExtensionDashboard extends Controller {
 						'sort_order' => $this->config->get('dashboard_' . $extension . '_sort_order'),
 						'install'    => $this->url->link('extension/extension/dashboard/install', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
 						'uninstall'  => $this->url->link('extension/extension/dashboard/uninstall', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
-						'installed'  => in_array($extension, $extensions),
+						'installed' => $installed,
 						'edit'       => $this->url->link('extension/dashboard/' . $extension, 'user_token=' . $this->session->data['user_token'], true)
 					);
 				}
