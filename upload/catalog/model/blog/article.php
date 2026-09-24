@@ -102,7 +102,10 @@ class ModelBlogArticle extends Model {
 			$customer_group_id = $this->config->get('config_customer_group_id');
 		}
 
-		$cache = 'article.' . (int)$this->config->get('config_language_id') . '.' . (int)$this->config->get('config_store_id') . '.' . (int)$customer_group_id;
+		$cache_data = $data;
+		ksort($cache_data);
+
+		$cache = 'article.' . (int)$this->config->get('config_language_id') . '.' . (int)$this->config->get('config_store_id') . '.' . (int)$customer_group_id . '.' . md5(serialize($cache_data));
 
 		$article_data = $this->cache->get($cache);
 
@@ -383,7 +386,10 @@ class ModelBlogArticle extends Model {
 			$customer_group_id = $this->config->get('config_customer_group_id');
 		}
 
-		$cache = 'article.total.' . (int)$this->config->get('config_language_id') . '.' . (int)$this->config->get('config_store_id') . '.' . (int)$customer_group_id;
+		$cache_data = $data;
+		ksort($cache_data);
+
+		$cache = 'article.total.' . (int)$this->config->get('config_language_id') . '.' . (int)$this->config->get('config_store_id') . '.' . (int)$customer_group_id . '.' . md5(serialize($cache_data));
 		$article_data = $this->cache->get($cache);
 
 		if ($article_data === false || $article_data === null) {
