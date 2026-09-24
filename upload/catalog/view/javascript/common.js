@@ -154,7 +154,11 @@ $(document).ready(function() {
 		} else if (cols == 1) {
 			$('#content .product-list').attr('class', 'product-layout product-grid col-lg-4 col-md-4 col-sm-6 col-xs-12');
 		} else {
-			$('#content .product-list').attr('class', 'product-layout product-grid col-lg-3 col-md-3 col-sm-6 col-xs-12');
+			var gridClass = $('#content .product-list').first().closest('#blog-latest, #blog-category').length
+				? 'product-layout product-grid col-lg-4 col-md-4 col-sm-6 col-xs-12'
+				: 'product-layout product-grid col-lg-3 col-md-3 col-sm-6 col-xs-12';
+
+			$('#content .product-list').attr('class', gridClass);
 		}
 
 		$('#list-view').removeClass('active');
