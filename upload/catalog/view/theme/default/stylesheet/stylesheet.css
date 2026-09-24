@@ -4564,7 +4564,8 @@ header + .container {
 }
 
 #menu .dropdown-menu {
-    margin-top: 6px;
+    top: calc(100% - 1px);
+    margin-top: 0;
     padding: 10px;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -4602,7 +4603,8 @@ header + .container {
 #top-links .dropdown-menu > li > a,
 #top-links .dropdown-menu > button.btn-link,
 #form-language .dropdown-menu > li > button.btn-link,
-#form-currency .dropdown-menu > li > button.btn-link {
+#form-currency .dropdown-menu > li > button.btn-link,
+#form-blog .dropdown-menu > li > a {
     border-radius: var(--radius-xs);
 }
 
@@ -5659,5 +5661,89 @@ footer p {
 
     #blog-article .blog-article-card .rating {
         margin-top: 0;
+    }
+}
+
+
+/* Unified compact dropdowns in the top utility bar */
+#form-language .dropdown-menu,
+#form-currency .dropdown-menu,
+#form-blog .dropdown-menu {
+    min-width: 158px;
+    padding: 6px;
+}
+
+#form-language .dropdown-menu > li,
+#form-currency .dropdown-menu > li,
+#form-blog .dropdown-menu > li {
+    margin: 0;
+    padding: 0;
+}
+
+#form-language .dropdown-menu > li > button.btn-link,
+#form-currency .dropdown-menu > li > button.btn-link,
+#form-blog .dropdown-menu > li > a {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 32px;
+    margin: 0;
+    padding: 6px 10px;
+    color: var(--text-color-alt);
+    border: 0;
+    border-radius: var(--radius-xs);
+    background: transparent;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 20px;
+    text-align: left;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+#form-language .dropdown-menu > li > button.btn-link:hover,
+#form-language .dropdown-menu > li > button.btn-link:focus,
+#form-currency .dropdown-menu > li > button.btn-link:hover,
+#form-currency .dropdown-menu > li > button.btn-link:focus,
+#form-blog .dropdown-menu > li > a:hover,
+#form-blog .dropdown-menu > li > a:focus {
+    color: var(--main-color);
+    background: var(--surface-muted);
+    text-decoration: none;
+}
+
+#form-language .dropdown-menu img {
+    flex: 0 0 auto;
+    margin-right: 7px;
+}
+
+#form-blog .dropdown-menu > li > a .fa-angle-right {
+    width: 12px;
+    margin-right: 3px;
+    color: #94A3B8;
+    text-align: center;
+}
+
+#form-blog .dropdown-menu > li > a.see-all {
+    margin-top: 4px;
+    padding-top: 7px;
+    border-top: 1px solid var(--border-color);
+    color: var(--main-color);
+    font-weight: 600;
+}
+
+/* Desktop hover menus must have a continuous pointer path from trigger to dropdown. */
+@media (min-width: 768px) {
+    #menu .nav > li.dropdown {
+        position: relative;
+    }
+
+    #menu .nav > li.dropdown > .dropdown-menu {
+        top: calc(100% - 1px);
+        margin-top: 0;
+    }
+
+    #menu .nav > li.dropdown:hover > .dropdown-menu {
+        display: block;
     }
 }
