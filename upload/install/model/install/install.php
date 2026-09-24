@@ -139,7 +139,7 @@ class ModelInstallInstall extends Model {
 
 		// Опциональное восстановление структуры после импорта дампа.
 		// Нужно для старых/неполных дампов: добавляет отсутствующие таблицы, колонки и индексы.
-		if (!empty($data['repair_schema'])) {
+		if (!empty($data['repair_schema']) && basename((string)$data['sql_dump']) !== 'opencart.sql') {
 			$repairer = new SchemaRepairer();
 			$repairer->repairSchemaFromFile($db, $data['db_prefix']);
 		}
