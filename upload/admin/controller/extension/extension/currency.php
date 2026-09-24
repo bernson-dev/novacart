@@ -86,9 +86,10 @@ class ControllerExtensionExtensionCurrency extends Controller {
 		if ($files) {
 			foreach ($files as $file) {
 				$extension = basename($file, '.php');
+				$installed = in_array($extension, $extensions, true);
 
 				$this->load->language('extension/currency/' . $extension, 'extension');
-				$enabled = (bool)$this->config->get('currency_' . $extension . '_status');
+				$enabled = $installed && (bool)$this->config->get('currency_' . $extension . '_status');
 
 				$data['extensions'][] = array(
 					'name'      => $this->language->get('extension')->get('heading_title'),
@@ -96,7 +97,7 @@ class ControllerExtensionExtensionCurrency extends Controller {
 					'enabled'   => $enabled, // логическое значение для сортировки
 					'install'   => $this->url->link('extension/extension/currency/install', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
 					'uninstall' => $this->url->link('extension/extension/currency/uninstall', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
-					'installed' => in_array($extension, $extensions),
+					'installed' => $installed,
 					'edit'      => $this->url->link('extension/currency/' . $extension, 'user_token=' . $this->session->data['user_token'], true)
 				);
 			}

@@ -86,9 +86,10 @@ class ControllerExtensionExtensionTotal extends Controller {
 		if ($files) {
 			foreach ($files as $file) {
 				$extension = basename($file, '.php');
+				$installed = in_array($extension, $extensions, true);
 
 				$this->load->language('extension/total/' . $extension, 'extension');
-				$enabled = (bool)$this->config->get('total_' . $extension . '_status');
+				$enabled = $installed && (bool)$this->config->get('total_' . $extension . '_status');
 
 				$data['extensions'][] = array(
 					'name'       => $this->language->get('extension')->get('heading_title'),
@@ -97,7 +98,7 @@ class ControllerExtensionExtensionTotal extends Controller {
 					'sort_order' => $this->config->get('total_' . $extension . '_sort_order'),
 					'install'    => $this->url->link('extension/extension/total/install', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
 					'uninstall'  => $this->url->link('extension/extension/total/uninstall', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
-					'installed'  => in_array($extension, $extensions),
+					'installed' => $installed,
 					'edit'       => $this->url->link('extension/total/' . $extension, 'user_token=' . $this->session->data['user_token'], true)
 				);
 			}

@@ -86,15 +86,16 @@ class ControllerExtensionExtensionMenu extends Controller {
 		if ($files) {
 			foreach ($files as $file) {
 				$extension = basename($file, '.php');
+				$installed = in_array($extension, $extensions, true);
 
 				$this->load->language('extension/menu/' . $extension, 'extension');
 
 				$data['extensions'][] = array(
 					'name'      => $this->language->get('extension')->get('heading_title'),
-					'status'    => $this->config->get('menu_' . $extension . '_status') ? '<span class="label label-success">' . $this->language->get('text_enabled') . '</span>' : '<span class="label label-danger">' . $this->language->get('text_disabled') . '</span>',
+					'status'    => ($installed && $this->config->get('menu_' . $extension . '_status')) ? '<span class="label label-success">' . $this->language->get('text_enabled') . '</span>' : '<span class="label label-danger">' . $this->language->get('text_disabled') . '</span>',
 					'install'   => $this->url->link('extension/extension/menu/install', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
 					'uninstall' => $this->url->link('extension/extension/menu/uninstall', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
-					'installed' => in_array($extension, $extensions),
+					'installed' => $installed,
 					'edit'      => $this->url->link('extension/menu/' . $extension, 'user_token=' . $this->session->data['user_token'], true)
 				);
 			}

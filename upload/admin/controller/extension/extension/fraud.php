@@ -87,15 +87,16 @@ class ControllerExtensionExtensionFraud extends Controller {
 		if ($files) {
 			foreach ($files as $file) {
 				$extension = basename($file, '.php');
+				$installed = in_array($extension, $extensions, true);
 
 				$this->load->language('extension/fraud/' . $extension, 'extension');
 
 				$data['extensions'][] = array(
 					'name'      => $this->language->get('extension')->get('heading_title'),
-					'status'    => $this->config->get('fraud_' . $extension . '_status') ? '<span class="label label-success">' . $this->language->get('text_enabled') . '</span>' : '<span class="label label-danger">' . $this->language->get('text_disabled') . '</span>',
+					'status'    => ($installed && $this->config->get('fraud_' . $extension . '_status')) ? '<span class="label label-success">' . $this->language->get('text_enabled') . '</span>' : '<span class="label label-danger">' . $this->language->get('text_disabled') . '</span>',
 					'install'   => $this->url->link('extension/extension/fraud/install', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
 					'uninstall' => $this->url->link('extension/extension/fraud/uninstall', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
-					'installed' => in_array($extension, $extensions),
+					'installed' => $installed,
 					'edit'      => $this->url->link('extension/fraud/' . $extension, 'user_token=' . $this->session->data['user_token'], true)
 				);
 			}

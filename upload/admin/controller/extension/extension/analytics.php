@@ -94,6 +94,7 @@ class ControllerExtensionExtensionAnalytics extends Controller {
 		if ($files) {
 			foreach ($files as $file) {
 				$extension = basename($file, '.php');
+				$installed = in_array($extension, $extensions, true);
 				
 				// Compatibility code for old extension folders
 				$this->load->language('extension/analytics/' . $extension, 'extension');
@@ -103,14 +104,14 @@ class ControllerExtensionExtensionAnalytics extends Controller {
 				$store_data[] = array(
 					'name'   => $this->config->get('config_name'),
 					'edit'   => $this->url->link('extension/analytics/' . $extension, 'user_token=' . $this->session->data['user_token'] . '&store_id=0', true),
-					'status' => $this->config->get('analytics_' . $extension . '_status') ? '<span class="label label-success">' . $this->language->get('text_enabled') . '</span>' : '<span class="label label-danger">' . $this->language->get('text_disabled') . '</span>'
+					'status' => ($installed && $this->config->get('analytics_' . $extension . '_status')) ? '<span class="label label-success">' . $this->language->get('text_enabled') . '</span>' : '<span class="label label-danger">' . $this->language->get('text_disabled') . '</span>'
 				);
 				
 				foreach ($stores as $store) {
 					$store_data[] = array(
 						'name'   => $store['name'],
 						'edit'   => $this->url->link('extension/analytics/' . $extension, 'user_token=' . $this->session->data['user_token'] . '&store_id=' . $store['store_id'], true),
-						'status' => $this->model_setting_setting->getSettingValue('analytics_' . $extension . '_status', $store['store_id']) ? '<span class="label label-success">' . $this->language->get('text_enabled') . '</span>' : '<span class="label label-danger">' . $this->language->get('text_disabled') . '</span>'
+						'status' => ($installed && $this->model_setting_setting->getSettingValue('analytics_' . $extension . '_status', $store['store_id'])) ? '<span class="label label-success">' . $this->language->get('text_enabled') . '</span>' : '<span class="label label-danger">' . $this->language->get('text_disabled') . '</span>'
 					);
 				}
 
@@ -118,7 +119,7 @@ class ControllerExtensionExtensionAnalytics extends Controller {
 					'name'      => $this->language->get('extension')->get('heading_title'),
 					'install'   => $this->url->link('extension/extension/analytics/install', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
 					'uninstall' => $this->url->link('extension/extension/analytics/uninstall', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
-					'installed' => in_array($extension, $extensions),
+					'installed' => $installed,
 					'store'     => $store_data
 				);
 			}

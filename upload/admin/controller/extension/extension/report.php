@@ -86,17 +86,18 @@ class ControllerExtensionExtensionReport extends Controller {
 		if ($files) {
 			foreach ($files as $file) {
 				$extension = basename($file, '.php');
+				$installed = in_array($extension, $extensions, true);
 
 				if ($this->user->hasPermission('access', 'extension/report/' . $extension)) {
 					$this->load->language('extension/report/' . $extension, 'extension');
 
 					$data['extensions'][] = array(
 						'name'       => $this->language->get('extension')->get('heading_title'),
-						'status'     => $this->config->get('report_' . $extension . '_status') ? '<span class="label label-success">' . $this->language->get('text_enabled') . '</span>' : '<span class="label label-danger">' . $this->language->get('text_disabled') . '</span>',
+						'status'     => ($installed && $this->config->get('report_' . $extension . '_status')) ? '<span class="label label-success">' . $this->language->get('text_enabled') . '</span>' : '<span class="label label-danger">' . $this->language->get('text_disabled') . '</span>',
 						'sort_order' => $this->config->get('report_' . $extension . '_sort_order'),
 						'install'    => $this->url->link('extension/extension/report/install', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
 						'uninstall'  => $this->url->link('extension/extension/report/uninstall', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
-						'installed'  => in_array($extension, $extensions),
+						'installed' => $installed,
 						'edit'       => $this->url->link('extension/report/' . $extension, 'user_token=' . $this->session->data['user_token'], true)
 					);
 				}
