@@ -210,11 +210,13 @@
                                 {% endif %}
                                 </div>
                                 <div class="blog-card-actions">
+                                <div class="blog-card-meta">
+                                    <span class="blog-meta-text blog-meta-text--date">{{ article.date_added }}</span>
+                                    <span class="blog-meta-text blog-meta-text--views">{{ article.viewed }}</span>
+                                </div>
                                 <button type="button" class="blog-more" onclick="location='{{ article.href }}'">
                                     <span class="blog-more-label">{{ button_more }}</span>
                                 </button>
-                                <span class="blog-meta-action blog-meta-action--date" data-toggle="tooltip" title="{{ article.date_added }}" aria-label="{{ article.date_added }}"></span>
-                                <span class="blog-meta-action blog-meta-action--views" data-toggle="tooltip" title="{{ text_views }} {{ article.viewed }}" aria-label="{{ text_views }} {{ article.viewed }}"></span>
                             </div>
                             </div>
                         </div>
