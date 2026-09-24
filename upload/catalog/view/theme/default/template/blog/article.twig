@@ -186,7 +186,7 @@
                     {% set i = 0 %}
                     {% for article in articles %}
                     <div class="product-layout product-list col-xs-12">
-                        <div class="product-thumb transition blog-article-card blog-card--list">
+                        <div class="product-thumb transition blog-article-card blog-card--related">
                             <div class="image">
                                 <a href="{{ article.href }}"><img src="{{ article.thumb }}" alt="{{ article.name }}" title="{{ article.name }}" class="img-responsive" /></a>
                             </div>
@@ -211,14 +211,10 @@
                                 </div>
                                 <div class="blog-card-actions">
                                 <button type="button" class="blog-more" onclick="location='{{ article.href }}'">
-                                    <i class="fa fa-arrow-right"></i><span class="blog-more-label">{{ button_more }}</span>
+                                    <span class="blog-more-label">{{ button_more }}</span>
                                 </button>
-                                <span class="blog-meta-action" data-toggle="tooltip" title="{{ article.date_added }}" aria-label="{{ article.date_added }}">
-                                    <i class="fa fa-clock-o"></i>
-                                </span>
-                                <span class="blog-meta-action" data-toggle="tooltip" title="{{ text_views }} {{ article.viewed }}" aria-label="{{ text_views }} {{ article.viewed }}">
-                                    <i class="fa fa-eye blog-view-icon"></i>
-                                </span>
+                                <span class="blog-meta-action blog-meta-action--date" data-toggle="tooltip" title="{{ article.date_added }}" aria-label="{{ article.date_added }}"></span>
+                                <span class="blog-meta-action blog-meta-action--views" data-toggle="tooltip" title="{{ text_views }} {{ article.viewed }}" aria-label="{{ text_views }} {{ article.viewed }}"></span>
                             </div>
                             </div>
                         </div>
