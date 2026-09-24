@@ -498,8 +498,9 @@ select.form-control {
   gap: 4px;
 }
 
-#top .pull-left, #top .pull-right {
-  float: none;
+
+#top .top-utility-item {
+  flex: 0 0 auto;
   width: auto;
 }
 
@@ -3237,10 +3238,6 @@ body > .container + .container > .row > #content > h2 {
 @media (min-width: 1200px) {
   #content .col-lg-2:nth-child(6n + 1), #content .col-lg-3:nth-child(4n + 1), #content .col-lg-4:nth-child(3n + 1), #content .col-lg-6:nth-child(2n + 1) {
     clear: left;
-  }
-
-  #top .pull-left, #top .pull-right {
-    width: auto;
   }
 }
 
