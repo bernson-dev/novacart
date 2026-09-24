@@ -211,12 +211,15 @@
                                 </div>
                                 <div class="blog-card-actions">
                                 <button type="button" class="blog-more" onclick="location='{{ article.href }}'">
-                                    <i class="fa fa-arrow-right"></i> <span class="hidden-xs hidden-sm hidden-md">{{ button_more }}</span></button>
-                                <span class="blog-meta-item blog-meta-date" title="{{ article.date_added }}">
-                                    <i class="fa fa-clock-o"></i><span>{{ article.date_added }}</span></span>
-                                <span class="blog-meta-item blog-meta-views" title="{{ text_views }} {{ article.viewed }}">
-                                    <i class="fa fa-eye blog-view-icon"></i><span>{{ article.viewed }}</span></span>
-                                </div>
+                                    <i class="fa fa-arrow-right"></i><span class="blog-more-label">{{ button_more }}</span>
+                                </button>
+                                <span class="blog-meta-action" data-toggle="tooltip" title="{{ article.date_added }}" aria-label="{{ article.date_added }}">
+                                    <i class="fa fa-clock-o"></i>
+                                </span>
+                                <span class="blog-meta-action" data-toggle="tooltip" title="{{ text_views }} {{ article.viewed }}" aria-label="{{ text_views }} {{ article.viewed }}">
+                                    <i class="fa fa-eye blog-view-icon"></i>
+                                </span>
+                            </div>
                             </div>
                         </div>
                     </div>
