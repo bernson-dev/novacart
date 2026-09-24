@@ -53,7 +53,7 @@
     {{ analytic }}
     {% endfor %}
 </head>
-<body>
+<body class="route-{{ current_route|replace({'/': '-'}) }}">
 <nav id="top">
     <div class="container">
         {{ currency }}
