@@ -521,6 +521,47 @@
     });
     </script>
     <script type="text/javascript">
+    function scrollToFirstProductError() {
+        var error = $('#product .text-danger:visible').first();
+        var errorBlock;
+        var focusTarget;
+
+        if (error.length) {
+            errorBlock = error.closest('.form-group');
+
+            if (!errorBlock.length) {
+                errorBlock = error;
+            }
+
+            focusTarget = errorBlock
+                .find('select:visible, textarea:visible, input:visible:not([type="hidden"]), button[id^="button-upload"]:visible')
+                .filter(':enabled')
+                .first();
+        } else {
+            var stockMessage = $('#stock-purchase-message:visible');
+
+            if (!stockMessage.length) {
+                return;
+            }
+
+            errorBlock = stockMessage;
+        }
+
+        var targetTop = Math.max(0, errorBlock.offset().top - 24);
+
+        $('html, body').stop(true).animate({
+            scrollTop: targetTop
+        }, 350, function() {
+            if (focusTarget && focusTarget.length) {
+                try {
+                    focusTarget[0].focus({ preventScroll: true });
+                } catch (e) {
+                    focusTarget[0].focus();
+                }
+            }
+        });
+    }
+
     $('#button-cart').on('click', function() {
         $.ajax({
             url: 'index.php?route=checkout/cart/add',
@@ -576,6 +617,9 @@
 
                     // Highlight any found errors
                     $('.text-danger').parent().addClass('has-error');
+
+                    // Move the customer to the first field that requires attention.
+                    scrollToFirstProductError();
                 }
 
                 if (json['success']) {
