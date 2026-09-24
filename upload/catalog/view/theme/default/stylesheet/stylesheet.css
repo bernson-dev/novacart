@@ -4866,109 +4866,113 @@ a.list-group-item:focus {
     box-shadow: none;
 }
 
-/* Blog layout primitives */
+/* Blog cards
+ * Grid/list state is controlled by the existing product-grid/product-list
+ * classes on .product-layout. Blog-specific markup does not reuse product
+ * action styles, so article buttons cannot inherit cart icons accidentally.
+ */
 .blog-article-list {
     display: flex;
     flex-wrap: wrap;
     align-items: stretch;
-    row-gap: 18px;
+    margin-left: -8px;
+    margin-right: -8px;
 }
 
-.blog-article-list > .product-layout,
-.blog-article-list > [class*="col-"] {
+.blog-article-list > .product-layout {
     display: flex;
     min-width: 0;
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-bottom: 18px;
 }
 
 .blog-article-card {
+    display: flex;
+    flex-direction: column;
     width: 100%;
     min-width: 0;
-}
-
-/* Explicit list variant: identical structural idea to product list cards. */
-.blog-card--list {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    width: 100%;
-    min-height: 230px;
-    margin-bottom: 0;
-}
-
-.blog-card--list > .image {
-    flex: 0 0 30%;
-    width: 30%;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.blog-card--list > .image a {
-    width: 100%;
     height: 100%;
-    padding: 0;
+    margin-bottom: 0;
+    background: var(--modern-surface);
+    border: 1px solid var(--modern-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 3px 12px rgba(25, 39, 69, .04);
+    transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+
+.blog-article-card:hover {
+    transform: translateY(-2px);
+    border-color: #d7dfea;
+    box-shadow: var(--modern-shadow);
+}
+
+.blog-article-card > .image {
+    flex: 0 0 auto;
+    background: #fff;
+}
+
+.blog-article-card > .image a {
+    margin: 0;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.blog-card--list > .image img {
+.blog-article-card > .image img {
     width: auto;
     max-width: 100%;
-    max-height: 220px;
     object-fit: contain;
 }
 
-.blog-card--list > .blog-card-body {
+.blog-article-card > .blog-card-body {
+    display: flex;
+    flex-direction: column;
     flex: 1 1 auto;
-    width: 70%;
     min-width: 0;
-    padding: 18px 22px 16px 8px;
-    display: flex;
-    flex-direction: column;
 }
 
-.blog-card--list > .blog-card-body > .caption {
-    flex: 1 1 auto;
-    padding: 0;
-}
-
-.blog-card--list > .blog-card-body > .blog-card-actions {
-    width: 100%;
-    max-width: 560px;
-    margin-top: auto;
-    padding: 8px 0 0;
-}
-
-/* Explicit grid/module variant: cards in one row share the same height and
- * the action block always stays on the bottom baseline. */
-.blog-card--module {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.blog-card--module > .image {
-    flex: 0 0 auto;
-}
-
-.blog-card--module > .blog-card-body {
-    display: flex;
-    flex-direction: column;
+.blog-article-card .caption {
     flex: 1 1 auto;
     min-height: 0;
+    padding: 12px 16px 8px;
 }
 
-.blog-card--module > .blog-card-body > .caption {
-    flex: 1 1 auto;
+.blog-article-card .caption h4 {
+    margin: 0 0 9px;
+    line-height: 1.38;
 }
 
-.blog-card--module > .blog-card-body > .blog-card-actions {
-    margin-top: auto;
+.blog-article-card .caption h4 a {
+    color: var(--modern-ink);
+    font-size: 15px;
+    font-weight: 750;
 }
 
-/* Blog card actions */
+.blog-article-card .caption h4 a:hover {
+    color: var(--main-color);
+}
+
+.blog-article-card .caption .description,
+.blog-article-card .caption > p:not(.price) {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 0 0 10px;
+    color: var(--modern-muted);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
+
+.blog-article-card .rating {
+    min-height: 23px;
+    margin-top: 2px;
+    padding-bottom: 4px;
+}
+
+/* Article action row: Read more + compact article metadata icons. */
 .blog-article-card .blog-card-actions {
     display: flex;
     align-items: center;
@@ -4978,7 +4982,7 @@ a.list-group-item:focus {
     padding: 8px 14px 14px;
 }
 
-.blog-article-card .blog-card-actions .blog-more {
+.blog-article-card .blog-more {
     flex: 1 1 auto;
     min-width: 0;
     height: 42px;
@@ -5001,8 +5005,18 @@ a.list-group-item:focus {
     transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease;
 }
 
-.blog-article-card .blog-card-actions .blog-more:hover,
-.blog-article-card .blog-card-actions .blog-more:focus {
+.blog-article-card .blog-more:before {
+    content: "\f061";
+    flex: 0 0 auto;
+    font-family: FontAwesome;
+    font-size: 13px;
+    font-weight: normal;
+    line-height: 1;
+    transition: transform .18s ease;
+}
+
+.blog-article-card .blog-more:hover,
+.blog-article-card .blog-more:focus {
     color: #fff;
     background: var(--main-color-alt);
     border-color: var(--main-color-alt);
@@ -5010,30 +5024,12 @@ a.list-group-item:focus {
     transform: translateY(-1px);
 }
 
-.blog-article-card .blog-card-actions .blog-more .fa {
-    flex: 0 0 auto;
-    margin: 0;
-    background: none !important;
-    transition: transform .18s ease;
-}
-
-.blog-article-card .blog-card-actions .blog-more .fa:before {
-    content: "\f061" !important;
-    display: inline-block;
-    width: auto;
-    height: auto;
-    background: none;
-    font-family: FontAwesome;
-    line-height: 1;
-}
-
-.blog-article-card .blog-card-actions .blog-more:hover .fa,
-.blog-article-card .blog-card-actions .blog-more:focus .fa {
+.blog-article-card .blog-more:hover:before,
+.blog-article-card .blog-more:focus:before {
     transform: translateX(3px);
 }
 
-.blog-article-card .blog-card-actions .blog-more-label {
-    display: inline-block;
+.blog-article-card .blog-more-label {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -5054,6 +5050,20 @@ a.list-group-item:focus {
     transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
 }
 
+.blog-article-card .blog-meta-action:before {
+    font-family: FontAwesome;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.blog-article-card .blog-meta-action--date:before {
+    content: "\f017";
+}
+
+.blog-article-card .blog-meta-action--views:before {
+    content: "\f06e";
+}
+
 .blog-article-card .blog-meta-action:hover {
     color: var(--main-color);
     background: var(--modern-surface-accent);
@@ -5061,193 +5071,207 @@ a.list-group-item:focus {
     transform: translateY(-1px);
 }
 
-.blog-article-card .blog-meta-action .fa {
-    margin: 0;
-    font-size: 14px;
+/* Visible metadata is intentionally used by featured/related blog contexts. */
+.blog-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 6px 14px 0;
+    color: var(--modern-muted);
+    font-size: 12px;
+    line-height: 1.3;
 }
 
-.blog-article-card .blog-meta-action .blog-view-icon.fa-eye:before {
-    content: "\f06e";
-    display: inline-block;
-    width: auto;
-    height: auto;
-    background: none;
+.blog-meta-text {
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.blog-meta-text:before {
+    flex: 0 0 auto;
     font-family: FontAwesome;
-    line-height: 1;
+    color: #8c96a7;
+    font-size: 12px;
 }
 
-/* Related/recommended article cards are often narrower than catalog cards.
- * Keep their content from forcing the action area outside the card. */
-.blog-article-list > [class*="col-"] {
-    min-width: 0;
+.blog-meta-text--date:before {
+    content: "\f017";
 }
 
-.blog-article-list {
-    align-items: stretch;
+.blog-meta-text--views:before {
+    content: "\f06e";
 }
 
-.blog-article-list > [class*="col-"],
-.blog-article-list > .product-layout {
-    align-items: stretch;
+/* Blog category/latest: list view follows the product list layout. */
+#blog-category .blog-article-list > .product-list .blog-article-card,
+#blog-latest .blog-article-list > .product-list .blog-article-card {
+    flex-direction: row;
+    min-height: 230px;
 }
 
-.blog-article-list > [class*="col-"] > .blog-article-card,
-.blog-article-list > .product-layout > .blog-article-card {
-    width: 100%;
-}
-
-.blog-article-card,
-.blog-article-card .caption,
-.blog-article-card .blog-card-actions {
-    min-width: 0;
-}
-
-
-.blog-article-card {
-    height: 100%;
-}
-
-.blog-article-card .blog-card-body {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-.blog-article-card .caption {
-    flex: 1 1 auto;
-}
-
-.blog-article-card .blog-card-actions {
-    margin-top: auto;
-}
-
-
-/* Blog cards should follow their content height instead of inheriting the
- * catalog product card's large caption minimum height. Equal-height rows are
- * handled by the outer flex layout, while the action block remains at bottom. */
-.blog-article-card .caption {
-    min-height: 0;
-    padding: 12px 16px 8px;
-}
-
-.blog-article-card .caption h4 {
-    margin: 0 0 9px;
-}
-
-.blog-article-card .caption .description,
-.blog-article-card .caption > p:not(.price) {
-    display: -webkit-box;
-    overflow: hidden;
-    margin-bottom: 10px;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-}
-
-.blog-article-card .rating {
-    min-height: 23px;
-    margin-top: 2px;
-    padding-bottom: 4px;
-}
-
-.blog-article-card .blog-card-actions {
-    padding-top: 6px;
-}
-
-@media (max-width: 767px) {
-    #top > .container {
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 1px;
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-
-    #top > .container > #top-links {
-        margin-left: auto;
-    }
-
-    #form-language,
-    #form-currency,
-    #form-blog {
-        margin: 0;
-    }
-
-    #form-language .dropdown-toggle,
-    #form-currency .dropdown-toggle,
-    #form-blog .dropdown-toggle {
-        min-width: 32px;
-        padding: 5px 6px;
-        justify-content: center;
-    }
-
-    #form-language .dropdown-menu,
-    #form-currency .dropdown-menu,
-    #form-blog .dropdown-menu {
-        min-width: 200px;
-    }
-
-    #form-blog .dropdown-menu {
-        min-width: min(260px, calc(100vw - 20px));
-        max-width: calc(100vw - 20px);
-    }
-
-
-    .blog-article-card .caption {
-        padding: 10px 14px 6px;
-    }
-
-    .blog-article-card .caption .description,
-    .blog-article-card .caption > p:not(.price) {
-        -webkit-line-clamp: 2;
-    }
-}
-
-/* List mode */
-.product-list .product-thumb {
-    display: flex;
-    width: 100%;
-}
-
-.product-list .product-thumb .image {
-    float: none;
+#blog-category .blog-article-list > .product-list .blog-article-card > .image,
+#blog-latest .blog-article-list > .product-list .blog-article-card > .image {
+    flex: 0 0 30%;
     width: 30%;
-    padding: 10px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.product-list .product-thumb .image + div {
-    float: none;
-    width: 70%;
-    padding: 16px 20px 6px 8px;
-}
-
-.product-list .product-thumb .caption {
-    min-height: 0;
+#blog-category .blog-article-list > .product-list .blog-article-card > .image a,
+#blog-latest .blog-article-list > .product-list .blog-article-card > .image a {
+    width: 100%;
+    height: 100%;
     padding: 0;
 }
 
-.product-list .product-thumb .caption h4 {
-    margin-top: 0;
+#blog-category .blog-article-list > .product-list .blog-article-card > .image img,
+#blog-latest .blog-article-list > .product-list .blog-article-card > .image img {
+    max-height: 220px;
 }
 
-.product-list .product-thumb .button-group {
-    padding: 8px 0 14px;
-    max-width: 430px;
+#blog-category .blog-article-list > .product-list .blog-card-body,
+#blog-latest .blog-article-list > .product-list .blog-card-body {
+    width: 70%;
+    padding: 18px 22px 16px 8px;
 }
 
-
-/* The legacy stylesheet adds a 30px right margin to every action after the
- * primary button. Modern cards use flex/grid gaps instead. */
-.product-thumb .button-group button + button {
-    margin: 0;
+#blog-category .blog-article-list > .product-list .blog-card-actions,
+#blog-latest .blog-article-list > .product-list .blog-card-actions {
+    width: 100%;
+    max-width: 560px;
+    padding: 8px 0 0;
 }
 
-.product-list .product-thumb .button-group {
-    gap: 6px;
+/* Blog category/latest: grid view is a real vertical article card. */
+#blog-category .blog-article-list > .product-grid .blog-article-card,
+#blog-latest .blog-article-list > .product-grid .blog-article-card {
+    flex-direction: column;
 }
 
-/* Blog modules in side columns use the same vertical card language as the
- * main blog grid: large image, content, then one action row. */
+#blog-category .blog-article-list > .product-grid .blog-article-card > .image,
+#blog-latest .blog-article-list > .product-grid .blog-article-card > .image {
+    width: 100%;
+    height: 190px;
+    padding: 14px 14px 6px;
+}
+
+#blog-category .blog-article-list > .product-grid .blog-article-card > .image a,
+#blog-latest .blog-article-list > .product-grid .blog-article-card > .image a {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+}
+
+#blog-category .blog-article-list > .product-grid .blog-article-card > .image img,
+#blog-latest .blog-article-list > .product-grid .blog-article-card > .image img {
+    max-height: 170px;
+}
+
+#blog-category .blog-article-list > .product-grid .blog-card-body,
+#blog-latest .blog-article-list > .product-grid .blog-card-body {
+    flex: 1 1 auto;
+}
+
+#blog-category .blog-article-list > .product-grid .blog-card-actions,
+#blog-latest .blog-article-list > .product-grid .blog-card-actions {
+    gap: 7px;
+    padding: 8px 12px 14px;
+}
+
+#blog-category .blog-article-list > .product-grid .blog-more,
+#blog-latest .blog-article-list > .product-grid .blog-more {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/* Related articles inside an article remain a dedicated list layout and keep
+ * their date/views visible instead of reducing them to icon-only buttons. */
+.blog-card--related {
+    flex-direction: row;
+    min-height: 230px;
+}
+
+.blog-card--related > .image {
+    flex: 0 0 30%;
+    width: 30%;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.blog-card--related > .image a {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+}
+
+.blog-card--related > .image img {
+    max-height: 220px;
+}
+
+.blog-card--related > .blog-card-body {
+    width: 70%;
+    padding: 18px 22px 16px 8px;
+}
+
+.blog-card--related .blog-card-actions {
+    display: block;
+    max-width: 560px;
+    padding: 8px 0 0;
+}
+
+.blog-card--related .blog-card-meta {
+    padding: 0 0 8px;
+}
+
+.blog-card--related .blog-more {
+    width: 100%;
+}
+
+/* Generic blog modules use vertical cards. */
+.blog-card--module {
+    flex-direction: column;
+}
+
+.blog-card--module > .image {
+    width: 100%;
+    height: 220px;
+    padding: 16px 16px 8px;
+}
+
+.blog-card--module > .image a {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+}
+
+.blog-card--module > .image img {
+    max-height: 200px;
+}
+
+/* Featured/recommended module keeps visible metadata by design. */
+.blog-card--featured .blog-card-meta {
+    padding: 6px 14px 0;
+}
+
+.blog-card--featured .blog-card-actions--featured {
+    padding-top: 8px;
+}
+
+.blog-card--featured .blog-card-actions--featured .blog-more {
+    width: 100%;
+}
+
+/* Side-column blog modules use the same vertical card style but a tighter
+ * scale so they fit the sidebar without reverting to the old cramped layout. */
 #column-left .blog-article-list,
 #column-right .blog-article-list {
     display: block;
@@ -5260,81 +5284,37 @@ a.list-group-item:focus {
     display: block;
     width: 100%;
     padding: 0;
-    margin-bottom: 14px;
-}
-
-#column-left .blog-card--module,
-#column-right .blog-card--module {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    min-height: 0;
+    margin-bottom: 16px;
 }
 
 #column-left .blog-card--module > .image,
 #column-right .blog-card--module > .image {
-    width: 100%;
-    padding: 16px 16px 8px;
-}
-
-#column-left .blog-card--module > .image a,
-#column-right .blog-card--module > .image a {
-    width: 100%;
     height: 190px;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 #column-left .blog-card--module > .image img,
 #column-right .blog-card--module > .image img {
-    width: auto;
-    max-width: 100%;
-    max-height: 190px;
-    object-fit: contain;
+    max-height: 175px;
 }
 
 #column-left .blog-card--module > .blog-card-body,
 #column-right .blog-card--module > .blog-card-body {
-    min-width: 0;
     padding: 12px 16px 16px;
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
 }
 
 #column-left .blog-card--module .caption,
 #column-right .blog-card--module .caption {
     padding: 0;
-    flex: 1 1 auto;
-}
-
-#column-left .blog-card--module .caption h4,
-#column-right .blog-card--module .caption h4 {
-    margin: 0 0 8px;
 }
 
 #column-left .blog-card--module .caption h4 a,
 #column-right .blog-card--module .caption h4 a {
     font-size: 14px;
-    line-height: 1.4;
 }
 
 #column-left .blog-card--module .caption > p,
 #column-right .blog-card--module .caption > p {
-    margin-bottom: 8px;
-    font-size: 12px;
-    line-height: 1.5;
     -webkit-line-clamp: 3;
-}
-
-#column-left .blog-card--module .rating,
-#column-right .blog-card--module .rating {
-    min-height: 22px;
-    margin-top: 2px;
-    padding-bottom: 5px;
 }
 
 #column-left .blog-card--module .blog-card-actions,
@@ -5343,36 +5323,45 @@ a.list-group-item:focus {
     padding: 8px 0 0;
 }
 
-#column-left .blog-card--module .blog-card-actions .blog-more,
-#column-right .blog-card--module .blog-card-actions .blog-more {
+#column-left .blog-card--module .blog-more,
+#column-right .blog-card--module .blog-more,
+#column-left .blog-card--module .blog-meta-action,
+#column-right .blog-card--module .blog-meta-action {
     height: 42px;
-    padding: 0 10px;
-    font-size: 12px;
-    border-radius: 9px;
 }
 
 #column-left .blog-card--module .blog-meta-action,
 #column-right .blog-card--module .blog-meta-action {
     flex-basis: 42px;
     width: 42px;
-    height: 42px;
-    border-radius: 9px;
 }
 
 @media (max-width: 767px) {
-    .blog-card--list {
+    #blog-category .blog-article-list > .product-list .blog-article-card,
+    #blog-latest .blog-article-list > .product-list .blog-article-card,
+    .blog-card--related {
         display: block;
+        min-height: 0;
     }
 
-    .blog-card--list > .image,
-    .blog-card--list > .blog-card-body {
+    #blog-category .blog-article-list > .product-list .blog-article-card > .image,
+    #blog-latest .blog-article-list > .product-list .blog-article-card > .image,
+    #blog-category .blog-article-list > .product-list .blog-card-body,
+    #blog-latest .blog-article-list > .product-list .blog-card-body,
+    .blog-card--related > .image,
+    .blog-card--related > .blog-card-body {
         width: 100%;
         padding: 10px 14px;
     }
 
-    .blog-card--list > .blog-card-body .blog-card-actions {
-        max-width: none;
-        padding-bottom: 12px;
+    #blog-category .blog-article-list > .product-grid .blog-article-card > .image,
+    #blog-latest .blog-article-list > .product-grid .blog-article-card > .image {
+        height: 170px;
+    }
+
+    .blog-article-card .caption .description,
+    .blog-article-card .caption > p:not(.price) {
+        -webkit-line-clamp: 2;
     }
 }
 
