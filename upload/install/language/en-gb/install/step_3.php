@@ -12,6 +12,10 @@ $_['text_pgsql'] = 'PostgreSQL';
 $_['text_dump_select'] = '3. Select SQL dump';
 $_['text_dump'] = 'SQL dump';
 $_['text_repair_schema'] = 'Restore the database structure to the default after importing the dump';
+$_['text_repair_schema_reference'] = 'opencart.sql is the canonical schema. Schema repair is not required for this dump.';
+$_['text_repair_schema_matches'] = 'The selected dump schema matches opencart.sql. Schema repair is not required.';
+$_['text_repair_schema_differs'] = 'Differences from the canonical opencart.sql schema were detected. Schema repair has been enabled automatically.';
+$_['text_repair_schema_error'] = 'The selected dump schema could not be analyzed.';
 
 // Entry
 $_['entry_db_driver'] = 'DB Driver';
