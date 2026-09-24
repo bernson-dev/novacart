@@ -1,35 +1,43 @@
 {% if articles %}
 	<h3>{{ heading_title }}</h3>
-	<div class="row blog-article-list">
+	<div class="row blog-article-list blog-module-list">
 		{% for article in articles %}
 			<div class="product-layout col-lg-3 col-md-3 col-sm-6 col-xs-12">
-				<div class="product-thumb transition blog-article-card blog-card--module">
-					<div class="image"><a href="{{ article.href }}"><img src="{{ article.thumb }}" alt="{{ article.name }}" title="{{ article.name }}" class="img-responsive" /></a></div>
+				<article class="product-thumb transition blog-article-card blog-card--module">
+					<div class="image">
+						<a href="{{ article.href }}"><img src="{{ article.thumb }}" alt="{{ article.name }}" title="{{ article.name }}" class="img-responsive" /></a>
+					</div>
 					<div class="blog-card-body">
-					<div class="caption">
-						<h4><a href="{{ article.href }}">{{ article.name }}</a></h4>
-						<p>{{ article.description }}</p>
-						{% if article.rating %}
-							<div class="rating">
-								{% for i in 1..5 %}
-									{% if article.rating < i %}
-										<span class="fa fa-stack"><i class="fa fa-star-o fa-stack-2x"></i></span>
-									{% else %}
-										<span class="fa fa-stack"><i class="fa fa-star fa-stack-2x"></i><i class="fa fa-star-o fa-stack-2x"></i></span>
-									{% endif %}
-								{% endfor %}
-							</div>
-						{% endif %}
+						<div class="caption">
+							<h4><a href="{{ article.href }}">{{ article.name }}</a></h4>
+							<p class="description">{{ article.description }}</p>
+							{% if article.rating %}
+								<div class="rating">
+									{% for i in 1..5 %}
+										{% if article.rating < i %}
+											<span class="fa fa-stack"><i class="fa fa-star-o fa-stack-2x"></i></span>
+										{% else %}
+											<span class="fa fa-stack"><i class="fa fa-star fa-stack-2x"></i><i class="fa fa-star-o fa-stack-2x"></i></span>
+										{% endif %}
+									{% endfor %}
+								</div>
+							{% endif %}
+						</div>
+
+						<div class="blog-card-meta">
+							<span class="blog-meta-text blog-meta-text--date">{{ article.date_added }}</span>
+							<span class="blog-meta-text blog-meta-text--views">{{ article.viewed }}</span>
+						</div>
+
+						<div class="blog-card-actions">
+							<button type="button" class="blog-more" onclick="location.href = ('{{ article.href }}');">
+								<span class="blog-more-label">{{ button_more }}</span>
+							</button>
+							<span class="blog-meta-action blog-meta-action--date" data-toggle="tooltip" title="{{ article.date_added }}" aria-label="{{ article.date_added }}"></span>
+							<span class="blog-meta-action blog-meta-action--views" data-toggle="tooltip" title="{{ text_views }} {{ article.viewed }}" aria-label="{{ text_views }} {{ article.viewed }}"></span>
+						</div>
 					</div>
-					<div class="blog-card-actions">
-                                <button type="button" class="blog-more" onclick="location.href = ('{{ article.href }}');">
-                                    <span class="blog-more-label">{{ button_more }}</span>
-                                </button>
-                                <span class="blog-meta-action blog-meta-action--date" data-toggle="tooltip" title="{{ article.date_added }}" aria-label="{{ article.date_added }}"></span>
-                                <span class="blog-meta-action blog-meta-action--views" data-toggle="tooltip" title="{{ text_views }} {{ article.viewed }}" aria-label="{{ text_views }} {{ article.viewed }}"></span>
-                            </div>
-					</div>
-				</div>
+				</article>
 			</div>
 		{% endfor %}
 	</div>
