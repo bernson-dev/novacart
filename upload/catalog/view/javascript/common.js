@@ -302,6 +302,7 @@ var cartButtonState = {
 					var button = $(this);
 					var productId = String(button.data('product-id'));
 					var inCart = Object.prototype.hasOwnProperty.call(json['products'], productId);
+					var label = inCart ? json['button_in_cart'] : json['button_cart'];
 					var icon = button.find('i.fa').first();
 					var text = button.find('span').first();
 
@@ -313,9 +314,16 @@ var cartButtonState = {
 					}
 
 					if (text.length) {
-						text.text(inCart ? json['button_in_cart'] : json['button_cart']);
+						text.text(label);
+					} else if (button.is('input')) {
+						// Compare page uses <input type="button"> instead of a button element.
+						button.val(label);
 					} else if (button.attr('id') === 'button-cart') {
-						button.html('<i class="fa ' + (inCart ? 'fa-check' : 'fa-shopping-cart') + '"></i> ' + (inCart ? json['button_in_cart'] : json['button_cart']));
+						button.html('<i class="fa ' + (inCart ? 'fa-check' : 'fa-shopping-cart') + '"></i> ' + label);
+					} else {
+						// Icon-only buttons (for example wishlist) keep their compact layout,
+						// but expose the current state through the tooltip.
+						button.attr('title', label).attr('data-original-title', label);
 					}
 				});
 			}
