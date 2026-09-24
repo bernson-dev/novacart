@@ -1221,6 +1221,194 @@ a.list-group-item:focus {
     max-width: 430px;
 }
 
+
+/* The legacy stylesheet adds a 30px right margin to every action after the
+ * primary button. Modern cards use flex/grid gaps instead. */
+.product-thumb .button-group button + button {
+    margin: 0;
+}
+
+.product-list .product-thumb .button-group {
+    gap: 6px;
+}
+
+/* Blog list cards intentionally mirror product-category list cards:
+ * image on the left, content/actions on the right. */
+.blog-article-list .product-layout.product-list .blog-article-card {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+}
+
+.blog-article-list .product-layout.product-list .blog-article-card > .image {
+    flex: 0 0 30%;
+    width: 30%;
+    padding: 10px;
+}
+
+.blog-article-list .product-layout.product-list .blog-article-card > .image a {
+    height: 100%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.blog-article-list .product-layout.product-list .blog-article-card > .image img {
+    max-height: 230px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.blog-article-list .product-layout.product-list .blog-card-body {
+    flex: 1 1 auto;
+    width: 70%;
+    min-width: 0;
+    padding: 16px 20px 10px 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.blog-article-list .product-layout.product-list .blog-card-body .caption {
+    flex: 1 1 auto;
+    padding: 0;
+}
+
+.blog-article-list .product-layout.product-list .blog-card-body .button-group {
+    max-width: 430px;
+    margin-top: auto;
+    padding: 8px 0 14px;
+}
+
+/* Blog modules in side columns use a compact horizontal media-card instead
+ * of a tall four-column card squeezed into the sidebar. */
+#column-left .blog-article-list,
+#column-right .blog-article-list {
+    display: block;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#column-left .blog-article-list > .product-layout,
+#column-right .blog-article-list > .product-layout {
+    display: block;
+    width: 100%;
+    padding: 0;
+    margin-bottom: 12px;
+}
+
+#column-left .blog-article-card,
+#column-right .blog-article-card {
+    display: grid;
+    grid-template-columns: minmax(92px, 38%) minmax(0, 1fr);
+    width: 100%;
+    min-height: 0;
+}
+
+#column-left .blog-article-card > .image,
+#column-right .blog-article-card > .image {
+    width: auto;
+    padding: 10px;
+}
+
+#column-left .blog-article-card > .image a,
+#column-right .blog-article-card > .image a {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+#column-left .blog-article-card > .image img,
+#column-right .blog-article-card > .image img {
+    width: 100%;
+    max-height: 145px;
+    object-fit: contain;
+}
+
+#column-left .blog-article-card > .blog-card-body,
+#column-right .blog-article-card > .blog-card-body {
+    min-width: 0;
+    padding: 12px 12px 10px 2px;
+    display: flex;
+    flex-direction: column;
+}
+
+#column-left .blog-article-card .caption,
+#column-right .blog-article-card .caption {
+    padding: 0;
+}
+
+#column-left .blog-article-card .caption h4,
+#column-right .blog-article-card .caption h4 {
+    margin: 0 0 6px;
+}
+
+#column-left .blog-article-card .caption h4 a,
+#column-right .blog-article-card .caption h4 a {
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+#column-left .blog-article-card .caption > p,
+#column-right .blog-article-card .caption > p {
+    margin-bottom: 7px;
+    font-size: 12px;
+    -webkit-line-clamp: 2;
+}
+
+#column-left .blog-article-card .rating,
+#column-right .blog-article-card .rating {
+    min-height: 19px;
+    padding-bottom: 2px;
+}
+
+#column-left .blog-article-card .button-group,
+#column-right .blog-article-card .button-group {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto 36px;
+    gap: 6px 8px;
+    padding: 4px 0 0;
+}
+
+#column-left .blog-article-card .button-group button.blog-more,
+#column-right .blog-article-card .button-group button.blog-more {
+    height: 36px;
+    padding: 0 9px;
+    font-size: 12px;
+    border-radius: 8px;
+}
+
+#column-left .blog-article-card .blog-meta-item,
+#column-right .blog-article-card .blog-meta-item {
+    font-size: 11px;
+}
+
+@media (max-width: 767px) {
+    .blog-article-list .product-layout.product-list .blog-article-card {
+        display: block;
+    }
+
+    .blog-article-list .product-layout.product-list .blog-article-card > .image,
+    .blog-article-list .product-layout.product-list .blog-card-body {
+        width: 100%;
+        padding: 10px 14px;
+    }
+
+    .blog-article-list .product-layout.product-list .blog-card-body .button-group {
+        max-width: none;
+        padding-bottom: 12px;
+    }
+
+    #column-left .blog-article-card,
+    #column-right .blog-article-card {
+        grid-template-columns: 110px minmax(0, 1fr);
+    }
+}
+
 /* Category display controls */
 .display-control,
 #product-category #content > .row:first-of-type,
