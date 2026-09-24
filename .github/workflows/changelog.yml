@@ -56,8 +56,9 @@ jobs:
         shell: bash
         run: |
           if [[ -z "$COPILOT_GITHUB_TOKEN" ]]; then
-            echo "::error::Repository secret COPILOT_TOKEN is not configured."
-            exit 1
+            echo "::warning::Repository secret COPILOT_TOKEN is not configured; changelog suggestion was not generated."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           {
@@ -91,7 +92,12 @@ jobs:
             printf '%s\n' '--- END UNTRUSTED PR DIFF ---'
           } > copilot-prompt.txt
 
-          copilot -s --no-ask-user < copilot-prompt.txt > copilot-result.txt
+          if ! copilot -s --no-ask-user < copilot-prompt.txt > copilot-result.txt 2>copilot-error.txt; then
+            echo "::warning::Copilot is unavailable or quota is exhausted; changelog suggestion was not generated."
+            cat copilot-error.txt || true
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           TYPE="$(sed -n 's/^TYPE=//p' copilot-result.txt | head -n1 | tr -d '\r')"
           ENTRY="$(sed -n 's/^ENTRY=//p' copilot-result.txt | head -n1 | tr -d '\r')"
@@ -119,6 +125,7 @@ jobs:
             exit 1
           fi
 
+          echo "available=true" >> "$GITHUB_OUTPUT"
           echo "type=$TYPE" >> "$GITHUB_OUTPUT"
           {
             echo "entry<<EOF"
@@ -130,6 +137,7 @@ jobs:
           echo "Generated entry: $ENTRY"
 
       - name: Update PR labels and suggestion comment
+        if: steps.copilot.outputs.available == 'true'
         uses: actions/github-script@v8
         env:
           CHANGE_TYPE: ${{ steps.copilot.outputs.type }}
@@ -415,8 +423,9 @@ jobs:
         shell: bash
         run: |
           if [[ -z "$COPILOT_GITHUB_TOKEN" ]]; then
-            echo "::error::Repository secret COPILOT_TOKEN is not configured."
-            exit 1
+            echo "::warning::Repository secret COPILOT_TOKEN is not configured; CHANGELOG was not updated automatically."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           {
@@ -449,7 +458,12 @@ jobs:
             printf '%s\n' '--- END UNTRUSTED PR DIFF ---'
           } > copilot-prompt.txt
 
-          copilot -s --no-ask-user < copilot-prompt.txt > copilot-result.txt
+          if ! copilot -s --no-ask-user < copilot-prompt.txt > copilot-result.txt 2>copilot-error.txt; then
+            echo "::warning::Copilot is unavailable or quota is exhausted; CHANGELOG was not updated automatically."
+            cat copilot-error.txt || true
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           TYPE="$(sed -n 's/^TYPE=//p' copilot-result.txt | head -n1 | tr -d '\r')"
           ENTRY="$(sed -n 's/^ENTRY=//p' copilot-result.txt | head -n1 | tr -d '\r')"
@@ -469,6 +483,7 @@ jobs:
             exit 1
           fi
 
+          echo "available=true" >> "$GITHUB_OUTPUT"
           echo "type=$TYPE" >> "$GITHUB_OUTPUT"
           {
             echo "entry<<EOF"
@@ -477,6 +492,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Record changelog entry
+        if: steps.manual.outputs.enabled == 'true' || steps.copilot.outputs.available == 'true'
         uses: actions/github-script@v8
         env:
           MANUAL_ENABLED: ${{ steps.manual.outputs.enabled }}
