@@ -6149,3 +6149,98 @@ footer p {
 #blog-category .catalog-toolbar {
     margin-bottom: 20px;
 }
+
+
+/* Final category/blog layout corrections */
+.category-refine-title {
+    margin-bottom: 14px;
+}
+
+.category-refine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.category-refine-item {
+    display: block;
+    padding: 10px 14px;
+    color: var(--text-color);
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-xs);
+}
+
+.category-refine-item:hover,
+.category-refine-item:focus {
+    color: var(--main-color);
+    background: #EEF4FF;
+    border-color: rgba(18, 70, 171, 0.20);
+}
+
+/* Product category toolbar: explicit spacing and alignment */
+#product-category .catalog-toolbar {
+    margin-bottom: 20px;
+}
+
+#product-category .catalog-toolbar-view,
+#product-category .catalog-toolbar-compare,
+#product-category .catalog-toolbar-sort,
+#product-category .catalog-toolbar-limit {
+    display: flex;
+    align-items: center;
+    min-height: 42px;
+}
+
+#product-category .catalog-toolbar-compare {
+    justify-content: center;
+}
+
+#product-category .catalog-toolbar-sort,
+#product-category .catalog-toolbar-limit {
+    justify-content: flex-end;
+}
+
+/* Side category hierarchy */
+.category-menu .category-menu-parent + .category-menu-child,
+.category-menu .category-menu-child + .category-menu-child {
+    margin-top: 6px;
+}
+
+.category-menu .category-menu-child + .category-menu-parent {
+    margin-top: 10px;
+}
+
+.category-menu .category-menu-parent + .category-menu-parent {
+    margin-top: 2px;
+}
+
+.category-menu .category-menu-child {
+    margin-right: 4px;
+}
+
+/* Blog listing gap */
+#blog-latest .catalog-toolbar,
+#blog-category .catalog-toolbar {
+    margin-bottom: 24px;
+}
+
+@media (max-width: 991px) {
+    .category-refine-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #product-category .catalog-toolbar-sort,
+    #product-category .catalog-toolbar-limit {
+        justify-content: stretch;
+    }
+}
+
+@media (max-width: 575px) {
+    .category-refine-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+}
