@@ -56,8 +56,14 @@ jobs:
         shell: bash
         run: |
           if [[ -z "$COPILOT_GITHUB_TOKEN" ]]; then
-            echo "::error::Repository secret COPILOT_TOKEN is not configured."
-            exit 1
+            echo "::warning::Repository secret COPILOT_TOKEN is not configured; skipping changelog suggestion."
+            {
+              echo "type=skip"
+              echo "entry<<EOF"
+              echo "Техническое изменение: автоматическое описание пропущено, потому что Copilot недоступен."
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           {
@@ -91,7 +97,17 @@ jobs:
             printf '%s\n' '--- END UNTRUSTED PR DIFF ---'
           } > copilot-prompt.txt
 
-          copilot -s --no-ask-user < copilot-prompt.txt > copilot-result.txt
+          if ! copilot -s --no-ask-user < copilot-prompt.txt > copilot-result.txt 2>copilot-error.txt; then
+            echo "::warning::Copilot is unavailable or quota is exhausted; skipping changelog suggestion."
+            cat copilot-error.txt || true
+            {
+              echo "type=skip"
+              echo "entry<<EOF"
+              echo "Техническое изменение: автоматическое описание пропущено из-за недоступности Copilot."
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           TYPE="$(sed -n 's/^TYPE=//p' copilot-result.txt | head -n1 | tr -d '\r')"
           ENTRY="$(sed -n 's/^ENTRY=//p' copilot-result.txt | head -n1 | tr -d '\r')"
