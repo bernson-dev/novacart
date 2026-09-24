@@ -33,6 +33,9 @@ class ControllerCommonHeader extends Controller {
 		$data['links'] = $this->document->getLinks();
 		$data['robots'] = $this->document->getRobots();
 		$data['styles'] = $this->document->getStyles();
+
+		$modern_css_file = DIR_APPLICATION . 'view/theme/default/stylesheet/modern.css';
+		$data['modern_css_version'] = is_file($modern_css_file) ? (string)filemtime($modern_css_file) : '';
 		$data['scripts'] = $this->document->getScripts('header');
 		$data['lang'] = $this->language->get('code');
 		$data['direction'] = $this->language->get('direction');
