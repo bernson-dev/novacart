@@ -1,4 +1,4 @@
-<div class="list-group">
+<div class="list-group category-menu">
 	{% for category in categories %}
 		{% if category.blog_category_id == blog_category_id %} 
 			<a href="{{ category.href }}" class="list-group-item category-menu-parent active">{{ category.name }}</a> 
