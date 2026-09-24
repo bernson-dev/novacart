@@ -769,6 +769,130 @@ a.list-group-item:focus {
     box-shadow: none;
 }
 
+/* Blog cards
+ *
+ * Blog actions have different semantics from product actions. Keep the primary
+ * "Read more" action on its own row so narrow article cards never squeeze the
+ * icon and label, then place date/views controls below it.
+ */
+.blog-article-card .button-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    width: 100%;
+    margin-top: auto;
+    padding: 6px 14px 14px;
+}
+
+.blog-article-card .button-group button {
+    float: none;
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    margin: 0;
+    padding: 0 10px;
+    border: 1px solid var(--modern-border);
+    border-radius: 9px;
+    background: var(--modern-surface-soft);
+    color: var(--modern-muted);
+    box-shadow: none;
+}
+
+.blog-article-card .button-group button:hover,
+.blog-article-card .button-group button:focus {
+    color: var(--main-color);
+    background: var(--modern-surface-accent);
+    border-color: #d3def3;
+}
+
+.blog-article-card .button-group button.blog-more,
+.blog-article-card .button-group button.blog-more:first-child {
+    grid-column: 1 / -1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    margin: 0;
+    padding: 0 14px;
+    border: 1px solid var(--main-color);
+    border-radius: 10px;
+    background: var(--main-color);
+    color: #fff;
+    font-family: var(--font-family);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+    text-transform: none;
+    white-space: nowrap;
+    box-shadow: 0 6px 15px rgba(37, 99, 235, .18);
+    overflow: hidden;
+}
+
+.blog-article-card .button-group button.blog-more:hover,
+.blog-article-card .button-group button.blog-more:focus,
+.blog-article-card .button-group button.blog-more:first-child:hover,
+.blog-article-card .button-group button.blog-more:first-child:focus {
+    color: #fff;
+    background: var(--main-color-alt);
+    border-color: var(--main-color-alt);
+    box-shadow: 0 8px 19px rgba(37, 99, 235, .24);
+}
+
+.blog-article-card .button-group button.blog-more span,
+.blog-article-card .button-group button.blog-more:first-child span {
+    display: inline-block !important;
+    position: static;
+    width: auto;
+    margin: 0;
+    opacity: 1;
+    transform: none;
+    white-space: nowrap;
+}
+
+.blog-article-card .button-group button.blog-more .fa,
+.blog-article-card .button-group button.blog-more:first-child .fa {
+    position: static;
+    display: inline-block;
+    flex: 0 0 auto;
+    width: auto;
+    height: auto;
+    margin: 0;
+    background: none !important;
+    transform: none;
+    line-height: 1;
+}
+
+.blog-article-card .button-group button.blog-more .fa:before,
+.blog-article-card .button-group button.blog-more:first-child .fa:before {
+    content: "\f061" !important;
+    display: inline-block;
+    width: auto;
+    height: auto;
+    background: none;
+    font-family: FontAwesome;
+    line-height: 1;
+}
+
+.blog-article-card .button-group button:not(.blog-more) .fa {
+    margin: 0;
+    font-size: 15px;
+}
+
+/* Related/recommended article cards are often narrower than catalog cards.
+ * Keep their content from forcing the action area outside the card. */
+.blog-article-list > [class*="col-"] {
+    min-width: 0;
+}
+
+.blog-article-card,
+.blog-article-card .caption,
+.blog-article-card .button-group {
+    min-width: 0;
+}
+
 /* List mode */
 .product-list .product-thumb {
     display: flex;
