@@ -715,7 +715,8 @@ a.list-group-item:focus {
     background: var(--main-color-alt);
     border-color: var(--main-color-alt);
     color: #fff;
-    box-shadow: 0 8px 19px rgba(37, 99, 235, .24);
+    box-shadow: 0 11px 24px rgba(37, 99, 235, .28);
+    transform: translateY(-2px);
 }
 
 .product-thumb .button-group button:first-child span {
@@ -777,11 +778,12 @@ a.list-group-item:focus {
  */
 .blog-article-card .button-group {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto 42px;
+    gap: 9px 12px;
     width: 100%;
     margin-top: auto;
-    padding: 6px 14px 14px;
+    padding: 8px 14px 14px;
 }
 
 .blog-article-card .button-group button {
@@ -808,6 +810,7 @@ a.list-group-item:focus {
 .blog-article-card .button-group button.blog-more,
 .blog-article-card .button-group button.blog-more:first-child {
     grid-column: 1 / -1;
+    grid-row: 2;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -861,7 +864,8 @@ a.list-group-item:focus {
     height: auto;
     margin: 0;
     background: none !important;
-    transform: none;
+    transform: translateX(0);
+    transition: transform .22s ease;
     line-height: 1;
 }
 
@@ -874,6 +878,47 @@ a.list-group-item:focus {
     background: none;
     font-family: FontAwesome;
     line-height: 1;
+}
+
+.blog-article-card .button-group button.blog-more:hover .fa,
+.blog-article-card .button-group button.blog-more:focus .fa,
+.blog-article-card .button-group button.blog-more:first-child:hover .fa,
+.blog-article-card .button-group button.blog-more:first-child:focus .fa {
+    transform: translateX(4px);
+}
+
+.blog-article-card .blog-meta-item {
+    grid-row: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    color: var(--modern-muted);
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.blog-article-card .blog-meta-date {
+    grid-column: 1;
+    justify-self: start;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.blog-article-card .blog-meta-views {
+    grid-column: 2;
+    justify-self: end;
+}
+
+.blog-article-card .blog-meta-item .fa {
+    flex: 0 0 auto;
+    color: #8c96a7;
+    font-size: 13px;
+}
+
+.blog-article-card .blog-meta-item .blog-view-icon.fa-eye:before {
+    content: "\f06e";
 }
 
 .blog-article-card .button-group button:not(.blog-more) .fa {
