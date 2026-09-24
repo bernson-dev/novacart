@@ -1920,7 +1920,7 @@ h2.price {
     font-family: var(--font-alt);
     color: #fff;
     float: right;
-    margin: -8px 0 0;
+    margin: 0;
     padding: 8px 12px;
     font-size: 13px;
     font-weight: 500;
