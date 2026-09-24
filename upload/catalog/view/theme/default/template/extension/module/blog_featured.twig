@@ -3,7 +3,7 @@
 	<div class="row blog-article-list">
 		{% for article in articles %}
 			<div class="product-layout col-lg-3 col-md-3 col-sm-6 col-xs-12">
-				<div class="product-thumb transition blog-article-card blog-card--module">
+				<div class="product-thumb transition blog-article-card blog-card--module blog-card--featured">
 					<div class="image"><a href="{{ article.href }}"><img src="{{ article.thumb }}" alt="{{ article.name }}" title="{{ article.name }}" class="img-responsive" /></a></div>
 					<div class="blog-card-body">
 					<div class="caption">
@@ -21,17 +21,15 @@
 							</div>
 						{% endif %}
 					</div>
-					<div class="blog-card-actions">
-                                <button type="button" class="blog-more" onclick="location.href = ('{{ article.href }}');">
-                                    <i class="fa fa-arrow-right"></i><span class="blog-more-label">{{ button_more }}</span>
-                                </button>
-                                <span class="blog-meta-action" data-toggle="tooltip" title="{{ article.date_added }}" aria-label="{{ article.date_added }}">
-                                    <i class="fa fa-clock-o"></i>
-                                </span>
-                                <span class="blog-meta-action" data-toggle="tooltip" title="{{ text_views }} {{ article.viewed }}" aria-label="{{ text_views }} {{ article.viewed }}">
-                                    <i class="fa fa-eye blog-view-icon"></i>
-                                </span>
-                            </div>
+					<div class="blog-card-meta">
+						<span class="blog-meta-text blog-meta-text--date">{{ article.date_added }}</span>
+						<span class="blog-meta-text blog-meta-text--views">{{ article.viewed }}</span>
+					</div>
+					<div class="blog-card-actions blog-card-actions--featured">
+						<button type="button" class="blog-more" onclick="location.href = ('{{ article.href }}');">
+							<span class="blog-more-label">{{ button_more }}</span>
+						</button>
+					</div>
 					</div>
 				</div>
 			</div>
