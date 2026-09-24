@@ -4290,6 +4290,7 @@ a.list-group-item {
   border: none;
   border-radius: var(--radius-sm);
   font-size: 14px;
+  transition: all ease-in 0.2s;
 }
 
 a.list-group-item:hover, a.list-group-item:focus {
