@@ -103,10 +103,11 @@ class ControllerExtensionExtensionPayment extends Controller {
 		if ($files) {
 			foreach ($files as $file) {
 				$extension = basename($file, '.php');
+				$installed = in_array($extension, $extensions, true);
 				
 				if (!in_array('extension/payment/' . $extension, $hiden)) {
 					$this->load->language('extension/payment/' . $extension, 'extension');
-					$enabled = (bool)$this->config->get('payment_' . $extension . '_status');
+					$enabled = $installed && (bool)$this->config->get('payment_' . $extension . '_status');
 
 					$text_link = $this->language->get('extension')->get('text_' . $extension);
 
@@ -124,7 +125,7 @@ class ControllerExtensionExtensionPayment extends Controller {
 						'sort_order' => $this->config->get('payment_' . $extension . '_sort_order'),
 						'install'    => $this->url->link('extension/extension/payment/install', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
 						'uninstall'  => $this->url->link('extension/extension/payment/uninstall', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
-						'installed'  => in_array($extension, $extensions),
+						'installed' => $installed,
 						'edit'       => $this->url->link('extension/payment/' . $extension, 'user_token=' . $this->session->data['user_token'], true)
 					);
 				
