@@ -5889,3 +5889,144 @@ footer p {
         margin-top: 0;
     }
 }
+
+
+/* Explicit category refine, catalog toolbar and banner sizing */
+.category-refine-title {
+    margin-bottom: 12px;
+}
+
+.category-refine-row {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.category-refine-column {
+    padding-right: 12px;
+    padding-left: 12px;
+}
+
+.category-refine-list {
+    margin: 0 0 18px;
+    padding: 6px;
+    list-style: none;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xs);
+}
+
+.category-refine-list > li + li {
+    margin-top: 4px;
+}
+
+.category-refine-list > li > a {
+    display: block;
+    padding: 8px 12px;
+    border-radius: var(--radius-xs);
+}
+
+.category-refine-list > li > a:hover,
+.category-refine-list > li > a:focus {
+    color: var(--main-color);
+    background: var(--surface-muted);
+}
+
+.catalog-toolbar {
+    display: flex;
+    align-items: center;
+    margin-right: 0;
+    margin-left: 0;
+    padding: 10px 12px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xs);
+}
+
+.catalog-toolbar > [class*="col-"] {
+    padding-right: 8px;
+    padding-left: 8px;
+}
+
+.catalog-toolbar .form-group {
+    margin-bottom: 0;
+}
+
+.catalog-toolbar .catalog-control {
+    width: 100%;
+}
+
+.catalog-toolbar .catalog-control .input-group-addon {
+    height: 42px;
+    padding: 0 10px 0 0;
+    color: var(--text-color-alt);
+    background: transparent;
+    border: 0;
+    font-size: 13px !important;
+}
+
+.catalog-toolbar .catalog-control .form-control {
+    height: 42px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    cursor: pointer;
+    color: var(--text-color);
+    background-color: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: var(--radius-sm) !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.catalog-toolbar .catalog-control .form-control:hover {
+    border-color: #94A3B8;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+}
+
+.catalog-toolbar .catalog-control .form-control:focus {
+    border-color: var(--main-color);
+    box-shadow: 0 0 0 3px var(--focus-ring-color);
+}
+
+.catalog-toolbar #compare-total {
+    margin: 0;
+}
+
+/* Generic banner modules should fill the same horizontal space as surrounding content. */
+.banner-module,
+.banner-module .swiper-container,
+.banner-module .swiper-wrapper,
+.banner-module .swiper-slide,
+.banner-module .swiper-slide > a {
+    width: 100%;
+}
+
+.banner-module .swiper-slide {
+    text-align: center;
+}
+
+.banner-module .swiper-slide img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    object-fit: contain;
+}
+
+@media (max-width: 767px) {
+    .category-refine-column {
+        padding-right: 8px;
+        padding-left: 8px;
+    }
+
+    .catalog-toolbar {
+        display: block;
+        padding: 8px;
+    }
+
+    .catalog-toolbar > [class*="col-"] {
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+}
