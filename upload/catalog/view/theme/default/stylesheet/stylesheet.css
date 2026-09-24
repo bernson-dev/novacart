@@ -5747,3 +5747,145 @@ footer p {
         display: block;
     }
 }
+
+
+/* Catalog category refinement spacing */
+#product-category #content > h3 + .row,
+#product-category #content > h2 + .row {
+    margin-right: 6px;
+    margin-left: 6px;
+}
+
+#product-category #content > h3 + .row > [class*="col-"],
+#product-category #content > h2 + .row > [class*="col-"] {
+    padding-right: 8px;
+    padding-left: 8px;
+}
+
+/* Sort/limit controls must clearly read as interactive selects. */
+#product-category #input-sort,
+#product-category #input-limit,
+#product-search #input-sort,
+#product-search #input-limit,
+#blog-latest #input-sort,
+#blog-latest #input-limit,
+#blog-category #input-sort,
+#blog-category #input-limit {
+    cursor: pointer;
+    color: var(--text-color);
+    background-color: var(--surface-color);
+    border: 1px solid #CBD5E1;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+#product-category #input-sort:hover,
+#product-category #input-limit:hover,
+#product-search #input-sort:hover,
+#product-search #input-limit:hover,
+#blog-latest #input-sort:hover,
+#blog-latest #input-limit:hover,
+#blog-category #input-sort:hover,
+#blog-category #input-limit:hover {
+    border-color: #94A3B8;
+    background-color: #FFFFFF;
+}
+
+#product-category #input-sort:focus,
+#product-category #input-limit:focus,
+#product-search #input-sort:focus,
+#product-search #input-limit:focus,
+#blog-latest #input-sort:focus,
+#blog-latest #input-limit:focus,
+#blog-category #input-sort:focus,
+#blog-category #input-limit:focus {
+    border-color: var(--main-color);
+    box-shadow: 0 0 0 3px var(--focus-ring-color);
+}
+
+#product-category .input-group-sm > .input-group-addon,
+#product-search .input-group-sm > .input-group-addon,
+#blog-latest .input-group-sm > .input-group-addon,
+#blog-category .input-group-sm > .input-group-addon {
+    padding-right: 10px;
+    color: var(--text-color-alt);
+    white-space: nowrap;
+}
+
+/* Blog modules: three columns, equal-height cards, rating and actions aligned. */
+.blog-article-list {
+    align-items: stretch;
+}
+
+.blog-article-list > .blog-card-layout {
+    display: flex;
+}
+
+.blog-article-list > .blog-card-layout > .blog-article-card {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    width: 100%;
+}
+
+.blog-article-list > .blog-card-layout .caption {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.blog-article-list > .blog-card-layout .caption > p {
+    margin-bottom: 14px;
+}
+
+.blog-article-list > .blog-card-layout .rating {
+    margin-top: auto;
+    padding-bottom: 14px;
+}
+
+.blog-article-list > .blog-card-layout .button-group {
+    margin-top: 0;
+}
+
+/* Blog listing pages use the same bottom alignment in grid mode. */
+#blog-latest .product-grid .blog-article-body,
+#blog-category .product-grid .blog-article-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
+#blog-latest .product-grid .blog-article-card .caption,
+#blog-category .product-grid .blog-article-card .caption {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#blog-latest .product-grid .blog-article-card .rating,
+#blog-category .product-grid .blog-article-card .rating {
+    margin-top: auto;
+    padding-bottom: 14px;
+}
+
+#blog-latest .product-grid .blog-article-card .button-group,
+#blog-category .product-grid .blog-article-card .button-group {
+    margin-top: 0;
+}
+
+@media (max-width: 767px) {
+    #product-category #content > h3 + .row,
+    #product-category #content > h2 + .row {
+        margin-right: 0;
+        margin-left: 0;
+    }
+
+    .blog-article-list > .blog-card-layout {
+        display: block;
+    }
+
+    .blog-article-list > .blog-card-layout .rating {
+        margin-top: 0;
+    }
+}
