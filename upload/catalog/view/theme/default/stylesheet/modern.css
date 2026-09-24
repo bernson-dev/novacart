@@ -1236,6 +1236,7 @@ a.list-group-item:focus {
  * image on the left, content/actions on the right. */
 .blog-article-list .product-layout.product-list .blog-article-card {
     display: flex;
+    flex-direction: row;
     align-items: stretch;
     width: 100%;
 }
@@ -1302,12 +1303,14 @@ a.list-group-item:focus {
 #column-right .blog-article-card {
     display: grid;
     grid-template-columns: minmax(92px, 38%) minmax(0, 1fr);
+    grid-template-areas: "image body";
     width: 100%;
     min-height: 0;
 }
 
 #column-left .blog-article-card > .image,
 #column-right .blog-article-card > .image {
+    grid-area: image;
     width: auto;
     padding: 10px;
 }
@@ -1331,6 +1334,7 @@ a.list-group-item:focus {
 
 #column-left .blog-article-card > .blog-card-body,
 #column-right .blog-article-card > .blog-card-body {
+    grid-area: body;
     min-width: 0;
     padding: 12px 12px 10px 2px;
     display: flex;
@@ -1622,7 +1626,24 @@ footer p {
 
     #menu.catalog-menu .navbar-collapse {
         border-top: 1px solid rgba(255,255,255,.10);
+        background: #ffffff;
         box-shadow: none;
+    }
+
+    #menu.catalog-menu .navbar-nav > li > a {
+        color: var(--modern-ink);
+        border-bottom: 1px solid var(--modern-border);
+    }
+
+    #menu.catalog-menu .navbar-nav > li:last-child > a {
+        border-bottom: 0;
+    }
+
+    #menu.catalog-menu .navbar-nav > li > a:hover,
+    #menu.catalog-menu .navbar-nav > li > a:focus,
+    #menu.catalog-menu .navbar-nav > li.open > a {
+        color: var(--main-color);
+        background: var(--modern-surface-accent);
     }
 
     #menu.catalog-menu .navbar-collapse.collapse {
@@ -1867,7 +1888,24 @@ footer p {
 
     #menu.catalog-menu .navbar-collapse {
         border: 0;
+        background: #ffffff;
         box-shadow: none;
+    }
+
+    #menu.catalog-menu .navbar-nav > li > a {
+        color: var(--modern-ink);
+        border-bottom: 1px solid var(--modern-border);
+    }
+
+    #menu.catalog-menu .navbar-nav > li:last-child > a {
+        border-bottom: 0;
+    }
+
+    #menu.catalog-menu .navbar-nav > li > a:hover,
+    #menu.catalog-menu .navbar-nav > li > a:focus,
+    #menu.catalog-menu .navbar-nav > li.open > a {
+        color: var(--main-color);
+        background: var(--modern-surface-accent);
     }
 
     #menu.catalog-menu .navbar-nav {
