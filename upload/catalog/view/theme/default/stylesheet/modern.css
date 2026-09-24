@@ -844,6 +844,7 @@ a.list-group-item:focus {
 .product-thumb .button-group button {
     min-width: 42px;
     height: 42px;
+    min-height: 42px;
     margin: 0;
     padding: 0;
     float: none;
@@ -946,7 +947,7 @@ a.list-group-item:focus {
  * "Read more" action on its own row so narrow article cards never squeeze the
  * icon and label, then place date/views controls below it.
  */
-.blog-article-card .button-group {
+.blog-article-card .blog-card-actions {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto 42px;
@@ -956,7 +957,7 @@ a.list-group-item:focus {
     padding: 8px 14px 14px;
 }
 
-.blog-article-card .button-group button {
+.blog-article-card .blog-card-actions button {
     float: none;
     width: 100%;
     min-width: 0;
@@ -970,15 +971,15 @@ a.list-group-item:focus {
     box-shadow: none;
 }
 
-.blog-article-card .button-group button:hover,
-.blog-article-card .button-group button:focus {
+.blog-article-card .blog-card-actions button:hover,
+.blog-article-card .blog-card-actions button:focus {
     color: var(--main-color);
     background: var(--modern-surface-accent);
     border-color: #d3def3;
 }
 
-.blog-article-card .button-group button.blog-more,
-.blog-article-card .button-group button.blog-more:first-child {
+.blog-article-card .blog-card-actions button.blog-more,
+.blog-article-card .blog-card-actions button.blog-more:first-child {
     grid-column: 1 / -1;
     grid-row: 2;
     display: inline-flex;
@@ -1004,18 +1005,18 @@ a.list-group-item:focus {
     overflow: hidden;
 }
 
-.blog-article-card .button-group button.blog-more:hover,
-.blog-article-card .button-group button.blog-more:focus,
-.blog-article-card .button-group button.blog-more:first-child:hover,
-.blog-article-card .button-group button.blog-more:first-child:focus {
+.blog-article-card .blog-card-actions button.blog-more:hover,
+.blog-article-card .blog-card-actions button.blog-more:focus,
+.blog-article-card .blog-card-actions button.blog-more:first-child:hover,
+.blog-article-card .blog-card-actions button.blog-more:first-child:focus {
     color: #fff;
     background: var(--main-color-alt);
     border-color: var(--main-color-alt);
     box-shadow: 0 8px 19px rgba(37, 99, 235, .24);
 }
 
-.blog-article-card .button-group button.blog-more span,
-.blog-article-card .button-group button.blog-more:first-child span {
+.blog-article-card .blog-card-actions button.blog-more span,
+.blog-article-card .blog-card-actions button.blog-more:first-child span {
     display: inline-block !important;
     position: static;
     width: auto;
@@ -1025,8 +1026,8 @@ a.list-group-item:focus {
     white-space: nowrap;
 }
 
-.blog-article-card .button-group button.blog-more .fa,
-.blog-article-card .button-group button.blog-more:first-child .fa {
+.blog-article-card .blog-card-actions button.blog-more .fa,
+.blog-article-card .blog-card-actions button.blog-more:first-child .fa {
     position: static;
     display: inline-block;
     flex: 0 0 auto;
@@ -1039,8 +1040,8 @@ a.list-group-item:focus {
     line-height: 1;
 }
 
-.blog-article-card .button-group button.blog-more .fa:before,
-.blog-article-card .button-group button.blog-more:first-child .fa:before {
+.blog-article-card .blog-card-actions button.blog-more .fa:before,
+.blog-article-card .blog-card-actions button.blog-more:first-child .fa:before {
     content: "\f061" !important;
     display: inline-block;
     width: auto;
@@ -1050,10 +1051,10 @@ a.list-group-item:focus {
     line-height: 1;
 }
 
-.blog-article-card .button-group button.blog-more:hover .fa,
-.blog-article-card .button-group button.blog-more:focus .fa,
-.blog-article-card .button-group button.blog-more:first-child:hover .fa,
-.blog-article-card .button-group button.blog-more:first-child:focus .fa {
+.blog-article-card .blog-card-actions button.blog-more:hover .fa,
+.blog-article-card .blog-card-actions button.blog-more:focus .fa,
+.blog-article-card .blog-card-actions button.blog-more:first-child:hover .fa,
+.blog-article-card .blog-card-actions button.blog-more:first-child:focus .fa {
     transform: translateX(4px);
 }
 
@@ -1091,7 +1092,7 @@ a.list-group-item:focus {
     content: "\f06e";
 }
 
-.blog-article-card .button-group button:not(.blog-more) .fa {
+.blog-article-card .blog-card-actions button:not(.blog-more) .fa {
     margin: 0;
     font-size: 15px;
 }
@@ -1102,10 +1103,44 @@ a.list-group-item:focus {
     min-width: 0;
 }
 
+.blog-article-list {
+    align-items: stretch;
+}
+
+.blog-article-list > [class*="col-"],
+.blog-article-list > .product-layout {
+    align-items: stretch;
+}
+
+.blog-article-list > [class*="col-"] > .blog-article-card,
+.blog-article-list > .product-layout > .blog-article-card {
+    width: 100%;
+}
+
 .blog-article-card,
 .blog-article-card .caption,
-.blog-article-card .button-group {
+.blog-article-card .blog-card-actions {
     min-width: 0;
+}
+
+
+.blog-article-card {
+    height: 100%;
+}
+
+.blog-article-card .blog-card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.blog-article-card .caption {
+    flex: 1 1 auto;
+}
+
+.blog-article-card .blog-card-actions {
+    margin-top: auto;
 }
 
 
@@ -1136,7 +1171,7 @@ a.list-group-item:focus {
     padding-bottom: 4px;
 }
 
-.blog-article-card .button-group {
+.blog-article-card .blog-card-actions {
     padding-top: 6px;
 }
 
@@ -1276,7 +1311,7 @@ a.list-group-item:focus {
     padding: 0;
 }
 
-.blog-article-list .product-layout.product-list .blog-card-body .button-group {
+.blog-article-list .product-layout.product-list .blog-card-body .blog-card-actions {
     max-width: 430px;
     margin-top: auto;
     padding: 8px 0 14px;
@@ -1339,6 +1374,7 @@ a.list-group-item:focus {
     padding: 12px 12px 10px 2px;
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 
 #column-left .blog-article-card .caption,
@@ -1370,16 +1406,16 @@ a.list-group-item:focus {
     padding-bottom: 2px;
 }
 
-#column-left .blog-article-card .button-group,
-#column-right .blog-article-card .button-group {
+#column-left .blog-article-card .blog-card-actions,
+#column-right .blog-article-card .blog-card-actions {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto 36px;
     gap: 6px 8px;
     padding: 4px 0 0;
 }
 
-#column-left .blog-article-card .button-group button.blog-more,
-#column-right .blog-article-card .button-group button.blog-more {
+#column-left .blog-article-card .blog-card-actions button.blog-more,
+#column-right .blog-article-card .blog-card-actions button.blog-more {
     height: 36px;
     padding: 0 9px;
     font-size: 12px;
@@ -1402,7 +1438,7 @@ a.list-group-item:focus {
         padding: 10px 14px;
     }
 
-    .blog-article-list .product-layout.product-list .blog-card-body .button-group {
+    .blog-article-list .product-layout.product-list .blog-card-body .blog-card-actions {
         max-width: none;
         padding-bottom: 12px;
     }
