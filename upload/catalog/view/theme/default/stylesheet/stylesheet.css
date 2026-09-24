@@ -97,30 +97,6 @@
    ==========================================================================
  */
 
-body {
-  font-family: var(--font-family);
-  font-optical-sizing: auto;
-  font-weight: 400;
-  color: var(--text-color);
-  font-size: var(--main-font-size);
-  line-height: 1.55;
-  width: 100%;
-  background-color: var(--page-bg-color);
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-}
-
-h1 {
-  margin: 0 0 20px;
-}
-
-h2 {
-  font-size: 28px;
-  margin: 20px 0;
-}
-
 h3 {
   font-size: 24px;
   margin: 20px 0;
@@ -139,21 +115,12 @@ h6 {
   transition: all ease-in 0.2s;
 }
 
-p {
-  margin: 0 0 15px;
-}
-
 ul {
   list-style: inside;
 }
 
 ul li {
   line-height: 1.8;
-}
-
-hr {
-  border-top: solid 1px var(--border-color);
-  margin: 24px 0;
 }
 
 a {
@@ -216,72 +183,8 @@ label {
   margin-bottom: 10px;
 }
 
-select.form-control,
-textarea.form-control,
-input[type="text"].form-control,
-input[type="password"].form-control,
-input[type="datetime"].form-control,
-input[type="datetime-local"].form-control,
-input[type="date"].form-control,
-input[type="month"].form-control,
-input[type="time"].form-control,
-input[type="week"].form-control,
-input[type="number"].form-control,
-input[type="email"].form-control,
-input[type="url"].form-control,
-input[type="search"].form-control,
-input[type="tel"].form-control,
-input[type="color"].form-control,
-.input-group-sm > .form-control {
-  font-size: 14px;
-  color: var(--input-color);
-  padding: 12px;
-  height: 48px;
-  box-shadow: none;
-  transition: color 0.2s ease-in, background-color 0.2s ease-in, border-color 0.2s ease-in, box-shadow 0.2s ease-in;
-  background-color: var(--input-bg);
-  border-radius: 0;
-  border: solid 1px transparent;
-}
-
-select.form-control:focus,
-textarea.form-control:focus,
-input[type="text"].form-control:focus,
-input[type="password"].form-control:focus,
-input[type="datetime"].form-control:focus,
-input[type="datetime-local"].form-control:focus,
-input[type="date"].form-control:focus,
-input[type="month"].form-control:focus,
-input[type="time"].form-control:focus,
-input[type="week"].form-control:focus,
-input[type="number"].form-control:focus,
-input[type="email"].form-control:focus,
-input[type="url"].form-control:focus,
-input[type="search"].form-control:focus,
-input[type="tel"].form-control:focus,
-input[type="color"].form-control:focus,
-.input-group-sm > .form-control:focus {
-  color: var(--text-color);
-  border-color: var(--border-color);
-}
-
-select.form-control {
-  appearance: none;
-  --bs-form-select-bg-img: url('../image/icons/form-select-arrow.svg');
-  background-image: var(--bs-form-select-bg-img), var(--bs-form-select-bg-icon, none);
-  background-repeat: no-repeat;
-  background-size: 17px 11px;
-  padding-right: 40px;
-}
-
 .input-group input, .input-group select, .input-group .dropdown-menu, .input-group .popover {
   font-size: 12px;
-}
-
-.input-group-addon {
-  background: none;
-  border: none;
-  font-size: 13px;
 }
 
 .has-error .form-control {
@@ -337,13 +240,6 @@ select.form-control {
    ==========================================================================
  */
 
-.btn {
-  font-family: var(--font-alt);
-  text-transform: uppercase;
-  color: var(--btn-primary-color);
-  background-color: var(--main-color);
-}
-
 .btn.active, .btn:active {
   box-shadow: none;
 }
@@ -362,15 +258,6 @@ select.form-control {
 
 .btn-group > .btn-lg {
   font-size: 15px;
-}
-
-.btn-default {
-  background-color: var(--btn-default-bg);
-  border: none;
-}
-
-.btn-default:hover, .btn-default:focus, .btn-default:active {
-  background-color: var(--btn-default-bg-hover);
 }
 
 .btn-primary, .btn-primary.disabled, .btn-primary[disabled] {
@@ -396,13 +283,6 @@ select.form-control {
   background-color: var(--main-color);
 }
 
-.btn-warning {
-  color: #fff;
-  text-shadow: none;
-  background-color: #faa732;
-  border: none;
-}
-
 .btn-warning:hover, .btn-warning:active, .btn-warning.active, .btn-warning.disabled, .btn-warning[disabled] {
   box-shadow: none;
 }
@@ -413,21 +293,10 @@ select.form-control {
   background-color: transparent;
 }
 
-.btn-success {
-  color: #fff;
-  text-shadow: none;
-  background-color: #5bb75b;
-  border: none;
-}
-
 .btn-success:hover, .btn-success:active, .btn-success.active, .btn-success.disabled, .btn-success[disabled] {
   box-shadow: none;
 }
 
-.btn-info {
-  color: var(--main-color);
-  background-color: transparent;
-}
 
 .btn-info:hover, .btn-info:focus, .btn-info:active, .btn-info:active:focus, .btn-info:active:hover,
 .btn-info.active, .btn-info.disabled, .btn-info[disabled] {
@@ -3034,17 +2903,6 @@ body > .container + .container > .row > #content > h2 {
     text-align: center;
   }
 
-  
-
-  
-
-  
-
-  
-
-  
-
-  
 
   #checkout-cart table.table img {
     height: auto;
@@ -3132,17 +2990,11 @@ body > .container + .container > .row > #content > h2 {
     margin: 0 15px;
   }
 
-  
-
-  
-
-  
 
   #product-category #content h3 {
     margin-left: 0;
   }
 
-  
 
   #content .carousel {
     width: auto;
@@ -3235,9 +3087,6 @@ body > .container + .container > .row > #content > h2 {
     text-align: center;
   }
 
-  
-
-  
 
   #product-product #content > .row > .col-sm-8, #product-product #content > .row > .col-sm-4, #product-product #content > .row > .col-sm-4 .btn-group {
     width: 100%;
@@ -3379,7 +3228,6 @@ body > .container + .container > .row > #content > h2 {
     padding-top: 15px;
   }
 
-  
 
   #product-product #content > .row > .col-sm-4 {
     width: auto;
@@ -3462,9 +3310,6 @@ body > .container + .container > .row > #content > h2 {
     padding: 0 15px;
   }
 
-  
-
-  
 
   #carousel0 img {
     padding: 0 15px;
@@ -3806,33 +3651,44 @@ html[dir="rtl"] #cart .dropdown-menu {
 /* БАЗА И ТИПОГРАФИКА */
 
 body {
+  width: 100%;
+  color: var(--text-color);
   background: var(--page-bg-color);
+  font-family: var(--font-family);
+  font-size: var(--main-font-size);
+  font-optical-sizing: auto;
+  font-weight: 400;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-color);
+  font-weight: 600;
   letter-spacing: -0.015em;
 }
 
 h1 {
+  margin: 0 0 24px;
   font-size: clamp(28px, 3vw, 38px);
   line-height: 1.18;
-  margin-bottom: 24px;
 }
 
 h2 {
+  margin: 20px 0;
+  font-size: 28px;
   line-height: 1.25;
 }
 
 p {
+  margin: 0 0 15px;
   line-height: 1.7;
 }
 
 hr {
-  margin-top: 24px;
-  margin-bottom: 24px;
+  margin: 24px 0;
+  border-top: 1px solid var(--border-color);
 }
 
 #content {
@@ -3844,12 +3700,16 @@ hr {
 .btn {
   min-height: 42px;
   padding: 11px 22px;
+  color: var(--btn-primary-color);
+  background-color: var(--main-color);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   box-shadow: none;
+  font-family: var(--font-alt);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.01em;
+  text-transform: uppercase;
   transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 
@@ -3884,8 +3744,10 @@ hr {
 }
 
 .btn-success {
-  border-color: var(--success-color);
+  color: #fff;
   background: var(--success-color);
+  border-color: var(--success-color);
+  text-shadow: none;
 }
 
 .btn-danger {
@@ -3894,8 +3756,10 @@ hr {
 }
 
 .btn-warning {
-  border-color: var(--warning-color);
+  color: #fff;
   background: var(--warning-color);
+  border-color: var(--warning-color);
+  text-shadow: none;
 }
 
 .btn-info {
@@ -3933,6 +3797,9 @@ select.form-control, textarea.form-control, input[type="text"].form-control, inp
   background: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
+  box-shadow: none;
+  font-size: 14px;
+  transition: color 0.2s ease-in, background-color 0.2s ease-in, border-color 0.2s ease-in, box-shadow 0.2s ease-in;
 }
 
 textarea.form-control {
@@ -3942,7 +3809,13 @@ textarea.form-control {
 }
 
 select.form-control {
+  appearance: none;
+  --bs-form-select-bg-img: url('../image/icons/form-select-arrow.svg');
+  padding-right: 40px;
+  background-image: var(--bs-form-select-bg-img), var(--bs-form-select-bg-icon, none);
+  background-repeat: no-repeat;
   background-position: right 1.2rem center;
+  background-size: 17px 11px;
 }
 
 .form-control:hover {
@@ -3957,6 +3830,9 @@ select.form-control {
 
 .input-group-addon {
   color: var(--text-color-alt);
+  background: none;
+  border: none;
+  font-size: 13px;
 }
 
 .help-block {
@@ -5373,7 +5249,7 @@ footer p {
 }
 
 @media (max-width: 767px) {
-  
+
 
   .catalog-toolbar {
     display: block;
