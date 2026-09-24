@@ -4816,6 +4816,23 @@ a.list-group-item:hover,
         background: #fff;
     }
 
+    #menu.catalog-menu .dropdown-inner {
+        display: block;
+        width: 100%;
+    }
+
+    #menu.catalog-menu .dropdown-inner ul {
+        display: block;
+        width: 100%;
+    }
+
+    #menu.catalog-menu .dropdown-inner li {
+        min-width: 0;
+        width: 100%;
+        padding: 5px 14px;
+    }
+
+
     #menu.catalog-menu .dropdown:hover > .dropdown-menu {
         display: none;
     }
@@ -4943,6 +4960,23 @@ a.list-group-item:hover,
         box-shadow: none;
         background: #fff;
     }
+
+    #menu.catalog-menu .dropdown-inner {
+        display: block;
+        width: 100%;
+    }
+
+    #menu.catalog-menu .dropdown-inner ul {
+        display: block;
+        width: 100%;
+    }
+
+    #menu.catalog-menu .dropdown-inner li {
+        min-width: 0;
+        width: 100%;
+        padding: 5px 14px;
+    }
+
 
     .product-layout {
         min-width: 0;
