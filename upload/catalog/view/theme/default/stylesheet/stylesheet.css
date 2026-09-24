@@ -5542,3 +5542,122 @@ footer p {
         margin-bottom: 14px;
     }
 }
+
+
+/* Regression fixes after modern storefront layer */
+
+/* Input groups: keep action buttons exactly aligned with 46px controls.
+   This overrides the legacy global 15px/30px button padding. */
+.input-group > .form-control,
+.input-group > .input-group-addon,
+.input-group > .input-group-btn > .btn {
+    height: 46px;
+}
+
+.input-group-btn:last-child > .btn,
+.input-group-btn:last-child > .btn-group {
+    padding: 0 14px;
+}
+
+.input-group > .form-control:first-child {
+    border-top-left-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
+}
+
+.input-group > .input-group-btn:last-child > .btn {
+    min-width: 48px;
+    border: 1px solid var(--border-color);
+    border-left: 0;
+    border-top-right-radius: var(--radius-sm);
+    border-bottom-right-radius: var(--radius-sm);
+    background: var(--surface-color);
+    box-shadow: none;
+}
+
+.input-group > .input-group-btn:last-child > .btn:hover,
+.input-group > .input-group-btn:last-child > .btn:focus {
+    color: var(--main-color);
+    background: var(--surface-muted);
+    transform: none;
+}
+
+/* Header search uses an absolutely positioned action button,
+   so the Bootstrap input-group button cell must not reserve extra width. */
+#search.input-group {
+    position: relative;
+    display: block;
+}
+
+#search > .form-control {
+    display: block;
+    width: 100%;
+    float: none;
+    padding-right: 58px;
+    border-radius: var(--radius-md);
+}
+
+#search > .input-group-btn {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    z-index: 4;
+    display: block;
+    width: 44px;
+    height: 44px;
+}
+
+#search > .input-group-btn > .btn {
+    position: static;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+}
+
+/* Related blog cards: equal-height content with rating and actions pinned low. */
+#blog-article .blog-article-list {
+    align-items: stretch;
+}
+
+#blog-article .blog-article-list > [class*="col-"] {
+    display: flex;
+}
+
+#blog-article .blog-article-card {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
+#blog-article .blog-article-card .caption {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#blog-article .blog-article-card .caption > p {
+    margin-bottom: 14px;
+}
+
+#blog-article .blog-article-card .rating {
+    margin-top: auto;
+    padding-bottom: 14px;
+}
+
+#blog-article .blog-article-card .button-group {
+    margin-top: 0;
+}
+
+/* On two-column tablet layouts keep the same equal-height behaviour. */
+@media (max-width: 767px) {
+    #blog-article .blog-article-list > [class*="col-"] {
+        display: block;
+    }
+
+    #blog-article .blog-article-card .rating {
+        margin-top: 0;
+    }
+}
