@@ -1212,6 +1212,108 @@ footer p {
 }
 
 /* Tablet */
+@media (min-width: 768px) and (max-width: 991px) {
+    /* Switch the catalog menu to the compact navbar before categories wrap
+     * into multiple rows. Bootstrap 3 normally keeps the desktop navbar from
+     * 768px upward, so we explicitly move that breakpoint to 992px. */
+    #menu.catalog-menu .navbar-header {
+        float: none;
+    }
+
+    #menu.catalog-menu .navbar-toggle {
+        display: block;
+    }
+
+    #menu.catalog-menu .navbar-collapse {
+        border-top: 1px solid rgba(255,255,255,.10);
+        box-shadow: none;
+    }
+
+    #menu.catalog-menu .navbar-collapse.collapse {
+        display: none !important;
+    }
+
+    #menu.catalog-menu .navbar-collapse.collapse.in {
+        display: block !important;
+        overflow-y: auto !important;
+    }
+
+    #menu.catalog-menu .navbar-nav {
+        float: none !important;
+        display: block;
+        width: 100%;
+        margin: 8px 0;
+    }
+
+    #menu.catalog-menu .navbar-nav > li {
+        float: none;
+        width: 100%;
+    }
+
+    #menu.catalog-menu .navbar-nav > li > a {
+        min-height: 0;
+        padding: 12px 14px;
+        border-radius: 8px;
+    }
+
+    #menu.catalog-menu .dropdown-menu {
+        position: static;
+        float: none;
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+        padding: 8px 0 10px;
+        border: 0;
+        border-radius: 10px;
+        background: rgba(255,255,255,.98);
+        box-shadow: none;
+    }
+
+    #menu.catalog-menu .dropdown-inner {
+        display: block;
+    }
+
+    #menu.catalog-menu .dropdown-inner ul {
+        display: block;
+        width: 100%;
+    }
+
+    #menu.catalog-menu .dropdown-inner li {
+        min-width: 0;
+        padding: 4px 14px;
+    }
+
+    #menu.catalog-menu .dropdown-inner li a {
+        display: block;
+        width: 100%;
+        color: var(--modern-ink);
+    }
+
+    #menu.catalog-menu .see-all {
+        display: block;
+        width: auto;
+        margin: 7px 14px 2px;
+    }
+
+    #menu.catalog-menu .dropdown:hover .dropdown-menu {
+        display: none;
+    }
+
+    #menu.catalog-menu .dropdown.open > .dropdown-menu {
+        display: block;
+    }
+
+    #menu.catalog-menu #category {
+        display: block !important;
+        line-height: 48px;
+        padding-left: 14px;
+    }
+
+    #menu.catalog-menu .btn-navbar {
+        margin-top: 4px;
+    }
+}
+
 @media (max-width: 991px) {
     header.header-main .header-logo-col {
         width: 24%;
