@@ -121,17 +121,28 @@ $(document).ready(function() {
 		}
 	});
 
-	// Menu
-	$('#menu .dropdown-menu').each(function() {
-		var menu = $('#menu').offset();
-		var dropdown = $(this).parent().offset();
+	// Menu: horizontal correction is only needed for the desktop dropdown.
+	// On mobile the dropdown is part of the collapsed flow and must not keep
+	// an inline desktop offset.
+	function updateMenuDropdownOffsets() {
+		$('#menu .dropdown-menu').each(function() {
+			var dropdownMenu = $(this);
 
-		var i = (dropdown.left + $(this).outerWidth()) - (menu.left + $('#menu').outerWidth());
+			if (window.matchMedia('(max-width: 767px)').matches) {
+				dropdownMenu.css('margin-left', '');
+				return;
+			}
 
-		if (i > 0) {
-			$(this).css('margin-left', '-' + (i + 10) + 'px');
-		}
-	});
+			var menu = $('#menu').offset();
+			var dropdown = dropdownMenu.parent().offset();
+			var overflow = (dropdown.left + dropdownMenu.outerWidth()) - (menu.left + $('#menu').outerWidth());
+
+			dropdownMenu.css('margin-left', overflow > 0 ? '-' + (overflow + 10) + 'px' : '');
+		});
+	}
+
+	updateMenuDropdownOffsets();
+	$(window).on('resize', updateMenuDropdownOffsets);
 
 	// Product List
 	$('#list-view').on('click', function() {
@@ -154,7 +165,11 @@ $(document).ready(function() {
 		} else if (cols == 1) {
 			$('#content .product-list').attr('class', 'product-layout product-grid col-lg-4 col-md-4 col-sm-6 col-xs-12');
 		} else {
-			$('#content .product-list').attr('class', 'product-layout product-grid col-lg-3 col-md-3 col-sm-6 col-xs-12');
+			var gridClass = $('#content .product-list').first().closest('#blog-latest, #blog-category').length
+				? 'product-layout product-grid col-lg-4 col-md-4 col-sm-6 col-xs-12'
+				: 'product-layout product-grid col-lg-3 col-md-3 col-sm-6 col-xs-12';
+
+			$('#content .product-list').attr('class', gridClass);
 		}
 
 		$('#list-view').removeClass('active');
@@ -537,6 +552,10 @@ var compare = {
 					$('#content').parent().before('<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
 
 					$('#compare-total').html(json['total']);
+					$('#compare-total-top')
+						.attr('title', json['total'])
+						.find('.top-link-label')
+						.text(json['total']);
 
 					$('html, body').animate({ scrollTop: 0 }, 'slow');
 				}

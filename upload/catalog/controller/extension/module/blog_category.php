@@ -41,7 +41,7 @@ class ControllerExtensionModuleBlogCategory extends Controller {
 				$children = $this->model_blog_category->getCategories($category['blog_category_id']);
 
 				foreach ($children as $child) {
-					$filter_data = array('filter_blog_category_id' => $child['blog_category_id'], 'filter_sub_category' => true);
+					$filter_data = array('filter_blog_category_id' => $child['blog_category_id']);
 
 					$children_data[] = array(
 						'blog_category_id' => $child['blog_category_id'],
@@ -52,7 +52,7 @@ class ControllerExtensionModuleBlogCategory extends Controller {
 			}
 
 			$filter_data = array(
-				'filter_blog_category_id' => $category['blog_category_id'],
+				'filter_blog_category_id' => $category['blog_category_id']
 			);
 
 			$data['categories'][] = array(

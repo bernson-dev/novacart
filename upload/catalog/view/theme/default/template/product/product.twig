@@ -31,7 +31,7 @@
                         {% endif %}
                     </ul>
                     {% endif %}
-                    <ul class="nav nav-tabs">
+                    <ul class="nav nav-tabs product-tabs">
                         <li class="active"><a href="#tab-description" data-toggle="tab">{{ tab_description }}</a></li>
                         {% if attribute_groups %}
                         <li><a href="#tab-specification" data-toggle="tab">{{ tab_attribute }}</a></li>
@@ -40,7 +40,7 @@
                         <li><a href="#tab-review" data-toggle="tab">{{ tab_review }}</a></li>
                         {% endif %}
                     </ul>
-                    <div class="tab-content">
+                    <div class="tab-content product-tab-content">
                         <div class="tab-pane active" id="tab-description">{{ description }}</div>
                         {% if attribute_groups %}
                         <div class="tab-pane" id="tab-specification">
@@ -120,7 +120,7 @@
                 {% else %}
                 {% set class = 'col-sm-4' %}
                 {% endif %}
-                <div class="sticky {{ class }}">
+                <div class="product-summary-column {{ class }}">
                     <div class="btn-group">
                         <button type="button" data-toggle="tooltip" class="btn btn-default" title="{{ button_wishlist }}" onclick="wishlist.add('{{ product_id }}');">
                             <i class="fa fa-heart"></i></button>
@@ -292,21 +292,31 @@
                             <div class="help-block" id="recurring-description"></div>
                         </div>
                         {% endif %}
-                        <div class="form-group">
-                            <label class="control-label" for="input-quantity">{{ entry_qty }}</label>
-                            <input type="text" name="quantity" value="{{ minimum }}" size="2" id="input-quantity" class="form-control" />
+                        <div class="form-group product-purchase-group">
                             <input type="hidden" name="product_id" value="{{ product_id }}" />
-                            <br />
-                            {% if stock_can_buy %}
-                            <button type="button" id="button-cart" data-product-id="{{ product_id }}" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block">{% if stock_in_cart %}<i class="fa fa-check"></i> {{ stock_cart_button_text }}{% else %}{{ stock_button_text ?: button_cart }}{% endif %}</button>
-                            {% elseif stock_button_mode != 'hide' %}
-                            <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-warning btn-lg btn-block stock-purchase-disabled" disabled="disabled" aria-disabled="true">{{ stock_button_mode == 'disable_status' ? stock_button_text : button_cart }}</button>
-                            {% endif %}
+
+                            <div class="product-purchase-row">
+                                <div class="product-qty-group">
+                                    <label class="control-label" for="input-quantity">{{ entry_qty }}</label>
+                                    <input type="text" name="quantity" value="{{ minimum }}" size="2" id="input-quantity" class="form-control" />
+                                </div>
+
+                                <div class="product-buy-group">
+                                    {% if stock_can_buy %}
+                                    <button type="button" id="button-cart" data-product-id="{{ product_id }}" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block">{% if stock_in_cart %}<i class="fa fa-check"></i> {{ stock_cart_button_text }}{% else %}{{ stock_button_text ?: button_cart }}{% endif %}</button>
+                                    {% elseif stock_button_mode != 'hide' %}
+                                    <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-warning btn-lg btn-block stock-purchase-disabled" disabled="disabled" aria-disabled="true">{{ stock_button_mode == 'disable_status' ? stock_button_text : button_cart }}</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+
                             <div id="stock-purchase-message" class="help-block stock-purchase-message"{% if stock_preorder_allowed %}>{{ text_stock_preorder_allowed }}{% else %} style="display:none;">{% endif %}</div>
                         </div>
                         {% if minimum > 1 %}
-                        <div class="alert alert-info">
-                            <i class="fa fa-info-circle"></i> {{ text_minimum }}</div>
+                        <div class="alert alert-info product-minimum-alert">
+                            <i class="fa fa-info-circle"></i>
+                            <span>{{ text_minimum }}</span>
+                        </div>
                         {% endif %}</div>
                     {% if review_status %}
                     <div class="rating">
@@ -322,6 +332,41 @@
                     </div>
                     {% endif %} </div>
             </div>
+
+            {% if stock_can_buy or stock_button_mode != 'hide' %}
+            <div id="product-sticky-buy" class="product-sticky-buy" aria-hidden="true">
+                <div class="product-sticky-buy-container">
+                    <div class="product-sticky-buy-panel">
+                        <div class="product-sticky-buy-info">
+                            <strong class="product-sticky-buy-title">{{ heading_title }}</strong>
+                            {% if price %}
+                            <div class="product-sticky-buy-price">
+                                {% if special %}
+                                <span class="product-sticky-buy-price-old">{{ price }}</span>
+                                <strong>{{ special }}</strong>
+                                {% else %}
+                                <strong>{{ price }}</strong>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="product-sticky-buy-actions">
+                            <label for="sticky-input-quantity">{{ entry_qty }}</label>
+                            <input type="text" id="sticky-input-quantity" value="{{ minimum }}" class="form-control" inputmode="numeric" autocomplete="off" />
+                            <button type="button" id="button-cart-sticky" class="btn btn-primary">
+                                {% if stock_in_cart %}
+                                <i class="fa fa-check"></i> {{ stock_cart_button_text }}
+                                {% else %}
+                                {{ stock_button_text ?: button_cart }}
+                                {% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             {% if products %}
             <h3>{{ text_related }}</h3>
             <div class="row">
@@ -476,6 +521,47 @@
     });
     </script>
     <script type="text/javascript">
+    function scrollToFirstProductError() {
+        var error = $('#product .text-danger:visible').first();
+        var errorBlock;
+        var focusTarget;
+
+        if (error.length) {
+            errorBlock = error.closest('.form-group');
+
+            if (!errorBlock.length) {
+                errorBlock = error;
+            }
+
+            focusTarget = errorBlock
+                .find('select:visible, textarea:visible, input:visible:not([type="hidden"]), button[id^="button-upload"]:visible')
+                .filter(':enabled')
+                .first();
+        } else {
+            var stockMessage = $('#stock-purchase-message:visible');
+
+            if (!stockMessage.length) {
+                return;
+            }
+
+            errorBlock = stockMessage;
+        }
+
+        var targetTop = Math.max(0, errorBlock.offset().top - 24);
+
+        $('html, body').stop(true).animate({
+            scrollTop: targetTop
+        }, 350, function() {
+            if (focusTarget && focusTarget.length) {
+                try {
+                    focusTarget[0].focus({ preventScroll: true });
+                } catch (e) {
+                    focusTarget[0].focus();
+                }
+            }
+        });
+    }
+
     $('#button-cart').on('click', function() {
         $.ajax({
             url: 'index.php?route=checkout/cart/add',
@@ -531,6 +617,9 @@
 
                     // Highlight any found errors
                     $('.text-danger').parent().addClass('has-error');
+
+                    // Move the customer to the first field that requires attention.
+                    scrollToFirstProductError();
                 }
 
                 if (json['success']) {
@@ -671,5 +760,146 @@
             }
         });
     });
+    </script>
+    <script type="text/javascript">
+    (function() {
+        var originalButton = document.getElementById('button-cart');
+        var stickyBar = document.getElementById('product-sticky-buy');
+        var stickyButton = document.getElementById('button-cart-sticky');
+        var originalQuantity = document.getElementById('input-quantity');
+        var stickyQuantity = document.getElementById('sticky-input-quantity');
+        var productContent = document.querySelector('#product-product #content');
+
+        if (!originalButton || !stickyBar || !stickyButton || !originalQuantity || !stickyQuantity) {
+            return;
+        }
+
+        var ticking = false;
+
+        function updateStickyGeometry() {
+            if (window.matchMedia('(max-width: 767px)').matches || !productContent) {
+                stickyBar.style.left = '0';
+                stickyBar.style.width = '100%';
+                return;
+            }
+
+            var contentRect = productContent.getBoundingClientRect();
+
+            stickyBar.style.left = Math.max(0, contentRect.left) + 'px';
+            stickyBar.style.width = Math.max(0, contentRect.width) + 'px';
+        }
+
+        function syncStickyButton() {
+            stickyButton.className = originalButton.className
+                .replace(/\bbtn-lg\b/g, '')
+                .replace(/\bbtn-block\b/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            stickyButton.innerHTML = originalButton.innerHTML;
+            stickyButton.disabled = originalButton.disabled;
+            stickyButton.setAttribute('aria-disabled', originalButton.disabled ? 'true' : 'false');
+
+            if (originalButton.style.display === 'none') {
+                hideStickyBar();
+            }
+        }
+
+        function syncQuantityFromOriginal() {
+            if (stickyQuantity.value !== originalQuantity.value) {
+                stickyQuantity.value = originalQuantity.value;
+            }
+        }
+
+        function showStickyBar() {
+            if (originalButton.style.display === 'none') {
+                return;
+            }
+
+            stickyBar.classList.add('is-visible');
+            stickyBar.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('product-sticky-buy-active');
+        }
+
+        function hideStickyBar() {
+            stickyBar.classList.remove('is-visible');
+            stickyBar.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('product-sticky-buy-active');
+        }
+
+        function updateStickyVisibility() {
+            ticking = false;
+
+            if (originalButton.style.display === 'none') {
+                hideStickyBar();
+                return;
+            }
+
+            var rect = originalButton.getBoundingClientRect();
+
+            // Show only after the real purchase button has scrolled above the viewport.
+            // Do not show the duplicate action while the original button is still ahead.
+            if (rect.bottom <= 8) {
+                showStickyBar();
+            } else {
+                hideStickyBar();
+            }
+        }
+
+        function requestVisibilityUpdate() {
+            if (!ticking) {
+                ticking = true;
+                window.requestAnimationFrame(function() {
+                    updateStickyGeometry();
+                    updateStickyVisibility();
+                });
+            }
+        }
+
+        stickyQuantity.addEventListener('input', function() {
+            originalQuantity.value = this.value;
+            $(originalQuantity).trigger('input');
+        });
+
+        stickyQuantity.addEventListener('change', function() {
+            originalQuantity.value = this.value;
+            $(originalQuantity).trigger('change');
+        });
+
+        originalQuantity.addEventListener('input', syncQuantityFromOriginal);
+        originalQuantity.addEventListener('change', syncQuantityFromOriginal);
+
+        stickyButton.addEventListener('click', function() {
+            if (!originalButton.disabled && originalButton.style.display !== 'none') {
+                originalButton.click();
+            }
+        });
+
+        if (window.MutationObserver) {
+            new MutationObserver(function() {
+                syncStickyButton();
+                requestVisibilityUpdate();
+            }).observe(originalButton, {
+                attributes: true,
+                childList: true,
+                subtree: true,
+                attributeFilter: ['class', 'disabled', 'style', 'aria-disabled']
+            });
+        }
+
+        window.addEventListener('scroll', requestVisibilityUpdate, { passive: true });
+        window.addEventListener('resize', requestVisibilityUpdate);
+
+        if (window.ResizeObserver && productContent) {
+            new ResizeObserver(function() {
+                updateStickyGeometry();
+            }).observe(productContent);
+        }
+
+        syncStickyButton();
+        syncQuantityFromOriginal();
+        updateStickyGeometry();
+        updateStickyVisibility();
+    })();
     </script>
     {{ footer }}

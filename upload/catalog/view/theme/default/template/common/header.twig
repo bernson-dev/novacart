@@ -53,20 +53,26 @@
     {{ analytic }}
     {% endfor %}
 </head>
-<body>
+<body class="route-{{ current_route|replace({'/': '-'}) }}">
 <nav id="top">
     <div class="container">
         {{ currency }}
         {{ language }}
         {{ blog_menu }}
-        <div id="top-links" class="nav pull-right">
+        <div id="top-links" class="nav">
             <ul class="list-inline">
-                <li>
-                    <a href="{{ contact }}">
-                        <i class="fa fa-phone"></i></a> <span class="hidden-xs hidden-sm hidden-md">{{ telephone }}</span></li>
-                <li class="dropdown">
+                <li class="top-link-contact">
+                    <a href="{{ contact }}" title="{{ telephone }}">
+                        <i class="fa fa-phone"></i>
+                        <span class="hidden-xs hidden-sm hidden-md">{{ telephone }}</span>
+                    </a>
+                </li>
+                <li class="dropdown top-link-account">
                     <a href="{{ account }}" title="{{ text_account }}" class="dropdown-toggle" data-toggle="dropdown">
-                        <i class="fa fa-user"></i> <span class="hidden-xs hidden-sm hidden-md">{{ text_account }}</span> <span class="caret"></span></a>
+                        <i class="fa fa-user"></i>
+                        <span class="hidden-xs hidden-sm hidden-md">{{ text_account }}</span>
+                        <span class="caret"></span>
+                    </a>
                     <ul class="dropdown-menu dropdown-menu-right">
                         {% if logged %}
                         <li><a href="{{ account }}">{{ text_account }}</a></li>
@@ -80,15 +86,30 @@
                         {% endif %}
                     </ul>
                 </li>
-                <li>
+                <li class="top-link-wishlist">
                     <a href="{{ wishlist }}" id="wishlist-total" title="{{ text_wishlist }}">
-                        <i class="fa fa-heart"></i> <span class="hidden-xs hidden-sm hidden-md">{{ text_wishlist }}</span></a></li>
-                <li>
+                        <i class="fa fa-heart"></i>
+                        <span class="hidden-xs hidden-sm hidden-md">{{ text_wishlist }}</span>
+                    </a>
+                </li>
+                <li class="top-link-compare">
+                    <a href="{{ compare }}" id="compare-total-top" title="{{ text_compare }}">
+                        <i class="fa fa-exchange"></i>
+                        <span class="top-link-label hidden-xs hidden-sm hidden-md">{{ text_compare }}</span>
+                    </a>
+                </li>
+                <li class="top-link-cart">
                     <a href="{{ shopping_cart }}" title="{{ text_shopping_cart }}">
-                        <i class="fa fa-shopping-cart"></i> <span class="hidden-xs hidden-sm hidden-md">{{ text_shopping_cart }}</span></a></li>
-                <li>
+                        <i class="fa fa-shopping-cart"></i>
+                        <span class="hidden-xs hidden-sm hidden-md">{{ text_shopping_cart }}</span>
+                    </a>
+                </li>
+                <li class="top-link-checkout">
                     <a href="{{ checkout }}" title="{{ text_checkout }}">
-                        <i class="fa fa-share"></i> <span class="hidden-xs hidden-sm hidden-md">{{ text_checkout }}</span></a></li>
+                        <i class="fa fa-share"></i>
+                        <span class="hidden-xs hidden-sm hidden-md">{{ text_checkout }}</span>
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
