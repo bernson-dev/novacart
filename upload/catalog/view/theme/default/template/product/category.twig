@@ -26,28 +26,11 @@
             {% endif %}
             {% if categories %}
             <h3 class="category-refine-title">{{ text_refine }}</h3>
-            {% if categories|length <= 5 %}
-            <div class="row category-refine-row">
-                <div class="col-sm-3 category-refine-column">
-                    <ul class="category-refine-list">
-                        {% for category in categories %}
-                        <li><a href="{{ category.href }}">{{ category.name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
+            <div class="category-refine-grid">
+                {% for category in categories %}
+                <a href="{{ category.href }}" class="category-refine-item">{{ category.name }}</a>
+                {% endfor %}
             </div>
-            {% else %}
-            <div class="row category-refine-row">{% for category in categories|batch((categories|length / 4)|round(1, 'ceil')) %}
-                <div class="col-sm-3 category-refine-column">
-                    <ul class="category-refine-list">
-                        {% for child in category %}
-                        <li><a href="{{ child.href }}">{{ child.name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endfor %}</div>
-            <br />
-            {% endif %}
             {% endif %}
             {% if products %}
             <div class="row catalog-toolbar">
