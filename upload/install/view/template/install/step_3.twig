@@ -140,8 +140,12 @@
                         <div class="col-sm-9">
                             <select name="sql_dump" id="input-sql-dump" class="form-control">
                                 {% if sql_dumps is not empty %}
-                                {% for sql_dump in sql_dumps %}
-                                <option value="{{ sql_dump }}">{{ sql_dump }}</option>
+                                {% for dump in sql_dumps %}
+                                {% if sql_dump == dump %}
+                                <option value="{{ dump }}" selected="selected">{{ dump }}</option>
+                                {% else %}
+                                <option value="{{ dump }}">{{ dump }}</option>
+                                {% endif %}
                                 {% endfor %}
                                 {% else %}
                                 <option value="">There are no available SQL files</option>
@@ -155,15 +159,11 @@
                         <div class="col-sm-9">
                             <div class="checkbox">
                                 <label>
-                                    {% if repair_schema %}
-                                    <input type="checkbox" name="repair_schema" value="1" id="input-repair-schema" checked="checked"/>
-                                    {% else %}
-                                    <input type="checkbox" name="repair_schema" value="1" id="input-repair-schema"/>
-                                    {% endif %}
+                                    <input type="checkbox" name="repair_schema" value="1" id="input-repair-schema"{% if repair_schema %} checked="checked"{% endif %}{% if repair_schema_disabled %} disabled="disabled"{% endif %}/>
                                     {{ text_repair_schema }}
                                 </label>
                             </div>
-                            <p class="help-block">{{ help_repair_schema }}</p>
+                            <p class="help-block" id="repair-schema-status">{{ help_repair_schema }}</p>
                         </div>
                     </div>
                 </fieldset>
@@ -179,6 +179,68 @@
     </div>
 </div>
 <script>
+    (function() {
+        var $dump = $('#input-sql-dump');
+        var $repair = $('#input-repair-schema');
+        var $status = $('#repair-schema-status');
+        var request = null;
+
+        function applySchemaState(data) {
+            if (!data || !data.success) {
+                $repair.prop('checked', false).prop('disabled', false);
+                $status.text(data && data.message ? data.message : '{{ text_repair_schema_error|escape('js') }}');
+                return;
+            }
+
+            if (data.disabled) {
+                $repair.prop('checked', false).prop('disabled', true);
+            } else {
+                $repair.prop('disabled', false).prop('checked', !!data.needs_repair);
+            }
+
+            $status.text(data.message || '{{ help_repair_schema|escape('js') }}');
+        }
+
+        function checkSchema() {
+            var sqlDump = $dump.val() || '';
+
+            if (request && request.readyState !== 4) {
+                request.abort();
+            }
+
+            if (!sqlDump) {
+                $repair.prop('checked', false).prop('disabled', true);
+                return;
+            }
+
+            if (sqlDump === 'opencart.sql') {
+                applySchemaState({
+                    success: true,
+                    disabled: true,
+                    needs_repair: false,
+                    message: '{{ text_repair_schema_reference|escape('js') }}'
+                });
+                return;
+            }
+
+            $repair.prop('checked', false).prop('disabled', true);
+            $status.text('{{ help_repair_schema|escape('js') }}');
+
+            request = $.ajax({
+                url: '{{ schema_check_url }}&sql_dump=' + encodeURIComponent(sqlDump),
+                dataType: 'json'
+            }).done(applySchemaState).fail(function() {
+                applySchemaState({
+                    success: false,
+                    message: '{{ text_repair_schema_error|escape('js') }}'
+                });
+            });
+        }
+
+        $dump.on('change', checkSchema);
+        checkSchema();
+    })();
+
     function generatePassword()
     {
         const length = 12; // длина пароля

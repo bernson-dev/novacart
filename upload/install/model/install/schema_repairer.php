@@ -65,6 +65,126 @@ class SchemaRepairer {
     }
 
     /**
+     * Проверяет, требуется ли выбранному дампу восстановление структуры
+     * относительно эталонного install/opencart.sql.
+     *
+     * Сравниваются только те признаки, которые умеет исправлять
+     * repairSchemaFromFile(): отсутствующие таблицы/колонки/индексы,
+     * тип колонки, NULL/NOT NULL и AUTO_INCREMENT.
+     *
+     * @param string $dump_file
+     * @return bool
+     * @throws Exception
+     */
+    public function dumpNeedsRepair($dump_file) {
+        $schema_file = DIR_APPLICATION . 'opencart.sql';
+
+        if (!is_file($schema_file)) {
+            throw new \Exception('Could not load schema file: ' . $schema_file);
+        }
+
+        if (!is_file($dump_file)) {
+            throw new \Exception('Could not load dump file: ' . $dump_file);
+        }
+
+        $schema_real = realpath($schema_file);
+        $dump_real = realpath($dump_file);
+
+        // Сам эталон никогда не нуждается в восстановлении по самому себе.
+        if ($schema_real !== false && $dump_real !== false && $schema_real === $dump_real) {
+            return false;
+        }
+
+        $schema_sql = file_get_contents($schema_file);
+        $dump_sql = file_get_contents($dump_file);
+
+        if ($schema_sql === false || trim($schema_sql) === '') {
+            throw new \Exception('Schema file is empty: ' . $schema_file);
+        }
+
+        if ($dump_sql === false || trim($dump_sql) === '') {
+            throw new \Exception('Dump file is empty: ' . $dump_file);
+        }
+
+        $schema_tables = $this->parseCreateTables($this->cleanSqlComments($schema_sql));
+        $dump_tables = $this->parseCreateTables($this->cleanSqlComments($dump_sql));
+
+        if (!$schema_tables) {
+            throw new \Exception('No CREATE TABLE statements found in schema file: ' . $schema_file);
+        }
+
+        if (!$dump_tables) {
+            throw new \Exception('No compatible CREATE TABLE statements found in dump file: ' . $dump_file);
+        }
+
+        foreach ($schema_tables as $table_name => $schema_table) {
+            if (!isset($dump_tables[$table_name])) {
+                return true;
+            }
+
+            $dump_table = $dump_tables[$table_name];
+
+            foreach ($schema_table['columns'] as $column_name => $schema_column) {
+                if (!isset($dump_table['columns'][$column_name])) {
+                    return true;
+                }
+
+                if ($this->dumpColumnNeedsRepair(
+                    $schema_column['definition'],
+                    $dump_table['columns'][$column_name]['definition']
+                )) {
+                    return true;
+                }
+            }
+
+            // Текущий repairSchemaFromFile() восстанавливает отсутствующие
+            // индексы по имени, поэтому анализ использует тот же критерий.
+            foreach ($schema_table['indexes'] as $index_name => $schema_index) {
+                if (!isset($dump_table['indexes'][$index_name])) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Сравнение определений колонок двух SQL-дампов по тем признакам,
+     * которые реально исправляет SchemaRepairer.
+     */
+    private function dumpColumnNeedsRepair($schema_definition, $dump_definition) {
+        $schema = $this->getDumpColumnSignature($schema_definition);
+        $dump = $this->getDumpColumnSignature($dump_definition);
+
+        return $schema['type'] !== $dump['type']
+            || $schema['not_null'] !== $dump['not_null']
+            || $schema['auto_increment'] !== $dump['auto_increment'];
+    }
+
+    /**
+     * Нормализованная сигнатура колонки из CREATE TABLE.
+     */
+    private function getDumpColumnSignature($definition) {
+        $definition = strtolower(trim(preg_replace('/\\s+/', ' ', (string)$definition)));
+        $type = '';
+
+        if (preg_match('/^([a-z]+(?:\\s*\\([^)]*\\))?(?:\\s+unsigned)?(?:\\s+zerofill)?)/i', $definition, $match)) {
+            $type = strtolower($match[1]);
+            $type = preg_replace('/\\s+/', ' ', $type);
+            $type = preg_replace('/\\s*\\(\\s*/', '(', $type);
+            $type = preg_replace('/\\s*\\)/', ')', $type);
+            $type = preg_replace('/\\s*,\\s*/', ',', $type);
+        }
+
+        return array(
+            'type' => trim($type),
+            'not_null' => strpos($definition, 'not null') !== false,
+            'auto_increment' => strpos($definition, 'auto_increment') !== false
+        );
+    }
+
+    /**
      * Удаляет однострочные и многострочные комментарии из SQL.
      *
      * @param string $sql

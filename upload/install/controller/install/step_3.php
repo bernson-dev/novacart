@@ -9,7 +9,8 @@ class ControllerInstallStep3 extends Controller {
 			$this->load->model('install/install');
 
 			$install_data = $this->request->post;
-			$install_data['repair_schema'] = !empty($this->request->post['repair_schema']) ? 1 : 0;
+			$selected_dump = isset($this->request->post['sql_dump']) ? basename((string)$this->request->post['sql_dump']) : '';
+			$install_data['repair_schema'] = ($selected_dump !== 'opencart.sql' && !empty($this->request->post['repair_schema'])) ? 1 : 0;
 
 			$this->model_install_install->database($install_data);
 
@@ -137,6 +138,10 @@ class ControllerInstallStep3 extends Controller {
 		$data['entry_repair_schema'] = $this->language->get('entry_repair_schema');
 		$data['text_repair_schema'] = $this->language->get('text_repair_schema');
 		$data['help_repair_schema'] = $this->language->get('help_repair_schema');
+		$data['text_repair_schema_reference'] = $this->language->get('text_repair_schema_reference');
+		$data['text_repair_schema_matches'] = $this->language->get('text_repair_schema_matches');
+		$data['text_repair_schema_differs'] = $this->language->get('text_repair_schema_differs');
+		$data['text_repair_schema_error'] = $this->language->get('text_repair_schema_error');
 
 		// Папка, где хранятся дампы SQL
 		$sql_dump_dir = DIR_APPLICATION;
@@ -165,11 +170,16 @@ class ControllerInstallStep3 extends Controller {
 			$data['sql_dump'] = 'opencart.sql';  // Файл по умолчанию
 		}
 
-		if ($this->request->server['REQUEST_METHOD'] == 'POST') {
-			$data['repair_schema'] = !empty($this->request->post['repair_schema']);
-		} else {
-			$data['repair_schema'] = true;
-		}
+		// Для эталонного opencart.sql восстановление схемы не требуется.
+		// Для остальных дампов флажок по умолчанию выключен и будет
+		// автоматически установлен после анализа выбранного файла в браузере.
+		$data['repair_schema'] = (
+			$this->request->server['REQUEST_METHOD'] == 'POST'
+			&& $data['sql_dump'] !== 'opencart.sql'
+			&& !empty($this->request->post['repair_schema'])
+		);
+		$data['repair_schema_disabled'] = ($data['sql_dump'] === 'opencart.sql');
+		$data['schema_check_url'] = $this->url->link('install/step_3/schemaCheck');
 
 		// End Select SQL Dump
 
@@ -323,6 +333,59 @@ class ControllerInstallStep3 extends Controller {
 
 		$this->response->setOutput($this->load->view('install/step_3', $data));
 	}
+
+	public function schemaCheck() {
+		$this->load->language('install/step_3');
+
+		$json = array(
+			'success' => false,
+			'needs_repair' => false,
+			'disabled' => false,
+			'message' => $this->language->get('text_repair_schema_error')
+		);
+
+		$sql_dump = isset($this->request->get['sql_dump']) ? (string)$this->request->get['sql_dump'] : '';
+		$sql_file = DIR_APPLICATION . $sql_dump;
+
+		if (
+			$sql_dump === ''
+			|| basename($sql_dump) !== $sql_dump
+			|| strtolower(pathinfo($sql_dump, PATHINFO_EXTENSION)) !== 'sql'
+			|| !is_file($sql_file)
+		) {
+			$this->response->addHeader('Content-Type: application/json');
+			$this->response->setOutput(json_encode($json));
+			return;
+		}
+
+		if ($sql_dump === 'opencart.sql') {
+			$json['success'] = true;
+			$json['disabled'] = true;
+			$json['needs_repair'] = false;
+			$json['message'] = $this->language->get('text_repair_schema_reference');
+
+			$this->response->addHeader('Content-Type: application/json');
+			$this->response->setOutput(json_encode($json));
+			return;
+		}
+
+		try {
+			require_once(DIR_APPLICATION . 'model/install/schema_repairer.php');
+
+			$repairer = new SchemaRepairer();
+			$json['needs_repair'] = $repairer->dumpNeedsRepair($sql_file);
+			$json['success'] = true;
+			$json['message'] = $json['needs_repair']
+				? $this->language->get('text_repair_schema_differs')
+				: $this->language->get('text_repair_schema_matches');
+		} catch (Exception $e) {
+			$json['message'] = $this->language->get('text_repair_schema_error') . ' ' . $e->getMessage();
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
 
 	private function validate() {
 		if (!$this->request->post['db_hostname']) {

@@ -15,6 +15,10 @@ $_['text_pgsql'] = 'PostgreSQL';
 $_['text_dump_select'] = '3. Выберите SQL дамп';
 $_['text_dump'] = 'SQL дамп';
 $_['text_repair_schema'] = 'Привести структуру базы к эталону после импорта дампа';
+$_['text_repair_schema_reference'] = 'opencart.sql является эталонной схемой. Восстановление структуры для него не требуется.';
+$_['text_repair_schema_matches'] = 'Структура выбранного дампа соответствует эталону opencart.sql. Восстановление не требуется.';
+$_['text_repair_schema_differs'] = 'Обнаружены расхождения с эталонной схемой opencart.sql. Восстановление структуры включено автоматически.';
+$_['text_repair_schema_error'] = 'Не удалось проанализировать структуру выбранного дампа.';
 
 // Entry
 $_['entry_db_driver'] = 'Драйвер БД';
