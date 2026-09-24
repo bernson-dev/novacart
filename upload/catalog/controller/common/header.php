@@ -23,39 +23,7 @@ class ControllerCommonHeader extends Controller {
 			$server = $this->config->get('config_url');
 		}
 
-		// Favicon addLink
-		$store_id = (int)$this->config->get('config_store_id');
-
-		$favicon_dir_rel = 'image/favicon/store_' . $store_id . '/';
-		$favicon_dir_abs = DIR_IMAGE . 'favicon/store_' . $store_id . '/';
-
-		$data['favicon_dir']   = $favicon_dir_rel;
-		$data['favicon_color'] = $this->config->get('config_favicon_color') ?: '#000000';
-		$data['has_favicon']   = false;
-		$data['favicon_ver']   = '';
-
-		$hash_file = $favicon_dir_abs . 'svg.hash';
-		$meta_file = $favicon_dir_abs . '.meta.json';
-
-		if (
-		is_file($favicon_dir_abs . 'favicon-32x32.png') &&
-		is_file($hash_file) &&
-		is_file($meta_file)
-		) {
-			// версия = hash
-			$data['favicon_ver'] = substr(md5_file($hash_file), 0, 12);
-			$data['has_favicon'] = true;
-		}
-
-		// fallback на стандартную иконку
-		if (!$data['has_favicon']) {
-			if (is_file(DIR_IMAGE . $this->config->get('config_icon'))) {
-				$this->document->addLink(
-				$server . 'image/' . $this->config->get('config_icon'),
-				'icon'
-				);
-			}
-		}
+		// Favicon markup is injected by the built-in catalog/view/common/header/after event.
 
 		$data['title'] = $this->document->getTitle();
 
