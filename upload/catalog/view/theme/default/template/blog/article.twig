@@ -1,34 +1,6 @@
 {{ header }}
 <div id="blog-article" class="container">
-    <style>
-
-        #article-reviews #review img {
-            max-width: 100%;
-            height: auto;
-        }
-
-        .article-image {
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .article-image a {
-            display: inline-block;
-        }
-
-        .article-image img {
-            display: inline-block;
-            max-width: 100%;
-            height: auto;
-        }
-
-        .article-gallery-box .thumbnails {
-            margin-top: 10px;
-        }
-
-    </style>
-
-    <ul class="breadcrumb">
+<ul class="breadcrumb">
         {% for breadcrumb in breadcrumbs %}
         <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
         {% endfor %}
@@ -49,6 +21,7 @@
             {{ content_top }}
 
             <div class="content">
+                <article class="blog-article-content">
                 <div class="article-header">
                     <h1>{{ heading_title }}</h1>
                 </div>
@@ -110,6 +83,8 @@
                     <i class="fa fa-floppy-o"></i> {{ download.name }} {{ download.size }}</a><br />
                 {% endfor %}
                 {% endif %}
+
+                </article>
 
                 {% if products %}
                 <hr>
