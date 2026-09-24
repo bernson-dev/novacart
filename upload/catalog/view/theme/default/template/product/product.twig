@@ -292,21 +292,31 @@
                             <div class="help-block" id="recurring-description"></div>
                         </div>
                         {% endif %}
-                        <div class="form-group">
-                            <label class="control-label" for="input-quantity">{{ entry_qty }}</label>
-                            <input type="text" name="quantity" value="{{ minimum }}" size="2" id="input-quantity" class="form-control" />
+                        <div class="form-group product-purchase-group">
                             <input type="hidden" name="product_id" value="{{ product_id }}" />
-                            <br />
-                            {% if stock_can_buy %}
-                            <button type="button" id="button-cart" data-product-id="{{ product_id }}" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block">{% if stock_in_cart %}<i class="fa fa-check"></i> {{ stock_cart_button_text }}{% else %}{{ stock_button_text ?: button_cart }}{% endif %}</button>
-                            {% elseif stock_button_mode != 'hide' %}
-                            <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-warning btn-lg btn-block stock-purchase-disabled" disabled="disabled" aria-disabled="true">{{ stock_button_mode == 'disable_status' ? stock_button_text : button_cart }}</button>
-                            {% endif %}
+
+                            <div class="product-purchase-row">
+                                <div class="product-qty-group">
+                                    <label class="control-label" for="input-quantity">{{ entry_qty }}</label>
+                                    <input type="text" name="quantity" value="{{ minimum }}" size="2" id="input-quantity" class="form-control" />
+                                </div>
+
+                                <div class="product-buy-group">
+                                    {% if stock_can_buy %}
+                                    <button type="button" id="button-cart" data-product-id="{{ product_id }}" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block">{% if stock_in_cart %}<i class="fa fa-check"></i> {{ stock_cart_button_text }}{% else %}{{ stock_button_text ?: button_cart }}{% endif %}</button>
+                                    {% elseif stock_button_mode != 'hide' %}
+                                    <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-warning btn-lg btn-block stock-purchase-disabled" disabled="disabled" aria-disabled="true">{{ stock_button_mode == 'disable_status' ? stock_button_text : button_cart }}</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+
                             <div id="stock-purchase-message" class="help-block stock-purchase-message"{% if stock_preorder_allowed %}>{{ text_stock_preorder_allowed }}{% else %} style="display:none;">{% endif %}</div>
                         </div>
                         {% if minimum > 1 %}
                         <div class="alert alert-info product-minimum-alert">
-                            <i class="fa fa-info-circle"></i> <span>{{ text_minimum }}</span></div>
+                            <i class="fa fa-info-circle"></i>
+                            <span>{{ text_minimum }}</span>
+                        </div>
                         {% endif %}</div>
                     {% if review_status %}
                     <div class="rating">
