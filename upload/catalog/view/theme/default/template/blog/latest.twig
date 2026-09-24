@@ -75,8 +75,8 @@
                             <img src="{{ article.thumb }}" alt="{{ article.name }}" title="{{ article.name }}" class="img-responsive" />
                             </a>
                         </div>
-
-                        <div class="caption">
+                        <div class="blog-card-body">
+                            <div class="caption">
                             <h4><a href="{{ article.href }}">{{ article.name }}</a></h4>
                             <p class="description">{{ article.description }}</p>
 
@@ -94,6 +94,7 @@
                                 {% endfor %}
                             </div>
                             {% endif %}
+                            </div>
                             <div class="button-group">
                                 <span class="blog-meta-item blog-meta-date" title="{{ article.date_added }}">
                                     <i class="fa fa-clock-o"></i><span>{{ article.date_added }}</span>
@@ -107,7 +108,6 @@
                                 </button>
                             </div>
                         </div>
-
                     </div>
                 </div>
                 {% endfor %}
