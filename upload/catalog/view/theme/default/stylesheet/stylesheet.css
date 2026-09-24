@@ -280,7 +280,7 @@ select.form-control {
 .input-group-addon {
   background: none;
   border: none;
-  font-size: 13px !important;
+  font-size: 13px;
 }
 
 .has-error .form-control {
@@ -499,7 +499,7 @@ select.form-control {
 }
 
 #top .pull-left, #top .pull-right {
-  float: none !important;
+  float: none;
   width: auto;
 }
 
@@ -1057,8 +1057,8 @@ header + .container {
   background: var(--page-bg-color);
 }
 
-.swiper-pagination {
-  bottom: 20px !important;
+body .swiper-pagination {
+  bottom: 20px;
 }
 
 .swiper-slide img {
@@ -1071,43 +1071,43 @@ header + .container {
   color: var(--text-color);
 }
 
-.swiper-button-next:before {
-  content: "\f105" !important;
+body .swiper-button-next:before {
+  content: "\f105";
 }
 
-.swiper-button-prev:before {
-  content: "\f104" !important;
+body .swiper-button-prev:before {
+  content: "\f104";
 }
 
-.swiper-button-next, .swiper-button-prev {
+body .swiper-button-next, body .swiper-button-prev {
   opacity: 0.7;
-  text-shadow: none !important;
+  text-shadow: none;
 }
 
-.swiper-button-next:hover, .swiper-button-prev:hover {
-  opacity: 1 !important;
+body .swiper-button-next:hover, body .swiper-button-prev:hover {
+  opacity: 1;
 }
 
 .slideshow.swiper-viewport {
   border: none;
 }
 
-.swiper-pagination-bullet {
+body .swiper-pagination-bullet {
   transition: all 0.35s ease-in-out;
-  box-shadow: none !important;
-  width: 24px !important;
-  height: 8px !important;
-  background-color: #fff !important;
-  border: none !important;
+  box-shadow: none;
+  width: 24px;
+  height: 8px;
+  background-color: #fff;
+  border: none;
   position: relative;
 }
 
-.swiper-pagination-bullet:hover {
-  background-color: var(--main-color) !important;
+body .swiper-pagination-bullet:hover {
+  background-color: var(--main-color);
 }
 
-.swiper-pagination-bullet-active {
-  background-color: var(--main-color) !important;
+body .swiper-pagination-bullet-active {
+  background-color: var(--main-color);
 }
 
 /* ==========================================================================
@@ -1146,7 +1146,7 @@ header + .container {
   left: 0;
   right: 0;
   z-index: 1001;
-  width: calc(100% - 30px) !important;
+  width: calc(100% - 30px);
   max-width: 450px;
   min-width: 0;
   line-height: 1.5;
@@ -1205,7 +1205,7 @@ header + .container {
   position: static;
   margin: 0 0 20px;
   animation: none;
-  width: 100% !important;
+  width: 100%;
 }
 
 .alert-success {
@@ -1660,12 +1660,12 @@ a.list-group-item {
 }
 
 #content .carousel:hover .swiper-button-next {
-  right: -23px !important;
+  right: -23px;
   opacity: 1;
 }
 
 #content .carousel:hover .swiper-button-prev {
-  left: -23px !important;
+  left: -23px;
   opacity: 1;
 }
 
@@ -1841,7 +1841,7 @@ h2.price {
 }
 
 .product-thumb .button-group button:first-child span {
-  display: block !important;
+  display: block;
   position: absolute;
   left: 0;
   right: 0;
@@ -2033,17 +2033,17 @@ h2.price {
   background-color: #fff;
 }
 
-.mfp-title {
-  color: var(--text-color) !important;
+body .mfp-title {
+  color: var(--text-color);
   padding-left: 20px;
   font-size: 12px;
-  line-height: 30px !important;
+  line-height: 30px;
 }
 
-.mfp-counter {
-  right: 20px !important;
-  color: var(--text-color) !important;
-  line-height: 30px !important;
+body .mfp-counter {
+  right: 20px;
+  color: var(--text-color);
+  line-height: 30px;
 }
 
 .date .btn, .time .btn, .datetime .btn {
@@ -2097,7 +2097,8 @@ h2.price {
 }
 
 #tab-description p img, #tab-description img {
-  width: 100% !important;
+  max-width: 100%;
+  height: auto;
 }
 
 #form-review label {
@@ -2120,33 +2121,33 @@ h2.price {
   margin: 0 0 -4px;
 }
 
-.bootstrap-datetimepicker-widget {
-  border-radius: 0 !important;
+body .bootstrap-datetimepicker-widget {
+  border-radius: 0;
 }
 
-.bootstrap-datetimepicker-widget.bottom:before {
-  border-bottom-color: #fff !important;
+body .bootstrap-datetimepicker-widget.bottom:before {
+  border-bottom-color: #fff;
 }
 
-.bootstrap-datetimepicker-widget td.active, .bootstrap-datetimepicker-widget td.active:hover, .bootstrap-datetimepicker-widget td span.active {
-  background-color: var(--page-bg-color) !important;
-  color: var(--text-color) !important;
-  text-shadow: none !important;
+body .bootstrap-datetimepicker-widget td.active, body .bootstrap-datetimepicker-widget td.active:hover, body .bootstrap-datetimepicker-widget td span.active {
+  background-color: var(--page-bg-color);
+  color: var(--text-color);
+  text-shadow: none;
   font-weight: 700;
 }
 
-.bootstrap-datetimepicker-widget a[data-action] {
+body .bootstrap-datetimepicker-widget a[data-action] {
   color: var(--text-color-alt);
   background: none;
 }
 
-.bootstrap-datetimepicker-widget td span:hover {
-  background: var(--bg-color) !important;
-  color: var(--text-color) !important;
+body .bootstrap-datetimepicker-widget td span:hover {
+  background: var(--bg-color);
+  color: var(--text-color);
 }
 
-.bootstrap-datetimepicker-widget thead tr:first-child th:hover, .bootstrap-datetimepicker-widget td.day:hover, .bootstrap-datetimepicker-widget td.hour:hover, .bootstrap-datetimepicker-widget td.minute:hover, .bootstrap-datetimepicker-widget td.second:hover {
-  background-color: var(--bg-color) !important;
+body .bootstrap-datetimepicker-widget thead tr:first-child th:hover, body .bootstrap-datetimepicker-widget td.day:hover, body .bootstrap-datetimepicker-widget td.hour:hover, body .bootstrap-datetimepicker-widget td.minute:hover, body .bootstrap-datetimepicker-widget td.second:hover {
+  background-color: var(--bg-color);
 }
 
 .picker-switch .btn {
@@ -2159,9 +2160,9 @@ h2.price {
   color: #fff;
 }
 
-.bootstrap-datetimepicker-widget td span {
+body .bootstrap-datetimepicker-widget td span {
   transition: all ease-in 0.2s;
-  border-radius: 0 !important;
+  border-radius: 0;
 }
 
 #tab-specification .table tbody > tr > td:first-child {
@@ -2258,7 +2259,7 @@ h2.price {
 
 #checkout-cart table.table > thead > tr > td:nth-child(5), #checkout-cart table.table > thead > tr > td:nth-child(6),
 #checkout-cart table.table > tbody > tr > td:nth-child(5), #checkout-cart table.table > tbody > tr > td:nth-child(6) {
-  text-align: center !important;
+  text-align: center;
 }
 
 #checkout-cart table.table > tbody > tr > td .input-group .form-control[name^="quantity"] {
@@ -2338,7 +2339,7 @@ h2.price {
 }
 
 #checkout-cart #accordion + br + .row table.table > tbody > tr > td > strong {
-  font-weight: 600 !important;
+  font-weight: 600;
 }
 
 #checkout-cart .buttons {
@@ -2827,7 +2828,7 @@ body > .container + .container > .row > #content > h2 {
 }
 
 #product-compare .table tbody tr:nth-child(2) td {
-  text-align: left !important;
+  text-align: left;
 }
 
 #product-compare .table > tbody > tr > td a strong {
@@ -2861,7 +2862,8 @@ body > .container + .container > .row > #content > h2 {
  */
 
 #information-information img {
-  width: 100% !important;
+  max-width: 100%;
+  height: auto;
 }
 
 #product-manufacturer #content h1 + p {
@@ -3183,14 +3185,14 @@ body > .container + .container > .row > #content > h2 {
 }
 
 .product-thumb .button-group button.blog-more:first-child .fa {
-  background: none !important;
+  background: none;
   width: 17px;
   height: 17px;
   text-align: center;
 }
 
 .product-thumb .button-group button.blog-more:first-child .fa:before {
-  content: "\f061" !important;
+  content: "\f061";
   display: inline-block;
   width: auto;
   height: auto;
@@ -3393,14 +3395,6 @@ body > .container + .container > .row > #content > h2 {
     padding: 17px 17px 14px;
   }
 
-  .display-control-listgrid, .display-control-compare {
-    margin-bottom: 20px;
-  }
-
-  .display-control-compare {
-    text-align: right;
-  }
-
   #product-category .text-left, #product-category .text-right {
     width: 100%;
     text-align: center;
@@ -3557,7 +3551,7 @@ body > .container + .container > .row > #content > h2 {
   }
 
   #cart .dropdown-menu .table > tbody > tr > td, #account-return .table > tbody > tr > td:first-child {
-    width: 1% !important;
+    width: 1%;
   }
 
   #cart .dropdown-menu .table-striped > tbody > tr > td:nth-child(2) {
@@ -3731,10 +3725,6 @@ body > .container + .container > .row > #content > h2 {
     display: inline-block;
   }
 
-  .display-control-compare {
-    text-align: left !important;
-  }
-
   #account-login .well {
     min-height: auto;
   }
@@ -3802,10 +3792,6 @@ body > .container + .container > .row > #content > h2 {
   #account-edit #content, #account-register #content, #account-forgotten #content, #account-password #content, #account-address #content, #account-wishlist #content, #account-order #content, #account-download #content, #account-recurring #content, #account-reward #content, #account-return #content, #account-transaction #content, #account-newsletter #content, #common-success #content, #account-affiliate #content, #information-information #content, #information-sitemap #content, #information-contact #content, #account-voucher #content, #product-manufacturer #content {
     width: auto;
     padding: 30px 20px;
-  }
-
-  #common-success #content .pull-right {
-    float: none !important;
   }
 
   .table-responsive > .table-bordered > tbody > tr > td:first-child, .table-responsive > .table-bordered > tbody > tr > th:first-child, .table-responsive > .table-bordered > tfoot > tr > td:first-child, .table-responsive > .table-bordered > tfoot > tr > th:first-child, .table-responsive > .table-bordered > thead > tr > td:first-child, .table-responsive > .table-bordered > thead > tr > th:first-child {
@@ -4168,13 +4154,13 @@ html[dir="rtl"] #cart .dropdown-menu {
   }
 }
 
-.stock-purchase-disabled, .stock-purchase-disabled:hover, .stock-purchase-disabled:focus, .stock-purchase-disabled:active {
-  background: #fff3cd !important;
-  border-color: #e0b85c !important;
-  color: #856404 !important;
-  box-shadow: none !important;
-  cursor: not-allowed !important;
-  opacity: 1 !important;
+.btn.stock-purchase-disabled, .btn.stock-purchase-disabled:hover, .btn.stock-purchase-disabled:focus, .btn.stock-purchase-disabled:active {
+  background: #fff3cd;
+  border-color: #e0b85c;
+  color: #856404;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
   pointer-events: none;
 }
 
@@ -4198,26 +4184,24 @@ html[dir="rtl"] #cart .dropdown-menu {
   line-height: 1.35;
 }
 
-.stock-cart-in-cart, .stock-cart-in-cart:hover, .stock-cart-in-cart:focus {
-  background-color: #5cb85c !important;
-  border-color: #4cae4c !important;
-  color: #fff !important;
+.btn.stock-cart-in-cart, .btn.stock-cart-in-cart:hover, .btn.stock-cart-in-cart:focus {
+  background-color: #5cb85c;
+  border-color: #4cae4c;
+  color: #fff;
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    scroll-behavior: auto;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
   }
 }
 
 /* ==========================================================================
-   ФИНАЛЬНЫЙ СЛОЙ ДИЗАЙН-СИСТЕМЫ
-   Порядок правил ниже намеренный: это точечные переопределения базового слоя.
-   ==========================================================================
- */
+   ДИЗАЙН-СИСТЕМА
+   ========================================================================== */
 
 /* БАЗА И ТИПОГРАФИКА */
 
@@ -6221,4 +6205,20 @@ body.route-product-product header + .container {
         padding-right: 8px;
         padding-left: 8px;
     }
+}
+
+
+#common-success .success-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 767px) {
+  #common-success .success-actions {
+    justify-content: stretch;
+  }
+
+  #common-success .success-actions .btn {
+    width: 100%;
+  }
 }
