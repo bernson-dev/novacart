@@ -133,6 +133,75 @@ $(document).ready(function() {
 		}
 	});
 
+	// Desktop catalog dropdowns: keep the submenu open briefly while the
+	// pointer moves from the parent item into the dropdown panel.
+	var catalogMenuCloseDelay = 320;
+
+	function clearCatalogMenuTimer($item) {
+		var timer = $item.data('catalog-menu-timer');
+
+		if (timer) {
+			window.clearTimeout(timer);
+			$item.removeData('catalog-menu-timer');
+		}
+	}
+
+	function closeCatalogMenuLater($item) {
+		clearCatalogMenuTimer($item);
+
+		var timer = window.setTimeout(function() {
+			$item.removeClass('novacart-menu-open');
+			$item.removeData('catalog-menu-timer');
+		}, catalogMenuCloseDelay);
+
+		$item.data('catalog-menu-timer', timer);
+	}
+
+	$('#menu .navbar-nav > li.dropdown')
+		.on('mouseenter.novacartMenu focusin.novacartMenu', function() {
+			if (!window.matchMedia('(min-width: 992px)').matches) {
+				return;
+			}
+
+			var $item = $(this);
+
+			clearCatalogMenuTimer($item);
+			$item.addClass('novacart-menu-open');
+		})
+		.on('mouseleave.novacartMenu', function() {
+			if (!window.matchMedia('(min-width: 992px)').matches) {
+				return;
+			}
+
+			closeCatalogMenuLater($(this));
+		});
+
+	$('#menu .navbar-nav > li.dropdown > .dropdown-menu')
+		.on('mouseenter.novacartMenu', function() {
+			var $item = $(this).parent();
+
+			clearCatalogMenuTimer($item);
+			$item.addClass('novacart-menu-open');
+		})
+		.on('mouseleave.novacartMenu', function() {
+			if (!window.matchMedia('(min-width: 992px)').matches) {
+				return;
+			}
+
+			closeCatalogMenuLater($(this).parent());
+		});
+
+	$(window).on('resize.novacartMenu', function() {
+		if (!window.matchMedia('(min-width: 992px)').matches) {
+			$('#menu .navbar-nav > li.dropdown').each(function() {
+				var $item = $(this);
+
+				clearCatalogMenuTimer($item);
+				$item.removeClass('novacart-menu-open');
+			});
+		}
+	});
+
 	// Product List
 	$('#list-view').on('click', function() {
 		$('#content .product-grid > .clearfix').remove();
