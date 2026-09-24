@@ -100,10 +100,11 @@ class ControllerExtensionExtensionShipping extends Controller {
 		if ($files) {
 			foreach ($files as $file) {
 				$extension = basename($file, '.php');
+				$installed = in_array($extension, $extensions, true);
 				
 				if (!in_array('extension/shipping/' . $extension, $hiden)) {
 					$this->load->language('extension/shipping/' . $extension, 'extension');
-					$enabled = $this->config->get('shipping_' . $extension . '_status');
+					$enabled = $installed && (bool)$this->config->get('shipping_' . $extension . '_status');
 
 					$data['extensions'][] = array(
 						'name'       => $this->language->get('extension')->get('heading_title'),
@@ -112,7 +113,7 @@ class ControllerExtensionExtensionShipping extends Controller {
 						'sort_order' => $this->config->get('shipping_' . $extension . '_sort_order'),
 						'install'    => $this->url->link('extension/extension/shipping/install', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
 						'uninstall'  => $this->url->link('extension/extension/shipping/uninstall', 'user_token=' . $this->session->data['user_token'] . '&extension=' . $extension, true),
-						'installed'  => in_array($extension, $extensions),
+						'installed' => $installed,
 						'edit'       => $this->url->link('extension/shipping/' . $extension, 'user_token=' . $this->session->data['user_token'], true)
 					);
 				
