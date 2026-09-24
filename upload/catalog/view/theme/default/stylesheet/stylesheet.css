@@ -6599,3 +6599,11 @@ body.product-sticky-buy-active {
         padding-left: 10px;
     }
 }
+
+
+/* Product page: the fixed category menu obscures long option forms. */
+body.route-product-product header + .container {
+    position: static;
+    top: auto;
+    z-index: auto;
+}
