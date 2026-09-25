@@ -4400,8 +4400,8 @@ a.list-group-item:hover, a.list-group-item:focus {
 #product-product #button-cart:focus,
 #product-product #button-cart:active {
   color: #FFFFFF;
-  background: var(--btn-alt-bg-hover);
-  border-color: var(--btn-alt-bg-hover);
+  background: var(--cart-button-bg, var(--btn-alt-bg-hover));
+  border-color: var(--cart-button-border, var(--btn-alt-bg-hover));
 }
 
 .nav-tabs {
