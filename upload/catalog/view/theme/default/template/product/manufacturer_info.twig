@@ -92,7 +92,7 @@
               </div>
               <div class="button-group">
                 {% if product.can_buy %}
-                            <button type="button" class="stock-cart-button" data-product-id="{{ product.product_id }}" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');">
+                            <button type="button" class="stock-cart-button{{ product.in_cart ? ' stock-cart-in-cart' : '' }}" data-product-id="{{ product.product_id }}" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');">
                                 <i class="fa {{ product.in_cart ? 'fa-check' : 'fa-shopping-cart' }}"></i> <span class="hidden-xs hidden-sm hidden-md">{{ product.in_cart ? product.cart_button_text : (product.button_text ?: button_cart) }}</span></button>
                             {% elseif product.stock_button != 'hide' %}
                             <button type="button" disabled="disabled" aria-disabled="true" tabindex="-1" class="stock-purchase-disabled" title="{{ product.button_text }}">
