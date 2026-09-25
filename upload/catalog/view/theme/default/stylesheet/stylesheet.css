@@ -542,6 +542,7 @@ header .row {
 header > .container > .row > .col-sm-3, header > .container > .row > .col-sm-4, header > .container > .row > .col-sm-5 {
   display: flex;
   align-items: center;
+  min-width: 0;
   min-height: 48px;
 }
 
@@ -596,15 +597,17 @@ header > .container > .row > .col-sm-5 {
 }
 
 #cart .fa-shopping-cart {
-  background-image: var(--cart-icon);
-  background-size: contain;
+  flex: 0 0 25px;
   width: 25px;
   height: 25px;
-  float: left;
-  margin: -5px 8px 0 0;
+  margin: 0 8px 0 0;
+  background-image: var(--cart-icon);
+  background-size: contain;
 }
 
 #cart {
+  width: 100%;
+  min-width: 0;
   text-align: right;
 }
 
@@ -3618,17 +3621,6 @@ html[dir="rtl"] #cart .dropdown-menu {
   line-height: 1.35;
 }
 
-.btn.stock-cart-in-cart,
-.btn.stock-cart-in-cart:hover,
-.btn.stock-cart-in-cart:focus,
-.product-thumb .button-group button.stock-cart-button.stock-cart-in-cart,
-.product-thumb .button-group button.stock-cart-button.stock-cart-in-cart:hover,
-.product-thumb .button-group button.stock-cart-button.stock-cart-in-cart:focus {
-  color: #fff;
-  background-color: #5cb85c;
-  border-color: #4cae4c;
-}
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto;
@@ -3928,9 +3920,13 @@ header {
 }
 
 #cart > .btn {
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   float: none;
-  width: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 46px;
   padding: 10px 14px;
   color: var(--text-color);
@@ -3949,6 +3945,13 @@ header {
   background: var(--surface-muted);
   border-color: var(--border-color-strong);
   transform: none;
+}
+
+#cart-total {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #cart .dropdown-menu {
@@ -5983,4 +5986,37 @@ body.route-product-product header + .container {
   #blog-article .blog-related-products .product-layout {
     display: block;
   }
+}
+
+
+/* Unified "in cart" state for every product purchase button */
+.stock-cart-button.stock-cart-in-cart,
+.stock-cart-button.stock-cart-in-cart:hover,
+.stock-cart-button.stock-cart-in-cart:focus,
+.stock-cart-button.stock-cart-in-cart:active,
+#product-product #button-cart.stock-cart-in-cart,
+#product-product #button-cart.stock-cart-in-cart:hover,
+#product-product #button-cart.stock-cart-in-cart:focus,
+#product-product #button-cart.stock-cart-in-cart:active,
+#product-product #button-cart-sticky.stock-cart-in-cart,
+#product-product #button-cart-sticky.stock-cart-in-cart:hover,
+#product-product #button-cart-sticky.stock-cart-in-cart:focus,
+#product-product #button-cart-sticky.stock-cart-in-cart:active {
+  color: #FFFFFF;
+  background: #5CB85C;
+  border-color: #4CAE4C;
+  box-shadow: 0 4px 12px rgba(76, 174, 76, 0.18);
+}
+
+.stock-cart-button.stock-cart-in-cart:hover,
+.stock-cart-button.stock-cart-in-cart:focus,
+.stock-cart-button.stock-cart-in-cart:active,
+#product-product #button-cart.stock-cart-in-cart:hover,
+#product-product #button-cart.stock-cart-in-cart:focus,
+#product-product #button-cart.stock-cart-in-cart:active,
+#product-product #button-cart-sticky.stock-cart-in-cart:hover,
+#product-product #button-cart-sticky.stock-cart-in-cart:focus,
+#product-product #button-cart-sticky.stock-cart-in-cart:active {
+  background: #4CAE4C;
+  border-color: #449D44;
 }
