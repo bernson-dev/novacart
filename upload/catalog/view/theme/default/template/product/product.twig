@@ -303,7 +303,7 @@
 
                                 <div class="product-buy-group">
                                     {% if stock_can_buy %}
-                                    <button type="button" id="button-cart" data-product-id="{{ product_id }}" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block stock-cart-button">{% if stock_in_cart %}<i class="fa fa-check"></i> {{ stock_cart_button_text }}{% else %}{{ stock_button_text ?: button_cart }}{% endif %}</button>
+                                    <button type="button" id="button-cart" data-product-id="{{ product_id }}" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block stock-cart-button{{ stock_in_cart ? ' stock-cart-in-cart' : '' }}">{% if stock_in_cart %}<i class="fa fa-check"></i> {{ stock_cart_button_text }}{% else %}{{ stock_button_text ?: button_cart }}{% endif %}</button>
                                     {% elseif stock_button_mode != 'hide' %}
                                     <button type="button" id="button-cart" data-loading-text="{{ text_loading }}" class="btn btn-warning btn-lg btn-block stock-purchase-disabled" disabled="disabled" aria-disabled="true">{{ stock_button_mode == 'disable_status' ? stock_button_text : button_cart }}</button>
                                     {% endif %}
@@ -354,7 +354,7 @@
                         <div class="product-sticky-buy-actions">
                             <label for="sticky-input-quantity">{{ entry_qty }}</label>
                             <input type="text" id="sticky-input-quantity" value="{{ minimum }}" class="form-control" inputmode="numeric" autocomplete="off" />
-                            <button type="button" id="button-cart-sticky" class="btn btn-primary stock-cart-button" data-product-id="{{ product_id }}">
+                            <button type="button" id="button-cart-sticky" class="btn btn-primary stock-cart-button{{ stock_in_cart ? ' stock-cart-in-cart' : '' }}" data-product-id="{{ product_id }}">
                                 {% if stock_in_cart %}
                                 <i class="fa fa-check"></i> {{ stock_cart_button_text }}
                                 {% else %}
@@ -403,7 +403,7 @@
                             {% endif %} </div>
                         <div class="button-group">
                             {% if product.can_buy %}
-                            <button type="button" class="stock-cart-button" data-product-id="{{ product.product_id }}" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');">
+                            <button type="button" class="stock-cart-button{{ product.in_cart ? ' stock-cart-in-cart' : '' }}" data-product-id="{{ product.product_id }}" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');">
                                 <i class="fa {{ product.in_cart ? 'fa-check' : 'fa-shopping-cart' }}"></i> <span class="hidden-xs hidden-sm hidden-md">{{ product.in_cart ? product.cart_button_text : (product.button_text ?: button_cart) }}</span></button>
                             {% elseif product.stock_button != 'hide' %}
                             <button type="button" disabled="disabled" aria-disabled="true" tabindex="-1" class="stock-purchase-disabled" title="{{ product.button_text }}">
