@@ -542,6 +542,7 @@ header .row {
 header > .container > .row > .col-sm-3, header > .container > .row > .col-sm-4, header > .container > .row > .col-sm-5 {
   display: flex;
   align-items: center;
+  min-width: 0;
   min-height: 48px;
 }
 
@@ -596,15 +597,17 @@ header > .container > .row > .col-sm-5 {
 }
 
 #cart .fa-shopping-cart {
-  background-image: var(--cart-icon);
-  background-size: contain;
+  flex: 0 0 25px;
   width: 25px;
   height: 25px;
-  float: left;
-  margin: -5px 8px 0 0;
+  margin: 0 8px 0 0;
+  background-image: var(--cart-icon);
+  background-size: contain;
 }
 
 #cart {
+  width: 100%;
+  min-width: 0;
   text-align: right;
 }
 
@@ -3917,9 +3920,13 @@ header {
 }
 
 #cart > .btn {
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   float: none;
-  width: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 46px;
   padding: 10px 14px;
   color: var(--text-color);
@@ -3938,6 +3945,13 @@ header {
   background: var(--surface-muted);
   border-color: var(--border-color-strong);
   transform: none;
+}
+
+#cart-total {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #cart .dropdown-menu {
