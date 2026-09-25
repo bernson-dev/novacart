@@ -3618,17 +3618,6 @@ html[dir="rtl"] #cart .dropdown-menu {
   line-height: 1.35;
 }
 
-.btn.stock-cart-in-cart,
-.btn.stock-cart-in-cart:hover,
-.btn.stock-cart-in-cart:focus,
-.product-thumb .button-group button.stock-cart-button.stock-cart-in-cart,
-.product-thumb .button-group button.stock-cart-button.stock-cart-in-cart:hover,
-.product-thumb .button-group button.stock-cart-button.stock-cart-in-cart:focus {
-  color: #fff;
-  background-color: #5cb85c;
-  border-color: #4cae4c;
-}
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     scroll-behavior: auto;
@@ -5983,4 +5972,37 @@ body.route-product-product header + .container {
   #blog-article .blog-related-products .product-layout {
     display: block;
   }
+}
+
+
+/* Unified "in cart" state for every product purchase button */
+.stock-cart-button.stock-cart-in-cart,
+.stock-cart-button.stock-cart-in-cart:hover,
+.stock-cart-button.stock-cart-in-cart:focus,
+.stock-cart-button.stock-cart-in-cart:active,
+#product-product #button-cart.stock-cart-in-cart,
+#product-product #button-cart.stock-cart-in-cart:hover,
+#product-product #button-cart.stock-cart-in-cart:focus,
+#product-product #button-cart.stock-cart-in-cart:active,
+#product-product #button-cart-sticky.stock-cart-in-cart,
+#product-product #button-cart-sticky.stock-cart-in-cart:hover,
+#product-product #button-cart-sticky.stock-cart-in-cart:focus,
+#product-product #button-cart-sticky.stock-cart-in-cart:active {
+  color: #FFFFFF;
+  background: #5CB85C;
+  border-color: #4CAE4C;
+  box-shadow: 0 4px 12px rgba(76, 174, 76, 0.18);
+}
+
+.stock-cart-button.stock-cart-in-cart:hover,
+.stock-cart-button.stock-cart-in-cart:focus,
+.stock-cart-button.stock-cart-in-cart:active,
+#product-product #button-cart.stock-cart-in-cart:hover,
+#product-product #button-cart.stock-cart-in-cart:focus,
+#product-product #button-cart.stock-cart-in-cart:active,
+#product-product #button-cart-sticky.stock-cart-in-cart:hover,
+#product-product #button-cart-sticky.stock-cart-in-cart:focus,
+#product-product #button-cart-sticky.stock-cart-in-cart:active {
+  background: #4CAE4C;
+  border-color: #449D44;
 }
