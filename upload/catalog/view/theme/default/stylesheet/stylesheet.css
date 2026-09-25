@@ -4700,6 +4700,26 @@ footer p {
     min-height: 200px;
   }
 
+  /* Bootstrap hidden-md hides the button label below lg.
+     Keep the cart icon visible and disable the desktop text-to-icon hover animation. */
+  .product-thumb .button-group button:first-child span {
+    transition: none;
+    transform: none;
+  }
+
+  .product-thumb .button-group button:first-child .fa {
+    position: static;
+    bottom: auto;
+    margin: 0 auto;
+    transform: none;
+    transition: none;
+  }
+
+  .product-thumb .button-group button:first-child:hover span,
+  .product-thumb .button-group button:first-child:hover .fa {
+    transform: none;
+  }
+
   #product-product #content > .row > .col-sm-4 {
     padding: 20px;
   }
@@ -4754,6 +4774,26 @@ footer p {
 
   #menu .btn-navbar {
     margin-top: 6px;
+  }
+
+  /* Mobile menu uses a light collapsed surface, so links must use dark text.
+     This responsive rule intentionally lives after the base menu design. */
+  #menu .nav > li > a {
+    color: var(--text-color);
+    background: transparent;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 500;
+  }
+
+  #menu .nav > li:last-child > a {
+    border-bottom: 0;
+  }
+
+  #menu .nav > li > a:hover,
+  #menu .nav > li > a:focus,
+  #menu .nav > li.open > a {
+    color: var(--main-color);
+    background: var(--surface-muted);
   }
 
   #menu div.dropdown-menu {
