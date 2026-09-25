@@ -333,12 +333,11 @@ var cartButtonState = {
 					} else if (button.is('input')) {
 						// Compare page uses <input type="button"> instead of a button element.
 						button.val(label);
-					} else if (button.attr('id') === 'button-cart') {
-						button.html('<i class="fa ' + (inCart ? 'fa-check' : 'fa-shopping-cart') + '"></i> ' + label);
 					} else {
-						// Icon-only buttons (for example wishlist) keep their compact layout,
-						// but expose the current state through the tooltip.
-						button.attr('title', label).attr('data-original-title', label);
+						// Product-page and sticky purchase buttons do not contain a separate
+						// label span. Keep their icon, text and cart-state class in sync with
+						// the same source used by catalog cards.
+						button.html('<i class="fa ' + (inCart ? 'fa-check' : 'fa-shopping-cart') + '"></i> ' + label);
 					}
 				});
 			}
