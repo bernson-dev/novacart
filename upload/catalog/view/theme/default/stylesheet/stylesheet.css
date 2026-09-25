@@ -4700,6 +4700,26 @@ footer p {
     min-height: 200px;
   }
 
+  /* Bootstrap hidden-md hides the button label below lg.
+     Keep the cart icon visible and disable the desktop text-to-icon hover animation. */
+  .product-thumb .button-group button:first-child span {
+    transition: none;
+    transform: none;
+  }
+
+  .product-thumb .button-group button:first-child .fa {
+    position: static;
+    bottom: auto;
+    margin: 0 auto;
+    transform: none;
+    transition: none;
+  }
+
+  .product-thumb .button-group button:first-child:hover span,
+  .product-thumb .button-group button:first-child:hover .fa {
+    transform: none;
+  }
+
   #product-product #content > .row > .col-sm-4 {
     padding: 20px;
   }
