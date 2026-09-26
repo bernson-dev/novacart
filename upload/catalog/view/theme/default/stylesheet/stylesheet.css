@@ -6059,3 +6059,43 @@ body.route-product-product header + .container {
     display: none;
   }
 }
+
+/* Catalog and blog sorting controls: mobile layout.
+   Keep native selects for accessible platform-specific pickers; the popup drawn
+   by desktop Chrome's device emulator is not constrained by the emulated viewport. */
+@media (max-width: 767px) {
+  .catalog-toolbar > .catalog-toolbar-sort,
+  .catalog-toolbar > .catalog-toolbar-limit {
+    float: none;
+    clear: both;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .catalog-toolbar .catalog-control {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .catalog-toolbar .catalog-control .input-group-addon {
+    display: block;
+    width: auto;
+    height: auto;
+    padding: 0 0 6px;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .catalog-toolbar .catalog-control .form-control {
+    display: block;
+    float: none;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+}
