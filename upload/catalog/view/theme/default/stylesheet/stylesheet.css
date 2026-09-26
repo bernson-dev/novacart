@@ -1282,7 +1282,8 @@ html[dir="rtl"] .breadcrumb > li::after {
 }
 
 #content .carousel {
-  width: 1400px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   border-radius: 0;
   border: solid 1px var(--body-border-color);
@@ -2763,10 +2764,6 @@ body > .container + .container > .row > #content > h2 {
     min-height: 240px;
   }
 
-  #content .carousel {
-    width: 1120px;
-  }
-
   #collapse-coupon label, #collapse-voucher label {
     padding-top: 5px;
   }
@@ -2797,10 +2794,6 @@ body > .container + .container > .row > #content > h2 {
 }
 
 @media (max-width: 1199px) {
-  #content .carousel {
-    width: 960px;
-  }
-
   #top .container {
     width: 100%;
   }
@@ -2882,10 +2875,6 @@ body > .container + .container > .row > #content > h2 {
 
   header > .container > .row > .col-sm-3 {
     width: 34%;
-  }
-
-  #content .carousel {
-    width: 720px;
   }
 
   .product-thumb {
