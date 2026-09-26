@@ -114,7 +114,7 @@
         <tr>
           <td></td>
           {% for product in products %}
-          <td><input type="button" value="{{ button_cart }}" class="btn btn-primary btn-block stock-cart-button{{ product.in_cart ? ' stock-cart-in-cart' : '' }}" data-product-id="{{ product.product_id }}" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');" />
+          <td><button type="button" class="btn btn-primary btn-block stock-cart-button{{ product.in_cart ? ' stock-cart-in-cart' : '' }}" data-product-id="{{ product.product_id }}" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');"><i class="fa stock-cart-icon {{ product.in_cart ? 'fa-check' : 'fa-shopping-cart' }}" aria-hidden="true"></i><span class="stock-cart-label">{{ product.in_cart ? product.cart_button_text : button_cart }}</span></button>
             <a href="{{ product.remove }}" class="btn btn-danger btn-block">{{ button_remove }}</a></td>
           {% endfor %} </tr>
       </table>
