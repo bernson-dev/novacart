@@ -150,15 +150,15 @@ $(document).ready(function() {
 	var blogPage = $('#blog-latest, #blog-category');
 	var columnClasses = 'product-list product-grid col-lg-3 col-lg-4 col-lg-6 col-md-3 col-md-4 col-md-6 col-sm-6 col-sm-12 col-xs-12';
 
-	// The blog view control applies to the primary results AND its article
-	// modules, including Recommended in a sidebar. The sidebar has its own
-	// compact presentation for each mode, based on available content width.
+	// The view toggle belongs to the primary article results, not to
+	// Recommended/Latest modules. Sidebar modules remain compact cards and
+	// must not inherit the main list's horizontal layout.
 	function setBlogView(mode) {
 		if (!blogPage.length) {
 			return;
 		}
 
-		blogPage.find('.blog-article-list')
+		blogPage.find('#content > .blog-article-list')
 			.toggleClass('blog-grid-mode', mode === 'grid')
 			.toggleClass('blog-list-mode', mode === 'list');
 	}
