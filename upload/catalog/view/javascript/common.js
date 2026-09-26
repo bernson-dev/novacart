@@ -302,6 +302,24 @@ $(function() {
 });
 
 var cartButtonState = {
+	// One renderer for cards, product purchase, sticky purchase and compare.
+	// Rebuild the two child elements together: using .text() on the button would
+	// remove its icon after an AJAX cart removal.
+	'render': function(button, inCart, label) {
+		button = $(button);
+		var icon = $('<i class="fa stock-cart-icon" aria-hidden="true"></i>')
+			.addClass(inCart ? 'fa-check' : 'fa-shopping-cart');
+		var text = $('<span class="stock-cart-label"></span>').text(label);
+
+		if (button.is('input')) {
+			button.val(label);
+		} else {
+			button.empty().append(icon, text);
+		}
+
+		button.toggleClass('stock-cart-in-cart', inCart);
+		button.attr('aria-label', label);
+	},
 	'refresh': function() {
 		$.ajax({
 			url: 'index.php?route=checkout/cart/buttonState',
@@ -315,36 +333,22 @@ var cartButtonState = {
 
 				$('.stock-cart-button[data-product-id]').each(function() {
 					var button = $(this);
-					var productId = String(button.data('product-id'));
+
+					// Stock validation owns the disabled state and its explanation.
+					if (button.prop('disabled') || button.hasClass('stock-purchase-disabled')) {
+						return;
+					}
+
+					var productId = String(button.attr('data-product-id'));
 					var inCart = Object.prototype.hasOwnProperty.call(json['products'], productId);
-					var label = inCart ? json['button_in_cart'] : json['button_cart'];
-					var icon = button.find('i.fa').first();
-					var text = button.find('span').first();
+					var label = inCart ? json['button_in_cart'] : (button.attr('data-cart-label') || json['button_cart']);
 
-					button.toggleClass('stock-cart-in-cart', inCart);
-
-					if (icon.length) {
-						icon.toggleClass('fa-check', inCart);
-						icon.toggleClass('fa-shopping-cart', !inCart);
-					}
-
-					if (text.length) {
-						text.text(label);
-					} else if (button.is('input')) {
-						// Compare page uses <input type="button"> instead of a button element.
-						button.val(label);
-					} else {
-						// Product-page and sticky purchase buttons do not contain a separate
-						// label span. Keep their icon, text and cart-state class in sync with
-						// the same source used by catalog cards.
-						button.html('<i class="fa ' + (inCart ? 'fa-check' : 'fa-shopping-cart') + '"></i> ' + label);
-					}
+					cartButtonState.render(button, inCart, label);
 				});
 			}
 		});
 	}
 };
-
 $(function() {
 	cartButtonState.refresh();
 });
