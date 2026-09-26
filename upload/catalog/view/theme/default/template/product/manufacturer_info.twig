@@ -25,18 +25,18 @@
       <hr>
 	  {% endif %}
       {% if products %}
-      <div class="row">
-        <div class="col-md-2 col-sm-6 hidden-xs">
+      <div class="row catalog-toolbar">
+        <div class="catalog-toolbar-view col-md-2 col-sm-6">
           <div class="btn-group btn-group-sm">
             <button type="button" id="list-view" class="btn btn-default" data-toggle="tooltip" title="{{ button_list }}"><i class="fa fa-th-list"></i></button>
             <button type="button" id="grid-view" class="btn btn-default" data-toggle="tooltip" title="{{ button_grid }}"><i class="fa fa-th"></i></button>
           </div>
         </div>
-        <div class="col-md-3 col-sm-6">
-          <div class="form-group"> <a href="{{ compare }}" id="compare-total" class="btn btn-link">{{ text_compare }}</a> </div>
+        <div class="catalog-toolbar-compare col-md-3 col-sm-6">
+          <div class="form-group"> <a href="{{ compare }}" id="compare-total" class="btn btn-link" aria-label="{{ text_compare }}" title="{{ text_compare }}"><i class="fa fa-exchange compare-icon" aria-hidden="true"></i><span class="compare-label">{{ text_compare }}</span></a> </div>
         </div>
-        <div class="col-md-4 col-xs-6">
-          <div class="form-group input-group input-group-sm">
+        <div class="catalog-toolbar-sort col-md-4 col-xs-6">
+          <div class="form-group input-group input-group-sm catalog-control">
             <label class="input-group-addon" for="input-sort">{{ text_sort }}</label>
             <select id="input-sort" class="form-control" onchange="location = this.value;">
               {% for sorts in sorts %}
@@ -49,8 +49,8 @@
             </select>
           </div>
         </div>
-        <div class="col-md-3 col-xs-6">
-          <div class="form-group input-group input-group-sm">
+        <div class="catalog-toolbar-limit col-md-3 col-xs-6">
+          <div class="form-group input-group input-group-sm catalog-control">
             <label class="input-group-addon" for="input-limit">{{ text_limit }}</label>
             <select id="input-limit" class="form-control" onchange="location = this.value;">
               {% for limits in limits %}
