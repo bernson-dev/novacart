@@ -6376,6 +6376,128 @@ body.route-product-product header + .container {
   min-width: 0;
 }
 
+/* Tablet toolbar: retain normal Bootstrap sidebar positions. Only the controls
+   change their own layout when the content column becomes narrow. */
+.catalog-toolbar .compare-icon {
+  margin-right: 6px;
+}
+
+@media (max-width: 1199px) {
+  .catalog-toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    align-items: center;
+  }
+
+  .catalog-toolbar::before,
+  .catalog-toolbar::after {
+    content: none;
+    display: none;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-view,
+  .catalog-toolbar > .catalog-toolbar-compare,
+  .catalog-toolbar > .catalog-toolbar-sort,
+  .catalog-toolbar > .catalog-toolbar-limit {
+    display: flex;
+    float: none;
+    clear: none;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    min-height: 42px;
+    padding: 0;
+    margin: 0;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-view {
+    grid-column: 1;
+    grid-row: 1;
+    justify-content: flex-start;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-compare {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-sort {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-limit {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .catalog-toolbar .catalog-control {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .catalog-toolbar .catalog-control .input-group-addon {
+    display: block;
+    width: auto;
+    height: auto;
+    padding: 0 0 6px;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .catalog-toolbar .catalog-control .form-control {
+    display: block;
+    float: none;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    font-size: 16px;
+  }
+
+  .catalog-toolbar #compare-total {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    font-size: 16px;
+  }
+
+  .catalog-toolbar #compare-total .compare-label {
+    display: none;
+  }
+
+  .catalog-toolbar #compare-total .compare-icon {
+    margin: 0;
+  }
+}
+
+@media (max-width: 575px) {
+  .catalog-toolbar > .catalog-toolbar-sort,
+  .catalog-toolbar > .catalog-toolbar-limit {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-sort {
+    grid-row: 2;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-limit {
+    grid-row: 3;
+  }
+}
+
 /* Catalog-only toolbar and card alignment. Blog, sidebars and modules are excluded. */
 #product-category .catalog-toolbar,
 #product-search .catalog-toolbar,
