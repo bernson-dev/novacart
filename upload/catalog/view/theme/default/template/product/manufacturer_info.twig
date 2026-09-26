@@ -95,8 +95,8 @@
                             <button type="button" class="stock-cart-button{{ product.in_cart ? ' stock-cart-in-cart' : '' }}" data-product-id="{{ product.product_id }}" data-cart-label="{{ product.button_text ?: button_cart }}" aria-label="{{ product.in_cart ? product.cart_button_text : (product.button_text ?: button_cart) }}" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');">
                                 <i class="fa stock-cart-icon {{ product.in_cart ? 'fa-check' : 'fa-shopping-cart' }}" aria-hidden="true"></i><span class="stock-cart-label">{{ product.in_cart ? product.cart_button_text : (product.button_text ?: button_cart) }}</span></button>
                             {% elseif product.stock_button != 'hide' %}
-                            <button type="button" disabled="disabled" aria-disabled="true" tabindex="-1" class="stock-purchase-disabled" title="{{ product.button_text }}">
-                                <i class="fa fa-shopping-cart"></i> <span class="stock-cart-label">{{ product.stock_button == 'disable_status' ? product.button_text : button_cart }}</span></button>
+                            <button type="button" disabled="disabled" aria-disabled="true" tabindex="-1" class="stock-purchase-disabled" title="{{ product.button_reason }}">
+                                <i class="fa fa-ban" aria-hidden="true"></i> <span class="stock-cart-label">{{ product.button_text }}<small class="stock-disabled-reason">{{ product.button_reason }}</small></span></button>
                             {% endif %}
                 <button type="button" data-toggle="tooltip" title="{{ button_wishlist }}" onclick="wishlist.add('{{ product.product_id }}');"><i class="fa fa-heart"></i></button>
                 <button type="button" data-toggle="tooltip" title="{{ button_compare }}" onclick="compare.add('{{ product.product_id }}');"><i class="fa fa-exchange"></i></button>
