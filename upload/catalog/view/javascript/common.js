@@ -144,6 +144,33 @@ $(document).ready(function() {
 	updateMenuDropdownOffsets();
 	$(window).on('resize', updateMenuDropdownOffsets);
 
+	// Bootstrap retains .open after a click, while desktop CSS also exposes
+	// dropdowns on hover. Close the clicked dropdown when the pointer moves to
+	// another top-level item; otherwise both menus remain visible.
+	var desktopMenuHover = window.matchMedia('(min-width: 768px) and (hover: hover) and (pointer: fine)');
+
+	$('#menu .navbar-nav').on('mouseenter', '> li', function() {
+		if (!desktopMenuHover.matches) {
+			return;
+		}
+
+		$('#menu .navbar-nav > li.open').not(this)
+			.removeClass('open')
+			.find('> a[data-toggle="dropdown"]').attr('aria-expanded', 'false');
+	});
+
+	// Once the pointer leaves the complete navigation, discard any click-open
+	// state. Keyboard focus and touch controls are managed by Bootstrap.
+	$('#menu .navbar-nav').on('mouseleave', function() {
+		if (!desktopMenuHover.matches) {
+			return;
+		}
+
+		$(this).children('li.open')
+			.removeClass('open')
+			.find('> a[data-toggle="dropdown"]').attr('aria-expanded', 'false');
+	});
+
 	// Change only the primary catalog results. Modules inside #content may also
 	// contain .product-layout; replacing their class attribute breaks their markup.
 	var resultCards = $('#content > .catalog-results-row > .product-layout:not(.blog-card-layout)');
