@@ -128,11 +128,22 @@ class ModelCatalogStockPolicy extends Model {
 				$button_text = $stock_status;
 			}
 		} else {
-			// A stock status may be arbitrary (e.g. "Expected"). Never use it as
-			// the disabled purchase action: distinguish out of stock from shortage.
-			$button_text = $reason === 'out_of_stock'
+			// The admin setting controls the disabled button label, independently
+			// of the actual purchase restriction and its explanatory reason.
+			// Do not assume the stock status describes the physical quantity.
+			$button_mode = (string)$this->config->get('config_stock_purchase_button');
+			$stock_fallback = $reason === 'out_of_stock'
 				? $this->language->get('button_stock_out')
 				: $this->language->get('button_stock_insufficient');
+
+			if ($button_mode === 'disable_status') {
+				$button_text = trim($stock_status) !== '' ? $stock_status : $stock_fallback;
+			} elseif ($button_mode === 'disable_cart') {
+				$button_text = $this->language->get('button_cart');
+			} else {
+				// Hide mode has no visible button; retain meaningful API text.
+				$button_text = $stock_fallback;
+			}
 		}
 
 		$button_reason = '';
