@@ -6548,6 +6548,24 @@ body.route-product-product header + .container {
   font-family: FontAwesome;
 }
 
+/* A narrow product toolbar still has room for the compare caption. Override the
+   earlier tablet icon-only rule without affecting the blog toolbar. */
+#product-category .catalog-toolbar #compare-total,
+#product-search .catalog-toolbar #compare-total,
+#product-special .catalog-toolbar #compare-total,
+#product-manufacturer .catalog-toolbar #compare-total {
+  width: auto;
+  min-width: 0;
+}
+
+#product-category .catalog-toolbar #compare-total .compare-label,
+#product-search .catalog-toolbar #compare-total .compare-label,
+#product-special .catalog-toolbar #compare-total .compare-label,
+#product-manufacturer .catalog-toolbar #compare-total .compare-label {
+  display: inline;
+  white-space: nowrap;
+}
+
 /* A stable flex row replaces fragile heading/sibling-dependent result selectors.
    Stretch the entire card, then push its actions to the bottom of its own card. */
 #product-category .catalog-results-row,
