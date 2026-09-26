@@ -129,20 +129,13 @@
                                 {% endif %}
                             </div>
 
-                            <div class="button-group">
-                                <button type="button" class="blog-more" onclick="location.href='{{ article.href }}';">
-                                    <i class="fa fa-arrow-right"></i>
-                                    <span class="hidden-xs hidden-sm hidden-md">{{ button_more }}</span>
-                                </button>
-
-                                <button type="button" data-toggle="tooltip" title="{{ article.date_added }}">
-                                    <i class="fa fa-clock-o"></i>
-                                </button>
-
-                                <button type="button" data-toggle="tooltip" title="{{ text_views }} {{ article.viewed }}">
-                                    <i class="fa fa-eye blog-view-icon"></i>
-                                </button>
-                            </div>
+                            <div class="button-group blog-card-actions">
+    <div class="blog-card-meta">
+        <span class="blog-meta-item"><i class="fa fa-clock-o" aria-hidden="true"></i> {{ article.date_added }}</span>
+        <span class="blog-meta-item"><i class="fa fa-eye blog-view-icon" aria-hidden="true"></i> {{ text_views }} {{ article.viewed }}</span>
+    </div>
+    <a class="blog-more" href="{{ article.href }}"><span>{{ button_more }}</span><i class="fa fa-arrow-right" aria-hidden="true"></i></a>
+</div>
                         </div>
                     </div>
                 </div>
