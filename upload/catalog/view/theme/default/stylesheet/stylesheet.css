@@ -2612,7 +2612,7 @@ body > .container + .container > .row > #content > h2 {
    ==========================================================================
  */
 
-#blog-latest .blog-article-list, #blog-category .blog-article-list, #blog-article .blog-article-list, .blog-article-list {
+#blog-latest .blog-article-list:not(.blog-grid-mode), #blog-category .blog-article-list:not(.blog-grid-mode), #blog-article .blog-article-list:not(.blog-grid-mode), .blog-article-list:not(.blog-grid-mode) {
   display: flex;
   flex-wrap: wrap;
 }
@@ -5007,7 +5007,7 @@ footer p {
 
 /* БЛОГ */
 
-#blog-article .blog-article-list {
+#blog-article .blog-article-list:not(.blog-grid-mode) {
   align-items: stretch;
 }
 
@@ -5159,7 +5159,7 @@ footer p {
   white-space: nowrap;
 }
 
-.blog-article-list {
+.blog-article-list:not(.blog-grid-mode) {
   align-items: stretch;
 }
 
@@ -5403,6 +5403,64 @@ footer p {
   }
 }
 
+
+/* Sidebar modules have a narrow content area: use compact editorial teasers
+   instead of the full-width catalog card. No viewport-based assumptions. */
+#column-left .blog-article-list.blog-grid-mode,
+#column-right .blog-article-list.blog-grid-mode {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-article-card,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card {
+  min-width: 0;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-article-card .image a,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card .image a {
+  padding: 10px 10px 0;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-article-card .image img,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card .image img {
+  width: 100%;
+  max-height: 112px;
+  object-fit: contain;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-article-card .caption,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card .caption {
+  padding: 12px 12px 6px;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-article-card .caption h4,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card .caption h4 {
+  margin-bottom: 6px;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-article-card .caption p,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card .caption p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  margin-bottom: 8px;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-card-actions,
+#column-right .blog-article-list.blog-grid-mode .blog-card-actions {
+  align-items: stretch;
+  flex-direction: column;
+  padding: 0 12px 12px;
+  gap: 8px;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-card-actions .blog-more,
+#column-right .blog-article-list.blog-grid-mode .blog-card-actions .blog-more {
+  width: 100%;
+}
 
 /* МЕНЮ КАТЕГОРИЙ */
 
