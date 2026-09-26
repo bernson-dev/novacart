@@ -112,6 +112,7 @@ class ControllerProductCompare extends Controller {
 				'in_cart'      => !empty($stock_policy['in_cart']),
 				'cart_button_text' => $stock_policy['cart_button_text'],
 				'button_text'  => $stock_policy['button_text'],
+					'button_reason' => $stock_policy['button_reason'],
 				'stock_button' => (string)$this->config->get('config_stock_purchase_button'),
 					'rating'       => (int)$product_info['rating'],
 					'reviews'      => sprintf($this->language->get('text_reviews'), (int)$product_info['reviews']),
