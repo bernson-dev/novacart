@@ -6321,6 +6321,47 @@ body.route-product-product header + .container {
   }
 }
 
+/* Product modules inside a Bootstrap sidebar occupy its full column. Their
+   desktop col-lg-3/col-sm-6 classes describe the central content grid and
+   would otherwise split an already narrow sidebar into 2-4 tiny cards. */
+@media (min-width: 768px) {
+  :is(#column-left, #column-right) .row > .product-layout:not(.blog-card-layout) {
+    float: none;
+    width: 100%;
+  }
+
+  :is(#column-left, #column-right) .row > .product-layout:not(.blog-card-layout) .product-thumb {
+    width: 100%;
+  }
+
+  :is(#column-left, #column-right) .row > .product-layout:not(.blog-card-layout) .product-thumb .caption {
+    min-height: 0;
+    padding: 12px 12px 8px;
+  }
+
+  :is(#column-left, #column-right) .row > .product-layout:not(.blog-card-layout) .product-thumb .button-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0 12px 12px;
+  }
+
+  :is(#column-left, #column-right) .row > .product-layout:not(.blog-card-layout) .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+    grid-column: 1 / -1;
+    float: none;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  :is(#column-left, #column-right) .row > .product-layout:not(.blog-card-layout) .button-group button[data-toggle="tooltip"] {
+    float: none;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+}
+
 /* In list mode, narrow content with a sidebar still gets an actual label.
    The purchase control occupies a dedicated row, leaving secondary actions
    intact and preventing the three buttons from fighting for width. */
