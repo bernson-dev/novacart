@@ -6318,6 +6318,58 @@ body.route-product-product header + .container {
 }
 
 
+/* Product purchase buttons show the same icon AND caption on every viewport.
+   This is not a breakpoint-driven icon-only control. Applies to product cards
+   in catalog, standard modules and blog-related products, never blog articles. */
+.product-thumb:not(.blog-article-card) .button-group .stock-cart-label {
+  display: inline;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.product-thumb:not(.blog-article-card) .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+  gap: 6px;
+  min-height: 40px;
+  height: auto;
+  overflow: visible;
+}
+
+/* A module has its own responsive width; legacy 125px button limits must not
+   clip the label when one narrow product card occupies the content column. */
+@media (max-width: 991px) {
+  #common-home .product-layout .product-thumb:not(.blog-article-card) .button-group :is(.stock-cart-button, .stock-purchase-disabled),
+  .product-grid .product-thumb:not(.blog-article-card) .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+    width: 100%;
+  }
+}
+
+/* In list mode, narrow content with a sidebar still gets an actual label.
+   The purchase control occupies a dedicated row, leaving secondary actions
+   intact and preventing the three buttons from fighting for width. */
+.product-list .product-thumb:not(.blog-article-card) .button-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.product-list .product-thumb:not(.blog-article-card) .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+  float: none;
+  flex: 1 1 100%;
+  width: 100%;
+  margin: 0;
+  order: -1;
+}
+
+.product-list .product-thumb:not(.blog-article-card) .button-group button[data-toggle="tooltip"] {
+  float: none;
+  width: auto;
+  flex: 1 1 0;
+  margin: 0;
+}
+
 /* Unified "in cart" state for every product purchase button */
 .stock-cart-button.stock-cart-in-cart {
   --cart-button-bg: #5CB85C;
