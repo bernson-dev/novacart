@@ -144,46 +144,87 @@ $(document).ready(function() {
 	updateMenuDropdownOffsets();
 	$(window).on('resize', updateMenuDropdownOffsets);
 
+	// Bootstrap retains .open after a click, while desktop CSS also exposes
+	// dropdowns on hover. Close the clicked dropdown when the pointer moves to
+	// another top-level item; otherwise both menus remain visible.
+	var desktopMenuHover = window.matchMedia('(min-width: 768px) and (hover: hover) and (pointer: fine)');
+
+	$('#menu .navbar-nav').on('mouseenter', '> li', function() {
+		if (!desktopMenuHover.matches) {
+			return;
+		}
+
+		$('#menu .navbar-nav > li.open').not(this)
+			.removeClass('open')
+			.find('> a[data-toggle="dropdown"]').attr('aria-expanded', 'false');
+	});
+
+	// Once the pointer leaves the complete navigation, discard any click-open
+	// state. Keyboard focus and touch controls are managed by Bootstrap.
+	$('#menu .navbar-nav').on('mouseleave', function() {
+		if (!desktopMenuHover.matches) {
+			return;
+		}
+
+		$(this).children('li.open')
+			.removeClass('open')
+			.find('> a[data-toggle="dropdown"]').attr('aria-expanded', 'false');
+	});
+
+	// Change only the primary catalog results. Modules inside #content may also
+	// contain .product-layout; replacing their class attribute breaks their markup.
+	var resultCards = $('#content > .catalog-results-row > .product-layout:not(.blog-card-layout)');
+	var blogPage = $('#blog-latest, #blog-category');
+	var columnClasses = 'product-list product-grid col-lg-3 col-lg-4 col-lg-6 col-md-3 col-md-4 col-md-6 col-sm-6 col-sm-12 col-xs-12';
+
+	// Synchronize the primary articles and article modules within #content.
+	// Sidebar modules live outside #content and retain their compact layout.
+	function setBlogView(mode) {
+		if (!blogPage.length) {
+			return;
+		}
+
+		blogPage.find('#content .blog-article-list')
+			.toggleClass('blog-grid-mode', mode === 'grid')
+			.toggleClass('blog-list-mode', mode === 'list');
+	}
+
 	// Product List
 	$('#list-view').on('click', function() {
-		$('#content .product-grid > .clearfix').remove();
-
-		$('#content .row > .product-grid').attr('class', 'product-layout product-list col-xs-12');
+		resultCards.find('> .clearfix').remove();
+		resultCards.removeClass(columnClasses).addClass('product-list col-xs-12');
+		setBlogView('list');
 		$('#grid-view').removeClass('active');
 		$('#list-view').addClass('active');
-
 		localStorage.setItem('display', 'list');
 	});
 
 	// Product Grid
 	$('#grid-view').on('click', function() {
-		// What a shame bootstrap does not take into account dynamically loaded columns
 		var cols = $('#column-right, #column-left').length;
+		var gridClass;
 
-		if (cols == 2) {
-			$('#content .product-list').attr('class', 'product-layout product-grid col-lg-6 col-md-6 col-sm-12 col-xs-12');
-		} else if (cols == 1) {
-			$('#content .product-list').attr('class', 'product-layout product-grid col-lg-4 col-md-4 col-sm-6 col-xs-12');
+		if (cols === 2) {
+			gridClass = 'product-grid col-lg-6 col-md-6 col-sm-12 col-xs-12';
+		} else if (cols === 1) {
+			gridClass = 'product-grid col-lg-4 col-md-4 col-sm-6 col-xs-12';
 		} else {
-			var gridClass = $('#content .product-list').first().closest('#blog-latest, #blog-category').length
-				? 'product-layout product-grid col-lg-4 col-md-4 col-sm-6 col-xs-12'
-				: 'product-layout product-grid col-lg-3 col-md-3 col-sm-6 col-xs-12';
-
-			$('#content .product-list').attr('class', gridClass);
+			gridClass = blogPage.length
+				? 'product-grid col-lg-4 col-md-4 col-sm-6 col-xs-12'
+				: 'product-grid col-lg-3 col-md-3 col-sm-6 col-xs-12';
 		}
 
+		resultCards.removeClass(columnClasses).addClass(gridClass);
+		setBlogView('grid');
 		$('#list-view').removeClass('active');
 		$('#grid-view').addClass('active');
-
 		localStorage.setItem('display', 'grid');
 	});
 
-	if (localStorage.getItem('display') == 'list') {
+	if (localStorage.getItem('display') === 'list') {
 		$('#list-view').trigger('click');
-		$('#list-view').addClass('active');
 	} else {
 		$('#grid-view').trigger('click');
-		$('#grid-view').addClass('active');
 	}
 
 	// Checkout
@@ -310,11 +351,6 @@ var cartButtonState = {
 		var icon = $('<i class="fa stock-cart-icon" aria-hidden="true"></i>')
 			.addClass(inCart ? 'fa-check' : 'fa-shopping-cart');
 		var text = $('<span class="stock-cart-label"></span>').text(label);
-
-		// Product-card buttons keep their icon-only layout below Bootstrap lg.
-		if (button.closest('.product-thumb').length) {
-			text.addClass('hidden-xs hidden-sm hidden-md');
-		}
 
 		if (button.is('input')) {
 			button.val(label);
@@ -559,7 +595,10 @@ var compare = {
 				if (json['success']) {
 					$('#content').parent().before('<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
 
-					$('#compare-total').html(json['total']);
+					// Preserve the icon-only tablet control and its accessible label on AJAX updates.
+					var compareControl = $('#compare-total');
+					compareControl.find('.compare-label').text(json['total']);
+					compareControl.attr('aria-label', json['total']).attr('title', json['total']);
 					$('#compare-total-top')
 						.attr('title', json['total'])
 						.find('.top-link-label')

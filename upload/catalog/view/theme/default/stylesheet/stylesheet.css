@@ -47,10 +47,10 @@
   /* Кнопки */
   --btn-color: var(--text-color);
   --btn-primary-color: #fff;
-  --btn-primary-bg-hover: #11409D;
+  --btn-primary-bg-hover: #092E70;
   --btn-default-color: #333;
   --btn-default-bg: #FFFFFF;
-  --btn-default-bg-hover: #F1F5F9;
+  --btn-default-bg-hover: #E5EDF9;
   --btn-alt-bg: var(--accent-color);
   --btn-alt-bg-hover: #549E08;
   /* Статусы */
@@ -1282,7 +1282,9 @@ html[dir="rtl"] .breadcrumb > li::after {
 }
 
 #content .carousel {
-  width: 1400px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   border-radius: 0;
   border: solid 1px var(--body-border-color);
@@ -1310,12 +1312,12 @@ html[dir="rtl"] .breadcrumb > li::after {
 
 @media (hover: hover) and (pointer: fine) {
   #content .carousel:hover .swiper-button-next {
-    right: -23px;
+    right: 8px;
     opacity: 1;
   }
 
   #content .carousel:hover .swiper-button-prev {
-    left: -23px;
+    left: 8px;
     opacity: 1;
   }
 }
@@ -1428,7 +1430,7 @@ h2.price {
 
 /* Purchase buttons use a permanent Font Awesome icon and label.
    Do not replace their glyph with an SVG or animate the icon into view. */
-.product-thumb .button-group button:first-child .fa {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) .fa {
   position: static;
   display: inline-block;
   width: auto;
@@ -1440,7 +1442,7 @@ h2.price {
   transform: none;
 }
 
-.product-thumb .button-group button:first-child .stock-cart-label {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) .stock-cart-label {
   position: static;
   display: inline;
   margin: 0;
@@ -1452,11 +1454,17 @@ h2.price {
   cursor: pointer;
 }
 
-.product-thumb .button-group button:first-child:hover {
-  color: #fff;
+/* Purchase buttons have a visible hover state; disabled controls do not react. */
+@media (hover: hover) and (pointer: fine) {
+  .product-thumb .button-group .stock-cart-button:not(:disabled):not(.stock-cart-in-cart):hover {
+    color: #fff;
+    background-color: var(--btn-primary-bg-hover);
+    border-color: var(--btn-primary-bg-hover);
+    box-shadow: 0 6px 16px rgba(9, 46, 112, 0.26);
+  }
 }
 
-.product-thumb .button-group button + button:hover, .product-thumb .button-group button + button:focus {
+.product-thumb .button-group button[data-toggle="tooltip"]:hover, .product-thumb .button-group button[data-toggle="tooltip"]:focus {
   color: var(--main-color);
 }
 
@@ -2611,7 +2619,7 @@ body > .container + .container > .row > #content > h2 {
    ==========================================================================
  */
 
-#blog-latest .blog-article-list, #blog-category .blog-article-list, #blog-article .blog-article-list, .blog-article-list {
+#blog-latest .blog-article-list:not(.blog-grid-mode), #blog-category .blog-article-list:not(.blog-grid-mode), #blog-article .blog-article-list:not(.blog-grid-mode), .blog-article-list:not(.blog-grid-mode) {
   display: flex;
   flex-wrap: wrap;
 }
@@ -2624,13 +2632,16 @@ body > .container + .container > .row > #content > h2 {
   width: 100%;
 }
 
-#blog-latest .product-grid .blog-article-card, #blog-category .product-grid .blog-article-card {
+/* Mode, not the initial product-list class, owns the card orientation. */
+#blog-latest .blog-article-list.blog-grid-mode > .product-layout > .blog-article-card,
+#blog-category .blog-article-list.blog-grid-mode > .product-layout > .blog-article-card {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
 }
 
-#blog-latest .product-list .blog-article-card, #blog-category .product-list .blog-article-card {
+#blog-latest .blog-article-list.blog-list-mode > .product-layout > .blog-article-card,
+#blog-category .blog-article-list.blog-list-mode > .product-layout > .blog-article-card {
   display: flex;
   flex-direction: row;
 }
@@ -2642,18 +2653,22 @@ body > .container + .container > .row > #content > h2 {
   flex-direction: column;
 }
 
-#blog-latest .product-list .blog-article-card .image + .blog-article-body, #blog-category .product-list .blog-article-card .image + .blog-article-body {
-  width: 70%;
-  padding: 0 20px 0 0;
-}
-
-#blog-latest .product-list .blog-article-card .caption, #blog-category .product-list .blog-article-card .caption {
-  margin: 0;
+#blog-latest .blog-article-list.blog-list-mode > .product-layout .image + .blog-article-body,
+#blog-category .blog-article-list.blog-list-mode > .product-layout .image + .blog-article-body {
+  width: auto;
+  min-width: 0;
   padding: 0;
 }
 
-#blog-latest .product-list .blog-article-card .caption h4, #blog-category .product-list .blog-article-card .caption h4 {
-  margin-top: 20px;
+#blog-latest .blog-article-list.blog-list-mode > .product-layout .caption,
+#blog-category .blog-article-list.blog-list-mode > .product-layout .caption {
+  margin: 0;
+  padding: 22px 22px 12px;
+}
+
+#blog-latest .blog-article-list.blog-list-mode > .product-layout .caption h4,
+#blog-category .blog-article-list.blog-list-mode > .product-layout .caption h4 {
+  margin-top: 0;
 }
 
 #blog-latest .blog-article-card .button-group, #blog-category .blog-article-card .button-group {
@@ -2672,24 +2687,42 @@ body > .container + .container > .row > #content > h2 {
   line-height: 1;
 }
 
-.product-thumb .button-group button.blog-more:first-child .fa {
-  background: none;
-  width: 17px;
-  height: 17px;
-  text-align: center;
-}
-
-.product-thumb .button-group button.blog-more:first-child .fa:before {
-  content: "\f061";
-  display: inline-block;
+.blog-article-card .blog-more .fa {
+  flex: 0 0 auto;
   width: auto;
   height: auto;
+  margin: 0;
   background: none;
-  font-family: FontAwesome;
-  font-style: normal;
-  font-weight: normal;
-  line-height: 17px;
+  font-size: 15px;
+  line-height: 1;
 }
+
+/* Blog navigation has its own semantic action, not a purchase-button state. */
+.blog-article-card .blog-card-actions .blog-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  background: var(--main-color);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.blog-article-card .blog-card-actions .blog-more:hover,
+.blog-article-card .blog-card-actions .blog-more:focus {
+  color: #fff;
+  background: var(--btn-primary-bg-hover);
+  box-shadow: 0 6px 16px rgba(9, 46, 112, 0.26);
+  text-decoration: none;
+}
+
 
 .agreement-actions {
   display: flex;
@@ -2734,20 +2767,16 @@ body > .container + .container > .row > #content > h2 {
     margin: 0 auto;
   }
 
-  .product-thumb .button-group button:first-child {
+  .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
     width: 60%;
   }
 
-  .product-thumb .button-group button + button {
+  .product-thumb .button-group button[data-toggle="tooltip"] {
     margin: 0 20px 0 0;
   }
 
   .product-thumb .caption {
     min-height: 240px;
-  }
-
-  #content .carousel {
-    width: 1120px;
   }
 
   #collapse-coupon label, #collapse-voucher label {
@@ -2780,10 +2809,6 @@ body > .container + .container > .row > #content > h2 {
 }
 
 @media (max-width: 1199px) {
-  #content .carousel {
-    width: 960px;
-  }
-
   #top .container {
     width: 100%;
   }
@@ -2840,11 +2865,11 @@ body > .container + .container > .row > #content > h2 {
     padding: 0 20px 10px;
   }
 
-  #common-home .product-thumb .button-group button:first-child, .product-grid .product-thumb .button-group button:first-child {
+  #common-home .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled), .product-grid .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
     width: 100%;
   }
 
-  #common-home .product-thumb .button-group button + button, .product-grid .product-thumb .button-group button + button {
+  #common-home .product-thumb .button-group button[data-toggle="tooltip"], .product-grid .product-thumb .button-group button[data-toggle="tooltip"] {
     width: 50%;
     margin: 10px 0 0;
   }
@@ -2865,10 +2890,6 @@ body > .container + .container > .row > #content > h2 {
 
   header > .container > .row > .col-sm-3 {
     width: 34%;
-  }
-
-  #content .carousel {
-    width: 720px;
   }
 
   .product-thumb {
@@ -3184,11 +3205,11 @@ body > .container + .container > .row > #content > h2 {
     border-left: none;
   }
 
-  #common-home .product-layout .product-thumb .button-group button:first-child, .product-grid .product-thumb .button-group button:first-child {
+  #common-home .product-layout .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled), .product-grid .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
     width: 125px;
   }
 
-  #common-home .product-layout .product-thumb .button-group button + button, .product-grid .product-thumb .button-group button + button {
+  #common-home .product-layout .product-thumb .button-group button[data-toggle="tooltip"], .product-grid .product-thumb .button-group button[data-toggle="tooltip"] {
     width: auto;
     margin: 0 30px 0 0;
   }
@@ -3582,16 +3603,6 @@ html[dir="rtl"] #cart .dropdown-menu {
   }
 }
 
-.btn.stock-purchase-disabled, .btn.stock-purchase-disabled:hover, .btn.stock-purchase-disabled:focus, .btn.stock-purchase-disabled:active {
-  background: #fff3cd;
-  border-color: #e0b85c;
-  color: #856404;
-  box-shadow: none;
-  cursor: not-allowed;
-  opacity: 1;
-  pointer-events: none;
-}
-
 #stock-purchase-message.stock-purchase-error {
   color: #a94442;
 }
@@ -3706,8 +3717,8 @@ hr {
 
 .btn-default:hover, .btn-default:focus, .btn-default:active {
   color: var(--main-color);
-  background: var(--surface-muted);
-  border-color: var(--border-color-strong);
+  background: var(--btn-default-bg-hover);
+  border-color: var(--main-color);
 }
 
 .btn-primary {
@@ -4276,7 +4287,7 @@ a.list-group-item:hover, a.list-group-item:focus {
   transition: all ease-in 0.2s;
 }
 
-.product-thumb .button-group button:first-child {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -4301,7 +4312,7 @@ a.list-group-item:hover, a.list-group-item:focus {
   transition: all ease-in 0.25s;
 }
 
-.product-thumb .button-group button + button {
+.product-thumb .button-group button[data-toggle="tooltip"] {
   float: left;
   width: auto;
   min-width: 38px;
@@ -4312,8 +4323,10 @@ a.list-group-item:hover, a.list-group-item:focus {
   border-radius: var(--radius-sm);
 }
 
-.product-thumb .button-group button + button:hover, .product-thumb .button-group button + button:focus {
-  background: var(--surface-muted);
+.product-thumb .button-group button[data-toggle="tooltip"]:hover, .product-thumb .button-group button[data-toggle="tooltip"]:focus {
+  color: var(--main-color);
+  background: var(--btn-default-bg-hover);
+  box-shadow: inset 0 0 0 1px var(--main-color);
 }
 
 .product-list .product-thumb {
@@ -5001,7 +5014,7 @@ footer p {
 
 /* БЛОГ */
 
-#blog-article .blog-article-list {
+#blog-article .blog-article-list:not(.blog-grid-mode) {
   align-items: stretch;
 }
 
@@ -5153,7 +5166,7 @@ footer p {
   white-space: nowrap;
 }
 
-.blog-article-list {
+.blog-article-list:not(.blog-grid-mode) {
   align-items: stretch;
 }
 
@@ -5166,6 +5179,13 @@ footer p {
   flex: 1 1 auto;
   flex-direction: column;
   width: 100%;
+}
+
+.blog-article-list > .blog-card-layout .blog-article-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
 }
 
 .blog-article-list > .blog-card-layout .caption {
@@ -5188,25 +5208,29 @@ footer p {
   margin-top: 0;
 }
 
-#blog-latest .product-grid .blog-article-body, #blog-category .product-grid .blog-article-body {
+#blog-latest .blog-article-list.blog-grid-mode > .product-layout .blog-article-body,
+#blog-category .blog-article-list.blog-grid-mode > .product-layout .blog-article-body {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
 }
 
-#blog-latest .product-grid .blog-article-card .caption, #blog-category .product-grid .blog-article-card .caption {
+#blog-latest .blog-article-list.blog-grid-mode > .product-layout .caption,
+#blog-category .blog-article-list.blog-grid-mode > .product-layout .caption {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
 }
 
-#blog-latest .product-grid .blog-article-card .rating, #blog-category .product-grid .blog-article-card .rating {
+#blog-latest .blog-article-list.blog-grid-mode > .product-layout .rating,
+#blog-category .blog-article-list.blog-grid-mode > .product-layout .rating {
   margin-top: auto;
   padding-bottom: 14px;
 }
 
-#blog-latest .product-grid .blog-article-card .button-group, #blog-category .product-grid .blog-article-card .button-group {
+#blog-latest .blog-article-list.blog-grid-mode > .product-layout .button-group,
+#blog-category .blog-article-list.blog-grid-mode > .product-layout .button-group {
   margin-top: 0;
 }
 
@@ -5317,28 +5341,280 @@ footer p {
   }
 }
 
-.blog-article-card .button-group button:not(.blog-more) {
-  display: inline-flex;
+/* A blog date or view count is information, not a button or hover-only tooltip. */
+.blog-article-card .blog-card-actions {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 38px;
-  min-width: 38px;
-  height: 38px;
-  min-height: 38px;
-  margin: 0 8px 0 0;
-  padding: 0;
-  color: var(--text-color);
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-xs);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.blog-article-card .button-group button:not(.blog-more):hover, .blog-article-card .button-group button:not(.blog-more):focus {
-  color: var(--main-color);
-  background: var(--surface-muted);
-  border-color: var(--border-color-strong);
-  transform: none;
+.blog-article-card .blog-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  min-width: 0;
+}
+
+.blog-article-card .blog-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-color-alt);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.blog-article-card .blog-meta-item .fa {
+  flex: 0 0 auto;
+  font-size: 13px;
+}
+
+/* Main blog results use the actual content width. 300px allows two readable
+   editorial columns on a 1024px tablet with one standard sidebar. Modules have
+   their own single-column rule below. */
+.blog-article-list.blog-grid-mode {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 18px;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+/* Bootstrap 3 .row adds table clearfix pseudo-elements. In a CSS grid these
+   pseudo-elements become phantom grid items, shifting real cards to column 2.
+   Disable them only when the row is explicitly used as a grid. */
+.blog-article-list.blog-grid-mode::before,
+.blog-article-list.blog-grid-mode::after {
+  content: none;
+  display: none;
+}
+
+.blog-article-list.blog-grid-mode > .product-layout,
+.blog-article-list.blog-grid-mode > [class*="col-"] {
+  display: flex;
+  float: none;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.blog-article-list.blog-grid-mode > .product-layout > .blog-article-card,
+.blog-article-list.blog-grid-mode > [class*="col-"] > .blog-article-card {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  margin: 0;
+}
+
+.blog-article-list.blog-grid-mode .blog-article-card .caption {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* The primary articles still carry product-list as an initial Bootstrap class.
+   Undo its 260px float/flex-basis in GRID mode before sizing the image. */
+#blog-latest .blog-article-list.blog-grid-mode > .product-layout .blog-article-card > .image,
+#blog-category .blog-article-list.blog-grid-mode > .product-layout .blog-article-card > .image {
+  float: none;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+}
+
+.blog-article-list.blog-grid-mode .blog-article-card .image a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 205px;
+  padding: 16px;
+}
+
+.blog-article-list.blog-grid-mode .blog-article-card .image img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.blog-article-list.blog-grid-mode .blog-article-card .button-group {
+  margin-top: auto;
+}
+
+@media (max-width: 767px) {
+  .blog-article-list.blog-grid-mode {
+    gap: 14px;
+  }
+
+  .blog-article-list.blog-grid-mode .blog-article-card .image a {
+    height: 190px;
+  }
+
+  .blog-article-card .blog-card-actions .blog-more {
+    min-height: 44px;
+  }
+}
+
+
+/* Sidebar modules have a narrow content area: use compact editorial teasers
+   instead of the full-width catalog card. No viewport-based assumptions. */
+#column-left .blog-article-list.blog-grid-mode,
+#column-right .blog-article-list.blog-grid-mode {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-article-card,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card {
+  min-width: 0;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-article-card .image a,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card .image a {
+  height: 125px;
+  padding: 10px 10px 0;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-article-card .image img,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card .image img {
+  width: 100%;
+  max-height: 112px;
+  object-fit: contain;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-article-card .caption,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card .caption {
+  min-height: 0;
+  padding: 12px 12px 6px;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-article-card .caption h4,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card .caption h4 {
+  margin-bottom: 6px;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-article-card .caption p,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card .caption p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  margin-bottom: 8px;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-card-actions,
+#column-right .blog-article-list.blog-grid-mode .blog-card-actions {
+  align-items: stretch;
+  flex-direction: column;
+  padding: 0 12px 12px;
+  gap: 8px;
+}
+
+#column-left .blog-article-list.blog-grid-mode .blog-card-actions .blog-more,
+#column-right .blog-article-list.blog-grid-mode .blog-card-actions .blog-more {
+  width: 100%;
+}
+
+/* Modules share the primary article's image/body structure. The view switch
+   changes only the layout mode; the sidebar keeps its own compact cards. */
+.blog-article-list.blog-list-mode::before,
+.blog-article-list.blog-list-mode::after {
+  content: none;
+  display: none;
+}
+
+.blog-article-list.blog-list-mode > .blog-card-layout {
+  float: none;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  min-width: 0;
+}
+
+.blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image {
+  float: none;
+  flex: 0 0 260px;
+  width: 260px;
+  min-width: 0;
+  padding: 8px;
+}
+
+.blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 14px;
+}
+
+.blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+}
+
+.blog-article-list.blog-list-mode > .blog-card-layout .caption {
+  min-height: 0;
+  margin: 0;
+  padding: 22px 22px 12px;
+}
+
+.blog-article-list.blog-list-mode > .blog-card-layout .caption h4 {
+  margin-top: 0;
+}
+
+.blog-article-list.blog-list-mode > .blog-card-layout .blog-card-actions {
+  margin-top: auto;
+  padding: 0 22px 22px;
+}
+
+/* The sidebar is independent of the primary list/grid presentation. */
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode > .blog-card-layout {
+  padding: 0;
+}
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card {
+  flex-direction: column;
+}
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image {
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 0;
+}
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image a {
+  height: 125px;
+  padding: 10px 10px 0;
+}
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode > .blog-card-layout .caption {
+  padding: 12px 12px 6px;
+}
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode > .blog-card-layout .blog-card-actions {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode .blog-more {
+  width: 100%;
 }
 
 /* МЕНЮ КАТЕГОРИЙ */
@@ -5978,6 +6254,99 @@ body.route-product-product header + .container {
 }
 
 
+/* Product purchase buttons show the same icon AND caption on every viewport.
+   This is not a breakpoint-driven icon-only control. Applies to product cards
+   in catalog, standard modules and blog-related products, never blog articles. */
+.product-thumb:not(.blog-article-card) .button-group .stock-cart-label {
+  display: inline;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.product-thumb:not(.blog-article-card) .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+  gap: 6px;
+  min-height: 40px;
+  height: auto;
+  overflow: visible;
+}
+
+/* A module has its own responsive width; legacy 125px button limits must not
+   clip the label when one narrow product card occupies the content column. */
+@media (max-width: 991px) {
+  #common-home .product-layout .product-thumb:not(.blog-article-card) .button-group :is(.stock-cart-button, .stock-purchase-disabled),
+  .product-grid .product-thumb:not(.blog-article-card) .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+    width: 100%;
+  }
+}
+
+/* Product modules inside a Bootstrap sidebar occupy its full column. Their
+   desktop col-lg-3/col-sm-6 classes describe the central content grid and
+   would otherwise split an already narrow sidebar into 2-4 tiny cards. */
+@media (min-width: 768px) {
+  :is(#column-left, #column-right) .row > .product-layout:not(.blog-card-layout) {
+    float: none;
+    width: 100%;
+  }
+
+  :is(#column-left, #column-right) .row > .product-layout:not(.blog-card-layout) .product-thumb {
+    width: 100%;
+  }
+
+  :is(#column-left, #column-right) .row > .product-layout:not(.blog-card-layout) .product-thumb .caption {
+    min-height: 0;
+    padding: 12px 12px 8px;
+  }
+
+  :is(#column-left, #column-right) .row > .product-layout:not(.blog-card-layout) .product-thumb .button-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0 12px 12px;
+  }
+
+  :is(#column-left, #column-right) .row > .product-layout:not(.blog-card-layout) .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+    grid-column: 1 / -1;
+    float: none;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  :is(#column-left, #column-right) .row > .product-layout:not(.blog-card-layout) .button-group button[data-toggle="tooltip"] {
+    float: none;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+}
+
+/* In list mode, narrow content with a sidebar still gets an actual label.
+   The purchase control occupies a dedicated row, leaving secondary actions
+   intact and preventing the three buttons from fighting for width. */
+.product-list .product-thumb:not(.blog-article-card) .button-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.product-list .product-thumb:not(.blog-article-card) .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+  float: none;
+  flex: 1 1 100%;
+  width: 100%;
+  margin: 0;
+  order: -1;
+}
+
+.product-list .product-thumb:not(.blog-article-card) .button-group button[data-toggle="tooltip"] {
+  float: none;
+  width: auto;
+  flex: 1 1 0;
+  margin: 0;
+}
+
 /* Unified "in cart" state for every product purchase button */
 .stock-cart-button.stock-cart-in-cart {
   --cart-button-bg: #5CB85C;
@@ -5991,11 +6360,12 @@ body.route-product-product header + .container {
 .stock-cart-button.stock-cart-in-cart:hover,
 .stock-cart-button.stock-cart-in-cart:focus,
 .stock-cart-button.stock-cart-in-cart:active {
-  --cart-button-bg: #4CAE4C;
-  --cart-button-border: #449D44;
+  --cart-button-bg: #347D34;
+  --cart-button-border: #2A682A;
   color: #FFFFFF;
   background: var(--cart-button-bg);
   border-color: var(--cart-button-border);
+  box-shadow: 0 6px 16px rgba(42, 104, 42, 0.25);
 }
 
 /* Touch input retains static purchase icons and a short press response. */
@@ -6005,9 +6375,50 @@ body.route-product-product header + .container {
     transition: none;
   }
 
-  .product-thumb .button-group button:first-child:active {
+  .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled):active {
     transform: scale(0.98);
   }
+}
+
+/* A blocked purchase must never inherit the active blue/green button styling.
+   Keep this state after the shared purchase/card rules, not as another override. */
+.stock-purchase-disabled,
+.stock-purchase-disabled:hover,
+.stock-purchase-disabled:focus,
+.stock-purchase-disabled:active,
+.product-thumb .button-group .stock-purchase-disabled,
+#product-product #button-cart.stock-purchase-disabled,
+#product-product #button-cart-sticky.stock-purchase-disabled {
+  color: #526174;
+  background: #E9EEF5;
+  border: 1px solid #CBD5E1;
+  box-shadow: none;
+  opacity: 1;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+  height: auto;
+  min-height: 40px;
+  overflow: visible;
+  white-space: normal;
+}
+
+.stock-purchase-disabled .stock-cart-label {
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.stock-purchase-disabled .stock-disabled-reason {
+  display: block;
+  margin-top: 3px;
+  color: #64748B;
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+  overflow-wrap: anywhere;
 }
 
 /* Catalog and blog sorting controls: mobile layout.
@@ -6061,11 +6472,6 @@ body.route-product-product header + .container {
 #product-product #button-cart-sticky,
 #product-compare .stock-cart-button {
   display: inline-flex;
-}
-
-#product-product #button-cart,
-#product-product #button-cart-sticky,
-#product-compare .stock-cart-button {
   align-items: center;
   justify-content: center;
   gap: 7px;
@@ -6081,4 +6487,382 @@ body.route-product-product header + .container {
 #product-product #button-cart .stock-cart-label,
 #product-product #button-cart-sticky .stock-cart-label {
   min-width: 0;
+}
+
+/* Blog index and category use the width of their main content column, not
+   the viewport or a fixed Bootstrap column count. */
+#blog-latest #content,
+#blog-category #content {
+  container: blog-main-content / inline-size;
+}
+
+@media (max-width: 1199px) {
+  #blog-latest .catalog-toolbar,
+  #blog-category .catalog-toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    align-items: center;
+  }
+
+  #blog-latest .catalog-toolbar::before,
+  #blog-latest .catalog-toolbar::after,
+  #blog-category .catalog-toolbar::before,
+  #blog-category .catalog-toolbar::after {
+    content: none;
+    display: none;
+  }
+
+  #blog-latest .catalog-toolbar > [class*="catalog-toolbar-"],
+  #blog-category .catalog-toolbar > [class*="catalog-toolbar-"] {
+    float: none;
+    clear: none;
+    display: flex;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  #blog-latest .catalog-toolbar > .catalog-toolbar-view,
+  #blog-category .catalog-toolbar > .catalog-toolbar-view {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  #blog-latest .catalog-toolbar > .catalog-toolbar-sort,
+  #blog-category .catalog-toolbar > .catalog-toolbar-sort {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  #blog-latest .catalog-toolbar > .catalog-toolbar-limit,
+  #blog-category .catalog-toolbar > .catalog-toolbar-limit {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  #blog-latest .catalog-toolbar .catalog-control,
+  #blog-category .catalog-toolbar .catalog-control {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  #blog-latest .catalog-toolbar .catalog-control .input-group-addon,
+  #blog-category .catalog-toolbar .catalog-control .input-group-addon {
+    display: block;
+    width: auto;
+    height: auto;
+    padding: 0 0 6px;
+    text-align: left;
+    white-space: normal;
+  }
+
+  #blog-latest .catalog-toolbar .catalog-control .form-control,
+  #blog-category .catalog-toolbar .catalog-control .form-control {
+    display: block;
+    float: none;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+}
+
+/* At less than 300px + 18px + 300px, grid mode fits one column.
+   Hide its redundant view switch and give both native selects full width. */
+@container blog-main-content (max-width: 617px) {
+  #blog-latest .catalog-toolbar > .catalog-toolbar-view,
+  #blog-category .catalog-toolbar > .catalog-toolbar-view {
+    display: none;
+  }
+
+  #blog-latest .catalog-toolbar > .catalog-toolbar-sort,
+  #blog-category .catalog-toolbar > .catalog-toolbar-sort,
+  #blog-latest .catalog-toolbar > .catalog-toolbar-limit,
+  #blog-category .catalog-toolbar > .catalog-toolbar-limit {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  #blog-latest .catalog-toolbar > .catalog-toolbar-sort,
+  #blog-category .catalog-toolbar > .catalog-toolbar-sort {
+    grid-row: 1;
+  }
+
+  #blog-latest .catalog-toolbar > .catalog-toolbar-limit,
+  #blog-category .catalog-toolbar > .catalog-toolbar-limit {
+    grid-row: 2;
+  }
+
+  #blog-latest .blog-article-list.blog-list-mode > .product-layout > .blog-article-card,
+  #blog-category .blog-article-list.blog-list-mode > .product-layout > .blog-article-card {
+    flex-direction: column;
+  }
+
+  #blog-latest .blog-article-list.blog-list-mode > .product-layout .blog-article-card > .image,
+  #blog-category .blog-article-list.blog-list-mode > .product-layout .blog-article-card > .image {
+    float: none;
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+  }
+
+  /* Main articles and content-bottom modules stack at the same content width. */
+  #blog-latest #content .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card,
+  #blog-category #content .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card {
+    flex-direction: column;
+  }
+
+  #blog-latest #content .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image,
+  #blog-category #content .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+  }
+}
+
+/* Product listings have separate toolbar rules below. */
+/* Catalog-only toolbar and card alignment. Blog, sidebars and modules are excluded. */
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar {
+  container: product-catalog-toolbar / inline-size;
+}
+
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar #compare-total {
+  width: auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0;
+  min-height: 42px;
+  padding: 8px 10px;
+  white-space: nowrap;
+  color: var(--main-color);
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+}
+
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar #compare-total .compare-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  color: inherit;
+  font-family: FontAwesome;
+  font-size: 18px;
+  font-style: normal;
+  line-height: 18px;
+  text-align: center;
+}
+
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar #compare-total .compare-icon::before {
+  content: "\f0ec";
+  font-family: FontAwesome;
+}
+
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar #compare-total .compare-label {
+  display: inline;
+  white-space: nowrap;
+}
+
+/* A stable flex row replaces fragile heading/sibling-dependent result selectors.
+   Stretch the entire card, then push its actions to the bottom of its own card. */
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-results-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-results-row > .product-grid {
+  display: flex;
+  float: none;
+}
+
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-results-row > .product-grid > .product-thumb {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+}
+
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-results-row > .product-grid > .product-thumb > .image + div {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+}
+
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-results-row > .product-grid .caption {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+}
+
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-results-row > .product-grid .caption .price {
+  margin-top: auto;
+}
+
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-results-row > .product-grid .button-group {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+}
+
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-results-row > .product-grid .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+  float: none;
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 0;
+  order: -1;
+  margin: 0;
+}
+
+:is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-results-row > .product-grid .button-group button[data-toggle="tooltip"] {
+  float: none;
+  flex: 1 1 0;
+  width: auto;
+  min-width: 38px;
+  margin: 0;
+}
+
+/* Toolbar changes only at <=1199px. Sidebar Bootstrap columns remain intact. */
+@media (max-width: 1199px) {
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    align-items: center;
+  }
+
+  #product-category .catalog-toolbar::before,
+  #product-category .catalog-toolbar::after,
+  #product-search .catalog-toolbar::before,
+  #product-search .catalog-toolbar::after,
+  #product-special .catalog-toolbar::before,
+  #product-special .catalog-toolbar::after,
+  #product-manufacturer .catalog-toolbar::before,
+  #product-manufacturer .catalog-toolbar::after {
+    content: none;
+    display: none;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > [class*="catalog-toolbar-"] {
+    float: none;
+    clear: none;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    min-height: 42px;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > .catalog-toolbar-view {
+    grid-column: 1;
+    grid-row: 1;
+    justify-content: flex-start;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > .catalog-toolbar-compare {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > .catalog-toolbar-sort {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > .catalog-toolbar-limit {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar .catalog-control {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    flex-direction: column;
+    align-items: stretch;
+    margin: 0;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar .catalog-control .input-group-addon {
+    display: block;
+    width: auto;
+    height: auto;
+    padding: 0 0 6px;
+    text-align: left;
+    white-space: normal;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar .catalog-control .form-control {
+    display: block;
+    float: none;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+}
+
+/* The old 575px rule is intentionally consolidated here: two native selects
+   stack whenever available toolbar width is insufficient, including sidebars. */
+@container product-catalog-toolbar (max-width: 520px) {
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > .catalog-toolbar-view {
+    display: none;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > .catalog-toolbar-compare {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-content: flex-start;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > .catalog-toolbar-sort,
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > .catalog-toolbar-limit {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > .catalog-toolbar-sort {
+    grid-row: 2;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > .catalog-toolbar-limit {
+    grid-row: 3;
+  }
+}
+
+/* Scope media fallback to four product results only, not blog controls. */
+@media (max-width: 767px) {
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > .catalog-toolbar-view {
+    display: none;
+  }
+
+  :is(#product-category, #product-search, #product-special, #product-manufacturer) .catalog-toolbar > .catalog-toolbar-compare {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-content: flex-start;
+  }
 }

@@ -5,6 +5,8 @@ class ControllerProductCompare extends Controller {
 
 		$this->load->model('catalog/product');
 
+		$this->load->model('catalog/stock_policy');
+
 		$this->load->model('tool/image');
 
 		if (!isset($this->session->data['compare'])) {
@@ -93,7 +95,9 @@ class ControllerProductCompare extends Controller {
 					}
 				}
 
-				$data['products'][$product_id] = array(
+				$stock_policy = $this->model_catalog_stock_policy->getListPolicy($product_info);
+
+			$data['products'][$product_id] = array(
 					'product_id'   => $product_info['product_id'],
 					'name'         => $product_info['name'],
 					'thumb'        => $image,
@@ -104,6 +108,12 @@ class ControllerProductCompare extends Controller {
 					'manufacturer' => $product_info['manufacturer'],
 					'availability' => $availability,
 					'minimum'      => $product_info['minimum'] > 0 ? $product_info['minimum'] : 1,
+				'can_buy'      => $stock_policy['can_buy'],
+				'in_cart'      => !empty($stock_policy['in_cart']),
+				'cart_button_text' => $stock_policy['cart_button_text'],
+				'button_text'  => $stock_policy['button_text'],
+					'button_reason' => $stock_policy['button_reason'],
+				'stock_button' => (string)$this->config->get('config_stock_purchase_button'),
 					'rating'       => (int)$product_info['rating'],
 					'reviews'      => sprintf($this->language->get('text_reviews'), (int)$product_info['reviews']),
 					'weight'       => $this->weight->format($product_info['weight'], $product_info['weight_class_id']),

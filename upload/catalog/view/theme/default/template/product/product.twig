@@ -305,12 +305,12 @@
                                     {% if stock_can_buy %}
                                     <button type="button" id="button-cart" data-product-id="{{ product_id }}" data-cart-label="{{ stock_button_text ?: button_cart }}" data-loading-text="{{ text_loading }}" class="btn btn-primary btn-lg btn-block stock-cart-button{{ stock_in_cart ? ' stock-cart-in-cart' : '' }}"><i class="fa stock-cart-icon {{ stock_in_cart ? 'fa-check' : 'fa-shopping-cart' }}" aria-hidden="true"></i><span class="stock-cart-label">{{ stock_in_cart ? stock_cart_button_text : (stock_button_text ?: button_cart) }}</span></button>
                                     {% elseif stock_button_mode != 'hide' %}
-                                    <button type="button" id="button-cart" data-product-id="{{ product_id }}" data-loading-text="{{ text_loading }}" class="btn btn-warning btn-lg btn-block stock-cart-button stock-purchase-disabled" disabled="disabled" aria-disabled="true"><i class="fa fa-shopping-cart stock-cart-icon" aria-hidden="true"></i><span class="stock-cart-label">{{ stock_button_mode == 'disable_status' ? stock_button_text : button_cart }}</span></button>
+                                    <button type="button" id="button-cart" data-product-id="{{ product_id }}" data-loading-text="{{ text_loading }}" class="btn btn-lg btn-block stock-cart-button stock-purchase-disabled" disabled="disabled" aria-disabled="true" title="{{ stock_button_reason }}"><i class="fa fa-ban stock-cart-icon" aria-hidden="true"></i><span class="stock-cart-label">{{ stock_button_text }}</span></button>
                                     {% endif %}
                                 </div>
                             </div>
 
-                            <div id="stock-purchase-message" class="help-block stock-purchase-message"{% if stock_preorder_allowed %}>{{ text_stock_preorder_allowed }}{% else %} style="display:none;">{% endif %}</div>
+                            <div id="stock-purchase-message" class="help-block stock-purchase-message{{ not stock_can_buy ? ' stock-purchase-error' : (stock_preorder_allowed ? ' stock-purchase-info' : '') }}"{% if stock_can_buy and not stock_preorder_allowed %} style="display:none;"{% endif %}>{{ not stock_can_buy ? stock_button_reason : (stock_preorder_allowed ? text_stock_preorder_allowed : '') }}</div>
                         </div>
                         {% if minimum > 1 %}
                         <div class="alert alert-info product-minimum-alert">
@@ -327,7 +327,7 @@
                             <span class="fa fa-stack">
                                 <i class="fa fa-star fa-stack-1x"></i>
                                 <i class="fa fa-star-o fa-stack-1x"></i></span>{% endif %}
-                            {% endfor %} <a href="" onclick="$('a[href=\'#tab-review\']').trigger('click'); return false;">{{ reviews }}</a> / <a href="" onclick="$('a[href=\'#tab-review\']').trigger('click'); return false;">{{ text_write }}</a></p>
+                            {% endfor %} <a href="#tab-review" class="product-review-link">{{ reviews }}</a></p>
                         <hr>
                     </div>
                     {% endif %} </div>
@@ -354,7 +354,7 @@
                         <div class="product-sticky-buy-actions">
                             <label for="sticky-input-quantity">{{ entry_qty }}</label>
                             <input type="text" id="sticky-input-quantity" value="{{ minimum }}" class="form-control" inputmode="numeric" autocomplete="off" />
-                            <button type="button" id="button-cart-sticky" class="btn btn-primary stock-cart-button{{ stock_in_cart ? ' stock-cart-in-cart' : '' }}" data-product-id="{{ product_id }}" data-cart-label="{{ stock_button_text ?: button_cart }}"><i class="fa stock-cart-icon {{ stock_in_cart ? 'fa-check' : 'fa-shopping-cart' }}" aria-hidden="true"></i><span class="stock-cart-label">{{ stock_in_cart ? stock_cart_button_text : (stock_button_text ?: button_cart) }}</span></button>
+                            <button type="button" id="button-cart-sticky" class="btn {{ stock_can_buy ? 'btn-primary' : '' }} stock-cart-button{{ not stock_can_buy ? ' stock-purchase-disabled' : (stock_in_cart ? ' stock-cart-in-cart' : '') }}" data-product-id="{{ product_id }}" data-cart-label="{{ stock_button_text ?: button_cart }}"{% if not stock_can_buy %} disabled="disabled" aria-disabled="true" title="{{ stock_button_reason }}"{% endif %}><i class="fa stock-cart-icon {{ not stock_can_buy ? 'fa-ban' : (stock_in_cart ? 'fa-check' : 'fa-shopping-cart') }}" aria-hidden="true"></i><span class="stock-cart-label">{{ not stock_can_buy ? stock_button_text : (stock_in_cart ? stock_cart_button_text : (stock_button_text ?: button_cart)) }}</span></button>
                         </div>
                     </div>
                 </div>
@@ -400,8 +400,8 @@
                             <button type="button" class="stock-cart-button{{ product.in_cart ? ' stock-cart-in-cart' : '' }}" data-product-id="{{ product.product_id }}" data-cart-label="{{ product.button_text ?: button_cart }}" aria-label="{{ product.in_cart ? product.cart_button_text : (product.button_text ?: button_cart) }}" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');">
                                 <i class="fa stock-cart-icon {{ product.in_cart ? 'fa-check' : 'fa-shopping-cart' }}" aria-hidden="true"></i><span class="stock-cart-label hidden-xs hidden-sm hidden-md">{{ product.in_cart ? product.cart_button_text : (product.button_text ?: button_cart) }}</span></button>
                             {% elseif product.stock_button != 'hide' %}
-                            <button type="button" disabled="disabled" aria-disabled="true" tabindex="-1" class="stock-purchase-disabled" title="{{ product.button_text }}">
-                                <i class="fa fa-shopping-cart"></i> <span class="hidden-xs hidden-sm hidden-md">{{ product.stock_button == 'disable_status' ? product.button_text : button_cart }}</span></button>
+                            <button type="button" disabled="disabled" aria-disabled="true" tabindex="-1" class="stock-purchase-disabled" title="{{ product.button_reason }}">
+                                <i class="fa fa-ban" aria-hidden="true"></i> <span class="stock-cart-label">{{ product.button_text }}<small class="stock-disabled-reason">{{ product.button_reason }}</small></span></button>
                             {% endif %}
                             <button type="button" data-toggle="tooltip" title="{{ button_wishlist }}" onclick="wishlist.add('{{ product.product_id }}');">
                                 <i class="fa fa-heart"></i></button>
@@ -479,6 +479,7 @@
                         .prop('disabled', false)
                         .removeAttr('aria-disabled')
                         .removeClass('btn-warning stock-purchase-disabled stock-purchase-warning stock-cart-in-cart')
+                        .removeAttr('title')
                         .addClass('stock-cart-button')
                         .addClass('btn-primary');
 
@@ -498,21 +499,19 @@
                         button.show()
                             .prop('disabled', true)
                             .attr('aria-disabled', 'true')
-                            .removeClass('btn-primary')
-                            .addClass('btn-warning stock-purchase-disabled')
+                            .removeClass('btn-primary btn-warning')
+                            .addClass('stock-purchase-disabled')
+                            .attr('title', json['button_reason'] || '')
                             .removeClass('stock-cart-in-cart');
                         // Preserve the icon even when buying is disabled.
                         button.empty().append(
-                            $('<i class="fa fa-shopping-cart stock-cart-icon" aria-hidden="true"></i>'),
-                            $('<span class="stock-cart-label"></span>').text(
-                                json['button_mode'] === 'disable_status' && json['button_text']
-                                    ? json['button_text'] : '{{ button_cart|escape('js') }}'
-                            )
+                            $('<i class="fa fa-ban stock-cart-icon" aria-hidden="true"></i>'),
+                            $('<span class="stock-cart-label"></span>').text(json['button_text'] || '')
                         );
                     }
 
                     if (json['message']) {
-                        message.removeClass('stock-purchase-info').addClass('stock-purchase-error').text(json['message']).show();
+                        message.removeClass('stock-purchase-info').addClass('stock-purchase-error').text(json['button_reason'] || json['message']).show();
                     }
                 }
             }
@@ -609,12 +608,14 @@
                             $('#button-cart')
                                 .prop('disabled', true)
                                 .attr('aria-disabled', 'true')
-                                .removeClass('btn-primary')
-                                .addClass('btn-warning stock-purchase-disabled');
+                                .removeClass('btn-primary btn-warning stock-cart-in-cart')
+                                .attr('title', json['stock']['button_reason'] || json['error']['stock'])
+                                .addClass('stock-purchase-disabled');
 
-                            if ('{{ stock_button_mode|escape('js') }}' === 'disable_status' && json['stock']['button_text']) {
-                                $('#button-cart').text(json['stock']['button_text']);
-                            }
+                            $('#button-cart').empty().append(
+                                $('<i class="fa fa-ban stock-cart-icon" aria-hidden="true"></i>'),
+                                $('<span class="stock-cart-label"></span>').text(json['stock']['button_text'] || '{{ stock_button_text|escape('js') }}')
+                            );
                         }
                     }
 
@@ -713,6 +714,25 @@
     });
     </script>
     <script type="text/javascript">
+    // The review count is a navigation link: show its tab and reveal the tab
+    // heading, rather than switching content off-screen near the buy panel.
+    $('.product-review-link').on('click', function(e) {
+        e.preventDefault();
+
+        var $reviewTab = $('.product-tabs a[href="#tab-review"]');
+
+        if (!$reviewTab.length) {
+            return;
+        }
+
+        $reviewTab.tab('show');
+
+        var $tabs = $reviewTab.closest('.product-tabs');
+        var top = Math.max(0, $tabs.offset().top - 16);
+
+        $('html, body').stop(true).animate({ scrollTop: top }, 250);
+    });
+
     $('#review').on('click', '.pagination a', function(e) {
         e.preventDefault();
 

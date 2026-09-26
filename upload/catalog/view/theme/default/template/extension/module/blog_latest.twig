@@ -1,10 +1,11 @@
 {% if articles %}
 	<h3>{{ heading_title }}</h3>
-	<div class="row catalog-results-row blog-article-list">
+	<div class="row catalog-results-row blog-article-list blog-grid-mode">
 		{% for article in articles %}
 			<div class="product-layout blog-card-layout col-lg-4 col-md-4 col-sm-6 col-xs-12">
 				<div class="product-thumb transition blog-article-card">
 					<div class="image"><a href="{{ article.href }}"><img src="{{ article.thumb }}" alt="{{ article.name }}" title="{{ article.name }}" class="img-responsive" /></a></div>
+					<div class="blog-article-body">
 					<div class="caption">
 						<h4><a href="{{ article.href }}">{{ article.name }}</a></h4>
 						<p>{{ article.description }}</p>
@@ -20,10 +21,13 @@
 							</div>
 						{% endif %}
 					</div>
-					<div class="button-group">
-						<button type="button" class="blog-more" onclick="location.href = ('{{ article.href }}');"><i class="fa fa-arrow-right"></i> <span class="hidden-xs hidden-sm hidden-md">{{ button_more }}</span></button>
-						<button type="button" data-toggle="tooltip" title="{{ article.date_added }}"><i class="fa fa-clock-o"></i></button>
-						<button type="button" data-toggle="tooltip" title="{{ text_views }} {{ article.viewed }}"><i class="fa fa-eye blog-view-icon"></i></button>
+					<div class="button-group blog-card-actions">
+    <div class="blog-card-meta">
+        <span class="blog-meta-item"><i class="fa fa-clock-o" aria-hidden="true"></i> {{ article.date_added }}</span>
+        <span class="blog-meta-item"><i class="fa fa-eye blog-view-icon" aria-hidden="true"></i> {{ text_views }} {{ article.viewed }}</span>
+    </div>
+    <a class="blog-more" href="{{ article.href }}"><span>{{ button_more }}</span><i class="fa fa-arrow-right" aria-hidden="true"></i></a>
+</div>
 					</div>
 				</div>
 			</div>
