@@ -158,7 +158,7 @@ $(document).ready(function() {
 			return;
 		}
 
-		blogPage.find('#content > .blog-article-list')
+		blogPage.find('#content > .blog-primary-results')
 			.toggleClass('blog-grid-mode', mode === 'grid')
 			.toggleClass('blog-list-mode', mode === 'list');
 	}
