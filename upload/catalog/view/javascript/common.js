@@ -326,11 +326,6 @@ var cartButtonState = {
 			.addClass(inCart ? 'fa-check' : 'fa-shopping-cart');
 		var text = $('<span class="stock-cart-label"></span>').text(label);
 
-		// Product-card buttons keep their icon-only layout below Bootstrap lg.
-		if (button.closest('.product-thumb').length) {
-			text.addClass('hidden-xs hidden-sm hidden-md');
-		}
-
 		if (button.is('input')) {
 			button.val(label);
 		} else {
