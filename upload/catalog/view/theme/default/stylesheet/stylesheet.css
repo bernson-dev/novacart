@@ -5364,6 +5364,15 @@ footer p {
   margin-left: 0;
 }
 
+/* Bootstrap 3 .row adds table clearfix pseudo-elements. In a CSS grid these
+   pseudo-elements become phantom grid items, shifting real cards to column 2.
+   Disable them only when the row is explicitly used as a grid. */
+.blog-article-list.blog-grid-mode::before,
+.blog-article-list.blog-grid-mode::after {
+  content: none;
+  display: none;
+}
+
 .blog-article-list.blog-grid-mode > .product-layout,
 .blog-article-list.blog-grid-mode > [class*="col-"] {
   display: flex;
