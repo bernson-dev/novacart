@@ -2625,13 +2625,16 @@ body > .container + .container > .row > #content > h2 {
   width: 100%;
 }
 
-#blog-latest .product-grid .blog-article-card, #blog-category .product-grid .blog-article-card {
+/* Mode, not the initial product-list class, owns the card orientation. */
+#blog-latest .blog-article-list.blog-grid-mode > .product-layout > .blog-article-card,
+#blog-category .blog-article-list.blog-grid-mode > .product-layout > .blog-article-card {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
 }
 
-#blog-latest .product-list .blog-article-card, #blog-category .product-list .blog-article-card {
+#blog-latest .blog-article-list.blog-list-mode > .product-layout > .blog-article-card,
+#blog-category .blog-article-list.blog-list-mode > .product-layout > .blog-article-card {
   display: flex;
   flex-direction: row;
 }
@@ -2643,18 +2646,22 @@ body > .container + .container > .row > #content > h2 {
   flex-direction: column;
 }
 
-#blog-latest .product-list .blog-article-card .image + .blog-article-body, #blog-category .product-list .blog-article-card .image + .blog-article-body {
-  width: 70%;
-  padding: 0 20px 0 0;
-}
-
-#blog-latest .product-list .blog-article-card .caption, #blog-category .product-list .blog-article-card .caption {
-  margin: 0;
+#blog-latest .blog-article-list.blog-list-mode > .product-layout .image + .blog-article-body,
+#blog-category .blog-article-list.blog-list-mode > .product-layout .image + .blog-article-body {
+  width: auto;
+  min-width: 0;
   padding: 0;
 }
 
-#blog-latest .product-list .blog-article-card .caption h4, #blog-category .product-list .blog-article-card .caption h4 {
-  margin-top: 20px;
+#blog-latest .blog-article-list.blog-list-mode > .product-layout .caption,
+#blog-category .blog-article-list.blog-list-mode > .product-layout .caption {
+  margin: 0;
+  padding: 22px 22px 12px;
+}
+
+#blog-latest .blog-article-list.blog-list-mode > .product-layout .caption h4,
+#blog-category .blog-article-list.blog-list-mode > .product-layout .caption h4 {
+  margin-top: 0;
 }
 
 #blog-latest .blog-article-card .button-group, #blog-category .blog-article-card .button-group {
@@ -5194,25 +5201,29 @@ footer p {
   margin-top: 0;
 }
 
-#blog-latest .product-grid .blog-article-body, #blog-category .product-grid .blog-article-body {
+#blog-latest .blog-article-list.blog-grid-mode > .product-layout .blog-article-body,
+#blog-category .blog-article-list.blog-grid-mode > .product-layout .blog-article-body {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
 }
 
-#blog-latest .product-grid .blog-article-card .caption, #blog-category .product-grid .blog-article-card .caption {
+#blog-latest .blog-article-list.blog-grid-mode > .product-layout .caption,
+#blog-category .blog-article-list.blog-grid-mode > .product-layout .caption {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
 }
 
-#blog-latest .product-grid .blog-article-card .rating, #blog-category .product-grid .blog-article-card .rating {
+#blog-latest .blog-article-list.blog-grid-mode > .product-layout .rating,
+#blog-category .blog-article-list.blog-grid-mode > .product-layout .rating {
   margin-top: auto;
   padding-bottom: 14px;
 }
 
-#blog-latest .product-grid .blog-article-card .button-group, #blog-category .product-grid .blog-article-card .button-group {
+#blog-latest .blog-article-list.blog-grid-mode > .product-layout .button-group,
+#blog-category .blog-article-list.blog-grid-mode > .product-layout .button-group {
   margin-top: 0;
 }
 
@@ -5354,11 +5365,12 @@ footer p {
   font-size: 13px;
 }
 
-/* Columns are based on available content width, not the physical screen.
-   Sidebar layouts and tablet portrait naturally collapse to readable cards. */
+/* Main blog results use the actual content width. 300px allows two readable
+   editorial columns on a 1024px tablet with one standard sidebar. Modules have
+   their own single-column rule below. */
 .blog-article-list.blog-grid-mode {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 18px;
   margin-right: 0;
   margin-left: 0;
@@ -5396,6 +5408,17 @@ footer p {
 .blog-article-list.blog-grid-mode .blog-article-card .caption {
   flex: 1 1 auto;
   min-height: 0;
+}
+
+/* The primary articles still carry product-list as an initial Bootstrap class.
+   Undo its 260px float/flex-basis in GRID mode before sizing the image. */
+#blog-latest .blog-article-list.blog-grid-mode > .product-layout .blog-article-card > .image,
+#blog-category .blog-article-list.blog-grid-mode > .product-layout .blog-article-card > .image {
+  float: none;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
 }
 
 .blog-article-list.blog-grid-mode .blog-article-card .image a {
@@ -5444,7 +5467,31 @@ footer p {
 
 #column-left .blog-article-list.blog-grid-mode .blog-article-card,
 #column-right .blog-article-list.blog-grid-mode .blog-article-card {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  width: 100%;
+}
+
+/* Sidebar thumbnails must occupy their own row. No float or inherited fixed
+   image flex-basis may let the picture overlap the caption beneath it. */
+#column-left .blog-article-list.blog-grid-mode .blog-article-card > .image,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card > .image {
+  float: none;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+}
+#column-left .blog-article-list.blog-grid-mode .blog-article-card .image a,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card .image a {
+  box-sizing: border-box;
+  width: 100%;
+}
+#column-left .blog-article-list.blog-grid-mode .blog-article-card .caption,
+#column-right .blog-article-list.blog-grid-mode .blog-article-card .caption {
+  clear: both;
+  width: 100%;
 }
 
 #column-left .blog-article-list.blog-grid-mode .blog-article-card .image a,
