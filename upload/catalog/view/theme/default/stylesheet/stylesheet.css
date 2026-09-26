@@ -1308,14 +1308,16 @@ html[dir="rtl"] .breadcrumb > li::after {
   vertical-align: middle;
 }
 
-#content .carousel:hover .swiper-button-next {
-  right: -23px;
-  opacity: 1;
-}
+@media (hover: hover) and (pointer: fine) {
+  #content .carousel:hover .swiper-button-next {
+    right: -23px;
+    opacity: 1;
+  }
 
-#content .carousel:hover .swiper-button-prev {
-  left: -23px;
-  opacity: 1;
+  #content .carousel:hover .swiper-button-prev {
+    left: -23px;
+    opacity: 1;
+  }
 }
 
 /* ==========================================================================
@@ -1453,12 +1455,14 @@ h2.price {
   transition: opacity .15s ease, transform .25s ease;
 }
 
-.product-thumb .button-group button:first-child:hover span {
-  transform: translateY(-130%) translateZ(0);
-}
+@media (hover: hover) and (pointer: fine) {
+  .product-thumb .button-group button:first-child:hover span {
+    transform: translateY(-130%) translateZ(0);
+  }
 
-.product-thumb .button-group button:first-child:hover .fa {
-  transform: translateY(-29px) translateZ(0);
+  .product-thumb .button-group button:first-child:hover .fa {
+    transform: translateY(-29px) translateZ(0);
+  }
 }
 
 .product-thumb .button-group button:hover {
@@ -3384,8 +3388,10 @@ body > .container + .container > .row > #content > h2 {
     width: 100%;
   }
 
-  #menu .dropdown:hover .dropdown-menu {
-    display: block;
+  @media (hover: hover) and (pointer: fine) {
+    #menu .dropdown:hover .dropdown-menu {
+      display: block;
+    }
   }
 
   .navbar-nav {
@@ -4011,9 +4017,15 @@ header + .container {
 }
 
 @media (min-width: 768px) {
-  #menu .nav > li > a:hover,
-  #menu .nav > li > a:focus,
+  #menu .nav > li > a:focus-visible,
   #menu .nav > li.open > a {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.13);
+  }
+}
+
+@media (min-width: 768px) and (hover: hover) and (pointer: fine) {
+  #menu .nav > li > a:hover {
     color: #FFFFFF;
     background: rgba(255, 255, 255, 0.13);
   }
@@ -4207,10 +4219,16 @@ a.list-group-item:hover, a.list-group-item:focus {
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.product-thumb:hover {
-  border-color: var(--border-color-strong);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-3px);
+@media (hover: hover) and (pointer: fine) {
+  .product-thumb:hover {
+    border-color: var(--border-color-strong);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+  }
+
+  .product-thumb:hover .image img {
+    transform: scale(1.025);
+  }
 }
 
 .product-thumb .image {
@@ -4228,10 +4246,6 @@ a.list-group-item:hover, a.list-group-item:focus {
   margin: 0 auto;
   border-radius: var(--radius-sm);
   transition: transform 0.25s ease;
-}
-
-.product-thumb:hover .image img {
-  transform: scale(1.025);
 }
 
 .product-thumb .caption {
@@ -5130,8 +5144,10 @@ footer p {
     margin-top: 0;
   }
 
-  #menu .nav > li.dropdown:hover > .dropdown-menu {
-    display: block;
+  @media (hover: hover) and (pointer: fine) {
+    #menu .nav > li.dropdown:hover > .dropdown-menu {
+      display: block;
+    }
   }
 }
 
@@ -6014,4 +6030,24 @@ body.route-product-product header + .container {
   color: #FFFFFF;
   background: var(--cart-button-bg);
   border-color: var(--cart-button-border);
+}
+
+/* Touch input: avoid hover-only motion and sticky hover states.
+   State (in cart, disabled) and keyboard focus styles remain independent. */
+@media (hover: none) and (pointer: coarse) {
+  .product-thumb,
+  .product-thumb .image img,
+  .product-thumb .button-group button:first-child span,
+  .product-thumb .button-group button:first-child .fa {
+    transition: none;
+  }
+
+  .product-thumb .button-group button:first-child:hover span,
+  .product-thumb .button-group button:first-child:hover .fa {
+    transform: none;
+  }
+
+  .product-thumb .button-group button:first-child:active {
+    transform: scale(0.98);
+  }
 }
