@@ -6632,28 +6632,46 @@ body.route-product-product header + .container {
 /* The old 575px rule is intentionally consolidated here: two native selects
    stack whenever available toolbar width is insufficient, including sidebars. */
 @container product-catalog-toolbar (max-width: 520px) {
-  .catalog-toolbar > .catalog-toolbar-view {
+  #product-category .catalog-toolbar > .catalog-toolbar-view,
+  #product-search .catalog-toolbar > .catalog-toolbar-view,
+  #product-special .catalog-toolbar > .catalog-toolbar-view,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-view {
     display: none;
   }
 
-  .catalog-toolbar > .catalog-toolbar-compare {
+  #product-category .catalog-toolbar > .catalog-toolbar-compare,
+  #product-search .catalog-toolbar > .catalog-toolbar-compare,
+  #product-special .catalog-toolbar > .catalog-toolbar-compare,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-compare {
     grid-column: 1 / -1;
     grid-row: 1;
     justify-content: flex-start;
   }
 
-  .catalog-toolbar > .catalog-toolbar-sort,
-  .catalog-toolbar > .catalog-toolbar-limit {
+  #product-category .catalog-toolbar > .catalog-toolbar-sort,
+  #product-search .catalog-toolbar > .catalog-toolbar-sort,
+  #product-special .catalog-toolbar > .catalog-toolbar-sort,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-sort,
+  #product-category .catalog-toolbar > .catalog-toolbar-limit,
+  #product-search .catalog-toolbar > .catalog-toolbar-limit,
+  #product-special .catalog-toolbar > .catalog-toolbar-limit,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-limit {
     grid-column: 1 / -1;
     width: 100%;
     min-width: 0;
   }
 
-  .catalog-toolbar > .catalog-toolbar-sort {
+  #product-category .catalog-toolbar > .catalog-toolbar-sort,
+  #product-search .catalog-toolbar > .catalog-toolbar-sort,
+  #product-special .catalog-toolbar > .catalog-toolbar-sort,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-sort {
     grid-row: 2;
   }
 
-  .catalog-toolbar > .catalog-toolbar-limit {
+  #product-category .catalog-toolbar > .catalog-toolbar-limit,
+  #product-search .catalog-toolbar > .catalog-toolbar-limit,
+  #product-special .catalog-toolbar > .catalog-toolbar-limit,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-limit {
     grid-row: 3;
   }
 }
