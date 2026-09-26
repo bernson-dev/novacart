@@ -6109,6 +6109,23 @@ body.route-product-product header + .container {
   margin-bottom: 20px;
 }
 
+.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .image a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  padding: 12px;
+}
+
+.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .image img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
 .catalog-results-row:not(.blog-article-list) > .product-layout.product-grid > .product-thumb > .image + div {
   display: flex;
   flex: 1 1 auto;
