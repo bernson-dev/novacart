@@ -63,6 +63,7 @@ class ControllerExtensionModuleBestSeller extends Controller {
 					'in_cart'     => !empty($stock_policy['in_cart']),
 					'cart_button_text' => $stock_policy['cart_button_text'],
 					'button_text' => $stock_policy['button_text'],
+					'button_reason' => $stock_policy['button_reason'],
 					'stock_action'=> $stock_policy['action'],
 					'stock_button'=> (string)$this->config->get('config_stock_purchase_button'),
 					'href'        => $this->url->link('product/product', 'product_id=' . $result['product_id'])
