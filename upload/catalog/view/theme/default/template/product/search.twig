@@ -69,7 +69,7 @@
       <h2>{{ text_search }}</h2>
       {% if products %}
       <div class="row catalog-toolbar">
-        <div class="col-md-2 col-sm-6 hidden-xs catalog-toolbar-view">
+        <div class="col-md-2 col-sm-6 catalog-toolbar-view">
           <div class="btn-group btn-group-sm">
             <button type="button" id="list-view" class="btn btn-default" data-toggle="tooltip" title="{{ button_list }}"><i class="fa fa-th-list"></i></button>
             <button type="button" id="grid-view" class="btn btn-default" data-toggle="tooltip" title="{{ button_grid }}"><i class="fa fa-th"></i></button>
@@ -77,7 +77,7 @@
         </div>
         <div class="col-md-3 col-sm-6 catalog-toolbar-compare">
           <div class="form-group">
-            <a href="{{ compare }}" id="compare-total" class="btn btn-link">{{ text_compare }}</a>
+            <a href="{{ compare }}" id="compare-total" class="btn btn-link" aria-label="{{ text_compare }}" title="{{ text_compare }}"><i class="fa fa-exchange compare-icon" aria-hidden="true"></i><span class="compare-label">{{ text_compare }}</span></a>
           </div>
         </div>
         <div class="col-md-4 col-xs-6 catalog-toolbar-sort">
