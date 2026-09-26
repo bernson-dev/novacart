@@ -327,7 +327,7 @@
                             <span class="fa fa-stack">
                                 <i class="fa fa-star fa-stack-1x"></i>
                                 <i class="fa fa-star-o fa-stack-1x"></i></span>{% endif %}
-                            {% endfor %} <a href="" onclick="$('a[href=\'#tab-review\']').trigger('click'); return false;">{{ reviews }}</a> / <a href="" onclick="$('a[href=\'#tab-review\']').trigger('click'); return false;">{{ text_write }}</a></p>
+                            {% endfor %} <a href="#tab-review" class="product-review-link">{{ reviews }}</a></p>
                         <hr>
                     </div>
                     {% endif %} </div>
@@ -713,6 +713,25 @@
     });
     </script>
     <script type="text/javascript">
+    // The review count is a navigation link: show its tab and reveal the tab
+    // heading, rather than switching content off-screen near the buy panel.
+    $('.product-review-link').on('click', function(e) {
+        e.preventDefault();
+
+        var $reviewTab = $('.product-tabs a[href="#tab-review"]');
+
+        if (!$reviewTab.length) {
+            return;
+        }
+
+        $reviewTab.tab('show');
+
+        var $tabs = $reviewTab.closest('.product-tabs');
+        var top = Math.max(0, $tabs.offset().top - 16);
+
+        $('html, body').stop(true).animate({ scrollTop: top }, 250);
+    });
+
     $('#review').on('click', '.pagination a', function(e) {
         e.preventDefault();
 
