@@ -2567,7 +2567,10 @@ body > .container + .container > .row > #content > h2 {
    ==========================================================================
  */
 
-#common-home #content h3 + .row, #product-category h3 + .row + .row + .row, #product-category h2 + .row + hr + .row + .row, #product-search h2 + .row + .row {
+/* Catalog result rows use their own component class. Heading adjacency must
+   not control card stretching: category refine/toolbar markup can vary. */
+#common-home #content h3 + .row,
+.catalog-results-row:not(.blog-article-list):not(.blog-grid-mode) {
   display: flex;
   flex-wrap: wrap;
 }
@@ -6088,6 +6091,66 @@ body.route-product-product header + .container {
   z-index: auto;
 }
 
+
+/* Product grid contract: every cell stretches its card and reserves one
+   consistent action area, independently of description/price line count.
+   Blog article cards use a different component and are intentionally excluded. */
+.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid {
+  display: flex;
+  min-width: 0;
+}
+
+.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid > .product-thumb {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 20px;
+}
+
+.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid > .product-thumb > .image + div {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .caption {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .price {
+  margin-top: auto;
+}
+
+.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .button-group {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .button-group > :is(.stock-cart-button, .stock-purchase-disabled) {
+  float: none;
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .button-group > button[data-toggle="tooltip"] {
+  float: none;
+  flex: 1 1 0;
+  width: auto;
+  min-width: 38px;
+  margin: 0;
+}
 
 /* Shared catalog/blog result grid gutters */
 .catalog-results-row {
