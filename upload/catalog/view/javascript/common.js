@@ -574,7 +574,10 @@ var compare = {
 				if (json['success']) {
 					$('#content').parent().before('<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> ' + json['success'] + ' <button type="button" class="close" data-dismiss="alert">&times;</button></div>');
 
-					$('#compare-total').html(json['total']);
+					// Preserve the icon-only tablet control and its accessible label on AJAX updates.
+					var compareControl = $('#compare-total');
+					compareControl.find('.compare-label').text(json['total']);
+					compareControl.attr('aria-label', json['total']).attr('title', json['total']);
 					$('#compare-total-top')
 						.attr('title', json['total'])
 						.find('.top-link-label')
