@@ -1426,43 +1426,25 @@ h2.price {
   color: var(--price-new-color);
 }
 
-.product-thumb .button-group button:first-child span {
-  display: block;
-  position: absolute;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  top: 10px;
-  transition: transform .25s ease, opacity .15s ease;
-}
-
-.product-thumb .button-group button:first-child .fa:before {
-  content: "";
-}
-
+/* Purchase buttons use a permanent Font Awesome icon and label.
+   Do not replace their glyph with an SVG or animate the icon into view. */
 .product-thumb .button-group button:first-child .fa {
-  background: var(--cart-btn-bg);
-  background-size: contain;
-  width: 17px;
-  height: 17px;
-  display: block;
-  position: absolute;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  bottom: -17px;
-  transform: translateY(100%);
-  transition: opacity .15s ease, transform .25s ease;
+  position: static;
+  display: inline-block;
+  width: auto;
+  height: auto;
+  margin: 0;
+  background: none;
+  font-size: 16px;
+  line-height: 1;
+  transform: none;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .product-thumb .button-group button:first-child:hover span {
-    transform: translateY(-130%) translateZ(0);
-  }
-
-  .product-thumb .button-group button:first-child:hover .fa {
-    transform: translateY(-29px) translateZ(0);
-  }
+.product-thumb .button-group button:first-child .stock-cart-label {
+  position: static;
+  display: inline;
+  margin: 0;
+  transform: none;
 }
 
 .product-thumb .button-group button:hover {
@@ -4296,6 +4278,10 @@ a.list-group-item:hover, a.list-group-item:focus {
 
 .product-thumb .button-group button:first-child {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   float: right;
   overflow: hidden;
   width: 50%;
@@ -4722,26 +4708,6 @@ footer p {
 
   .product-thumb .caption {
     min-height: 200px;
-  }
-
-  /* Bootstrap hidden-md hides the button label below lg.
-     Keep the cart icon visible and disable the desktop text-to-icon hover animation. */
-  .product-thumb .button-group button:first-child span {
-    transition: none;
-    transform: none;
-  }
-
-  .product-thumb .button-group button:first-child .fa {
-    position: static;
-    bottom: auto;
-    margin: 0 auto;
-    transform: none;
-    transition: none;
-  }
-
-  .product-thumb .button-group button:first-child:hover span,
-  .product-thumb .button-group button:first-child:hover .fa {
-    transform: none;
   }
 
   #product-product #content > .row > .col-sm-4 {
@@ -6032,31 +5998,15 @@ body.route-product-product header + .container {
   border-color: var(--cart-button-border);
 }
 
-/* Touch input: avoid hover-only motion and sticky hover states.
-   State (in cart, disabled) and keyboard focus styles remain independent. */
+/* Touch input retains static purchase icons and a short press response. */
 @media (hover: none) and (pointer: coarse) {
   .product-thumb,
-  .product-thumb .image img,
-  .product-thumb .button-group button:first-child span,
-  .product-thumb .button-group button:first-child .fa {
+  .product-thumb .image img {
     transition: none;
-  }
-
-  .product-thumb .button-group button:first-child:hover span,
-  .product-thumb .button-group button:first-child:hover .fa {
-    transform: none;
   }
 
   .product-thumb .button-group button:first-child:active {
     transform: scale(0.98);
-  }
-}
-
-/* On wide touchscreens the label is visible, so the sliding icon is unnecessary.
-   Compact layouts already display the icon statically via the <=1199px rules. */
-@media (min-width: 1200px) and (hover: none) and (pointer: coarse) {
-  .product-thumb .button-group button:first-child .fa {
-    display: none;
   }
 }
 
@@ -6098,4 +6048,37 @@ body.route-product-product header + .container {
     box-sizing: border-box;
     font-size: 16px;
   }
+}
+
+/* Shared purchase-button content, including product page, sticky panel and compare. */
+.stock-cart-button:not(.stock-purchase-disabled) {
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+#product-product #button-cart,
+#product-product #button-cart-sticky,
+#product-compare .stock-cart-button {
+  display: inline-flex;
+}
+
+#product-product #button-cart,
+#product-product #button-cart-sticky,
+#product-compare .stock-cart-button {
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.stock-cart-button .stock-cart-icon,
+#product-product #button-cart .stock-cart-icon {
+  flex: 0 0 auto;
+  font-size: 16px;
+  line-height: 1;
+}
+
+#product-product #button-cart .stock-cart-label,
+#product-product #button-cart-sticky .stock-cart-label {
+  min-width: 0;
 }
