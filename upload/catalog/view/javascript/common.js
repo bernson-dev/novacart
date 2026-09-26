@@ -149,6 +149,7 @@ $(document).ready(function() {
 		$('#content .product-grid > .clearfix').remove();
 
 		$('#content .row > .product-grid').attr('class', 'product-layout product-list col-xs-12');
+		$('#blog-latest #content > .blog-article-list, #blog-category #content > .blog-article-list').removeClass('blog-grid-mode');
 		$('#grid-view').removeClass('active');
 		$('#list-view').addClass('active');
 
@@ -171,6 +172,8 @@ $(document).ready(function() {
 
 			$('#content .product-list').attr('class', gridClass);
 		}
+
+		$('#blog-latest #content > .blog-article-list, #blog-category #content > .blog-article-list').addClass('blog-grid-mode');
 
 		$('#list-view').removeClass('active');
 		$('#grid-view').addClass('active');
