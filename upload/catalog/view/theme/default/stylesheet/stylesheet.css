@@ -6604,7 +6604,7 @@ body.route-product-product header + .container {
   #product-search .catalog-toolbar #compare-total .compare-icon::before,
   #product-special .catalog-toolbar #compare-total .compare-icon::before,
   #product-manufacturer .catalog-toolbar #compare-total .compare-icon::before {
-  content: "\\f0ec";
+  content: "\f0ec";
   display: inline-block;
   font-family: FontAwesome;
 }
