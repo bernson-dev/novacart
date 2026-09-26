@@ -2567,10 +2567,7 @@ body > .container + .container > .row > #content > h2 {
    ==========================================================================
  */
 
-/* Catalog result rows use their own component class. Heading adjacency must
-   not control card stretching: category refine/toolbar markup can vary. */
-#common-home #content h3 + .row,
-.catalog-results-row:not(.blog-article-list):not(.blog-grid-mode) {
+#common-home #content h3 + .row, #product-category h3 + .row + .row + .row, #product-category h2 + .row + hr + .row + .row, #product-search h2 + .row + .row {
   display: flex;
   flex-wrap: wrap;
 }
@@ -3086,7 +3083,9 @@ body > .container + .container > .row > #content > h2 {
     width: auto;
   }
 
-
+  #compare-total {
+    padding: 16px 0 0 10px;
+  }
 
   #collapse-coupon label, #collapse-voucher label {
     padding-left: 0;
@@ -6090,83 +6089,6 @@ body.route-product-product header + .container {
 }
 
 
-/* Product grid contract: every cell stretches its card and reserves one
-   consistent action area, independently of description/price line count.
-   Blog article cards use a different component and are intentionally excluded. */
-.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid {
-  display: flex;
-  min-width: 0;
-}
-
-.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid > .product-thumb {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  width: 100%;
-  min-width: 0;
-  margin-bottom: 20px;
-}
-
-.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .image a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 4 / 3;
-  padding: 12px;
-}
-
-.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .image img {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid > .product-thumb > .image + div {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .caption {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .price {
-  margin-top: auto;
-}
-
-.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .button-group {
-  display: flex;
-  align-items: stretch;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: auto;
-}
-
-.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .button-group > :is(.stock-cart-button, .stock-purchase-disabled) {
-  float: none;
-  flex: 0 0 100%;
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-}
-
-.catalog-results-row:not(.blog-article-list) > .product-layout.product-grid .button-group > button[data-toggle="tooltip"] {
-  float: none;
-  flex: 1 1 0;
-  width: auto;
-  min-width: 38px;
-  margin: 0;
-}
-
 /* Shared catalog/blog result grid gutters */
 .catalog-results-row {
     margin-right: -10px;
@@ -6421,8 +6343,41 @@ body.route-product-product header + .container {
   }
 }
 
-/* Catalog/editorial toolbar is a component, independent of bootstrap column
-   floats. Tablet controls must fit the actual content column, not viewport. */
+/* Shared purchase-button content, including product page, sticky panel and compare. */
+.stock-cart-button:not(.stock-purchase-disabled) {
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+#product-product #button-cart,
+#product-product #button-cart-sticky,
+#product-compare .stock-cart-button {
+  display: inline-flex;
+}
+
+#product-product #button-cart,
+#product-product #button-cart-sticky,
+#product-compare .stock-cart-button {
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.stock-cart-button .stock-cart-icon,
+#product-product #button-cart .stock-cart-icon {
+  flex: 0 0 auto;
+  font-size: 16px;
+  line-height: 1;
+}
+
+#product-product #button-cart .stock-cart-label,
+#product-product #button-cart-sticky .stock-cart-label {
+  min-width: 0;
+}
+
+/* Tablet toolbar: retain normal Bootstrap sidebar positions. Only the controls
+   change their own layout when the content column becomes narrow. */
 .catalog-toolbar .compare-icon {
   margin-right: 6px;
 }
@@ -6430,9 +6385,9 @@ body.route-product-product header + .container {
 @media (max-width: 1199px) {
   .catalog-toolbar {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-    align-items: stretch;
+    align-items: center;
   }
 
   .catalog-toolbar::before,
@@ -6482,8 +6437,8 @@ body.route-product-product header + .container {
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
     min-width: 0;
-    max-width: 100%;
     margin: 0;
   }
 
@@ -6492,8 +6447,8 @@ body.route-product-product header + .container {
     width: auto;
     height: auto;
     padding: 0 0 6px;
-    white-space: normal;
     text-align: left;
+    white-space: normal;
   }
 
   .catalog-toolbar .catalog-control .form-control {
@@ -6510,6 +6465,8 @@ body.route-product-product header + .container {
     min-width: 42px;
     height: 42px;
     padding: 0;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
     border: 1px solid var(--border-color);
     background: var(--surface-color);
@@ -6522,67 +6479,6 @@ body.route-product-product header + .container {
 
   .catalog-toolbar #compare-total .compare-icon {
     margin: 0;
-  }
-}
-
-/* Keep the sidebar modules available after the results instead of squeezing
-   main content into 6/9 Bootstrap columns at tablet portrait widths. */
-@media (min-width: 768px) and (max-width: 991px) {
-  #product-category > .row,
-  #product-search > .row,
-  #product-special > .row,
-  #product-manufacturer-info > .row,
-  #blog-latest > .row,
-  #blog-category > .row {
-    display: flex;
-    flex-wrap: wrap;
-  }
-
-  #product-category > .row::before,
-  #product-category > .row::after,
-  #product-search > .row::before,
-  #product-search > .row::after,
-  #product-special > .row::before,
-  #product-special > .row::after,
-  #product-manufacturer-info > .row::before,
-  #product-manufacturer-info > .row::after,
-  #blog-latest > .row::before,
-  #blog-latest > .row::after,
-  #blog-category > .row::before,
-  #blog-category > .row::after {
-    content: none;
-    display: none;
-  }
-
-  #product-category #content,
-  #product-search #content,
-  #product-special #content,
-  #product-manufacturer-info #content,
-  #blog-latest #content,
-  #blog-category #content {
-    order: 0;
-    float: none;
-    width: 100%;
-    min-width: 0;
-  }
-
-  #product-category #column-left,
-  #product-category #column-right,
-  #product-search #column-left,
-  #product-search #column-right,
-  #product-special #column-left,
-  #product-special #column-right,
-  #product-manufacturer-info #column-left,
-  #product-manufacturer-info #column-right,
-  #blog-latest #column-left,
-  #blog-latest #column-right,
-  #blog-category #column-left,
-  #blog-category #column-right {
-    order: 1;
-    float: none;
-    width: 50%;
-    min-width: 0;
-    margin-top: 24px;
   }
 }
 
@@ -6600,37 +6496,4 @@ body.route-product-product header + .container {
   .catalog-toolbar > .catalog-toolbar-limit {
     grid-row: 3;
   }
-}
-
-/* Shared purchase-button content, including product page, sticky panel and compare. */
-.stock-cart-button:not(.stock-purchase-disabled) {
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-}
-
-#product-product #button-cart,
-#product-product #button-cart-sticky,
-#product-compare .stock-cart-button {
-  display: inline-flex;
-}
-
-#product-product #button-cart,
-#product-product #button-cart-sticky,
-#product-compare .stock-cart-button {
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-}
-
-.stock-cart-button .stock-cart-icon,
-#product-product #button-cart .stock-cart-icon {
-  flex: 0 0 auto;
-  font-size: 16px;
-  line-height: 1;
-}
-
-#product-product #button-cart .stock-cart-label,
-#product-product #button-cart-sticky .stock-cart-label {
-  min-width: 0;
 }
