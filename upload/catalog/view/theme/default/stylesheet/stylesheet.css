@@ -6538,28 +6538,73 @@ body.route-product-product header + .container {
 /* Two sidebars can narrow a catalog toolbar while the viewport is tablet/desktop.
    Container queries use the available panel width, not the viewport width. */
 @container product-catalog-toolbar (max-width: 520px) {
-  .catalog-toolbar > .catalog-toolbar-view {
+  #product-category .catalog-toolbar > .catalog-toolbar-view,
+  #product-search .catalog-toolbar > .catalog-toolbar-view,
+  #product-special .catalog-toolbar > .catalog-toolbar-view,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-view {
     display: none;
   }
 
-  .catalog-toolbar > .catalog-toolbar-compare {
+  #product-category .catalog-toolbar > .catalog-toolbar-compare,
+  #product-search .catalog-toolbar > .catalog-toolbar-compare,
+  #product-special .catalog-toolbar > .catalog-toolbar-compare,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-compare {
     grid-column: 1 / -1;
     grid-row: 1;
     justify-content: flex-end;
   }
 
-  .catalog-toolbar > .catalog-toolbar-sort,
-  .catalog-toolbar > .catalog-toolbar-limit {
+  #product-category .catalog-toolbar > .catalog-toolbar-sort,
+  #product-search .catalog-toolbar > .catalog-toolbar-sort,
+  #product-special .catalog-toolbar > .catalog-toolbar-sort,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-sort,
+  #product-category .catalog-toolbar > .catalog-toolbar-limit,
+  #product-search .catalog-toolbar > .catalog-toolbar-limit,
+  #product-special .catalog-toolbar > .catalog-toolbar-limit,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-limit {
     grid-column: 1 / -1;
     width: 100%;
     min-width: 0;
   }
 
-  .catalog-toolbar > .catalog-toolbar-sort {
+  #product-category .catalog-toolbar > .catalog-toolbar-sort,
+  #product-search .catalog-toolbar > .catalog-toolbar-sort,
+  #product-special .catalog-toolbar > .catalog-toolbar-sort,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-sort {
     grid-row: 2;
   }
 
-  .catalog-toolbar > .catalog-toolbar-limit {
+  #product-category .catalog-toolbar > .catalog-toolbar-limit,
+  #product-search .catalog-toolbar > .catalog-toolbar-limit,
+  #product-special .catalog-toolbar > .catalog-toolbar-limit,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-limit {
     grid-row: 3;
   }
+}
+
+/* The markup already contains fa-exchange. Restore its actual Font Awesome
+   glyph and center it, without replacing the AJAX-updated compare label. */
+  #product-category .catalog-toolbar #compare-total .compare-icon,
+  #product-search .catalog-toolbar #compare-total .compare-icon,
+  #product-special .catalog-toolbar #compare-total .compare-icon,
+  #product-manufacturer .catalog-toolbar #compare-total .compare-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--main-color);
+  font-family: FontAwesome;
+  font-size: 18px;
+  font-style: normal;
+  line-height: 1;
+}
+  #product-category .catalog-toolbar #compare-total .compare-icon::before,
+  #product-search .catalog-toolbar #compare-total .compare-icon::before,
+  #product-special .catalog-toolbar #compare-total .compare-icon::before,
+  #product-manufacturer .catalog-toolbar #compare-total .compare-icon::before {
+  content: "\\f0ec";
+  display: inline-block;
+  font-family: FontAwesome;
 }
