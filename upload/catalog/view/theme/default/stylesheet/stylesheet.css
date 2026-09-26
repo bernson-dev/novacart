@@ -5181,6 +5181,13 @@ footer p {
   width: 100%;
 }
 
+.blog-article-list > .blog-card-layout .blog-article-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+}
+
 .blog-article-list > .blog-card-layout .caption {
   display: flex;
   flex: 1 1 auto;
@@ -5517,9 +5524,8 @@ footer p {
   width: 100%;
 }
 
-/* List mode applies to editorial modules as well as the primary results.
-   Module cards have a different DOM structure (image/caption/actions siblings),
-   so use explicit grid areas rather than inheriting product-list selectors. */
+/* Modules share the primary article's image/body structure. The view switch
+   changes only the layout mode; the sidebar keeps its own compact cards. */
 .blog-article-list.blog-list-mode::before,
 .blog-article-list.blog-list-mode::after {
   content: none;
@@ -5536,26 +5542,25 @@ footer p {
 }
 
 .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card {
-  display: grid;
-  grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
-  grid-template-rows: 1fr auto;
-  column-gap: 16px;
+  display: flex;
+  flex-direction: row;
   width: 100%;
   min-width: 0;
 }
 
 .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image {
-  grid-column: 1;
-  grid-row: 1 / 3;
-  width: auto;
-  min-width: 0;
   float: none;
+  flex: 0 0 260px;
+  width: 260px;
+  min-width: 0;
+  padding: 8px;
 }
 
 .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image a {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   height: 100%;
   padding: 14px;
 }
@@ -5568,93 +5573,48 @@ footer p {
   object-fit: contain;
 }
 
-.blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .caption {
-  grid-column: 2;
-  grid-row: 1;
-  min-width: 0;
+.blog-article-list.blog-list-mode > .blog-card-layout .caption {
   min-height: 0;
-  padding: 16px 16px 8px 0;
-}
-
-.blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .blog-card-actions {
-  grid-column: 2;
-  grid-row: 2;
-  width: 100%;
-  padding: 0 16px 16px 0;
   margin: 0;
+  padding: 22px 22px 12px;
 }
 
-/* Sidebar cards keep a compact single-column layout in both view modes. */
-#column-left .blog-article-list.blog-list-mode > .blog-card-layout,
-#column-right .blog-article-list.blog-list-mode > .blog-card-layout {
+.blog-article-list.blog-list-mode > .blog-card-layout .caption h4 {
+  margin-top: 0;
+}
+
+.blog-article-list.blog-list-mode > .blog-card-layout .blog-card-actions {
+  margin-top: auto;
+  padding: 0 22px 22px;
+}
+
+/* The sidebar is independent of the primary list/grid presentation. */
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode > .blog-card-layout {
   padding: 0;
 }
-
-#column-left .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card,
-#column-right .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto auto;
-  gap: 0;
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card {
+  flex-direction: column;
 }
-
-#column-left .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image,
-#column-right .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image {
-  grid-column: 1;
-  grid-row: 1;
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image {
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 0;
 }
-
-#column-left .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image a,
-#column-right .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image a {
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image a {
   height: 125px;
   padding: 10px 10px 0;
 }
-
-#column-left .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .caption,
-#column-right .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .caption {
-  grid-column: 1;
-  grid-row: 2;
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode > .blog-card-layout .caption {
   padding: 12px 12px 6px;
 }
-
-#column-left .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .blog-card-actions,
-#column-right .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .blog-card-actions {
-  grid-column: 1;
-  grid-row: 3;
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode > .blog-card-layout .blog-card-actions {
   flex-direction: column;
   align-items: stretch;
-  padding: 0 12px 12px;
   gap: 8px;
+  padding: 0 12px 12px;
 }
-
-#column-left .blog-article-list.blog-list-mode .blog-more,
-#column-right .blog-article-list.blog-list-mode .blog-more {
+:is(#column-left, #column-right) .blog-article-list.blog-list-mode .blog-more {
   width: 100%;
-}
-
-@media (max-width: 575px) {
-  .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto auto;
-  }
-
-  .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image,
-  .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .caption,
-  .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .blog-card-actions {
-    grid-column: 1;
-    grid-row: auto;
-  }
-
-  .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image a {
-    height: 185px;
-  }
-
-  .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .caption {
-    padding: 16px 16px 8px;
-  }
-
-  .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .blog-card-actions {
-    padding: 0 16px 16px;
-  }
 }
 
 /* МЕНЮ КАТЕГОРИЙ */
