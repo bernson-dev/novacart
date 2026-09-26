@@ -1282,6 +1282,7 @@ html[dir="rtl"] .breadcrumb > li::after {
 }
 
 #content .carousel {
+  box-sizing: border-box;
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
@@ -1311,12 +1312,12 @@ html[dir="rtl"] .breadcrumb > li::after {
 
 @media (hover: hover) and (pointer: fine) {
   #content .carousel:hover .swiper-button-next {
-    right: -23px;
+    right: 8px;
     opacity: 1;
   }
 
   #content .carousel:hover .swiper-button-prev {
-    left: -23px;
+    left: 8px;
     opacity: 1;
   }
 }
