@@ -291,6 +291,7 @@ class ControllerProductProduct extends Controller {
 			$data['stock_in_cart'] = !empty($stock_policy['in_cart']);
 			$data['stock_cart_button_text'] = $stock_policy['cart_button_text'];
 			$data['stock_button_text'] = $stock_policy['button_text'];
+			$data['stock_button_reason'] = $stock_policy['button_reason'];
 			$data['stock_button_mode'] = (string)$this->config->get('config_stock_purchase_button');
 			$data['stock_preorder_allowed'] = (
 				$stock_policy['can_buy'] &&
@@ -724,6 +725,7 @@ class ControllerProductProduct extends Controller {
 			$json['available'] = $policy['available'];
 			$json['remaining'] = $policy['remaining'];
 			$json['button_text'] = $policy['button_text'];
+			$json['button_reason'] = $policy['button_reason'];
 			$json['button_mode'] = (string)$this->config->get('config_stock_purchase_button');
 			$json['in_cart'] = !empty($policy['in_cart']);
 			$json['cart_quantity'] = isset($policy['cart_quantity']) ? (int)$policy['cart_quantity'] : 0;
