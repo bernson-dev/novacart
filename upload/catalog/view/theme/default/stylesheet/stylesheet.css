@@ -5358,7 +5358,7 @@ footer p {
    Sidebar layouts and tablet portrait naturally collapse to readable cards. */
 .blog-article-list.blog-grid-mode {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
   gap: 18px;
   margin-right: 0;
   margin-left: 0;
@@ -5389,6 +5389,23 @@ footer p {
   min-height: 0;
 }
 
+.blog-article-list.blog-grid-mode .blog-article-card .image a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 205px;
+  padding: 16px;
+}
+
+.blog-article-list.blog-grid-mode .blog-article-card .image img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
 .blog-article-list.blog-grid-mode .blog-article-card .button-group {
   margin-top: auto;
 }
@@ -5396,6 +5413,10 @@ footer p {
 @media (max-width: 767px) {
   .blog-article-list.blog-grid-mode {
     gap: 14px;
+  }
+
+  .blog-article-list.blog-grid-mode .blog-article-card .image a {
+    height: 190px;
   }
 
   .blog-article-card .blog-card-actions .blog-more {
@@ -5419,6 +5440,7 @@ footer p {
 
 #column-left .blog-article-list.blog-grid-mode .blog-article-card .image a,
 #column-right .blog-article-list.blog-grid-mode .blog-article-card .image a {
+  height: 125px;
   padding: 10px 10px 0;
 }
 
@@ -5431,6 +5453,7 @@ footer p {
 
 #column-left .blog-article-list.blog-grid-mode .blog-article-card .caption,
 #column-right .blog-article-list.blog-grid-mode .blog-article-card .caption {
+  min-height: 0;
   padding: 12px 12px 6px;
 }
 
