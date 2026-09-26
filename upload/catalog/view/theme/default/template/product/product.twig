@@ -367,11 +367,11 @@
                 {% set i = 0 %}
                 {% for product in products %}
                 {% if column_left and column_right %}
-                {% set class = 'col-xs-8 col-sm-6' %}
+                {% set class = 'col-xs-12 col-sm-6' %}
                 {% elseif column_left or column_right %}
-                {% set class = 'col-xs-6 col-md-4' %}
+                {% set class = 'col-xs-12 col-md-4' %}
                 {% else %}
-                {% set class = 'col-xs-6 col-sm-3' %}
+                {% set class = 'col-xs-12 col-sm-3' %}
                 {% endif %}
                 <div class="{{ class }}">
                     <div class="product-thumb transition">
