@@ -1428,7 +1428,7 @@ h2.price {
 
 /* Purchase buttons use a permanent Font Awesome icon and label.
    Do not replace their glyph with an SVG or animate the icon into view. */
-.product-thumb .button-group button:first-child .fa {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) .fa {
   position: static;
   display: inline-block;
   width: auto;
@@ -1440,7 +1440,7 @@ h2.price {
   transform: none;
 }
 
-.product-thumb .button-group button:first-child .stock-cart-label {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) .stock-cart-label {
   position: static;
   display: inline;
   margin: 0;
@@ -1452,11 +1452,11 @@ h2.price {
   cursor: pointer;
 }
 
-.product-thumb .button-group button:first-child:hover {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled):hover {
   color: #fff;
 }
 
-.product-thumb .button-group button + button:hover, .product-thumb .button-group button + button:focus {
+.product-thumb .button-group button[data-toggle="tooltip"]:hover, .product-thumb .button-group button[data-toggle="tooltip"]:focus {
   color: var(--main-color);
 }
 
@@ -2734,11 +2734,11 @@ body > .container + .container > .row > #content > h2 {
     margin: 0 auto;
   }
 
-  .product-thumb .button-group button:first-child {
+  .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
     width: 60%;
   }
 
-  .product-thumb .button-group button + button {
+  .product-thumb .button-group button[data-toggle="tooltip"] {
     margin: 0 20px 0 0;
   }
 
@@ -2840,11 +2840,11 @@ body > .container + .container > .row > #content > h2 {
     padding: 0 20px 10px;
   }
 
-  #common-home .product-thumb .button-group button:first-child, .product-grid .product-thumb .button-group button:first-child {
+  #common-home .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled), .product-grid .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
     width: 100%;
   }
 
-  #common-home .product-thumb .button-group button + button, .product-grid .product-thumb .button-group button + button {
+  #common-home .product-thumb .button-group button[data-toggle="tooltip"], .product-grid .product-thumb .button-group button[data-toggle="tooltip"] {
     width: 50%;
     margin: 10px 0 0;
   }
@@ -3184,11 +3184,11 @@ body > .container + .container > .row > #content > h2 {
     border-left: none;
   }
 
-  #common-home .product-layout .product-thumb .button-group button:first-child, .product-grid .product-thumb .button-group button:first-child {
+  #common-home .product-layout .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled), .product-grid .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
     width: 125px;
   }
 
-  #common-home .product-layout .product-thumb .button-group button + button, .product-grid .product-thumb .button-group button + button {
+  #common-home .product-layout .product-thumb .button-group button[data-toggle="tooltip"], .product-grid .product-thumb .button-group button[data-toggle="tooltip"] {
     width: auto;
     margin: 0 30px 0 0;
   }
@@ -4276,7 +4276,7 @@ a.list-group-item:hover, a.list-group-item:focus {
   transition: all ease-in 0.2s;
 }
 
-.product-thumb .button-group button:first-child {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -4301,7 +4301,7 @@ a.list-group-item:hover, a.list-group-item:focus {
   transition: all ease-in 0.25s;
 }
 
-.product-thumb .button-group button + button {
+.product-thumb .button-group button[data-toggle="tooltip"] {
   float: left;
   width: auto;
   min-width: 38px;
@@ -4312,7 +4312,7 @@ a.list-group-item:hover, a.list-group-item:focus {
   border-radius: var(--radius-sm);
 }
 
-.product-thumb .button-group button + button:hover, .product-thumb .button-group button + button:focus {
+.product-thumb .button-group button[data-toggle="tooltip"]:hover, .product-thumb .button-group button[data-toggle="tooltip"]:focus {
   background: var(--surface-muted);
 }
 
@@ -6005,7 +6005,7 @@ body.route-product-product header + .container {
     transition: none;
   }
 
-  .product-thumb .button-group button:first-child:active {
+  .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled):active {
     transform: scale(0.98);
   }
 }
