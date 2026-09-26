@@ -6498,8 +6498,25 @@ body.route-product-product header + .container {
   }
 }
 
-/* Product listing toolbar: a single mobile card column has no useful grid/list
-   choice. Keep comparison and both native selects; do not affect blog toolbars. */
+/* Catalog listing controls only. A sidebar can make the content column narrow
+   even above the mobile viewport breakpoint; respond to actual toolbar space. */
+#product-category .catalog-toolbar,
+#product-search .catalog-toolbar,
+#product-special .catalog-toolbar,
+#product-manufacturer .catalog-toolbar {
+  container: product-catalog-toolbar / inline-size;
+}
+
+/* Keep the compare glyph legible independently of the button's inherited color. */
+#product-category .catalog-toolbar #compare-total .compare-icon,
+#product-search .catalog-toolbar #compare-total .compare-icon,
+#product-special .catalog-toolbar #compare-total .compare-icon,
+#product-manufacturer .catalog-toolbar #compare-total .compare-icon {
+  color: var(--main-color);
+}
+
+/* At <=767px the list/grid control is redundant. These selectors deliberately
+   exclude blog toolbars, cards and the left/right columns. */
 @media (max-width: 767px) {
   #product-category .catalog-toolbar > .catalog-toolbar-view,
   #product-search .catalog-toolbar > .catalog-toolbar-view,
@@ -6515,5 +6532,34 @@ body.route-product-product header + .container {
     grid-column: 1 / -1;
     grid-row: 1;
     justify-content: flex-end;
+  }
+}
+
+/* Two sidebars can narrow a catalog toolbar while the viewport is tablet/desktop.
+   Container queries use the available panel width, not the viewport width. */
+@container product-catalog-toolbar (max-width: 520px) {
+  .catalog-toolbar > .catalog-toolbar-view {
+    display: none;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-compare {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-content: flex-end;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-sort,
+  .catalog-toolbar > .catalog-toolbar-limit {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-sort {
+    grid-row: 2;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-limit {
+    grid-row: 3;
   }
 }
