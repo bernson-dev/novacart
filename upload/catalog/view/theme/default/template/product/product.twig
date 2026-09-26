@@ -397,7 +397,7 @@
                             {% endif %} </div>
                         <div class="button-group">
                             {% if product.can_buy %}
-                            <button type="button" class="stock-cart-button{{ product.in_cart ? ' stock-cart-in-cart' : '' }}" data-product-id="{{ product.product_id }}" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');">
+                            <button type="button" class="stock-cart-button{{ product.in_cart ? ' stock-cart-in-cart' : '' }}" data-product-id="{{ product.product_id }}" data-cart-label="{{ product.button_text ?: button_cart }}" aria-label="{{ product.in_cart ? product.cart_button_text : (product.button_text ?: button_cart) }}" onclick="cart.add('{{ product.product_id }}', '{{ product.minimum }}');">
                                 <i class="fa stock-cart-icon {{ product.in_cart ? 'fa-check' : 'fa-shopping-cart' }}" aria-hidden="true"></i><span class="stock-cart-label hidden-xs hidden-sm hidden-md">{{ product.in_cart ? product.cart_button_text : (product.button_text ?: button_cart) }}</span></button>
                             {% elseif product.stock_button != 'hide' %}
                             <button type="button" disabled="disabled" aria-disabled="true" tabindex="-1" class="stock-purchase-disabled" title="{{ product.button_text }}">
@@ -499,7 +499,8 @@
                             .prop('disabled', true)
                             .attr('aria-disabled', 'true')
                             .removeClass('btn-primary')
-                            .addClass('btn-warning stock-purchase-disabled');
+                            .addClass('btn-warning stock-purchase-disabled')
+                            .removeClass('stock-cart-in-cart');
                         // Preserve the icon even when buying is disabled.
                         button.empty().append(
                             $('<i class="fa fa-shopping-cart stock-cart-icon" aria-hidden="true"></i>'),
