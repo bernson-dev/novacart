@@ -3086,9 +3086,7 @@ body > .container + .container > .row > #content > h2 {
     width: auto;
   }
 
-  #compare-total {
-    padding: 16px 0 0 10px;
-  }
+
 
   #collapse-coupon label, #collapse-voucher label {
     padding-left: 0;
@@ -6420,6 +6418,187 @@ body.route-product-product header + .container {
     max-width: 100%;
     box-sizing: border-box;
     font-size: 16px;
+  }
+}
+
+/* Catalog/editorial toolbar is a component, independent of bootstrap column
+   floats. Tablet controls must fit the actual content column, not viewport. */
+.catalog-toolbar .compare-icon {
+  margin-right: 6px;
+}
+
+@media (max-width: 1199px) {
+  .catalog-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .catalog-toolbar::before,
+  .catalog-toolbar::after {
+    content: none;
+    display: none;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-view,
+  .catalog-toolbar > .catalog-toolbar-compare,
+  .catalog-toolbar > .catalog-toolbar-sort,
+  .catalog-toolbar > .catalog-toolbar-limit {
+    display: flex;
+    float: none;
+    clear: none;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    min-height: 42px;
+    padding: 0;
+    margin: 0;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-view {
+    grid-column: 1;
+    grid-row: 1;
+    justify-content: flex-start;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-compare {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-sort {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-limit {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .catalog-toolbar .catalog-control {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .catalog-toolbar .catalog-control .input-group-addon {
+    display: block;
+    width: auto;
+    height: auto;
+    padding: 0 0 6px;
+    white-space: normal;
+    text-align: left;
+  }
+
+  .catalog-toolbar .catalog-control .form-control {
+    display: block;
+    float: none;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    font-size: 16px;
+  }
+
+  .catalog-toolbar #compare-total {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    padding: 0;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    font-size: 16px;
+  }
+
+  .catalog-toolbar #compare-total .compare-label {
+    display: none;
+  }
+
+  .catalog-toolbar #compare-total .compare-icon {
+    margin: 0;
+  }
+}
+
+/* Keep the sidebar modules available after the results instead of squeezing
+   main content into 6/9 Bootstrap columns at tablet portrait widths. */
+@media (min-width: 768px) and (max-width: 991px) {
+  #product-category > .row,
+  #product-search > .row,
+  #product-special > .row,
+  #product-manufacturer-info > .row,
+  #blog-latest > .row,
+  #blog-category > .row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  #product-category > .row::before,
+  #product-category > .row::after,
+  #product-search > .row::before,
+  #product-search > .row::after,
+  #product-special > .row::before,
+  #product-special > .row::after,
+  #product-manufacturer-info > .row::before,
+  #product-manufacturer-info > .row::after,
+  #blog-latest > .row::before,
+  #blog-latest > .row::after,
+  #blog-category > .row::before,
+  #blog-category > .row::after {
+    content: none;
+    display: none;
+  }
+
+  #product-category #content,
+  #product-search #content,
+  #product-special #content,
+  #product-manufacturer-info #content,
+  #blog-latest #content,
+  #blog-category #content {
+    order: 0;
+    float: none;
+    width: 100%;
+    min-width: 0;
+  }
+
+  #product-category #column-left,
+  #product-category #column-right,
+  #product-search #column-left,
+  #product-search #column-right,
+  #product-special #column-left,
+  #product-special #column-right,
+  #product-manufacturer-info #column-left,
+  #product-manufacturer-info #column-right,
+  #blog-latest #column-left,
+  #blog-latest #column-right,
+  #blog-category #column-left,
+  #blog-category #column-right {
+    order: 1;
+    float: none;
+    width: 50%;
+    min-width: 0;
+    margin-top: 24px;
+  }
+}
+
+@media (max-width: 575px) {
+  .catalog-toolbar > .catalog-toolbar-sort,
+  .catalog-toolbar > .catalog-toolbar-limit {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-sort {
+    grid-row: 2;
+  }
+
+  .catalog-toolbar > .catalog-toolbar-limit {
+    grid-row: 3;
   }
 }
 
