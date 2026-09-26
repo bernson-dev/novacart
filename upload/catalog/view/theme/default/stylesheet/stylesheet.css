@@ -1428,7 +1428,7 @@ h2.price {
 
 /* Purchase buttons use a permanent Font Awesome icon and label.
    Do not replace their glyph with an SVG or animate the icon into view. */
-.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) .fa {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more) .fa {
   position: static;
   display: inline-block;
   width: auto;
@@ -1440,7 +1440,7 @@ h2.price {
   transform: none;
 }
 
-.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) .stock-cart-label {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more) .stock-cart-label {
   position: static;
   display: inline;
   margin: 0;
@@ -1452,7 +1452,7 @@ h2.price {
   cursor: pointer;
 }
 
-.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled):hover {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more):hover {
   color: #fff;
 }
 
@@ -2734,7 +2734,7 @@ body > .container + .container > .row > #content > h2 {
     margin: 0 auto;
   }
 
-  .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+  .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more) {
     width: 60%;
   }
 
@@ -2840,7 +2840,7 @@ body > .container + .container > .row > #content > h2 {
     padding: 0 20px 10px;
   }
 
-  #common-home .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled), .product-grid .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+  #common-home .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more), .product-grid .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more) {
     width: 100%;
   }
 
@@ -3184,7 +3184,7 @@ body > .container + .container > .row > #content > h2 {
     border-left: none;
   }
 
-  #common-home .product-layout .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled), .product-grid .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+  #common-home .product-layout .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more), .product-grid .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more) {
     width: 125px;
   }
 
@@ -4276,7 +4276,7 @@ a.list-group-item:hover, a.list-group-item:focus {
   transition: all ease-in 0.2s;
 }
 
-.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more) {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -6005,7 +6005,7 @@ body.route-product-product header + .container {
     transition: none;
   }
 
-  .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled):active {
+  .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more):active {
     transform: scale(0.98);
   }
 }
