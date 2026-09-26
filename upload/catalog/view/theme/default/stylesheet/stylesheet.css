@@ -6051,3 +6051,11 @@ body.route-product-product header + .container {
     transform: scale(0.98);
   }
 }
+
+/* On wide touchscreens the label is visible, so the sliding icon is unnecessary.
+   Compact layouts already display the icon statically via the <=1199px rules. */
+@media (min-width: 1200px) and (hover: none) and (pointer: coarse) {
+  .product-thumb .button-group button:first-child .fa {
+    display: none;
+  }
+}
