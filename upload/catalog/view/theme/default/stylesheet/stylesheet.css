@@ -1428,7 +1428,7 @@ h2.price {
 
 /* Purchase buttons use a permanent Font Awesome icon and label.
    Do not replace their glyph with an SVG or animate the icon into view. */
-.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more) .fa {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) .fa {
   position: static;
   display: inline-block;
   width: auto;
@@ -1440,7 +1440,7 @@ h2.price {
   transform: none;
 }
 
-.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more) .stock-cart-label {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) .stock-cart-label {
   position: static;
   display: inline;
   margin: 0;
@@ -1452,7 +1452,7 @@ h2.price {
   cursor: pointer;
 }
 
-.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more):hover {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled):hover {
   color: #fff;
 }
 
@@ -2672,24 +2672,41 @@ body > .container + .container > .row > #content > h2 {
   line-height: 1;
 }
 
-.product-thumb .button-group button.blog-more:first-child .fa {
-  background: none;
-  width: 17px;
-  height: 17px;
-  text-align: center;
-}
-
-.product-thumb .button-group button.blog-more:first-child .fa:before {
-  content: "\f061";
-  display: inline-block;
+.blog-article-card .blog-more .fa {
+  flex: 0 0 auto;
   width: auto;
   height: auto;
+  margin: 0;
   background: none;
-  font-family: FontAwesome;
-  font-style: normal;
-  font-weight: normal;
-  line-height: 17px;
+  font-size: 15px;
+  line-height: 1;
 }
+
+/* Blog navigation has its own semantic action, not a purchase-button state. */
+.blog-article-card .blog-card-actions .blog-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  background: var(--main-color);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.blog-article-card .blog-card-actions .blog-more:hover,
+.blog-article-card .blog-card-actions .blog-more:focus {
+  color: #fff;
+  background: var(--btn-primary-bg-hover);
+  text-decoration: none;
+}
+
 
 .agreement-actions {
   display: flex;
@@ -2734,7 +2751,7 @@ body > .container + .container > .row > #content > h2 {
     margin: 0 auto;
   }
 
-  .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more) {
+  .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
     width: 60%;
   }
 
@@ -2840,7 +2857,7 @@ body > .container + .container > .row > #content > h2 {
     padding: 0 20px 10px;
   }
 
-  #common-home .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more), .product-grid .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more) {
+  #common-home .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled), .product-grid .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
     width: 100%;
   }
 
@@ -3184,7 +3201,7 @@ body > .container + .container > .row > #content > h2 {
     border-left: none;
   }
 
-  #common-home .product-layout .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more), .product-grid .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more) {
+  #common-home .product-layout .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled), .product-grid .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
     width: 125px;
   }
 
@@ -4276,7 +4293,7 @@ a.list-group-item:hover, a.list-group-item:focus {
   transition: all ease-in 0.2s;
 }
 
-.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more) {
+.product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled) {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -5317,29 +5334,86 @@ footer p {
   }
 }
 
-.blog-article-card .button-group button:not(.blog-more) {
-  display: inline-flex;
+/* A blog date or view count is information, not a button or hover-only tooltip. */
+.blog-article-card .blog-card-actions {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 38px;
-  min-width: 38px;
-  height: 38px;
-  min-height: 38px;
-  margin: 0 8px 0 0;
-  padding: 0;
-  color: var(--text-color);
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-xs);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.blog-article-card .button-group button:not(.blog-more):hover, .blog-article-card .button-group button:not(.blog-more):focus {
-  color: var(--main-color);
-  background: var(--surface-muted);
-  border-color: var(--border-color-strong);
-  transform: none;
+.blog-article-card .blog-card-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  min-width: 0;
 }
+
+.blog-article-card .blog-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-color-alt);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.blog-article-card .blog-meta-item .fa {
+  flex: 0 0 auto;
+  font-size: 13px;
+}
+
+/* Columns are based on available content width, not the physical screen.
+   Sidebar layouts and tablet portrait naturally collapse to readable cards. */
+.blog-article-list.blog-grid-mode {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 18px;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.blog-article-list.blog-grid-mode > .product-layout,
+.blog-article-list.blog-grid-mode > [class*="col-"] {
+  display: flex;
+  float: none;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.blog-article-list.blog-grid-mode > .product-layout > .blog-article-card,
+.blog-article-list.blog-grid-mode > [class*="col-"] > .blog-article-card {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  margin: 0;
+}
+
+.blog-article-list.blog-grid-mode .blog-article-card .caption {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.blog-article-list.blog-grid-mode .blog-article-card .button-group {
+  margin-top: auto;
+}
+
+@media (max-width: 767px) {
+  .blog-article-list.blog-grid-mode {
+    gap: 14px;
+  }
+
+  .blog-article-card .blog-card-actions .blog-more {
+    min-height: 44px;
+  }
+}
+
 
 /* МЕНЮ КАТЕГОРИЙ */
 
@@ -6005,7 +6079,7 @@ body.route-product-product header + .container {
     transition: none;
   }
 
-  .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled, .blog-more):active {
+  .product-thumb .button-group :is(.stock-cart-button, .stock-purchase-disabled):active {
     transform: scale(0.98);
   }
 }
