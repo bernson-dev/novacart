@@ -5,6 +5,7 @@
 			<div class="product-layout blog-card-layout col-lg-4 col-md-4 col-sm-6 col-xs-12">
 				<div class="product-thumb transition blog-article-card">
 					<div class="image"><a href="{{ article.href }}"><img src="{{ article.thumb }}" alt="{{ article.name }}" title="{{ article.name }}" class="img-responsive" /></a></div>
+					<div class="blog-article-body">
 					<div class="caption">
 						<h4><a href="{{ article.href }}">{{ article.name }}</a></h4>
 						<p>{{ article.description }}</p>
@@ -27,6 +28,7 @@
     </div>
     <a class="blog-more" href="{{ article.href }}"><span>{{ button_more }}</span><i class="fa fa-arrow-right" aria-hidden="true"></i></a>
 </div>
+					</div>
 				</div>
 			</div>
 		{% endfor %}
