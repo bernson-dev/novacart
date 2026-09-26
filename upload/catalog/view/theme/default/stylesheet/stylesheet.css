@@ -6572,6 +6572,20 @@ body.route-product-product header + .container {
     min-width: 0;
     padding: 0;
   }
+
+  /* Main articles and content-bottom modules stack at the same content width. */
+  #blog-latest #content .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card,
+  #blog-category #content .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card {
+    flex-direction: column;
+  }
+
+  #blog-latest #content .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image,
+  #blog-category #content .blog-article-list.blog-list-mode > .blog-card-layout > .blog-article-card > .image {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+  }
 }
 
 /* Product listings have separate toolbar rules below. */
