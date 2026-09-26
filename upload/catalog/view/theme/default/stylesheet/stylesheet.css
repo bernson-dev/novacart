@@ -6497,3 +6497,23 @@ body.route-product-product header + .container {
     grid-row: 3;
   }
 }
+
+/* Product listing toolbar: a single mobile card column has no useful grid/list
+   choice. Keep comparison and both native selects; do not affect blog toolbars. */
+@media (max-width: 767px) {
+  #product-category .catalog-toolbar > .catalog-toolbar-view,
+  #product-search .catalog-toolbar > .catalog-toolbar-view,
+  #product-special .catalog-toolbar > .catalog-toolbar-view,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-view {
+    display: none;
+  }
+
+  #product-category .catalog-toolbar > .catalog-toolbar-compare,
+  #product-search .catalog-toolbar > .catalog-toolbar-compare,
+  #product-special .catalog-toolbar > .catalog-toolbar-compare,
+  #product-manufacturer .catalog-toolbar > .catalog-toolbar-compare {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-content: flex-end;
+  }
+}
