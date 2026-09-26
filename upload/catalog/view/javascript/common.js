@@ -144,49 +144,61 @@ $(document).ready(function() {
 	updateMenuDropdownOffsets();
 	$(window).on('resize', updateMenuDropdownOffsets);
 
+	// Change only the primary catalog results. Modules inside #content may also
+	// contain .product-layout; replacing their class attribute breaks their markup.
+	var resultCards = $('#content > .catalog-results-row > .product-layout:not(.blog-card-layout)');
+	var blogPage = $('#blog-latest, #blog-category');
+	var columnClasses = 'product-list product-grid col-lg-3 col-lg-4 col-lg-6 col-md-3 col-md-4 col-md-6 col-sm-6 col-sm-12 col-xs-12';
+
+	// The blog view control applies to the primary results AND its article
+	// modules, including Recommended in a sidebar. The sidebar has its own
+	// compact presentation for each mode, based on available content width.
+	function setBlogView(mode) {
+		if (!blogPage.length) {
+			return;
+		}
+
+		blogPage.find('.blog-article-list')
+			.toggleClass('blog-grid-mode', mode === 'grid')
+			.toggleClass('blog-list-mode', mode === 'list');
+	}
+
 	// Product List
 	$('#list-view').on('click', function() {
-		$('#content .product-grid > .clearfix').remove();
-
-		$('#content .row > .product-grid').attr('class', 'product-layout product-list col-xs-12');
-		$('#blog-latest #content > .blog-article-list, #blog-category #content > .blog-article-list').removeClass('blog-grid-mode');
+		resultCards.find('> .clearfix').remove();
+		resultCards.removeClass(columnClasses).addClass('product-list col-xs-12');
+		setBlogView('list');
 		$('#grid-view').removeClass('active');
 		$('#list-view').addClass('active');
-
 		localStorage.setItem('display', 'list');
 	});
 
 	// Product Grid
 	$('#grid-view').on('click', function() {
-		// What a shame bootstrap does not take into account dynamically loaded columns
 		var cols = $('#column-right, #column-left').length;
+		var gridClass;
 
-		if (cols == 2) {
-			$('#content .product-list').attr('class', 'product-layout product-grid col-lg-6 col-md-6 col-sm-12 col-xs-12');
-		} else if (cols == 1) {
-			$('#content .product-list').attr('class', 'product-layout product-grid col-lg-4 col-md-4 col-sm-6 col-xs-12');
+		if (cols === 2) {
+			gridClass = 'product-grid col-lg-6 col-md-6 col-sm-12 col-xs-12';
+		} else if (cols === 1) {
+			gridClass = 'product-grid col-lg-4 col-md-4 col-sm-6 col-xs-12';
 		} else {
-			var gridClass = $('#content .product-list').first().closest('#blog-latest, #blog-category').length
-				? 'product-layout product-grid col-lg-4 col-md-4 col-sm-6 col-xs-12'
-				: 'product-layout product-grid col-lg-3 col-md-3 col-sm-6 col-xs-12';
-
-			$('#content .product-list').attr('class', gridClass);
+			gridClass = blogPage.length
+				? 'product-grid col-lg-4 col-md-4 col-sm-6 col-xs-12'
+				: 'product-grid col-lg-3 col-md-3 col-sm-6 col-xs-12';
 		}
 
-		$('#blog-latest #content > .blog-article-list, #blog-category #content > .blog-article-list').addClass('blog-grid-mode');
-
+		resultCards.removeClass(columnClasses).addClass(gridClass);
+		setBlogView('grid');
 		$('#list-view').removeClass('active');
 		$('#grid-view').addClass('active');
-
 		localStorage.setItem('display', 'grid');
 	});
 
-	if (localStorage.getItem('display') == 'list') {
+	if (localStorage.getItem('display') === 'list') {
 		$('#list-view').trigger('click');
-		$('#list-view').addClass('active');
 	} else {
 		$('#grid-view').trigger('click');
-		$('#grid-view').addClass('active');
 	}
 
 	// Checkout
