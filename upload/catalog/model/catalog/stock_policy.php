@@ -73,6 +73,7 @@ class ModelCatalogStockPolicy extends Model {
 				'stock_status'    => isset($product['stock_status']) ? (string)$product['stock_status'] : '',
 				'stock_rule'      => 'inherit',
 				'button_text'     => $this->language->get('button_cart'),
+				'button_reason'   => '',
 				'in_cart'         => $existing_quantity > 0,
 				'cart_quantity'   => $existing_quantity,
 				'cart_button_text'=> $this->language->get('button_in_cart'),
@@ -127,7 +128,18 @@ class ModelCatalogStockPolicy extends Model {
 				$button_text = $stock_status;
 			}
 		} else {
-			$button_text = $stock_status ? $stock_status : $this->language->get('button_cart');
+			// A stock status may be arbitrary (e.g. "Expected"). Never use it as
+			// the disabled purchase action: distinguish out of stock from shortage.
+			$button_text = $reason === 'out_of_stock'
+				? $this->language->get('button_stock_out')
+				: $this->language->get('button_stock_insufficient');
+		}
+
+		$button_reason = '';
+		if (!$can_buy) {
+			$button_reason = $reason === 'out_of_stock'
+				? $this->language->get('text_stock_blocked_out')
+				: sprintf($this->language->get('text_stock_blocked_insufficient'), (int)$remaining);
 		}
 
 		return array(
@@ -141,6 +153,7 @@ class ModelCatalogStockPolicy extends Model {
 			'stock_status'    => $stock_status,
 			'stock_rule'      => $action,
 			'button_text'     => $button_text,
+			'button_reason'   => $button_reason,
 			'in_cart'         => $existing_quantity > 0,
 			'cart_quantity'   => $existing_quantity,
 			'cart_button_text'=> $this->language->get('button_in_cart'),
