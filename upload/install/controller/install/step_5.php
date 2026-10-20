@@ -68,7 +68,7 @@ class ControllerInstallStep5 extends Controller {
 
         $storage = defined('DIR_STORAGE') ? realpath(DIR_STORAGE) : false;
         $public = defined('DIR_SYSTEM') ? realpath(DIR_SYSTEM . 'storage') : false;
-        $outside = $storage && $public && $storage !== $public;
+        $outside = !empty($this->session->data['installed_storage_path']);
         $rows[] = array('label' => 'Storage', 'value' => $outside ? 'External' : 'Default');
         return $rows;
     }
