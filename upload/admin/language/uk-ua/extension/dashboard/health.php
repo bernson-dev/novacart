@@ -39,6 +39,12 @@ $_['check_install_directory'] = 'Каталог install';
 $_['check_install_directory_help'] = 'Після встановлення публічний каталог install слід видалити.';
 $_['check_error_log'] = 'Журнал помилок';
 $_['check_error_log_help'] = 'Великий журнал помилок зазвичай означає накопичені проблеми або відсутність обслуговування.';
+
+$_['check_core_integrity'] = 'Цілісність ядра';
+$_['check_core_integrity_help'] = 'Перевіряються SHA-256 критичних файлів NovaCart із зафіксованого manifest релізу. Зміна не завжди означає злам: причиною може бути неповне оновлення або локальна правка.';
+$_['integrity_changed'] = 'Змінено';
+$_['integrity_missing'] = 'Відсутній';
+$_['integrity_invalid'] = 'Manifest пошкоджено';
 $_['check_out_of_stock'] = 'Товари без залишку';
 $_['check_out_of_stock_help'] = 'Кількість активних товарів із залишком 0 або менше.';
 $_['check_low_stock'] = 'Низький залишок';
