@@ -84,6 +84,14 @@ class ControllerExtensionDashboardHealth extends Controller {
 			'seo' => $this->url->link('design/seo_url', 'user_token=' . $this->session->data['user_token'], true)
 		);
 
+		$data['quick_actions'] = array(
+			array('icon' => 'fa-plus', 'label' => $this->language->get('health_quick_product'), 'href' => $this->url->link('catalog/product/add', 'user_token=' . $this->session->data['user_token'], true)),
+			array('icon' => 'fa-shopping-cart', 'label' => $this->language->get('health_quick_orders'), 'href' => $this->url->link('sale/order', 'user_token=' . $this->session->data['user_token'], true)),
+			array('icon' => 'fa-cubes', 'label' => $this->language->get('health_quick_products'), 'href' => $links['catalog']),
+			array('icon' => 'fa-file-text-o', 'label' => $this->language->get('health_quick_logs'), 'href' => $links['logs']),
+			array('icon' => 'fa-link', 'label' => $this->language->get('health_quick_seo'), 'href' => $links['seo'])
+		);
+
 		$data['sections'] = array();
 		$data['summary'] = array('ok' => 0, 'warning' => 0, 'error' => 0);
 
