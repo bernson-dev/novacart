@@ -57,24 +57,5 @@ jobs:
           php-version: '7.3'
           coverage: none
 
-      - name: Generate manifest
-        run: php tools/integrity_manifest.php --output=/tmp/novacart_integrity.json
-
       - name: Verify committed manifest
-        shell: bash
-        run: |
-          if [ ! -f upload/system/config/novacart_integrity.json ]; then
-            echo '::error::Committed integrity manifest is missing.'
-            echo '--- INTEGRITY MANIFEST BEGIN ---'
-            cat /tmp/novacart_integrity.json
-            echo '--- INTEGRITY MANIFEST END ---'
-            exit 1
-          fi
-
-          if ! cmp -s /tmp/novacart_integrity.json upload/system/config/novacart_integrity.json; then
-            echo '::error::Core integrity manifest is stale. Run: php tools/integrity_manifest.php'
-            diff -u upload/system/config/novacart_integrity.json /tmp/novacart_integrity.json || true
-            exit 1
-          fi
-
-          echo 'Core integrity manifest is current.'
+        run: php tools/integrity_manifest.php --check=upload/system/config/novacart_integrity.json
