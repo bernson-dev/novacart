@@ -201,8 +201,8 @@ div.required .control-label:before {
 .cc-step-item.done > span {background:#edf9f1;color:#239a55;border-color:#9ad5ad}
 .cc-language {margin-top:18px;padding-top:18px;border-top:1px solid #edf0f4}
 .cc-language__label {margin-bottom:9px;color:var(--cc-muted);font-size:13px;font-weight:700}
-.cc-language__options {display:flex;flex-wrap:wrap;gap:8px}
-.cc-language__option {display:inline-flex;align-items:center;gap:7px;border:1px solid #cfd7e3;border-radius:7px;background:#fff;color:#344054;padding:8px 11px;cursor:pointer}
+.cc-language__options {display:flex;flex-direction:column;align-items:stretch;gap:8px}
+.cc-language__option {display:flex;width:100%;min-height:42px;align-items:center;justify-content:flex-start;gap:9px;border:1px solid #cfd7e3;border-radius:7px;background:#fff;color:#344054;padding:8px 11px;cursor:pointer}
 .cc-language__option.active {background:#eef5ff;color:#0b6fd3;border-color:#0b6fd3;font-weight:700}
 .cc-language__option:hover {border-color:#0b6fd3}
 .cc-installer-finish .cc-complete {max-width:700px;margin:0 auto 20px;text-align:center}
@@ -215,3 +215,18 @@ div.required .control-label:before {
 .cc-installer-finish .cc-summary-row strong {text-align:right;overflow-wrap:anywhere}
 .cc-installer-finish .cc-notice {padding:14px 16px;border-radius:8px;background:#fff8e8;border:1px solid #f2d18a;color:#76510a}
 @media(max-width:767px){.cc-step-list{grid-template-columns:repeat(5,minmax(0,1fr))}.cc-step-item{grid-template-columns:1fr;justify-items:center;text-align:center;font-size:11px;padding:5px}.cc-installer-finish .cc-summary-row{flex-wrap:wrap}}
+
+/* Completion screen: consistent with the original installer shell. */
+.cc-installer-finish .cc-complete {max-width:760px;margin:12px auto 24px;padding:26px 28px;background:#fff;border:1px solid #dfe5ec;border-radius:12px;box-shadow:0 8px 25px rgba(27,43,65,.07);text-align:center}
+.cc-installer-finish .cc-complete h2 {font-size:25px}
+.cc-installer-finish .cc-complete > p {color:#667085;margin:7px 0 0}
+.cc-installer-finish .cc-summary {margin:22px auto 0}
+.cc-installer-finish .cc-finish-warning {max-width:760px;margin:0 auto 22px;line-height:1.7}
+.cc-installer-finish .cc-cleanup-label {display:block;margin:8px 0 0;font-weight:600;cursor:pointer}
+.cc-installer-finish .cc-cleanup-label input {vertical-align:middle;margin:0 6px 0 0}
+.cc-installer-finish .cc-actions {margin-top:20px}
+.cc-installer-finish .cc-actions .button-block {min-height:120px;display:flex;gap:14px}
+.cc-installer-finish .cc-actions .button-block i {font-size:45px}
+.cc-installer-finish .cc-actions .button-block span {font-size:17px}
+.cc-language__option img {flex:0 0 20px;object-fit:contain}
+@media(max-width:767px){.cc-installer-finish .cc-complete{padding:20px 14px}.cc-installer-finish .cc-actions .button-block{margin-bottom:14px}}
