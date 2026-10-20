@@ -5,6 +5,7 @@ $_['text_extension'] = 'Extensions';
 $_['text_success'] = 'Store Health settings have been saved!';
 $_['text_edit'] = 'Edit Store Health';
 $_['text_settings'] = 'Settings';
+$_['text_view'] = 'Open';
 $_['text_enabled'] = 'Enabled';
 $_['text_disabled'] = 'Disabled';
 
