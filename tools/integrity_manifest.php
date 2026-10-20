@@ -12,10 +12,13 @@
 $root = dirname(__DIR__);
 $upload = $root . '/upload/';
 $output = $upload . 'system/config/novacart_integrity.json';
+$check = '';
 
 foreach ($argv as $argument) {
 	if (strpos($argument, '--output=') === 0) {
 		$output = substr($argument, strlen('--output='));
+	} elseif (strpos($argument, '--check=') === 0) {
+		$check = substr($argument, strlen('--check='));
 	}
 }
 
@@ -107,6 +110,30 @@ $json = json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 if ($json === false) {
 	fwrite(STDERR, 'Unable to encode integrity manifest.' . PHP_EOL);
 	exit(2);
+}
+
+if ($check !== '') {
+	if (!is_file($check)) {
+		fwrite(STDERR, 'Committed integrity manifest is missing: ' . $check . PHP_EOL);
+		exit(1);
+	}
+
+	$current_json = @file_get_contents($check);
+	$current = $current_json !== false ? json_decode($current_json, true) : null;
+
+	if (!is_array($current)) {
+		fwrite(STDERR, 'Committed integrity manifest is invalid JSON: ' . $check . PHP_EOL);
+		exit(1);
+	}
+
+	if ($current != $manifest) {
+		fwrite(STDERR, 'Core integrity manifest is stale. Run: php tools/integrity_manifest.php' . PHP_EOL);
+		exit(1);
+	}
+
+	echo 'Core integrity manifest is current.' . PHP_EOL;
+	echo 'Files: ' . count($files) . PHP_EOL;
+	exit(0);
 }
 
 $directory = dirname($output);
