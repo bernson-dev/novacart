@@ -27,9 +27,34 @@ $areas = array(
 );
 $strictCoverage = in_array('--strict-coverage', $argv, true);
 $isGithub = getenv('GITHUB_ACTIONS') === 'true';
+$baselineFile = $root . '/tools/i18n_baseline.txt';
+$writeBaseline = '';
+
+foreach ($argv as $argument) {
+    if (strpos($argument, '--baseline=') === 0) {
+        $baselineFile = substr($argument, strlen('--baseline='));
+    } elseif (strpos($argument, '--write-baseline=') === 0) {
+        $writeBaseline = substr($argument, strlen('--write-baseline='));
+    }
+}
+
+$baseline = array();
+
+if ($writeBaseline === '' && is_file($baselineFile)) {
+    foreach (file($baselineFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        if ($line === '' || $line[0] === '#') {
+            continue;
+        }
+
+        $parts = explode("\t", $line, 2);
+        $baseline[$parts[0]] = true;
+    }
+}
 
 $errors = 0;
+$knownErrors = 0;
 $warnings = 0;
+$errorRecords = array();
 $stats = array(
     'files' => 0,
     'keys' => 0,
@@ -38,10 +63,23 @@ $stats = array(
 );
 
 function auditMessage($level, $message, $file = '', $line = 0) {
-    global $isGithub, $errors, $warnings;
+    global $isGithub, $errors, $knownErrors, $warnings, $baseline, $errorRecords;
+
+    $fingerprint = '';
 
     if ($level === 'error') {
-        $errors++;
+        $fingerprint = sha1($file . '|' . $message);
+        $errorRecords[$fingerprint] = array(
+            'file' => $file,
+            'message' => $message,
+        );
+
+        if (isset($baseline[$fingerprint])) {
+            $knownErrors++;
+            $level = 'known';
+        } else {
+            $errors++;
+        }
     } else {
         $warnings++;
     }
@@ -90,7 +128,7 @@ function auditRelativePath($path, $root) {
     return strpos($path, $root) === 0 ? substr($path, strlen($root)) : $path;
 }
 
-function auditListPhpFiles($base) {
+function auditListPhpFiles($base, $locale) {
     $result = array();
 
     if (!is_dir($base)) {
@@ -110,6 +148,10 @@ function auditListPhpFiles($base) {
         $baseNormalized = rtrim(str_replace('\\', '/', $base), '/') . '/';
         $pathNormalized = str_replace('\\', '/', $file->getPathname());
         $relative = substr($pathNormalized, strlen($baseNormalized));
+
+        if ($relative === $locale . '.php') {
+            $relative = '__root__.php';
+        }
 
         $result[$relative] = $file->getPathname();
     }
@@ -362,7 +404,7 @@ foreach ($areas as $area => $languageRoot) {
 
     foreach ($locales as $locale) {
         $localeBase = $languageRoot . '/' . $locale;
-        $localeFiles[$locale] = auditListPhpFiles($localeBase);
+        $localeFiles[$locale] = auditListPhpFiles($localeBase, $locale);
 
         foreach ($localeFiles[$locale] as $relative => $absolute) {
             $allRelativeFiles[$relative] = true;
@@ -473,11 +515,33 @@ echo '  Files parsed:       ' . $stats['files'] . PHP_EOL;
 echo '  Keys parsed:        ' . $stats['keys'] . PHP_EOL;
 echo '  Format comparisons: ' . $stats['format_checks'] . PHP_EOL;
 echo '  Coverage warnings:  ' . $stats['coverage_warnings'] . PHP_EOL;
-echo '  Errors:             ' . $errors . PHP_EOL;
+echo '  New errors:         ' . $errors . PHP_EOL;
+echo '  Known errors:       ' . $knownErrors . PHP_EOL;
 echo '  Warnings:           ' . $warnings . PHP_EOL;
 
 if (!$strictCoverage && $stats['coverage_warnings'] > 0) {
     echo '  Coverage mode:      warning-only (use --strict-coverage to enforce)' . PHP_EOL;
+}
+
+if ($writeBaseline !== '') {
+    ksort($errorRecords);
+    $lines = array(
+        '# NovaCart localization audit baseline',
+        '# Generated intentionally from an audited repository state.',
+        '# Format: SHA1<TAB>file<TAB>message',
+    );
+
+    foreach ($errorRecords as $fingerprint => $record) {
+        $lines[] = $fingerprint . "\t" . $record['file'] . "\t" . $record['message'];
+    }
+
+    if (@file_put_contents($writeBaseline, implode(PHP_EOL, $lines) . PHP_EOL) === false) {
+        fwrite(STDERR, 'Unable to write baseline: ' . $writeBaseline . PHP_EOL);
+        exit(2);
+    }
+
+    echo '  Baseline written:   ' . $writeBaseline . PHP_EOL;
+    exit(0);
 }
 
 exit($errors > 0 ? 1 : 0);
