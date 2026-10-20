@@ -189,3 +189,29 @@ div.required .control-label:before {
     white-space: normal; /* Перенос строк при длинных текстах */
 }
 
+
+/* CodeCart-inspired installer finishing and language layout; isolated from existing pages. */
+:root { --cc-blue:#0b6fd3; --cc-border:#dfe5ec; --cc-muted:#667085; }
+.cc-sidebar { background:#fff; border:1px solid var(--cc-border); border-top:3px solid var(--cc-blue); border-radius:10px; padding:18px; box-shadow:0 7px 24px rgba(27,43,65,.06); }
+.cc-step-list {display:grid;gap:6px}
+.cc-step-item {display:grid;grid-template-columns:30px 1fr;align-items:center;gap:10px;padding:8px;border-radius:7px;color:var(--cc-muted)}
+.cc-step-item > span {display:flex;align-items:center;justify-content:center;border:1px solid #cbd5e1;border-radius:50%;height:28px;width:28px;font-weight:700}
+.cc-step-item.active {background:#eef5ff;color:#1d2939;font-weight:700}
+.cc-step-item.active > span {background:var(--cc-blue);color:#fff;border-color:var(--cc-blue)}
+.cc-step-item.done > span {background:#edf9f1;color:#239a55;border-color:#9ad5ad}
+.cc-language {margin-top:18px;padding-top:18px;border-top:1px solid #edf0f4}
+.cc-language__label {margin-bottom:9px;color:var(--cc-muted);font-size:13px;font-weight:700}
+.cc-language__options {display:flex;flex-wrap:wrap;gap:8px}
+.cc-language__option {display:inline-flex;align-items:center;gap:7px;border:1px solid #cfd7e3;border-radius:7px;background:#fff;color:#344054;padding:8px 11px;cursor:pointer}
+.cc-language__option.active {background:#eef5ff;color:#0b6fd3;border-color:#0b6fd3;font-weight:700}
+.cc-language__option:hover {border-color:#0b6fd3}
+.cc-installer-finish .cc-complete {max-width:700px;margin:0 auto 20px;text-align:center}
+.cc-installer-finish .cc-complete-icon {display:inline-flex;align-items:center;justify-content:center;width:72px;height:72px;border-radius:50%;background:#edf9f1;color:#239a55;font-size:32px}
+.cc-installer-finish .cc-complete h2 {margin:18px 0 7px;font-weight:700}
+.cc-installer-finish .cc-summary {margin:24px auto;text-align:left;border:1px solid var(--cc-border);border-radius:8px;overflow:hidden;background:#fff}
+.cc-installer-finish .cc-summary-row {display:flex;justify-content:space-between;gap:18px;padding:12px 14px;border-bottom:1px solid #edf0f4}
+.cc-installer-finish .cc-summary-row:last-child {border-bottom:0}
+.cc-installer-finish .cc-summary-row span {color:var(--cc-muted)}
+.cc-installer-finish .cc-summary-row strong {text-align:right;overflow-wrap:anywhere}
+.cc-installer-finish .cc-notice {padding:14px 16px;border-radius:8px;background:#fff8e8;border:1px solid #f2d18a;color:#76510a}
+@media(max-width:767px){.cc-step-list{grid-template-columns:repeat(5,minmax(0,1fr))}.cc-step-item{grid-template-columns:1fr;justify-items:center;text-align:center;font-size:11px;padding:5px}.cc-installer-finish .cc-summary-row{flex-wrap:wrap}}
