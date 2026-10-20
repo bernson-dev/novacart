@@ -224,7 +224,7 @@ function auditFormatSignature($raw) {
     $matches = array();
 
     preg_match_all(
-        '/%(?:\d+\$)?[-+0\' ]*(?:\d+)?(?:\.\d+)?[bcdeEfFgGosuxX%]/',
+        "/%(?:\\d+\\$)?[-+0 ]*(?:\\d+)?(?:\\.\\d+)?[bcdeEfFgGosuxX%]/",
         $raw,
         $matches
     );
