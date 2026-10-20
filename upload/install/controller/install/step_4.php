@@ -12,6 +12,15 @@ class ControllerInstallStep4 extends Controller {
                 require_once(DIR_OPENCART . 'system/library/storage_migration.php');
                 try {
                     $storagePath = StorageMigration::suggestedPath(DIR_OPENCART);
+                    $webRoot = isset($this->request->server['DOCUMENT_ROOT']) ? realpath($this->request->server['DOCUMENT_ROOT']) : false;
+                    $destinationParent = realpath(dirname(rtrim($storagePath, '/')));
+                    if ($webRoot && $destinationParent) {
+                        $webRoot = rtrim(str_replace('\\', '/', $webRoot), '/') . '/';
+                        $destination = rtrim(str_replace('\\', '/', $destinationParent), '/') . '/';
+                        if (strpos($destination, $webRoot) === 0) {
+                            throw new RuntimeException('External storage location is inside web root.');
+                        }
+                    }
                     $this->session->data['installed_storage_path'] = StorageMigration::move(
                         DIR_OPENCART . 'system/storage', $storagePath,
                         array(DIR_OPENCART . 'config.php', DIR_OPENCART . 'admin/config.php')
