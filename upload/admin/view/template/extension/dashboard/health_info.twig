@@ -1,47 +1,80 @@
-<div id="codecart-health-dashboard" class="panel panel-default ccp-dashboard-center">
-  <div class="panel-heading">
-    <h3 class="panel-title"><i class="fa fa-dashboard"></i> {{ heading_title }}</h3>
-    <div class="pull-right"><a href="{{ setting }}" class="btn btn-default btn-xs" title="{{ text_settings }}"><i class="fa fa-cog"></i></a></div>
+<div class="panel panel-default nc-health">
+  <div class="panel-heading clearfix">
+    <h3 class="panel-title pull-left"><i class="fa fa-heartbeat"></i> {{ heading_title }}</h3>
+    <a href="{{ settings }}" class="btn btn-default btn-xs pull-right" title="{{ text_settings }}"><i class="fa fa-cog"></i></a>
   </div>
-  <div class="panel-body ccp-dashboard-shell">
-    {% for section in sections %}
-    <section class="ccp-dashboard-section" data-section="{{ section.code }}">
-      <div class="ccp-dashboard-section-head"><h4><i class="fa {{ section.icon }}"></i> {{ section.title }}</h4></div>
-      <div class="ccp-dashboard-section-body"><div class="ccp-dashboard-loading"><i class="fa fa-circle-o-notch fa-spin"></i> {{ text_loading }}</div></div>
+  <div class="panel-body">
+    <div class="nc-health-overview">
+      <div class="nc-health-metric nc-health-metric-ok"><i class="fa fa-check-circle"></i><span class="nc-health-metric-number">{{ summary.ok }}</span><span>{{ state_ok }}</span></div>
+      <div class="nc-health-metric nc-health-metric-warning"><i class="fa fa-exclamation-triangle"></i><span class="nc-health-metric-number">{{ summary.warning }}</span><span>{{ state_warning }}</span></div>
+      <div class="nc-health-metric nc-health-metric-error"><i class="fa fa-times-circle"></i><span class="nc-health-metric-number">{{ summary.error }}</span><span>{{ state_error }}</span></div>
+    </div>
+    <div class="nc-health-actions">
+      {% for action in quick_actions %}
+        <a href="{{ action.href }}" class="btn btn-default"><i class="fa {{ action.icon }}"></i> {{ action.label }}</a>
+      {% endfor %}
+    </div>
+    <section class="nc-health-attention">
+      <h4><i class="fa fa-exclamation-triangle"></i> {{ text_attention }} <span class="label label-default">{{ attention|length }}</span></h4>
+      {% if attention %}
+      <div class="nc-health-attention-list">
+        {% for item in attention %}
+        <div class="nc-health-attention-item nc-health-attention-{{ item.class }}">
+          <span class="label label-{{ item.class }}">{{ item.state_text }}</span>
+          <span class="nc-health-check-name">{{ item.label }}</span>
+          {% if item.value is not same as('') %}<strong>{{ item.value }}</strong>{% endif %}
+          {% if item.href %}<a href="{{ item.href }}">{{ text_view }} <i class="fa fa-angle-right"></i></a>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-success"><i class="fa fa-check-circle"></i> {{ text_no_attention }}</p>
+      {% endif %}
     </section>
-    {% endfor %}
-  </div>
-</div>
-<div id="ccp-dashboard-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="{{ text_close }}"><span aria-hidden="true">&times;</span></button><h4 class="modal-title"></h4></div>
-      <div class="modal-body"></div>
-      <div class="modal-footer"><a href="#" class="btn btn-primary ccp-modal-action" style="display:none">{{ text_open }}</a><button type="button" class="btn btn-default" data-dismiss="modal">{{ text_close }}</button></div>
+    <div class="row nc-health-sections">
+      {% for section in sections %}
+      {% set section_warning = 0 %}
+      {% set section_error = 0 %}
+      {% for item in section.items %}
+        {% if item.state == 'warning' %}{% set section_warning = section_warning + 1 %}{% endif %}
+        {% if item.state == 'error' %}{% set section_error = section_error + 1 %}{% endif %}
+      {% endfor %}
+      <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="nc-health-section">
+          <div class="nc-health-section-heading">
+            <span><i class="fa {{ section.icon }}"></i> {{ section.title }}</span>
+            <span class="nc-health-section-summary">
+              {% if section_error %}<span class="label label-danger">{{ section_error }}</span>{% endif %}
+              {% if section_warning %}<span class="label label-warning">{{ section_warning }}</span>{% endif %}
+              {% if not section_warning and not section_error %}<i class="fa fa-check-circle text-success"></i>{% endif %}
+            </span>
+          </div>
+          <div class="nc-health-section-body">
+            {% for item in section.items %}
+            <details class="nc-health-check" {% if item.state == 'error' %}open{% endif %}>
+              <summary>
+                <span class="nc-health-check-name"><i class="fa fa-circle nc-health-dot nc-health-dot-{{ item.class }}"></i> {{ item.label }}</span>
+                <span class="nc-health-check-value">{{ item.value }}</span>
+                <span class="label label-{{ item.class }}">{{ item.state_text }}</span>
+                <i class="fa fa-angle-down nc-health-expand"></i>
+              </summary>
+              <div class="nc-health-check-details">
+                <p>{{ item.help }}</p>
+                {% if item.details %}
+                <ul class="list-unstyled">
+                  {% for detail in item.details %}
+                  <li><span class="label label-default">{{ detail.label }}</span> <code>{{ detail.path }}</code></li>
+                  {% endfor %}
+                </ul>
+                {% endif %}
+                {% if item.href %}<a href="{{ item.href }}">{{ text_view }} <i class="fa fa-angle-right"></i></a>{% endif %}
+              </div>
+            </details>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
     </div>
   </div>
 </div>
-<script type="text/javascript">
-(function($){
-  var root=$('#codecart-health-dashboard');
-  if(!root.length)return;
-  var modal=$('#ccp-dashboard-modal');
-  function esc(text){return $('<div>').text(text==null?'':String(text)).html();}
-  function showModal(title,body,href,label){modal.find('.modal-title').text(title||'');modal.find('.modal-body').html(body||'');var action=modal.find('.ccp-modal-action');if(href){action.attr('href',href).text(label||'{{ text_open|e('js') }}').show();}else{action.hide().attr('href','#');}modal.modal('show');}
-  function loadSection(section){
-    var box=root.find('[data-section="'+section+'"] .ccp-dashboard-section-body');
-    $.ajax({url:'index.php?route=extension/dashboard/health/section&section='+encodeURIComponent(section)+'&user_token={{ user_token }}',dataType:'html',cache:false,success:function(html){box.html(html);},error:function(xhr){box.html('<div class="alert alert-warning"><i class="fa fa-exclamation-triangle"></i> '+xhr.status+' '+xhr.statusText+'</div>');}});
-  }
-  var loaded={};
-  function ensure(section){if(loaded[section])return;loaded[section]=1;loadSection(section);}
-  ensure('commerce');ensure('attention');
-  if('IntersectionObserver' in window){
-    var observer=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting){var section=$(entry.target).data('section');ensure(section);observer.unobserve(entry.target);}});},{rootMargin:'240px 0px'});
-    root.find('[data-section]').each(function(){var section=$(this).data('section');if(section!=='commerce'&&section!=='attention')observer.observe(this);});
-  }else{root.find('[data-section]').each(function(){ensure($(this).data('section'));});}
-  root.on('click','.ccp-performance-check',function(e){e.preventDefault();var b=$(this),url=b.data('url'),box=b.closest('.ccp-dashboard-section-body');box.find('.ccp-performance-error').remove();$.ajax({url:url,dataType:'json',beforeSend:function(){b.button('loading')},complete:function(){b.button('reset')},success:function(j){if(j.error){box.prepend('<div class="alert alert-warning ccp-performance-error"><i class="fa fa-exclamation-triangle"></i> '+$('<div>').text(j.error).html()+'</div>');return;}loadSection('performance');},error:function(x){box.prepend('<div class="alert alert-warning ccp-performance-error"><i class="fa fa-exclamation-triangle"></i> HTTP '+x.status+'</div>');}});});
-  root.on('click','.ccp-quick-ajax',function(e){e.preventDefault();var b=$(this),url=b.data('url');$.ajax({url:url,dataType:'json',beforeSend:function(){b.button('loading')},complete:function(){b.button('reset')},success:function(j){if(j.error){showModal(b.text().trim(),'<div class="alert alert-danger">'+esc(j.error.warning||j.error)+'</div>');return;}if(j.success){b.addClass('btn-success');setTimeout(function(){b.removeClass('btn-success');},1500);}},error:function(x,a,e2){showModal(b.text().trim(),'<div class="alert alert-danger">'+esc(e2+' '+x.statusText)+'</div>');}});});
-  root.on('click','.ccp-security-help',function(){var b=$(this),help=b.data('help')||'',href=b.data('action-href')||'';showModal(b.data('title'),'<p class="ccp-security-explain">'+esc(help)+'</p>',href,'{{ text_security_open|e('js') }}');});
-  root.on('click','.ccp-seo-issue',function(){var b=$(this),title=b.data('title'),url=b.data('url');showModal(title,'<div class="ccp-dashboard-loading"><i class="fa fa-circle-o-notch fa-spin"></i> {{ text_loading|e('js') }}</div>');$.ajax({url:url,dataType:'json',cache:false,success:function(j){if(j.error){modal.find('.modal-body').html('<div class="alert alert-danger">'+esc(j.error)+'</div>');return;}if(!j.items||!j.items.length){modal.find('.modal-body').html('<div class="ccp-empty-ok">{{ text_no_items|e('js') }}</div>');return;}var html='<div class="ccp-issue-list">';$.each(j.items,function(_,item){var href=String(item.href||'').replace(/&amp;/g,'&');html+='<a class="ccp-issue-row" href="'+esc(href)+'"><span>'+esc(item.name)+'</span><small>#'+esc(item.id)+'</small><i class="fa fa-pencil"></i></a>';});html+='</div>';if(j.limited){html+='<div class="help-block">{{ text_list_limited|e('js') }}</div>';}modal.find('.modal-body').html(html);},error:function(x){modal.find('.modal-body').html('<div class="alert alert-danger">HTTP '+esc(x.status)+'</div>');}});});
-})(window.jQuery);
-</script>
