@@ -63,3 +63,10 @@ $_['check_seo_query'] = 'SEO check';
 $_['check_seo_query_help'] = 'The SEO URL table could not be checked.';
 
 $_['error_permission'] = 'Warning: You do not have permission to modify Store Health settings!';
+
+// Quick actions
+$_['health_quick_product'] = 'Add product';
+$_['health_quick_orders'] = 'Orders';
+$_['health_quick_products'] = 'Products';
+$_['health_quick_logs'] = 'Error log';
+$_['health_quick_seo'] = 'SEO URLs';
