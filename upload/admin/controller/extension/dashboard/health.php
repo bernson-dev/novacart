@@ -141,6 +141,20 @@ class ControllerExtensionDashboardHealth extends Controller {
 			$data['sections'][] = $section_data;
 		}
 
+		$data['attention'] = array();
+		foreach ($data['sections'] as $section) {
+			foreach ($section['items'] as $item) {
+				if ($item['state'] === 'warning' || $item['state'] === 'error') {
+					$data['attention'][] = $item;
+				}
+			}
+		}
+		usort($data['attention'], function ($a, $b) {
+			return ($a['state'] === 'error' ? 0 : 1) - ($b['state'] === 'error' ? 0 : 1);
+		});
+		$data['text_attention'] = $this->language->get('health_attention');
+		$data['text_no_attention'] = $this->language->get('health_no_attention');
+
 		return $this->load->view('extension/dashboard/health_info', $data);
 	}
 
@@ -182,6 +196,8 @@ class ControllerExtensionDashboardHealth extends Controller {
 	private function sectionIcon($section) {
 		$icons = array(
 			'system' => 'fa-server',
+			'commerce' => 'fa-shopping-cart',
+			'security' => 'fa-shield',
 			'catalog' => 'fa-cubes',
 			'seo' => 'fa-link'
 		);
