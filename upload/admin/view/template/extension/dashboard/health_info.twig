@@ -1,56 +1,58 @@
-<div class="panel panel-default">
+<div class="panel panel-default nc-health">
   <div class="panel-heading clearfix">
     <h3 class="panel-title pull-left"><i class="fa fa-heartbeat"></i> {{ heading_title }}</h3>
-    <a href="{{ settings }}" class="btn btn-default btn-xs pull-right" data-toggle="tooltip" title="{{ text_settings }}"><i class="fa fa-cog"></i></a>
+    <a href="{{ settings }}" class="btn btn-default btn-xs pull-right" title="{{ text_settings }}"><i class="fa fa-cog"></i></a>
   </div>
-
   <div class="panel-body">
-    <div class="row" style="margin-bottom:15px;">
-      <div class="col-sm-12">
-        <span class="label label-success">{{ state_ok|default('OK') }} {{ summary.ok }}</span>
-        {% if summary.warning %}
-        <span class="label label-warning">{{ state_warning|default('Attention') }} {{ summary.warning }}</span>
-        {% endif %}
-        {% if summary.error %}
-        <span class="label label-danger">{{ state_error|default('Error') }} {{ summary.error }}</span>
-        {% endif %}
-      </div>
+    <div class="nc-health-overview">
+      <div class="nc-health-metric nc-health-metric-ok"><i class="fa fa-check-circle"></i><span class="nc-health-metric-number">{{ summary.ok }}</span><span>{{ state_ok }}</span></div>
+      <div class="nc-health-metric nc-health-metric-warning"><i class="fa fa-exclamation-triangle"></i><span class="nc-health-metric-number">{{ summary.warning }}</span><span>{{ state_warning }}</span></div>
+      <div class="nc-health-metric nc-health-metric-error"><i class="fa fa-times-circle"></i><span class="nc-health-metric-number">{{ summary.error }}</span><span>{{ state_error }}</span></div>
     </div>
-
-    <div class="row">
+    <div class="nc-health-actions">
+      {% for action in quick_actions %}
+        <a href="{{ action.href }}" class="btn btn-default"><i class="fa {{ action.icon }}"></i> {{ action.label }}</a>
+      {% endfor %}
+    </div>
+    <div class="row nc-health-sections">
       {% for section in sections %}
-      <div class="col-md-4">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <strong><i class="fa {{ section.icon }}"></i> {{ section.title }}</strong>
+      {% set section_warning = 0 %}
+      {% set section_error = 0 %}
+      {% for item in section.items %}
+        {% if item.state == 'warning' %}{% set section_warning = section_warning + 1 %}{% endif %}
+        {% if item.state == 'error' %}{% set section_error = section_error + 1 %}{% endif %}
+      {% endfor %}
+      <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="nc-health-section">
+          <div class="nc-health-section-heading">
+            <span><i class="fa {{ section.icon }}"></i> {{ section.title }}</span>
+            <span class="nc-health-section-summary">
+              {% if section_error %}<span class="label label-danger">{{ section_error }}</span>{% endif %}
+              {% if section_warning %}<span class="label label-warning">{{ section_warning }}</span>{% endif %}
+              {% if not section_warning and not section_error %}<i class="fa fa-check-circle text-success"></i>{% endif %}
+            </span>
           </div>
-
-          <div class="list-group">
+          <div class="nc-health-section-body">
             {% for item in section.items %}
-            <div class="list-group-item">
-              <div class="clearfix">
-                <strong>{{ item.label }}</strong>
-                <span class="label label-{{ item.class }} pull-right">{{ item.state_text }}</span>
+            <details class="nc-health-check" {% if item.state == 'error' %}open{% endif %}>
+              <summary>
+                <span class="nc-health-check-name"><i class="fa fa-circle nc-health-dot nc-health-dot-{{ item.class }}"></i> {{ item.label }}</span>
+                <span class="nc-health-check-value">{{ item.value }}</span>
+                <span class="label label-{{ item.class }}">{{ item.state_text }}</span>
+                <i class="fa fa-angle-down nc-health-expand"></i>
+              </summary>
+              <div class="nc-health-check-details">
+                <p>{{ item.help }}</p>
+                {% if item.details %}
+                <ul class="list-unstyled">
+                  {% for detail in item.details %}
+                  <li><span class="label label-default">{{ detail.label }}</span> <code>{{ detail.path }}</code></li>
+                  {% endfor %}
+                </ul>
+                {% endif %}
+                {% if item.href %}<a href="{{ item.href }}">{{ text_view }} <i class="fa fa-angle-right"></i></a>{% endif %}
               </div>
-
-              {% if item.value is not same as('') %}
-              <div style="margin-top:5px; word-break:break-word;"><code>{{ item.value }}</code></div>
-              {% endif %}
-
-              <div class="small text-muted" style="margin-top:5px;">{{ item.help }}</div>
-
-              {% if item.details %}
-              <ul class="list-unstyled small" style="margin-top:6px; margin-bottom:0;">
-                {% for detail in item.details %}
-                <li style="word-break:break-word;"><span class="label label-default">{{ detail.label }}</span> <code>{{ detail.path }}</code></li>
-                {% endfor %}
-              </ul>
-              {% endif %}
-
-              {% if item.href %}
-              <div style="margin-top:5px;"><a href="{{ item.href }}">{{ text_view }} <i class="fa fa-angle-right"></i></a></div>
-              {% endif %}
-            </div>
+            </details>
             {% endfor %}
           </div>
         </div>
