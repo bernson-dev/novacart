@@ -23,3 +23,6 @@ $_['summary_countries'] = 'Countries';
 $_['summary_demo'] = 'Demo data';
 $_['summary_demo_removed'] = 'Removed';
 $_['summary_demo_kept'] = 'Kept';
+
+$_['summary_storage_path'] = 'Storage path';
+$_['summary_administrator'] = 'Administrator';
