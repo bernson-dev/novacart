@@ -39,6 +39,14 @@
 
               <div class="small text-muted" style="margin-top:5px;">{{ item.help }}</div>
 
+              {% if item.details %}
+              <ul class="list-unstyled small" style="margin-top:6px; margin-bottom:0;">
+                {% for detail in item.details %}
+                <li style="word-break:break-word;"><span class="label label-default">{{ detail.label }}</span> <code>{{ detail.path }}</code></li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+
               {% if item.href %}
               <div style="margin-top:5px;"><a href="{{ item.href }}">{{ text_view }} <i class="fa fa-angle-right"></i></a></div>
               {% endif %}
