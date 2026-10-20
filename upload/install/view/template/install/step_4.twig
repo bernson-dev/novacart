@@ -68,6 +68,18 @@
                   {% endif %}
               </div>
           </div>
+
+          <div class="form-group">
+            <label class="col-sm-4 control-label" for="external-storage">{{ entry_external_storage }}</label>
+            <div class="col-sm-8">
+              <label class="checkbox-inline">
+                <input type="checkbox" id="external-storage" name="external_storage" value="1"{% if external_storage %} checked="checked"{% endif %}>
+                {{ text_external_storage }}
+              </label>
+              <p class="help-block">{{ help_external_storage }} <code>{{ suggested_storage }}</code></p>
+              {% if error_storage %}<div class="alert alert-danger">{{ error_storage }}</div>{% endif %}
+            </div>
+          </div>
           <!-- Выпадающий список выбранных стран -->
           <div class="form-group" style="margin-top:15px;">
               <label class=" col-sm-4 control-label" for="input-default-country">{{ entry_default_country }}
