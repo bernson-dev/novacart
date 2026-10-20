@@ -39,6 +39,12 @@ $_['check_install_directory'] = 'Install directory';
 $_['check_install_directory_help'] = 'The public install directory should be removed after installation.';
 $_['check_error_log'] = 'Error log';
 $_['check_error_log_help'] = 'A large error log usually indicates accumulated problems or missing maintenance.';
+
+$_['check_core_integrity'] = 'Core integrity';
+$_['check_core_integrity_help'] = 'Checks SHA-256 of critical NovaCart files against the release manifest. A mismatch does not by itself prove compromise; incomplete updates or local edits can also cause it.';
+$_['integrity_changed'] = 'Changed';
+$_['integrity_missing'] = 'Missing';
+$_['integrity_invalid'] = 'Invalid manifest';
 $_['check_out_of_stock'] = 'Out-of-stock products';
 $_['check_out_of_stock_help'] = 'Number of active products with quantity 0 or below.';
 $_['check_low_stock'] = 'Low stock';
