@@ -21,9 +21,25 @@ class ControllerInstallStep5 extends Controller {
 	}
 
 
+    private function getInstalledVersion() {
+        if (defined('VERSION')) {
+            return VERSION;
+        }
+
+        $entry = DIR_OPENCART . 'index.php';
+        if (is_file($entry)) {
+            $contents = @file_get_contents($entry);
+            if ($contents !== false && preg_match("/define\\s*\\(\\s*['\\\"]VERSION['\\\"]\\s*,\\s*['\\\"]([^'\\\"]+)['\\\"]/", $contents, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return '—';
+    }
+
     private function getInstallSummary() {
         $rows = array(
-            array('label' => 'NovaCart', 'value' => defined('VERSION') ? VERSION : '3.x'),
+            array('label' => 'NovaCart', 'value' => $this->getInstalledVersion()),
             array('label' => 'PHP', 'value' => PHP_VERSION)
         );
 
