@@ -9,11 +9,11 @@ class StorageMigration {
     public static function move($source, $target, $configs) {
         $source = realpath($source);
         $parent = realpath(dirname(rtrim($target, '/')));
-        if (!$source || !$parent || !is_writable($parent)) {
+        if (!$source || !is_dir($source) || is_link($source) || !$parent || !is_writable($parent)) {
             throw new RuntimeException('Storage location is unavailable');
         }
         $target = $parent . '/' . basename(rtrim($target, '/'));
-        if (file_exists($target) || is_link($target)) {
+        if (strpos(str_replace('\\', '/', $target) . '/', str_replace('\\', '/', rtrim($source, '/')) . '/') === 0 || file_exists($target) || is_link($target)) {
             throw new RuntimeException('Storage destination already exists');
         }
         $old = array();
@@ -22,6 +22,7 @@ class StorageMigration {
                 throw new RuntimeException('Configuration file is not writable');
             }
             $old[$file] = file_get_contents($file);
+            if ($old[$file] === false || strpos($old[$file], "define('DIR_STORAGE'") === false) { throw new RuntimeException('Invalid config file: ' . $file); }
         }
         if (!mkdir($target, 0750)) {
             throw new RuntimeException('Cannot create storage directory');
@@ -38,14 +39,15 @@ class StorageMigration {
             }
         }
         foreach (array('cache','logs','download','upload','session','modification') as $dir) {
-            if (!is_dir($target . '/' . $dir)) { mkdir($target . '/' . $dir, 0750); }
+            if (!is_dir($target . '/' . $dir) && !mkdir($target . '/' . $dir, 0750)) { throw new RuntimeException('Cannot create required storage folder: ' . $dir); }
         }
         $changed = array();
         foreach ($old as $file => $body) {
             $replacement = "define('DIR_STORAGE', '" . str_replace('\\', '/', $target) . "/');";
             $new = preg_replace("~define\\s*\\(\\s*'DIR_STORAGE'\\s*,[^;]+;~", $replacement, $body, 1, $count);
-            if (!$count || file_put_contents($file, $new, LOCK_EX) === false) {
+            if (!$count || file_put_contents($file, $new, LOCK_EX) !== strlen($new)) {
                 foreach ($changed as $path) { file_put_contents($path, $old[$path], LOCK_EX); }
+                file_put_contents($file, $old[$file], LOCK_EX);
                 throw new RuntimeException('Cannot update storage configuration');
             }
             $changed[] = $file;
