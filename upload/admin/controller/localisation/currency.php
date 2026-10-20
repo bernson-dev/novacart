@@ -452,7 +452,13 @@ class ControllerLocalisationCurrency extends Controller {
 			}
 
 			if ($has_negative_delta) {
-				$data['warning_update_needed'] = sprintf($this->language->get('warning_update_needed'), $delta_threshold);
+				$delta_threshold_text = rtrim(rtrim(number_format($delta_threshold, 2, '.', ''), '0'), '.');
+
+				$data['warning_update_needed'] = str_replace(
+					'{threshold}',
+					$delta_threshold_text,
+					$this->language->get('warning_update_needed')
+				);
 			}
 
 			$statusText = [
