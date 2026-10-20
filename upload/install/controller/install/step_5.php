@@ -11,10 +11,41 @@ class ControllerInstallStep5 extends Controller {
 		$data['footer'] = $this->load->controller('common/footer');
 		$data['header'] = $this->load->controller('common/header');
 
-		unset($this->session->data['install'], $this->session->data['install_db']);
+		
+        $data['install_summary'] = $this->getInstallSummary();
+        $data['column_left'] = $this->load->controller('common/column_left');
+        // Keep installation session metadata until the finish page has been prepared.
+        unset($this->session->data['install'], $this->session->data['install_db']);
 		// Рендерим шаблон
 		$this->response->setOutput($this->load->view('install/step_5', $data));
 	}
+
+
+    private function getInstallSummary() {
+        $rows = array(
+            array('label' => 'NovaCart', 'value' => defined('VERSION') ? VERSION : '3.x'),
+            array('label' => 'PHP', 'value' => PHP_VERSION)
+        );
+
+        $db = null;
+        try {
+            $db = $this->registry->get('db');
+            if ($db) {
+                $query = $db->query('SELECT VERSION() AS version, @@character_set_database AS charset');
+                $version = isset($query->row['version']) ? $query->row['version'] : '';
+                $charset = isset($query->row['charset']) ? $query->row['charset'] : '';
+                $rows[] = array('label' => 'База данных / Database', 'value' => trim($version . ' · ' . $charset, ' ·'));
+            }
+        } catch (\\Throwable $e) {
+            $rows[] = array('label' => 'База данных / Database', 'value' => 'Configured');
+        }
+
+        $storage = defined('DIR_STORAGE') ? realpath(DIR_STORAGE) : false;
+        $public = defined('DIR_SYSTEM') ? realpath(DIR_SYSTEM . 'storage') : false;
+        $outside = $storage && $public && $storage !== $public;
+        $rows[] = array('label' => 'Storage', 'value' => $outside ? 'External' : 'Default');
+        return $rows;
+    }
 
 	// Метод для обработки AJAX-запроса на удаление папки install
 	public function deleteInstallFolder() {
