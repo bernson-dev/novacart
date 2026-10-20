@@ -86,7 +86,10 @@ class ControllerExtensionExtensionDashboard extends Controller {
 				$extension = basename($file, '.php');
 				$installed = in_array($extension, $extensions, true);
 				
-				if ($this->user->hasPermission('access', 'extension/dashboard/' . $extension)) {
+				// New dashboard extensions do not have their own access permission yet.
+				// They must remain visible so an administrator can install them; the install
+				// action grants access/modify permissions immediately after registration.
+				if (!$installed || $this->user->hasPermission('access', 'extension/dashboard/' . $extension)) {
 					// Compatibility code for old extension folders
 					$this->load->language('extension/dashboard/' . $extension, 'extension');
 					$enabled = $installed && (bool)$this->config->get('dashboard_' . $extension . '_status');
