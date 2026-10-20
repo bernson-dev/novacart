@@ -9,6 +9,7 @@ on:
       - 'upload/catalog/language/**'
       - 'upload/install/language/**'
       - 'tools/i18n_audit.php'
+      - 'tools/i18n_baseline.txt'
       - '.github/workflows/i18n-audit.yml'
   pull_request:
     branches:
@@ -18,6 +19,7 @@ on:
       - 'upload/catalog/language/**'
       - 'upload/install/language/**'
       - 'tools/i18n_audit.php'
+      - 'tools/i18n_baseline.txt'
       - '.github/workflows/i18n-audit.yml'
   workflow_dispatch:
 
@@ -52,13 +54,6 @@ jobs:
 
       - name: Syntax check
         run: php -l tools/i18n_audit.php
-
-      - name: Generate current baseline preview
-        run: |
-          php tools/i18n_audit.php --write-baseline=/tmp/i18n_baseline.txt
-          echo '--- I18N BASELINE BEGIN ---'
-          cat /tmp/i18n_baseline.txt
-          echo '--- I18N BASELINE END ---'
 
       - name: Localization consistency audit
         run: php tools/i18n_audit.php
