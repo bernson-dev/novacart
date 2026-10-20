@@ -58,6 +58,10 @@ class StorageMigration {
 ) !== false) {
             throw new RuntimeException('Storage path contains unsupported characters');
         }
+        $siteRoot = str_replace('\\', '/', dirname(dirname($source))) . '/';
+        if (strpos(str_replace('\\', '/', $target) . '/', $siteRoot) === 0) {
+            throw new RuntimeException('Storage must be outside the website directory');
+        }
         $old = array();
         foreach ($configs as $file) {
             if (!is_file($file) || !is_writable($file)) {
