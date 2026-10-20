@@ -2,13 +2,29 @@
 class StorageMigration {
     public static function suggestedPath($root) {
         $root = realpath($root);
-        if (!$root) { throw new RuntimeException('Invalid site directory'); }
-        $slug = preg_replace('/[^a-zA-Z0-9_-]/', '-', basename($root));
-        return dirname($root) . '/novacart-storage-' . $slug . '/';
+        if (!$root) {
+            throw new RuntimeException('Invalid site directory');
+        }
+        $domain = basename($root);
+        $domain = preg_replace('/[^a-zA-Z0-9._-]/', '-', $domain);
+        $domain = trim($domain, '.-');
+        if ($domain === '') {
+            throw new RuntimeException('Invalid site directory name');
+        }
+        $suffix = bin2hex(random_bytes(4));
+        return dirname($root) . '/storage/' . $domain . '-' . $suffix . '/';
     }
     public static function move($source, $target, $configs) {
         $source = realpath($source);
-        $parent = realpath(dirname(rtrim($target, '/')));
+        $container = dirname(rtrim($target, '/'));
+        if (!is_dir($container)) {
+            $base = realpath(dirname($container));
+            if (!$base || !is_writable($base) || basename($container) !== 'storage' ||
+                !@mkdir($container, 0750)) {
+                throw new RuntimeException('Cannot create storage container');
+            }
+        }
+        $parent = realpath($container);
         if (!$source || !is_dir($source) || is_link($source) || !$parent || !is_writable($parent)) {
             throw new RuntimeException('Storage location is unavailable');
         }
