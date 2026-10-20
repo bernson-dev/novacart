@@ -19,3 +19,7 @@ $_['text_error_invalid_request']     = 'Ошибка: Некорректный �
 $_['text_error_dir_not_found']       = 'Каталог не найден.';
 $_['text_error_file_delete']         = 'Не удалось удалить файл внутри папки install.';
 $_['text_error_dir_delete']          = 'Не удалось удалить каталог внутри папки install.';
+$_['summary_countries'] = 'Страны';
+$_['summary_demo'] = 'Демо-данные';
+$_['summary_demo_removed'] = 'Удалены';
+$_['summary_demo_kept'] = 'Сохранены';
