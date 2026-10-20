@@ -1,5 +1,5 @@
 {{ header }}
-<div class="container">
+<div class="container cc-installer-finish">
     <header>
         <div class="row">
             <div class="col-md-8 col-sm-6">
@@ -16,29 +16,23 @@
         </div>
     </header>
 
-    <div class="alert alert-danger alert-dismissible">
-        <i class="fa fa-exclamation-circle"></i> {{ error_warning }}
-        <input class="form-check-input" style="margin-left: 20px;" type="checkbox" id="delete-install-folder" value="1">
-        <label class="form-check-label" for="delete-install-folder" style="margin-left: 5px;">
-            {{ text_install_deleted }}
-        </label>
-    </div>
-
-    <div class="cc-complete">
+    <section class="cc-complete">
       <span class="cc-complete-icon"><i class="fa fa-check"></i></span>
       <h2>{{ heading_title }}</h2>
       <p>{{ text_step_4 }}</p>
       <div class="cc-summary">
         {% for item in install_summary %}
-        <div class="cc-summary-row"><span>{{ item.label }}</span><strong>{{ item.value }}</strong></div>
+          <div class="cc-summary-row"><span>{{ item.label }}</span><strong>{{ item.value }}</strong></div>
         {% endfor %}
       </div>
-    </div>
+    </section>
+
+    <div class="cc-finish-warning alert alert-warning"><i class="fa fa-exclamation-triangle"></i> {{ error_warning }} <label class="cc-cleanup-label"><input type="checkbox" id="delete-install-folder" value="1"> {{ text_install_deleted }}</label></div>
 
     <!-- Блок для отображения сообщений -->
     <div id="message-box"></div>
 
-<div class="visit">
+<div class="visit cc-actions">
     <div class="row">
         <div class="col-sm-5 col-sm-offset-1 text-center">
             <a href="../" id="go-to-catalog" class="button-block">
