@@ -14,6 +14,23 @@
         <a href="{{ action.href }}" class="btn btn-default"><i class="fa {{ action.icon }}"></i> {{ action.label }}</a>
       {% endfor %}
     </div>
+    <section class="nc-health-attention">
+      <h4><i class="fa fa-exclamation-triangle"></i> {{ text_attention }} <span class="label label-default">{{ attention|length }}</span></h4>
+      {% if attention %}
+      <div class="nc-health-attention-list">
+        {% for item in attention %}
+        <div class="nc-health-attention-item nc-health-attention-{{ item.class }}">
+          <span class="label label-{{ item.class }}">{{ item.state_text }}</span>
+          <span class="nc-health-check-name">{{ item.label }}</span>
+          {% if item.value is not same as('') %}<strong>{{ item.value }}</strong>{% endif %}
+          {% if item.href %}<a href="{{ item.href }}">{{ text_view }} <i class="fa fa-angle-right"></i></a>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-success"><i class="fa fa-check-circle"></i> {{ text_no_attention }}</p>
+      {% endif %}
+    </section>
     <div class="row nc-health-sections">
       {% for section in sections %}
       {% set section_warning = 0 %}
