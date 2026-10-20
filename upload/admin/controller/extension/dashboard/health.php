@@ -75,12 +75,13 @@ class ControllerExtensionDashboardHealth extends Controller {
 		$data['state_error'] = $this->language->get('state_error');
 		$data['settings'] = $this->url->link('extension/dashboard/health', 'user_token=' . $this->session->data['user_token'], true);
 
+		// Only expose links to real standalone admin pages with a clear action.
+		// common/developer and common/security are modal fragments and must not
+		// be opened directly from the Health dashboard.
 		$links = array(
-			'system' => $this->url->link('common/developer', 'user_token=' . $this->session->data['user_token'], true),
 			'logs' => $this->url->link('tool/log', 'user_token=' . $this->session->data['user_token'], true),
 			'catalog' => $this->url->link('catalog/product', 'user_token=' . $this->session->data['user_token'], true),
-			'seo' => $this->url->link('design/seo_url', 'user_token=' . $this->session->data['user_token'], true),
-			'security' => $this->url->link('common/security', 'user_token=' . $this->session->data['user_token'], true)
+			'seo' => $this->url->link('design/seo_url', 'user_token=' . $this->session->data['user_token'], true)
 		);
 
 		$data['sections'] = array();
@@ -195,18 +196,17 @@ class ControllerExtensionDashboardHealth extends Controller {
 			return $links['logs'];
 		}
 
-		if ($code === 'storage_location' || $code === 'install_directory') {
-			return $links['security'];
-		}
-
-		if ($section === 'catalog') {
+		if ($section === 'catalog' && $code !== 'catalog_query') {
 			return $links['catalog'];
 		}
 
-		if ($section === 'seo') {
+		if ($section === 'seo' && $code !== 'seo_query') {
 			return $links['seo'];
 		}
 
-		return $links['system'];
+		// Informational/system checks do not get a fake "Go to" target.
+		// A link is shown only when Health can lead to an actual page where
+		// the administrator can inspect or correct the reported condition.
+		return '';
 	}
 }
