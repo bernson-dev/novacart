@@ -16,6 +16,7 @@ class ControllerInstallStep4 extends Controller {
                     }
                     require_once $migrationFile;
                     $storagePath = isset($this->session->data['suggested_storage_path']) ? $this->session->data['suggested_storage_path'] : StorageMigration::suggestedPath(DIR_OPENCART);
+                    $storagePath = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $storagePath);
                     $webRoot = isset($this->request->server['DOCUMENT_ROOT']) ? realpath($this->request->server['DOCUMENT_ROOT']) : false;
                     $destinationParent = realpath(dirname(rtrim($storagePath, '/')));
                     if ($webRoot && $destinationParent) {
@@ -98,6 +99,7 @@ class ControllerInstallStep4 extends Controller {
             if (empty($this->session->data['suggested_storage_path'])) {
                 $this->session->data['suggested_storage_path'] = StorageMigration::suggestedPath(DIR_OPENCART);
             }
+            $this->session->data['suggested_storage_path'] = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $this->session->data['suggested_storage_path']);
             $data['suggested_storage'] = $this->session->data['suggested_storage_path'];
         } else {
             $data['suggested_storage'] = '';
