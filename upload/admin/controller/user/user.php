@@ -471,7 +471,6 @@ class ControllerUserUser extends Controller {
 				$this->error['password'] = $this->language->get('error_password');
 			}
 
-			//Fix: Декодируем пароль
 			if ($this->request->getRawPost('password') != $this->request->getRawPost('confirm')) {
 				$this->error['confirm'] = $this->language->get('error_confirm');
 			}

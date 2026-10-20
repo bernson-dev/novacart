@@ -192,10 +192,10 @@ class ControllerSettingStore extends Controller {
 
 		foreach ($results as $result) {
 			$data['stores'][] = array(
-			'store_id' => $result['store_id'],
-			'name'     => $result['name'],
-			'url'      => $result['url'],
-			'edit'     => $this->url->link('setting/store/edit', 'user_token=' . $this->session->data['user_token'] . '&store_id=' . $result['store_id'], true)
+				'store_id' => $result['store_id'],
+				'name'     => $result['name'],
+				'url'      => $result['url'],
+				'edit'     => $this->url->link('setting/store/edit', 'user_token=' . $this->session->data['user_token'] . '&store_id=' . $result['store_id'], true)
 			);
 		}
 
@@ -343,9 +343,9 @@ class ControllerSettingStore extends Controller {
 
 		// SVG favicon preview endpoint
 		$data['svg_preview_url'] = $this->url->link(
-		'tool/svg_preview',
-		'user_token=' . $this->session->data['user_token'],
-		true
+			'tool/svg_preview',
+			'user_token=' . $this->session->data['user_token'],
+			true
 		);
 
 		if (isset($this->request->post['config_url'])) {
@@ -491,7 +491,7 @@ class ControllerSettingStore extends Controller {
 		}
 
 		$this->load->model('tool/image');
-		
+
 		$data['placeholder'] = $this->model_tool_image->resize('no_image.png', 100, 100);
 
 		if (isset($this->request->post['config_image']) && is_file(DIR_IMAGE . $this->request->post['config_image'])) {
