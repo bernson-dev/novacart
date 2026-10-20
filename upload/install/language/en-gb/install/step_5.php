@@ -19,3 +19,7 @@ $_['text_error_invalid_request']     = 'Invalid request type.';
 $_['text_error_dir_not_found']       = 'Directory not found.';
 $_['text_error_file_delete']         = 'Failed to delete a file inside the install folder.';
 $_['text_error_dir_delete']          = 'Failed to delete a directory inside the install folder.';
+$_['summary_countries'] = 'Countries';
+$_['summary_demo'] = 'Demo data';
+$_['summary_demo_removed'] = 'Removed';
+$_['summary_demo_kept'] = 'Kept';
