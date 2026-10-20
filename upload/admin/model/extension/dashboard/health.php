@@ -6,9 +6,43 @@ class ModelExtensionDashboardHealth extends Model {
 
 		return array(
 			'system'  => $this->getSystemChecks($log_warning_mb),
+			'commerce' => $this->getCommerceChecks(),
+			'security' => $this->getSecurityChecks(),
 			'catalog' => $this->getCatalogChecks($low_stock_limit),
 			'seo'     => $this->getSeoChecks()
 		);
+	}
+
+	private function getCommerceChecks() {
+		$checks = array();
+		$day = date('Y-m-d') . ' 00:00:00';
+
+		try {
+			$query = $this->db->query("SELECT COUNT(*) AS orders_today, COALESCE(SUM(total), 0) AS revenue_today FROM " . DB_PREFIX . "order WHERE order_status_id > 0 AND date_added >= '" . $this->db->escape($day) . "'");
+			$checks[] = array('code' => 'orders_today', 'state' => 'ok', 'value' => (int)$query->row['orders_today']);
+			$checks[] = array('code' => 'revenue_today', 'state' => 'ok', 'value' => number_format((float)$query->row['revenue_today'], 2, '.', ' '));
+
+			$query = $this->db->query("SELECT COUNT(*) AS total FROM " . DB_PREFIX . "customer WHERE date_added >= '" . $this->db->escape($day) . "'");
+			$checks[] = array('code' => 'customers_today', 'state' => 'ok', 'value' => (int)$query->row['total']);
+		} catch (Throwable $e) {
+			$checks[] = array('code' => 'commerce_query', 'state' => 'error', 'value' => '');
+		}
+
+		return $checks;
+	}
+
+	private function getSecurityChecks() {
+		$checks = array();
+		$https = isset($this->request->server['HTTPS']) && $this->request->server['HTTPS'] && $this->request->server['HTTPS'] !== 'off';
+		$forwarded_https = isset($this->request->server['HTTP_X_FORWARDED_PROTO']) && strtolower((string)$this->request->server['HTTP_X_FORWARDED_PROTO']) === 'https';
+
+		$checks[] = array(
+			'code' => 'https_admin',
+			'state' => ($https || $forwarded_https) ? 'ok' : 'warning',
+			'value' => ($https || $forwarded_https) ? 'HTTPS' : 'HTTP'
+		);
+
+		return $checks;
 	}
 
 	private function getSystemChecks($log_warning_mb) {
