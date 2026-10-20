@@ -13,6 +13,9 @@ class ControllerInstallStep5 extends Controller {
 
 		
         $data['install_summary'] = $this->getInstallSummary();
+        $storagePath = isset($this->session->data['installed_storage_path']) ? $this->session->data['installed_storage_path'] : DIR_OPENCART . 'system/storage/';
+        $data['install_summary'][] = array('label' => $this->language->get('summary_storage_path'), 'value' => $storagePath);
+        $data['install_summary'][] = array('label' => $this->language->get('summary_administrator'), 'value' => isset($this->session->data['install_admin_user']) ? $this->session->data['install_admin_user'] : '—');
         $result = isset($this->session->data['install_result']) ? $this->session->data['install_result'] : array();
         if (isset($result['country_count'])) {
             $data['install_summary'][] = array('label' => $this->language->get('summary_countries'), 'value' => (string)$result['country_count']);
