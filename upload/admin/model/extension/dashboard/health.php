@@ -101,7 +101,86 @@ class ModelExtensionDashboardHealth extends Model {
 			'value' => $this->formatBytes($log_size)
 		);
 
+		$checks[] = $this->getIntegrityCheck();
+
 		return $checks;
+	}
+
+	private function getIntegrityCheck() {
+		$manifest_file = DIR_SYSTEM . 'config/novacart_integrity.json';
+
+		if (!is_file($manifest_file)) {
+			return array(
+				'code' => 'core_integrity',
+				'state' => 'error',
+				'value' => 1,
+				'details' => array(
+					array('state' => 'missing', 'path' => 'system/config/novacart_integrity.json')
+				)
+			);
+		}
+
+		$json = @file_get_contents($manifest_file);
+		$manifest = $json !== false ? json_decode($json, true) : null;
+
+		if (
+			!is_array($manifest) ||
+			!isset($manifest['algorithm']) ||
+			$manifest['algorithm'] !== 'sha256' ||
+			!isset($manifest['files']) ||
+			!is_array($manifest['files'])
+		) {
+			return array(
+				'code' => 'core_integrity',
+				'state' => 'error',
+				'value' => 1,
+				'details' => array(
+					array('state' => 'invalid', 'path' => 'system/config/novacart_integrity.json')
+				)
+			);
+		}
+
+		$details = array();
+
+		foreach ($manifest['files'] as $logical_path => $expected_hash) {
+			$file = $this->resolveIntegrityPath($logical_path);
+
+			if ($file === '' || !is_file($file)) {
+				$details[] = array('state' => 'missing', 'path' => $logical_path);
+				continue;
+			}
+
+			$actual_hash = hash_file('sha256', $file);
+
+			if ($actual_hash === false || !hash_equals((string)$expected_hash, $actual_hash)) {
+				$details[] = array('state' => 'changed', 'path' => $logical_path);
+			}
+		}
+
+		return array(
+			'code' => 'core_integrity',
+			'state' => $details ? 'warning' : 'ok',
+			'value' => count($details),
+			'details' => $details
+		);
+	}
+
+	private function resolveIntegrityPath($logical_path) {
+		$logical_path = str_replace('\\', '/', (string)$logical_path);
+
+		if (strpos($logical_path, 'system/') === 0) {
+			return DIR_SYSTEM . str_replace('/', DIRECTORY_SEPARATOR, substr($logical_path, 7));
+		}
+
+		if (strpos($logical_path, 'catalog/') === 0) {
+			return DIR_CATALOG . str_replace('/', DIRECTORY_SEPARATOR, substr($logical_path, 8));
+		}
+
+		if (strpos($logical_path, 'admin/') === 0) {
+			return DIR_APPLICATION . str_replace('/', DIRECTORY_SEPARATOR, substr($logical_path, 6));
+		}
+
+		return '';
 	}
 
 	private function getCatalogChecks($low_stock_limit) {
