@@ -12,7 +12,8 @@ class StorageMigration {
             throw new RuntimeException('Invalid site directory name');
         }
         $suffix = bin2hex(random_bytes(4));
-        return dirname($root) . '/storage/' . $domain . '-' . $suffix . '/';
+        $separator = DIRECTORY_SEPARATOR;
+        return rtrim(dirname($root), '/\\') . $separator . 'storage' . $separator . $domain . '-' . $suffix . $separator;
     }
     public static function move($source, $target, $configs) {
         $source = realpath($source);
