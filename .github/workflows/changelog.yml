@@ -24,7 +24,9 @@ env:
 jobs:
   suggest:
     name: Generate changelog suggestion
-    if: github.event.action != 'closed'
+    # Temporarily disabled to conserve Copilot quota during testing.
+    # Re-enable explicitly when changelog suggestions are needed.
+    if: ${{ false }}
     runs-on: ubuntu-latest
 
     permissions:
