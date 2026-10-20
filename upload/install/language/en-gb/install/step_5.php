@@ -26,3 +26,5 @@ $_['summary_demo_kept'] = 'Kept';
 
 $_['summary_storage_path'] = 'Storage path';
 $_['summary_administrator'] = 'Administrator';
+
+$_['summary_installer_language'] = 'Installer language';
