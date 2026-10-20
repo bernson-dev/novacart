@@ -19,3 +19,7 @@ $_['text_error_invalid_request'] = 'Некоректний тип запиту.'
 $_['text_error_dir_not_found'] = 'Каталог не знайдено.';
 $_['text_error_file_delete'] = 'Не вдалося видалити файл у папці install.';
 $_['text_error_dir_delete'] = 'Не вдалося видалити каталог у папці install.';
+$_['summary_countries'] = 'Країни';
+$_['summary_demo'] = 'Демо-дані';
+$_['summary_demo_removed'] = 'Видалені';
+$_['summary_demo_kept'] = 'Збережені';
