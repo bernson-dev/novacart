@@ -26,3 +26,5 @@ $_['summary_demo_kept'] = 'Сохранены';
 
 $_['summary_storage_path'] = 'Путь к storage';
 $_['summary_administrator'] = 'Администратор';
+
+$_['summary_installer_language'] = 'Язык установки';
