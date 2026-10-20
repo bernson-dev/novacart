@@ -60,6 +60,7 @@ class ControllerExtensionDashboardHealth extends Controller {
 
 	public function dashboard() {
 		$this->load->language('extension/dashboard/health');
+		$this->document->addStyle('view/stylesheet/health-dashboard.css');
 		$this->load->model('extension/dashboard/health');
 
 		$report = $this->model_extension_dashboard_health->getReport(
