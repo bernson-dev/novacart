@@ -92,10 +92,21 @@ class ControllerExtensionExtensionDashboard extends Controller {
 				if (!$installed || $this->user->hasPermission('access', 'extension/dashboard/' . $extension)) {
 					// Compatibility code for old extension folders
 					$this->load->language('extension/dashboard/' . $extension, 'extension');
+
+					// Resolve module titles using the configured admin language.
+					$extension_name = $this->language->get('extension')->get('heading_title');
+					$admin_language = (string)$this->config->get('config_admin_language');
+
+					if ($admin_language !== '' && is_file(DIR_LANGUAGE . $admin_language . '/extension/dashboard/' . $extension . '.php')) {
+						$translated = new Language($admin_language);
+						$translated->load('extension/dashboard/' . $extension);
+						$extension_name = $translated->get('heading_title');
+					}
+
 					$enabled = $installed && (bool)$this->config->get('dashboard_' . $extension . '_status');
 
 					$data['extensions'][] = array(
-						'name'       => $this->language->get('extension')->get('heading_title'),
+						'name'       => $extension_name,
 						'width'      => $this->config->get('dashboard_' . $extension . '_width'),
 						'status'     => $enabled ? '<span class="label label-success">' . $this->language->get('text_enabled') . '</span>' : '<span class="label label-danger">' . $this->language->get('text_disabled') . '</span>',
 						'enabled'    => $enabled, // логическое значение для сортировки
