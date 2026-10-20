@@ -36,7 +36,7 @@ class ControllerInstallStep5 extends Controller {
                 $charset = isset($query->row['charset']) ? $query->row['charset'] : '';
                 $rows[] = array('label' => 'База данных / Database', 'value' => trim($version . ' · ' . $charset, ' ·'));
             }
-        } catch (\\Throwable $e) {
+        } catch (\Throwable $e) {
             $rows[] = array('label' => 'База данных / Database', 'value' => 'Configured');
         }
 
