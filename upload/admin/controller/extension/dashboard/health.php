@@ -101,6 +101,20 @@ class ControllerExtensionDashboardHealth extends Controller {
 					$data['summary'][$state]++;
 				}
 
+				$details = array();
+
+				if (!empty($item['details']) && is_array($item['details'])) {
+					foreach ($item['details'] as $detail) {
+						$detail_state = isset($detail['state']) ? (string)$detail['state'] : 'invalid';
+
+						$details[] = array(
+							'state' => $detail_state,
+							'label' => $this->language->get('integrity_' . $detail_state),
+							'path' => isset($detail['path']) ? (string)$detail['path'] : ''
+						);
+					}
+				}
+
 				$section_data['items'][] = array(
 					'code' => $item['code'],
 					'label' => $this->language->get('check_' . $item['code']),
@@ -109,6 +123,7 @@ class ControllerExtensionDashboardHealth extends Controller {
 					'state_text' => $this->language->get('state_' . $state),
 					'class' => $this->stateClass($state),
 					'value' => isset($item['value']) ? $item['value'] : '',
+					'details' => $details,
 					'href' => $this->itemLink($section, $item['code'], $links)
 				);
 			}
