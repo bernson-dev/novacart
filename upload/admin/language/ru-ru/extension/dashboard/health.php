@@ -63,3 +63,10 @@ $_['check_seo_query'] = 'Проверка SEO';
 $_['check_seo_query_help'] = 'Не удалось выполнить проверку таблицы SEO URL.';
 
 $_['error_permission'] = 'У вас нет прав для изменения настроек состояния магазина!';
+
+// Quick actions
+$_['health_quick_product'] = 'Добавить товар';
+$_['health_quick_orders'] = 'Заказы';
+$_['health_quick_products'] = 'Товары';
+$_['health_quick_logs'] = 'Журнал ошибок';
+$_['health_quick_seo'] = 'SEO URL';
