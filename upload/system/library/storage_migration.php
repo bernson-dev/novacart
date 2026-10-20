@@ -73,6 +73,6 @@ class StorageMigration {
             }
             $changed[] = $file;
         }
-        return str_replace('\\', '/', $target) . '/';
+        return str_replace('/', DIRECTORY_SEPARATOR, $target) . DIRECTORY_SEPARATOR;
     }
 }
