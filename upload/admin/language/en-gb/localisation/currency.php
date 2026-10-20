@@ -62,4 +62,4 @@ $_['error_correction_rate']           = 'The correction rate must be a number gr
 $_['error_no_rates']                  = 'Rates were not received from the source.';
 $_['error_base_currency_missing']     = 'Rates were not updated. The store\'s base currency is missing from the source.';
 $_['error_no_matching_currencies']    = 'Rates were not updated. There are no matching store currencies in the source data.';
-$_['warning_update_needed']           = 'The exchange rate for one or more currencies has changed by more than %.2f%%. The currencies may need to be updated!';
+$_['warning_update_needed']           = 'The exchange rate for one or more currencies has changed by more than {threshold}%. The currencies may need to be updated!';
