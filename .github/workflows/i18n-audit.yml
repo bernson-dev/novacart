@@ -53,5 +53,12 @@ jobs:
       - name: Syntax check
         run: php -l tools/i18n_audit.php
 
+      - name: Generate current baseline preview
+        run: |
+          php tools/i18n_audit.php --write-baseline=/tmp/i18n_baseline.txt
+          echo '--- I18N BASELINE BEGIN ---'
+          cat /tmp/i18n_baseline.txt
+          echo '--- I18N BASELINE END ---'
+
       - name: Localization consistency audit
         run: php tools/i18n_audit.php
