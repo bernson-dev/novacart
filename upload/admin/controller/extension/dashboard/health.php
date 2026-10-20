@@ -69,6 +69,10 @@ class ControllerExtensionDashboardHealth extends Controller {
 
 		$data['heading_title'] = $this->language->get('heading_title');
 		$data['text_settings'] = $this->language->get('text_settings');
+		$data['text_view'] = $this->language->get('text_view');
+		$data['state_ok'] = $this->language->get('state_ok');
+		$data['state_warning'] = $this->language->get('state_warning');
+		$data['state_error'] = $this->language->get('state_error');
 		$data['settings'] = $this->url->link('extension/dashboard/health', 'user_token=' . $this->session->data['user_token'], true);
 
 		$links = array(
