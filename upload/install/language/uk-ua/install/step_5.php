@@ -23,3 +23,6 @@ $_['summary_countries'] = 'Країни';
 $_['summary_demo'] = 'Демо-дані';
 $_['summary_demo_removed'] = 'Видалені';
 $_['summary_demo_kept'] = 'Збережені';
+
+$_['summary_storage_path'] = 'Шлях до storage';
+$_['summary_administrator'] = 'Адміністратор';
