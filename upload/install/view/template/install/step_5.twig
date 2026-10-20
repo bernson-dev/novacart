@@ -24,6 +24,17 @@
         </label>
     </div>
 
+    <div class="cc-complete">
+      <span class="cc-complete-icon"><i class="fa fa-check"></i></span>
+      <h2>{{ heading_title }}</h2>
+      <p>{{ text_step_4 }}</p>
+      <div class="cc-summary">
+        {% for item in install_summary %}
+        <div class="cc-summary-row"><span>{{ item.label }}</span><strong>{{ item.value }}</strong></div>
+        {% endfor %}
+      </div>
+    </div>
+
     <!-- Блок для отображения сообщений -->
     <div id="message-box"></div>
 
