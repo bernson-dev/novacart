@@ -13,6 +13,13 @@ class ControllerInstallStep5 extends Controller {
 
 		
         $data['install_summary'] = $this->getInstallSummary();
+        $result = isset($this->session->data['install_result']) ? $this->session->data['install_result'] : array();
+        if (isset($result['country_count'])) {
+            $data['install_summary'][] = array('label' => $this->language->get('summary_countries'), 'value' => (string)$result['country_count']);
+        }
+        if (isset($result['demo_removed'])) {
+            $data['install_summary'][] = array('label' => $this->language->get('summary_demo'), 'value' => $result['demo_removed'] ? $this->language->get('summary_demo_removed') : $this->language->get('summary_demo_kept'));
+        }
         $data['column_left'] = $this->load->controller('common/column_left');
         // Keep installation session metadata until the finish page has been prepared.
         unset($this->session->data['install'], $this->session->data['install_db']);
