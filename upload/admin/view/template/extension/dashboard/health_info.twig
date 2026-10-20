@@ -1,0 +1,53 @@
+<div class="panel panel-default">
+  <div class="panel-heading clearfix">
+    <h3 class="panel-title pull-left"><i class="fa fa-heartbeat"></i> {{ heading_title }}</h3>
+    <a href="{{ settings }}" class="btn btn-default btn-xs pull-right" data-toggle="tooltip" title="{{ text_settings }}"><i class="fa fa-cog"></i></a>
+  </div>
+
+  <div class="panel-body">
+    <div class="row" style="margin-bottom:15px;">
+      <div class="col-sm-12">
+        <span class="label label-success">{{ state_ok|default('OK') }} {{ summary.ok }}</span>
+        {% if summary.warning %}
+        <span class="label label-warning">{{ state_warning|default('Attention') }} {{ summary.warning }}</span>
+        {% endif %}
+        {% if summary.error %}
+        <span class="label label-danger">{{ state_error|default('Error') }} {{ summary.error }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="row">
+      {% for section in sections %}
+      <div class="col-md-4">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <strong><i class="fa {{ section.icon }}"></i> {{ section.title }}</strong>
+          </div>
+
+          <div class="list-group">
+            {% for item in section.items %}
+            <div class="list-group-item">
+              <div class="clearfix">
+                <strong>{{ item.label }}</strong>
+                <span class="label label-{{ item.class }} pull-right">{{ item.state_text }}</span>
+              </div>
+
+              {% if item.value is not same as('') %}
+              <div style="margin-top:5px; word-break:break-word;"><code>{{ item.value }}</code></div>
+              {% endif %}
+
+              <div class="small text-muted" style="margin-top:5px;">{{ item.help }}</div>
+
+              {% if item.href %}
+              <div style="margin-top:5px;"><a href="{{ item.href }}">{{ text_view }} <i class="fa fa-angle-right"></i></a></div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
