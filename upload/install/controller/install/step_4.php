@@ -8,6 +8,19 @@ class ControllerInstallStep4 extends Controller {
 		$data = $this->load->language('install/step_4');
 
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
+            if (!empty($this->request->post['external_storage'])) {
+                require_once(DIR_OPENCART . 'system/library/storage_migration.php');
+                try {
+                    $storagePath = StorageMigration::suggestedPath(DIR_OPENCART);
+                    $this->session->data['installed_storage_path'] = StorageMigration::move(
+                        DIR_OPENCART . 'system/storage', $storagePath,
+                        array(DIR_OPENCART . 'config.php', DIR_OPENCART . 'admin/config.php')
+                    );
+                } catch (Throwable $error) {
+                    $this->error['storage'] = $error->getMessage();
+                }
+            }
+            if (!$this->error) {
 			if ($this->request->post['delete_demodata'] == 'yes') {
 				$demo_images = DIR_IMAGE . 'catalog/demo';
 				if (file_exists($demo_images)) {
@@ -45,6 +58,8 @@ class ControllerInstallStep4 extends Controller {
             );
 
 			$this->response->redirect($this->url->link('install/step_5'));
+            }
+
 		}
 
 		$this->document->setTitle($this->language->get('heading_title'));
@@ -62,6 +77,10 @@ class ControllerInstallStep4 extends Controller {
 		}
 
 		$data['countries'] = $this->model_install_install->getCountries();
+        $data['external_storage'] = !empty($this->request->post['external_storage']);
+        $data['error_storage'] = isset($this->error['storage']) ? $this->error['storage'] : '';
+        require_once(DIR_OPENCART . 'system/library/storage_migration.php');
+        $data['suggested_storage'] = StorageMigration::suggestedPath(DIR_OPENCART);
 
 		if (isset($this->request->post['delete_demodata'])) {
 			$data['delete_demodata'] = $this->request->post['delete_demodata'];
