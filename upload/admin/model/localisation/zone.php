@@ -1,11 +1,32 @@
 <?php
 class ModelLocalisationZone extends Model {
+	private function saveDescriptions($zone_id, $data) {
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "zone_description` WHERE `zone_id` = '" . (int)$zone_id . "'");
+		if (!empty($data['zone_description']) && is_array($data['zone_description'])) {
+			foreach ($data['zone_description'] as $language_id => $description) {
+				$name = isset($description['name']) ? trim($description['name']) : '';
+				if ($name !== '' && utf8_strlen($name) <= 128) {
+					$this->db->query("INSERT INTO `" . DB_PREFIX . "zone_description` SET `zone_id` = '" . (int)$zone_id . "', `language_id` = '" . (int)$language_id . "', `name` = '" . $this->db->escape($name) . "'");
+				}
+			}
+		}
+	}
+
+	public function getZoneDescriptions($zone_id) {
+		$descriptions = array();
+		$query = $this->db->query("SELECT language_id, name FROM `" . DB_PREFIX . "zone_description` WHERE `zone_id` = '" . (int)$zone_id . "'");
+		foreach ($query->rows as $row) {
+			$descriptions[$row['language_id']] = array('name' => $row['name']);
+		}
+		return $descriptions;
+	}
+
 	public function addZone($data) {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "zone` SET `status` = '" . (int)$data['status'] . "', `name` = '" . $this->db->escape($data['name']) . "', `code` = '" . $this->db->escape($data['code']) . "', `country_id` = '" . (int)$data['country_id'] . "'");
 
 		$this->cache->delete('zone');
 
-		return $this->db->getLastId();
+		return $zone_id;
 	}
 
 	public function editZone($zone_id, $data) {
@@ -16,6 +37,7 @@ class ModelLocalisationZone extends Model {
 
 	public function deleteZone($zone_id) {
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "zone` WHERE `zone_id` = '" . (int)$zone_id . "'");
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "zone_description` WHERE `zone_id` = '" . (int)$zone_id . "'");
 
 		$this->cache->delete('zone');
 	}
