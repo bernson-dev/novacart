@@ -10,7 +10,7 @@ class ModelLocalisationZone extends Model {
 		$zone_data = $this->cache->get('zone.' . (int)$country_id . '.' . (int)$this->config->get('config_language_id'));
 
 		if (!$zone_data) {
-			$query = $this->db->query("SELECT t.*, COALESCE(NULLIF(d.name, ''), t.name) AS name FROM " . DB_PREFIX . "zone t LEFT JOIN " . DB_PREFIX . "zone_description d ON (d.zone_id = t.zone_id AND d.language_id = '" . (int)$this->config->get('config_language_id') . "') WHERE t.country_id = '" . (int)$country_id . "' AND t.status = '1' ORDER BY name");
+			$query = $this->db->query("SELECT t.*, COALESCE(NULLIF(d.name, ''), t.name) AS name FROM " . DB_PREFIX . "zone t LEFT JOIN " . DB_PREFIX . "zone_description d ON (d.zone_id = t.zone_id AND d.language_id = '" . (int)$this->config->get('config_language_id') . "') WHERE t.country_id = '" . (int)$country_id . "' AND t.status = '1' ORDER BY COALESCE(NULLIF(d.name, ''), t.name)");
 
 			$zone_data = $query->rows;
 
