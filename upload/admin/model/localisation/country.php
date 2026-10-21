@@ -1,11 +1,32 @@
 <?php
 class ModelLocalisationCountry extends Model {
+	private function saveDescriptions($country_id, $data) {
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "country_description` WHERE `country_id` = '" . (int)$country_id . "'");
+		if (!empty($data['country_description']) && is_array($data['country_description'])) {
+			foreach ($data['country_description'] as $language_id => $description) {
+				$name = isset($description['name']) ? trim($description['name']) : '';
+				if ($name !== '' && utf8_strlen($name) <= 128) {
+					$this->db->query("INSERT INTO `" . DB_PREFIX . "country_description` SET `country_id` = '" . (int)$country_id . "', `language_id` = '" . (int)$language_id . "', `name` = '" . $this->db->escape($name) . "'");
+				}
+			}
+		}
+	}
+
+	public function getCountryDescriptions($country_id) {
+		$descriptions = array();
+		$query = $this->db->query("SELECT language_id, name FROM `" . DB_PREFIX . "country_description` WHERE `country_id` = '" . (int)$country_id . "'");
+		foreach ($query->rows as $row) {
+			$descriptions[$row['language_id']] = array('name' => $row['name']);
+		}
+		return $descriptions;
+	}
+
 	public function addCountry($data) {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "country` SET `name` = '" . $this->db->escape($data['name']) . "', `iso_code_2` = '" . $this->db->escape($data['iso_code_2']) . "', `iso_code_3` = '" . $this->db->escape($data['iso_code_3']) . "', `address_format` = '" . $this->db->escape($data['address_format']) . "', `postcode_required` = '" . (int)$data['postcode_required'] . "', `status` = '" . (int)$data['status'] . "'");
 
 		$this->cache->delete('country');
 		
-		return $this->db->getLastId();
+		return $country_id;
 	}
 
 	public function editCountry($country_id, $data) {
@@ -16,6 +37,7 @@ class ModelLocalisationCountry extends Model {
 
 	public function deleteCountry($country_id) {
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "country` WHERE `country_id` = '" . (int)$country_id . "'");
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "country_description` WHERE `country_id` = '" . (int)$country_id . "'");
 
 		$this->cache->delete('country');
 	}
