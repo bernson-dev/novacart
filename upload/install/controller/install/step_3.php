@@ -105,6 +105,8 @@ class ControllerInstallStep3 extends Controller {
 
 			fclose($file);
 			$this->session->data['install'] = 1;
+			$this->session->data['install_admin_user'] = (string)$this->request->post['username'];
+			unset($this->session->data['installed_storage_path'], $this->session->data['install_result']);
 
 			$this->response->redirect($this->url->link('install/step_4'));
 		}
@@ -329,6 +331,7 @@ class ControllerInstallStep3 extends Controller {
 
 		$data['footer'] = $this->load->controller('common/footer');
 		$data['header'] = $this->load->controller('common/header');
+		$data['step_header'] = $this->load->controller('common/step_header');
 		$data['column_left'] = $this->load->controller('common/column_left');
 
 		$this->response->setOutput($this->load->view('install/step_3', $data));

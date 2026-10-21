@@ -1,191 +1,724 @@
+/* ==========================================================================
+1. ПЕРЕМЕННЫЕ И ОСНОВНЫЕ СТИЛИ (ДИЗАЙН-СИСТЕМА)
+========================================================================== */
+:root {
+    --primary: #0284c7;
+    --primary-hover: #0369a1;
+    --primary-active: #075985;
+    --primary-light: #f0f9ff;
+
+    --bg-body: #f8fafc;
+    --bg-surface: #ffffff;
+    --border-color: #e2e8f0;
+    --border-hover: #cbd5e1;
+
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --text-dark: #0f172a;
+
+    --success-bg: #f0fdf4;
+    --success-border: #bbf7d0;
+    --success-color: #16a34a;
+
+    --warning-bg: #fffbeb;
+    --warning-border: #fef08a;
+    --warning-color: #a16207;
+    --danger-color: #ef4444;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+
 html {
     overflow-y: auto;
     margin: 0;
     padding: 0;
+    -webkit-text-size-adjust: 100%;
 }
 
-*,h1,h2,h3,h4,h5,h6 {
-    font-family: 'Open Sans',sans-serif;
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+*, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
     font-weight: 400;
     margin-top: 0;
     margin-bottom: 0;
-    box-sizing: border-box;
 }
 
 body {
     margin: 0;
     padding: 0;
     line-height: 1.6;
-    background: #f9f9f9;
-    color: #444;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
 }
 
 a {
-    color: #007bff;
+    color: var(--primary);
     text-decoration: none;
-    transition: color 0.3s ease;
+    transition: color 0.2s ease;
 }
 
-fieldset {
-    border: 1px solid #ced4da;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    background: #ffffff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-
+a:hover {
+    color: var(--primary-hover);
 }
 
-
-
-select,input[type='text'],input[type='password'],textarea {
-    background: #fff;
-    border-radius: 5px 5px 5px 5px;
-    border: 1px solid #dbdbdb;
-    padding: 4px;
-    color: #000
-}
-
-option {
-    color: #000
-}
-
-
-
-b,strong {
-    color: #555
+b, strong {
+    color: var(--text-dark);
+    font-weight: 600;
 }
 
 label {
-    cursor: pointer
+    cursor: pointer;
+    color: var(--text-main);
 }
 
-/*Header*/
+/* ==========================================================================
+2. ФОРМЫ, КНОПКИ И БЛОКИ
+========================================================================== */
+fieldset {
+    border: 1px solid var(--border-color);
+    padding: 24px;
+    margin-bottom: 24px;
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+select,
+input[type='text'],
+input[type='password'],
+textarea {
+    width: 100%;
+    background: var(--bg-surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    color: var(--text-main);
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+}
+
+select:focus,
+input[type='text']:focus,
+input[type='password']:focus,
+textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+option {
+    color: var(--text-main);
+}
+
+div.required .control-label:before {
+    content: '* ';
+    color: var(--danger-color);
+    font-weight: 700;
+}
+
 header {
-    padding: 50px
+    padding: 40px 20px;
 }
 
 header h1 {
-    margin: 0 25px 0 0;
-    font-size: 48px
+    margin: 0 24px 0 0;
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--text-dark);
 }
 
 header h3 {
     margin: 0;
-    float: left
+    float: left;
+    color: var(--text-muted);
 }
 
 header h3 small {
-    margin: 10px 0 0;
-    display: block
+    margin-top: 8px;
+    display: block;
+    font-size: 14px;
 }
 
 #logo img {
-    max-height: 50px
+    max-height: 48px;
+    max-width: 100%;
+    height: auto;
 }
 
 footer {
-    margin: 25px 0;
-    text-align: center
-}
-
-
-div.required .control-label:before {
-    content: '* ';
-    color: red;
-    font-weight: 700
+    margin: 32px 0;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
 }
 
 .buttons {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 12px;
     margin-bottom: 20px;
 }
 
 .btn {
     font-weight: 500;
-    border-radius: 5px;
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
 }
 
-.terms {
-    background: #fff;
-    border: 1px solid #dbdbdb;
-    margin: 3px 0 10px;
-    padding: 4px;
-    height: 250px;
-    overflow-y: scroll
+.button-block {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    padding: 16px 24px;
+    background-color: var(--primary);
+    color: #ffffff;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    transition: all 0.2s ease;
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
+    text-align: center;
 }
 
-.terms p,.terms ul,.terms ol {
-    color: #000
+.button-block i {
+    margin-right: 10px;
+}
+
+.button-block:hover {
+    background-color: var(--primary-hover);
+    color: #ffffff;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
+}
+
+.button-block:active {
+    background-color: var(--primary-active);
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Контейнеры с прокруткой */
+.terms,
+.scroll-box,
+.country-list.well {
+    width: 100%;
+    height: 280px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-surface);
+    margin-bottom: 20px;
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+.terms p, .terms ul, .terms ol {
+    color: var(--text-main);
+    margin-top: 0;
 }
 
 .country-list.well {
-    height: 300px;
-    overflow-y: auto;
     margin: 0;
-    padding-top: 0
+    padding-top: 12px;
 }
 
 .visit {
-    padding: 20px;
-    border-radius: 8px;
+    padding: 24px;
+    border-radius: var(--radius-md);
     text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
 }
 
 .visit a {
-    text-decoration: none;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-    .button-block {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        padding: 20px;
-        background-color: #008cba;
-        color: white;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-        font-size: 18px;
-        width: 100%;
+/* ==========================================================================
+3. ИНСТАЛЛЯТОР КОМПОНЕНТЫ И ШАПКА (cc-*)
+========================================================================== */
+.cc-sidebar {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.cc-step-list {
+    display: grid;
+    gap: 8px;
+}
+
+.cc-step-item {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+}
+
+.cc-step-item > span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-hover);
+    border-radius: 50%;
+    height: 28px;
+    width: 28px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.cc-step-item.active {
+    background: var(--primary-light);
+    color: var(--primary-hover);
+    font-weight: 600;
+}
+
+.cc-step-item.active > span {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+}
+
+.cc-step-item.done > span {
+    background: var(--success-bg);
+    color: var(--success-color);
+    border-color: var(--success-border);
+}
+
+.cc-language {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.cc-language__label {
+    margin-bottom: 10px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.cc-language__options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cc-language__option {
+    display: flex;
+    width: 100%;
+    min-height: 42px;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    color: var(--text-main);
+    padding: 8px 12px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.cc-language__option.active {
+    background: var(--primary-light);
+    color: var(--primary-hover);
+    border-color: var(--primary);
+    font-weight: 600;
+}
+
+.cc-language__option img {
+    flex: 0 0 20px;
+    object-fit: contain;
+}
+
+.cc-installer-finish {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Красивое оформление шапки (теперь в едином стиле с карточкой) */
+.cc-installer-finish .cc-finish-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 920px;
+    margin: 0 auto 20px auto;
+    padding: 16px 24px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Бэдж для номера шага */
+.cc-installer-finish .cc-finish-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border: 1px solid var(--border-hover);
+    border-radius: 20px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.cc-installer-finish .cc-finish-step small {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.cc-finish-logo {
+    max-width: 140px;
+    max-height: 45px;
+    object-fit: contain;
+}
+
+.cc-finish-panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 36px;
+    box-shadow: var(--shadow-lg);
+}
+
+.cc-finish-heading {
+    text-align: center;
+}
+
+.cc-finish-heading h1 {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 16px 0 8px;
+    color: var(--text-dark);
+}
+
+.cc-finish-heading p {
+    margin: 0;
+    color: var(--text-muted);
+}
+
+.cc-installer-finish .cc-summary {
+    margin: 28px 0 20px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--bg-surface);
+}
+
+.cc-installer-finish .cc-summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cc-installer-finish .cc-summary-row:last-child {
+    border-bottom: 0;
+}
+
+.cc-installer-finish .cc-summary-row span {
+    color: var(--text-muted);
+}
+
+.cc-installer-finish .cc-summary-row strong {
+    text-align: right;
+    overflow-wrap: anywhere;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.cc-installer-finish .cc-finish-warning {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 20px;
+    color: var(--warning-color);
+}
+
+.cc-finish-warning-title {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-weight: 600;
+}
+
+.cc-installer-finish .cc-cleanup-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cc-installer-finish .cc-cleanup-label input {
+    margin: 0;
+    width: auto;
+}
+
+.cc-finish-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+/* Кнопки завершения с заметным эффектом наведения */
+.cc-installer-finish .cc-finish-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    min-height: 74px;
+    padding: 16px;
+    border: 1px solid #38bdf8;
+    border-radius: 9px;
+    background: #008db5;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.25s ease-in-out;
+}
+
+.cc-installer-finish .cc-finish-button i {
+    font-size: 27px;
+    transition: transform 0.25s ease;
+}
+
+.cc-installer-finish .cc-finish-button:hover {
+    background: #0284c7;
+    border-color: #7dd3fc;
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(2, 132, 199, 0.35);
+    transform: translateY(-3px);
+}
+
+.cc-installer-finish .cc-finish-button:active {
+    background: #0369a1;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.cc-installer-finish .cc-finish-button:hover i {
+    transform: scale(1.1);
+}
+
+.cc-installer-finish #message-box:not(:empty) {
+    margin-bottom: 16px;
+}
+
+/* ==========================================================================
+4. МОБИЛЬНАЯ АДАПТИВНОСТЬ (< 768px)
+========================================================================== */
+@media screen and (max-width: 767px) {
+    header {
+        padding: 20px 12px;
         text-align: center;
     }
 
-    .button-block i {
-        margin-right: 10px;
+    header h1 {
+        float: none;
+        margin: 0 0 8px 0;
+        font-size: 26px;
     }
 
-    .button-block:hover {
-        background-color: #005f8a;
-        color: #e0f7fa;
-        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
-        transform: translateY(-2px);
+    header h3 {
+        float: none;
+        display: block;
+        margin: 0 auto;
     }
 
-    .button-block:active {
-        background-color: #004564;
-        transform: translateY(0px);
-        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+    select,
+    input[type='text'],
+    input[type='password'],
+    textarea {
+        font-size: 16px !important;
+        padding: 10px 12px;
+        width: 100% !important;
     }
-    
-.scroll-box {
-    width: 100%; /* Устанавливает ширину блока */
-    height: 300px; /* Фиксированная высота блока */
-    overflow-y: auto; /* Включает вертикальную прокрутку */
-    overflow-x: hidden; /* Отключает горизонтальную прокрутку */
-    padding: 10px; /* Добавляет внутренние отступы */
-    border: 1px solid #ccc; /* Рамка вокруг блока */
-    border-radius: 5px; /* Скругление углов */
-    background-color: #f9f9f9; /* Цвет фона */
-    margin-bottom: 20px; /* Отступ после блока */
-    word-wrap: break-word; /* Перенос длинных слов */
-    white-space: normal; /* Перенос строк при длинных текстах */
+
+    .buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .btn,
+    .button-block {
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .terms,
+    .scroll-box,
+    .country-list.well {
+        height: 200px;
+        padding: 12px;
+    }
+
+    .cc-installer-finish .cc-finish-header {
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        border-radius: var(--radius-sm);
+    }
+
+    .cc-installer-finish .cc-finish-step {
+        font-size: 15px;
+        padding: 4px 10px;
+    }
+
+    .cc-installer-finish .cc-finish-logo {
+        max-width: 110px;
+        max-height: 35px;
+    }
+
+    .cc-finish-panel {
+        padding: 20px 16px;
+    }
+
+    .cc-installer-finish .cc-summary-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .cc-installer-finish .cc-summary-row strong {
+        text-align: left;
+    }
+
+    .cc-finish-actions {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .cc-installer-finish .cc-finish-button {
+        min-height: 52px;
+        font-size: 15px;
+    }
+
+    .cc-step-list {
+        grid-template-columns: 1fr;
+    }
+
+    .cc-step-item {
+        grid-template-columns: 28px 1fr;
+        font-size: 13px;
+        padding: 8px;
+    }
 }
 
+/* По умолчанию на всех шагах логотип черно-белый */
+.cc-finish-logo {
+    max-width: 140px;
+    max-height: 45px;
+    object-fit: contain;
+    filter: grayscale(100%) brightness(120%); /* Обесцвечиваем и делаем чуть светлее для гармонии */
+    transition: filter 0.3s ease;
+}
+
+/* На финальном шаге логотип цветной (благодаря классу cc-logo-color) */
+.cc-finish-logo.cc-logo-color {
+    filter: none; /* Убираем обесцвечивание, возвращаем оригинальные цвета */
+}
+
+@media screen and (max-width: 480px) {
+    fieldset {
+        padding: 12px;
+    }
+
+    .cc-finish-heading h1 {
+        font-size: 20px;
+    }
+
+    .cc-finish-step {
+        font-size: 20px;
+    }
+
+    .cc-finish-step small {
+        display: block;
+    }
+}
+
+/* Shared step header, used by all five installer screens. */
+.container > .cc-step-header,
+.cc-installer-finish > .cc-step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 0 20px;
+    padding: 16px 24px;
+    border: 1px solid var(--border-color, #dce2e8);
+    border-radius: var(--radius-md, 10px);
+    background: var(--bg-surface, #fff);
+    box-shadow: var(--shadow-sm, 0 2px 8px rgba(0,0,0,.05));
+    text-align: left;
+}
+.cc-step-header__main { display: flex; align-items: center; gap: 20px; min-width: 0; }
+.cc-step-header__number {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 6px 14px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary, #138cb3);
+    background: var(--primary-light, #eef8fc);
+    border: 1px solid var(--border-hover, #c2e2ed);
+    border-radius: 20px;
+}
+.cc-step-header__number small { font-size: 14px; font-weight: 500; color: var(--text-muted, #697785); }
+.cc-step-header__heading { min-width: 0; }
+.cc-step-header__heading h1 {
+    float: none; margin: 0; padding: 0;
+    font-size: 22px; line-height: 1.3; font-weight: 700;
+    color: var(--text-dark, #243746);
+}
+.cc-step-header__heading p { margin: 4px 0 0; font-size: 14px; line-height: 1.4; color: var(--text-muted, #697785); }
+.cc-step-header__logo { display: block; flex: 0 0 auto; max-width: 140px; max-height: 45px; width: auto; height: auto; object-fit: contain; }
+@media (max-width: 767px) {
+    .container > .cc-step-header, .cc-installer-finish > .cc-step-header {
+        padding: 14px 16px; gap: 12px;
+    }
+    .cc-step-header__main { gap: 10px; }
+    .cc-step-header__number { font-size: 17px; padding: 5px 9px; }
+    .cc-step-header__heading h1 { font-size: 17px; }
+    .cc-step-header__heading p { font-size: 12px; }
+}

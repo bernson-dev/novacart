@@ -19,3 +19,14 @@ $_['text_error_invalid_request']     = 'Invalid request type.';
 $_['text_error_dir_not_found']       = 'Directory not found.';
 $_['text_error_file_delete']         = 'Failed to delete a file inside the install folder.';
 $_['text_error_dir_delete']          = 'Failed to delete a directory inside the install folder.';
+$_['summary_countries'] = 'Countries';
+$_['summary_demo'] = 'Demo data';
+$_['summary_demo_removed'] = 'Removed';
+$_['summary_demo_kept'] = 'Kept';
+
+$_['summary_storage_path'] = 'Storage path';
+$_['summary_administrator'] = 'Administrator';
+
+$_['summary_installer_language'] = 'Installer language';
+
+$_['text_install_cleanup_pending'] = 'Installer folder deletion is scheduled and will finish when the storefront opens.';

@@ -52,7 +52,8 @@ $_SERVER['HTTPS'] = $isHttps ? 'on' : '';
 
 // Finish installer cleanup deferred by Windows/PHP 8.x
 // Отложенное удаление папки install, если она не удалилась при завершении установки
-if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
+if (defined('DIR_STORAGE') && defined('DIR_SYSTEM') && defined('DIR_APPLICATION')
+    && basename(rtrim(str_replace('\\', '/', DIR_APPLICATION), '/')) !== 'install') {
 	$install_cleanup_flag = DIR_STORAGE . 'install_cleanup.flag';
 
 	if (is_file($install_cleanup_flag)) {

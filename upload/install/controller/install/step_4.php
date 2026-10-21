@@ -39,6 +39,10 @@ class ControllerInstallStep4 extends Controller {
 
 			// передаём оба параметра в модель
 			$this->model_install_install->enableCountries($countries, $default_country);
+			$this->session->data['install_result'] = array(
+				'country_count' => count($countries),
+				'demo_removed' => $this->request->post['delete_demodata'] == 'yes'
+			);
 
 			$this->response->redirect($this->url->link('install/step_5'));
 		}
@@ -81,6 +85,7 @@ class ControllerInstallStep4 extends Controller {
 
 		$data['footer'] = $this->load->controller('common/footer');
 		$data['header'] = $this->load->controller('common/header');
+		$data['step_header'] = $this->load->controller('common/step_header');
 		$data['column_left'] = $this->load->controller('common/column_left');
 
 		$this->response->setOutput($this->load->view('install/step_4', $data));

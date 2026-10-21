@@ -1,0 +1,10 @@
+<header class="cc-step-header">
+  <div class="cc-step-header__main">
+    <span class="cc-step-header__number" aria-label="{{ step_number }} / {{ step_total }}">{{ step_number }} <small>/ {{ step_total }}</small></span>
+    <div class="cc-step-header__heading">
+      <h1>{{ heading_title }}</h1>
+      {% if step_description %}<p>{{ step_description }}</p>{% endif %}
+    </div>
+  </div>
+  <img class="hidden-xs cc-step-header__logo cc-finish-logo{% if is_final_step %} cc-logo-color{% endif %}" src="view/image/logo.png" alt="NovaCart">
+</header>
