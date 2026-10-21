@@ -50,6 +50,55 @@ $isHttps = (
 
 $_SERVER['HTTPS'] = $isHttps ? 'on' : '';
 
+// Finish external-storage migration only after the storefront starts with its new configuration.
+if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
+    $cleanupFlag = rtrim(DIR_STORAGE, '/\\') . '/install_old_storage_cleanup.flag';
+    if (is_file($cleanupFlag)) {
+        $oldRoot = realpath(DIR_SYSTEM . 'storage');
+        $newRoot = realpath(DIR_STORAGE);
+        $siteRoot = realpath(dirname(DIR_SYSTEM));
+        $requested = trim((string)@file_get_contents($cleanupFlag));
+        $requestedRoot = $requested !== '' ? realpath($requested) : false;
+
+        if ($oldRoot && $newRoot && $siteRoot && $requestedRoot
+            && $oldRoot === $requestedRoot && $oldRoot !== $newRoot
+            && strpos(str_replace('\\', '/', $oldRoot) . '/', rtrim(str_replace('\\', '/', $siteRoot), '/') . '/') === 0
+            && strpos(str_replace('\\', '/', $newRoot) . '/', rtrim(str_replace('\\', '/', $siteRoot), '/') . '/') !== 0) {
+            $verified = true;
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($oldRoot, FilesystemIterator::SKIP_DOTS)) as $entry) {
+                if ($entry->isLink()) { $verified = false; break; }
+                $relative = substr($entry->getPathname(), strlen($oldRoot) + 1);
+                $copy = $newRoot . DIRECTORY_SEPARATOR . $relative;
+                if (!$entry->isFile() || !is_file($copy) ||
+                    @hash_file('sha256', $entry->getPathname()) !== @hash_file('sha256', $copy)) {
+                    // Dynamic cache, sessions and logs may change after the migration.
+                    $section = strtok(str_replace('\\', '/', $relative), '/');
+                    if (!in_array($section, array('cache', 'logs', 'session', 'modification'), true)) {
+                        $verified = false; break;
+                    }
+                }
+            }
+            if ($verified) {
+                $items = new RecursiveIteratorIterator(
+                    new RecursiveDirectoryIterator($oldRoot, FilesystemIterator::SKIP_DOTS),
+                    RecursiveIteratorIterator::CHILD_FIRST
+                );
+                foreach ($items as $entry) {
+                    if ($entry->isLink()) { $verified = false; break; }
+                    if ($entry->isDir()) { @rmdir($entry->getPathname()); }
+                    else { @unlink($entry->getPathname()); }
+                }
+                if ($verified) {
+                    @file_put_contents($oldRoot . '/.htaccess', 'Deny from all' . PHP_EOL, LOCK_EX);
+                    @file_put_contents($oldRoot . '/web.config', '<?xml version="1.0"?><configuration><system.webServer><security><requestFiltering><hiddenSegments><add segment="storage"/></hiddenSegments></requestFiltering></security></system.webServer></configuration>', LOCK_EX);
+                    @file_put_contents($oldRoot . '/index.html', '', LOCK_EX);
+                    @unlink($cleanupFlag);
+                }
+            }
+        }
+    }
+}
+
 // Finish installer cleanup deferred by Windows/PHP 8.x
 // Отложенное удаление папки install, если она не удалилась при завершении установки
 if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
