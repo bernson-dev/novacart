@@ -75,4 +75,48 @@ class StorageMigration {
         }
         return str_replace('/', DIRECTORY_SEPARATOR, $target) . DIRECTORY_SEPARATOR;
     }
+
+    public static function finalize($source, $target, $configs) {
+        $source = realpath($source);
+        $target = realpath($target);
+        if (!$source || !$target || $source === $target) {
+            throw new RuntimeException('Storage paths are not valid');
+        }
+        $site = realpath(dirname(dirname($source)));
+        if (!$site || strpos(str_replace('\\', '/', $target) . '/', rtrim(str_replace('\\', '/', $site), '/') . '/') === 0) {
+            throw new RuntimeException('External storage must be outside the website');
+        }
+        foreach ($configs as $config) {
+            $body = @file_get_contents($config);
+            if ($body === false || strpos(str_replace('\\', '/', $body), str_replace('\\', '/', $target)) === false) {
+                throw new RuntimeException('Storage configuration has not been switched');
+            }
+        }
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
+        $items = array();
+        foreach ($iterator as $item) {
+            if ($item->isLink()) { throw new RuntimeException('Storage symlink prevents cleanup'); }
+            if ($item->isFile()) {
+                $relative = substr($item->getPathname(), strlen($source) + 1);
+                $copy = $target . DIRECTORY_SEPARATOR . $relative;
+                if (!is_file($copy) || hash_file('sha256', $item->getPathname()) !== hash_file('sha256', $copy)) {
+                    // Files changed during installation must be preserved, never deleted.
+                    throw new RuntimeException('Storage changed after copying: ' . $relative);
+                }
+            }
+            $items[] = array($item->getPathname(), $item->isDir());
+        }
+        foreach ($items as $item) {
+            $ok = $item[1] ? @rmdir($item[0]) : @unlink($item[0]);
+            if (!$ok) { throw new RuntimeException('Could not finish removing old storage'); }
+        }
+        if (@file_put_contents($source . DIRECTORY_SEPARATOR . '.htaccess', 'Deny from all' . PHP_EOL) === false ||
+            @file_put_contents($source . DIRECTORY_SEPARATOR . 'index.html', '') === false) {
+            throw new RuntimeException('Could not protect old storage directory');
+        }
+        return true;
+    }
 }
