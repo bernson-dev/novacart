@@ -488,6 +488,16 @@ class ControllerLocalisationCountry extends Controller {
 			$country_info = $this->model_localisation_country->getCountry($this->request->get['country_id']);
 		}
 
+		$this->load->model('localisation/language');
+		$data['languages'] = $this->model_localisation_language->getLanguages();
+		if (isset($this->request->post['country_description'])) {
+			$data['country_description'] = $this->request->post['country_description'];
+		} elseif (!empty($country_info)) {
+			$data['country_description'] = $this->model_localisation_country->getCountryDescriptions($country_info['country_id']);
+		} else {
+			$data['country_description'] = array();
+		}
+
 		if (isset($this->request->post['name'])) {
 			$data['name'] = $this->request->post['name'];
 		} elseif (!empty($country_info)) {
@@ -552,6 +562,13 @@ class ControllerLocalisationCountry extends Controller {
 			$this->error['name'] = $this->language->get('error_name');
 		}
 
+		if (!empty($this->request->post['country_description']) && is_array($this->request->post['country_description'])) {
+			foreach ($this->request->post['country_description'] as $description) {
+				if (isset($description['name']) && utf8_strlen(trim($description['name'])) > 128) {
+					$this->error['warning'] = $this->language->get('error_name');
+				}
+			}
+		}
 		return !$this->error;
 	}
 
