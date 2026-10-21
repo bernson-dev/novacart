@@ -29,6 +29,15 @@
             <label class="col-sm-2 control-label" for="input-name">{{ entry_name }}</label>
             <div class="col-sm-10">
               <input type="text" name="name" value="{{ name }}" placeholder="{{ entry_name }}" id="input-name" class="form-control" />
+              <div class="well well-sm" style="margin-top: 12px;">
+                <strong>{{ entry_name }} — Translations</strong>
+                {% for language in languages %}
+                <div class="form-group" style="margin: 8px 0;">
+                  <label for="input-name-{{ language.language_id }}">{{ language.name }}</label>
+                  <input type="text" id="input-name-{{ language.language_id }}" name="zone_description[{{ language.language_id }}][name]" value="{{ zone_description[language.language_id].name|default('') }}" maxlength="128" class="form-control" />
+                </div>
+                {% endfor %}
+              </div>
               {% if error_name %}
               <div class="text-danger">{{ error_name }}</div>
               {% endif %}

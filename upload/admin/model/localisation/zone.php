@@ -1,23 +1,62 @@
 <?php
 class ModelLocalisationZone extends Model {
+	private function clearCatalogZoneCache() {
+		$languages = $this->db->query("SELECT language_id FROM `" . DB_PREFIX . "language`");
+		$countries = $this->db->query("SELECT country_id FROM `" . DB_PREFIX . "country`");
+		foreach ($countries->rows as $country) {
+			foreach ($languages->rows as $language) {
+				$this->cache->delete('zone.' . (int)$country['country_id'] . '.' . (int)$language['language_id']);
+			}
+		}
+	}
+
+	private function saveDescriptions($zone_id, $data) {
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "zone_description` WHERE `zone_id` = '" . (int)$zone_id . "'");
+		if (!empty($data['zone_description']) && is_array($data['zone_description'])) {
+			foreach ($data['zone_description'] as $language_id => $description) {
+				$name = isset($description['name']) ? trim($description['name']) : '';
+				if ($name !== '' && utf8_strlen($name) <= 128) {
+					$this->db->query("INSERT INTO `" . DB_PREFIX . "zone_description` SET `zone_id` = '" . (int)$zone_id . "', `language_id` = '" . (int)$language_id . "', `name` = '" . $this->db->escape($name) . "'");
+				}
+			}
+		}
+	}
+
+	public function getZoneDescriptions($zone_id) {
+		$descriptions = array();
+		$query = $this->db->query("SELECT language_id, name FROM `" . DB_PREFIX . "zone_description` WHERE `zone_id` = '" . (int)$zone_id . "'");
+		foreach ($query->rows as $row) {
+			$descriptions[$row['language_id']] = array('name' => $row['name']);
+		}
+		return $descriptions;
+	}
+
 	public function addZone($data) {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "zone` SET `status` = '" . (int)$data['status'] . "', `name` = '" . $this->db->escape($data['name']) . "', `code` = '" . $this->db->escape($data['code']) . "', `country_id` = '" . (int)$data['country_id'] . "'");
 
-		$this->cache->delete('zone');
+		$zone_id = $this->db->getLastId();
 
-		return $this->db->getLastId();
+		$this->cache->delete('zone');
+		$this->clearCatalogZoneCache();
+		$this->saveDescriptions($zone_id, $data);
+		return $zone_id;
 	}
 
 	public function editZone($zone_id, $data) {
 		$this->db->query("UPDATE `" . DB_PREFIX . "zone` SET `status` = '" . (int)$data['status'] . "', `name` = '" . $this->db->escape($data['name']) . "', `code` = '" . $this->db->escape($data['code']) . "', `country_id` = '" . (int)$data['country_id'] . "' WHERE `zone_id` = '" . (int)$zone_id . "'");
 
+		$this->saveDescriptions($zone_id, $data);
+
 		$this->cache->delete('zone');
+		$this->clearCatalogZoneCache();
 	}
 
 	public function deleteZone($zone_id) {
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "zone` WHERE `zone_id` = '" . (int)$zone_id . "'");
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "zone_description` WHERE `zone_id` = '" . (int)$zone_id . "'");
 
 		$this->cache->delete('zone');
+		$this->clearCatalogZoneCache();
 	}
 
 	public function getZone($zone_id) {
@@ -27,15 +66,15 @@ class ModelLocalisationZone extends Model {
 	}
 
 	public function getZones($data = array()) {
-		$sql = "SELECT *, z.`name`, c.`name` AS `country` FROM `" . DB_PREFIX . "zone` z LEFT JOIN `" . DB_PREFIX . "country` c ON (z.`country_id` = c.`country_id`)";
+		$sql = "SELECT z.*, COALESCE(NULLIF(zd.name, ''), z.name) AS name, COALESCE(NULLIF(cd.name, ''), c.name) AS country FROM `" . DB_PREFIX . "zone` z LEFT JOIN `" . DB_PREFIX . "zone_description` zd ON (zd.zone_id = z.zone_id AND zd.language_id = '" . (int)$this->config->get('config_language_id') . "') LEFT JOIN `" . DB_PREFIX . "country` c ON (z.country_id = c.country_id) LEFT JOIN `" . DB_PREFIX . "country_description` cd ON (cd.country_id = c.country_id AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "')";
 
 		$implode = array();
 		if (!empty($data['filter_name'])) {
-			$implode[] = "z.`name` LIKE '" . $this->db->escape($data['filter_name']) . "%'";
+			$implode[] = "(z.name LIKE '" . $this->db->escape($data['filter_name']) . "%' OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "zone_description` search_translation WHERE search_translation.zone_id = z.zone_id AND search_translation.name LIKE '" . $this->db->escape($data['filter_name']) . "%'))";
 		}
 
 		if (!empty($data['filter_country'])) {
-			$implode[] = "c.`name` LIKE '" . $this->db->escape($data['filter_country']) . "%'";
+			$implode[] = "(c.name LIKE '" . $this->db->escape($data['filter_country']) . "%' OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "country_description` search_translation WHERE search_translation.country_id = c.country_id AND search_translation.name LIKE '" . $this->db->escape($data['filter_country']) . "%'))";
 		}
 
 		if (!empty($data['filter_code'])) {
@@ -46,18 +85,9 @@ class ModelLocalisationZone extends Model {
 			$sql .= " WHERE " . implode(" AND ", $implode);
 		}
 
-		$sort_data = array(
-			'c.`name`',
-			'z.`name`',
-			'z.`status`',
-			'z.`code`'
-		);
-
-		if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
-			$sql .= " ORDER BY `" . $data['sort'] . "`";
-		} else {
-			$sql .= " ORDER BY c.`name`";
-		}
+		$sort = isset($data['sort']) ? str_replace('`', '', $data['sort']) : 'c.name';
+		$sort_columns = array('c.name' => "COALESCE(NULLIF(cd.name, ''), c.name)", 'z.name' => "COALESCE(NULLIF(zd.name, ''), z.name)", 'z.status' => 'z.`status`', 'z.code' => 'z.`code`');
+		$sql .= " ORDER BY " . (isset($sort_columns[$sort]) ? $sort_columns[$sort] : $sort_columns['c.name']);
 
 		if (isset($data['order']) && ($data['order'] == 'DESC')) {
 			$sql .= " DESC";
@@ -97,19 +127,15 @@ class ModelLocalisationZone extends Model {
 	}
 
 	public function getTotalZones($data = array()) {
-		$sql = "SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "zone` z";
-
-		if (!empty($data['filter_country'])) {
-			$sql .= " LEFT JOIN `" . DB_PREFIX . "country` c ON (z.`country_id` = c.`country_id`)";
-		}
+		$sql = "SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "zone` z LEFT JOIN `" . DB_PREFIX . "zone_description` zd ON (zd.zone_id = z.zone_id AND zd.language_id = '" . (int)$this->config->get('config_language_id') . "') LEFT JOIN `" . DB_PREFIX . "country` c ON (z.country_id = c.country_id) LEFT JOIN `" . DB_PREFIX . "country_description` cd ON (cd.country_id = c.country_id AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "')";
 
 		$implode = array();
 		if (!empty($data['filter_name'])) {
-			$implode[] = "z.`name` LIKE '" . $this->db->escape($data['filter_name']) . "%'";
+			$implode[] = "(z.name LIKE '" . $this->db->escape($data['filter_name']) . "%' OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "zone_description` search_translation WHERE search_translation.zone_id = z.zone_id AND search_translation.name LIKE '" . $this->db->escape($data['filter_name']) . "%'))";
 		}
 
 		if (!empty($data['filter_country'])) {
-			$implode[] = "c.`name` LIKE '" . $this->db->escape($data['filter_country']) . "%'";
+			$implode[] = "(c.name LIKE '" . $this->db->escape($data['filter_country']) . "%' OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "country_description` search_translation WHERE search_translation.country_id = c.country_id AND search_translation.name LIKE '" . $this->db->escape($data['filter_country']) . "%'))";
 		}
 
 		if (!empty($data['filter_code'])) {

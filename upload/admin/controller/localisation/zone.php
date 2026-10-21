@@ -417,6 +417,16 @@ class ControllerLocalisationZone extends Controller {
 			$data['status'] = '1';
 		}
 
+		$this->load->model('localisation/language');
+		$data['languages'] = $this->model_localisation_language->getLanguages();
+		if (isset($this->request->post['zone_description'])) {
+			$data['zone_description'] = $this->request->post['zone_description'];
+		} elseif (!empty($zone_info)) {
+			$data['zone_description'] = $this->model_localisation_zone->getZoneDescriptions($zone_info['zone_id']);
+		} else {
+			$data['zone_description'] = array();
+		}
+
 		if (isset($this->request->post['name'])) {
 			$data['name'] = $this->request->post['name'];
 		} elseif (!empty($zone_info)) {
@@ -461,6 +471,13 @@ class ControllerLocalisationZone extends Controller {
 			$this->error['name'] = $this->language->get('error_name');
 		}
 
+		if (!empty($this->request->post['zone_description']) && is_array($this->request->post['zone_description'])) {
+			foreach ($this->request->post['zone_description'] as $description) {
+				if (isset($description['name']) && utf8_strlen(trim($description['name'])) > 128) {
+					$this->error['warning'] = $this->language->get('error_name');
+				}
+			}
+		}
 		return !$this->error;
 	}
 
