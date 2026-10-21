@@ -1,5 +1,15 @@
 <?php
 class ModelLocalisationZone extends Model {
+	private function clearCatalogZoneCache() {
+		$languages = $this->db->query("SELECT language_id FROM `" . DB_PREFIX . "language`");
+		$countries = $this->db->query("SELECT country_id FROM `" . DB_PREFIX . "country`");
+		foreach ($countries->rows as $country) {
+			foreach ($languages->rows as $language) {
+				$this->cache->delete('zone.' . (int)$country['country_id'] . '.' . (int)$language['language_id']);
+			}
+		}
+	}
+
 	private function saveDescriptions($zone_id, $data) {
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "zone_description` WHERE `zone_id` = '" . (int)$zone_id . "'");
 		if (!empty($data['zone_description']) && is_array($data['zone_description'])) {
@@ -25,7 +35,7 @@ class ModelLocalisationZone extends Model {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "zone` SET `status` = '" . (int)$data['status'] . "', `name` = '" . $this->db->escape($data['name']) . "', `code` = '" . $this->db->escape($data['code']) . "', `country_id` = '" . (int)$data['country_id'] . "'");
 
 		$this->cache->delete('zone');
-		$this->cache->delete('zone.*');
+		$this->clearCatalogZoneCache();
 
 		$zone_id = $this->db->getLastId();
 		$this->saveDescriptions($zone_id, $data);
@@ -38,7 +48,7 @@ class ModelLocalisationZone extends Model {
 		$this->saveDescriptions($zone_id, $data);
 
 		$this->cache->delete('zone');
-		$this->cache->delete('zone.*');
+		$this->clearCatalogZoneCache();
 	}
 
 	public function deleteZone($zone_id) {
@@ -46,7 +56,7 @@ class ModelLocalisationZone extends Model {
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "zone_description` WHERE `zone_id` = '" . (int)$zone_id . "'");
 
 		$this->cache->delete('zone');
-		$this->cache->delete('zone.*');
+		$this->clearCatalogZoneCache();
 	}
 
 	public function getZone($zone_id) {
