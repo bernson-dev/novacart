@@ -81,7 +81,7 @@
                     </div>`;
                     //console.error('Ошибка при удалении папки install: ' + data.error);
                 }
-                if (data.success) { callback(); }
+                if (data.success || data.pending) { callback(); }
             })
             .catch(error => {
                 //console.error('Ошибка при удалении папки install:', error);
