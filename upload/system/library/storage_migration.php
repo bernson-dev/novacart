@@ -13,7 +13,7 @@ class StorageMigration {
         }
         $suffix = bin2hex(random_bytes(4));
         $separator = DIRECTORY_SEPARATOR;
-        return rtrim(dirname($root), '/\\') . $separator . 'storage' . $separator . $domain . '-' . $suffix . $separator;
+        return str_replace(array('/', '\\'), $separator, rtrim(dirname($root), '/\\')) . $separator . 'storage' . $separator . $domain . '-' . $suffix . $separator;
     }
     public static function move($source, $target, $configs) {
         $source = realpath($source);
