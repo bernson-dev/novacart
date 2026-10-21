@@ -67,37 +67,31 @@ class ModelLocalisationCountry extends Model {
 
 	public function getCountries($data = array()) {
 		if ($data) {
-			$sql = "SELECT * FROM `" . DB_PREFIX . "country`";
+			$sql = "SELECT c.*, COALESCE(NULLIF(cd.name, ''), c.name) AS name FROM `" . DB_PREFIX . "country` c LEFT JOIN `" . DB_PREFIX . "country_description` cd ON (cd.country_id = c.country_id AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "')";
 
 			$implode = array();
 			if (!empty($data['filter_name'])) {
-				$implode[] = "`name` LIKE '" . $this->db->escape($data['filter_name']) . "%'";
+				$implode[] = "COALESCE(NULLIF(cd.name, ''), c.name) LIKE '" . $this->db->escape($data['filter_name']) . "%'";
 			}
 
 			if (!empty($data['filter_iso_code_2'])) {
-				$implode[] = "`iso_code_2` LIKE '" . $this->db->escape($data['filter_iso_code_2']) . "%'";
+				$implode[] = "c.`iso_code_2` LIKE '" . $this->db->escape($data['filter_iso_code_2']) . "%'";
 			}
 
 			if (!empty($data['filter_iso_code_3'])) {
-				$implode[] = "`iso_code_3` LIKE '" . $this->db->escape($data['filter_iso_code_3']) . "%'";
+				$implode[] = "c.`iso_code_3` LIKE '" . $this->db->escape($data['filter_iso_code_3']) . "%'";
 			}
 
 			if ($implode) {
 				$sql .= " WHERE " . implode(" AND ", $implode);
 			}
 
-			$sort_data = array(
-				'`name`',
-				'`status`',
-				'`iso_code_2`',
-				'`iso_code_3`'
-			);
-
-			if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
-				$sql .= " ORDER BY `" . $data['sort'] . "`";
-			} else {
-				$sql .= " ORDER BY `name`";
+			$sort_data = array('name', 'status', 'iso_code_2', 'iso_code_3');
+			$sort = isset($data['sort']) ? trim($data['sort'], '`') : 'name';
+			if (!in_array($sort, $sort_data)) {
+				$sort = 'name';
 			}
+			$sql .= " ORDER BY " . ($sort == 'name' ? "COALESCE(NULLIF(cd.name, ''), c.name)" : "c.`" . $sort . "`");
 
 			if (isset($data['order']) && ($data['order'] == 'DESC')) {
 				$sql .= " DESC";
@@ -124,7 +118,7 @@ class ModelLocalisationCountry extends Model {
 			//$country_data = $this->cache->get('country.admin');
 
 			//if (!$country_data) {
-				$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "country` ORDER BY `name` ASC");
+				$query = $this->db->query("SELECT c.*, COALESCE(NULLIF(cd.name, ''), c.name) AS name FROM `" . DB_PREFIX . "country` c LEFT JOIN `" . DB_PREFIX . "country_description` cd ON (cd.country_id = c.country_id AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "') ORDER BY COALESCE(NULLIF(cd.name, ''), c.name) ASC");
 				$country_data = $query->rows;
 
 				//$this->cache->set('country.admin', $country_data);
@@ -135,19 +129,19 @@ class ModelLocalisationCountry extends Model {
 	}
 
 	public function getTotalCountries($data = array()) {
-		$sql = "SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "country`";
+		$sql = "SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "country` c LEFT JOIN `" . DB_PREFIX . "country_description` cd ON (cd.country_id = c.country_id AND cd.language_id = '" . (int)$this->config->get('config_language_id') . "')";
 
 		$implode = array();
 		if (!empty($data['filter_name'])) {
-			$implode[] = "`name` LIKE '" . $this->db->escape($data['filter_name']) . "%'";
+			$implode[] = "COALESCE(NULLIF(cd.name, ''), c.name) LIKE '" . $this->db->escape($data['filter_name']) . "%'";
 		}
 
 		if (!empty($data['filter_iso_code_2'])) {
-			$implode[] = "`iso_code_2` LIKE '" . $this->db->escape($data['filter_iso_code_2']) . "%'";
+			$implode[] = "c.`iso_code_2` LIKE '" . $this->db->escape($data['filter_iso_code_2']) . "%'";
 		}
 
 		if (!empty($data['filter_iso_code_3'])) {
-			$implode[] = "`iso_code_3` LIKE '" . $this->db->escape($data['filter_iso_code_3']) . "%'";
+			$implode[] = "c.`iso_code_3` LIKE '" . $this->db->escape($data['filter_iso_code_3']) . "%'";
 		}
 
 		if ($implode) {
