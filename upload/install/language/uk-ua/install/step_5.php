@@ -28,3 +28,5 @@ $_['summary_storage_path'] = 'Шлях до storage';
 $_['summary_administrator'] = 'Адміністратор';
 
 $_['summary_installer_language'] = 'Мова встановлення';
+
+$_['text_install_cleanup_pending'] = 'Видалення папки install заплановано і буде завершено під час наступного запуску магазину.';
