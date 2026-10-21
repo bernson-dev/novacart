@@ -56,7 +56,7 @@ if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
     if (is_file($cleanupFlag)) {
         $oldRoot = realpath(DIR_SYSTEM . 'storage');
         $newRoot = realpath(DIR_STORAGE);
-        $siteRoot = realpath(dirname(DIR_SYSTEM));
+        $siteRoot = realpath(dirname(rtrim(DIR_SYSTEM, '/\\')));
         $requested = trim((string)@file_get_contents($cleanupFlag));
         $requestedRoot = $requested !== '' ? realpath($requested) : false;
 
