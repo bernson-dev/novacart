@@ -45,8 +45,6 @@ class ControllerInstallStep4 extends Controller {
             );
 
 			$this->response->redirect($this->url->link('install/step_5'));
-            }
-
 		}
 
 		$this->document->setTitle($this->language->get('heading_title'));
