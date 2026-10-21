@@ -93,6 +93,9 @@ class StorageMigration {
                 throw new RuntimeException('Storage configuration has not been switched');
             }
         }
+        $remaining = array_values(array_diff(scandir($source), array('.', '..')));
+        $protect = array('.htaccess', 'web.config', 'index.html');
+        if (!array_diff($remaining, $protect)) { return true; }
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST
@@ -115,7 +118,8 @@ class StorageMigration {
             if (!$ok) { throw new RuntimeException('Could not finish removing old storage'); }
         }
         if (@file_put_contents($source . DIRECTORY_SEPARATOR . '.htaccess', 'Deny from all' . PHP_EOL) === false ||
-            @file_put_contents($source . DIRECTORY_SEPARATOR . 'index.html', '') === false) {
+            @file_put_contents($source . DIRECTORY_SEPARATOR . 'index.html', '') === false ||
+            @file_put_contents($source . DIRECTORY_SEPARATOR . 'web.config', '<configuration><system.webServer><authorization><deny users="*" /></authorization></system.webServer></configuration>') === false) {
             throw new RuntimeException('Could not protect old storage directory');
         }
         return true;
