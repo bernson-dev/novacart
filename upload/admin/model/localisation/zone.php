@@ -73,14 +73,9 @@ class ModelLocalisationZone extends Model {
 			$sql .= " WHERE " . implode(" AND ", $implode);
 		}
 
-		$sort_data = array('c.`name`', 'z.`name`', 'z.`status`', 'z.`code`');
-		$sort = isset($data['sort']) ? trim($data['sort'], '`') : 'c.name';
-		$sort = str_replace('`', '', $sort);
-		if (!in_array(str_replace('.', '.`', $sort), $sort_data) && !in_array($sort, array('c.name', 'z.name', 'z.status', 'z.code'))) {
-			$sort = 'c.name';
-		}
+		$sort = isset($data['sort']) ? str_replace('`', '', $data['sort']) : 'c.name';
 		$sort_columns = array('c.name' => "COALESCE(NULLIF(cd.name, ''), c.name)", 'z.name' => "COALESCE(NULLIF(zd.name, ''), z.name)", 'z.status' => 'z.`status`', 'z.code' => 'z.`code`');
-		$sql .= " ORDER BY " . $sort_columns[$sort];
+		$sql .= " ORDER BY " . (isset($sort_columns[$sort]) ? $sort_columns[$sort] : $sort_columns['c.name']);
 
 		if (isset($data['order']) && ($data['order'] == 'DESC')) {
 			$sql .= " DESC";
