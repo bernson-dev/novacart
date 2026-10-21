@@ -1,4 +1,10 @@
 <?php
+// Diagnostic profiling is opt-in through the PHP process environment only.
+if (getenv('NOVACART_PROFILE_ADMIN') === '1') {
+    require_once __DIR__ . '/../system/library/admin_cold_profiler.php';
+    NovaCartAdminProfiler::start();
+}
+
 // Version
 define('VERSION', '3.0.3.9');
 
@@ -18,7 +24,14 @@ if (!defined('DIR_APPLICATION')) {
 	exit;
 }
 
+if (class_exists('NovaCartAdminProfiler', false)) {
+    NovaCartAdminProfiler::mark('before_startup');
+}
+
 // Startup
 require_once(DIR_SYSTEM . 'startup.php');
 
 start('admin');
+if (class_exists('NovaCartAdminProfiler', false)) {
+    NovaCartAdminProfiler::mark('after_startup');
+}
