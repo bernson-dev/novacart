@@ -4,26 +4,29 @@ class ControllerCommonSecurity extends Controller {
 		$this->load->language('common/security');
 
 		$data['text_instruction'] = $this->language->get('text_instruction');
-
 		$data['user_token'] = $this->session->data['user_token'];
-
 		$data['storage'] = DIR_SYSTEM . 'storage/';
 
 		$path = '';
-
 		$data['paths'] = array();
 
-		$parts = explode('/', str_replace('\\', '/', rtrim(DIR_SYSTEM, '/')));
+		$parts = explode('/', str_replace('\\\\', '/', rtrim(DIR_SYSTEM, '/')));
 
 		foreach ($parts as $part) {
 			$path .= $part . '/';
-
 			$data['paths'][] = $path;
 		}
 
 		rsort($data['paths']);
 
-		$data['document_root'] = str_replace('\\', '/', realpath($this->request->server['DOCUMENT_ROOT'] . '/../') . '/');
+		$site_root = realpath(DIR_APPLICATION . '../');
+		$site_root = $site_root ? rtrim(str_replace('\\\\', '/', $site_root), '/') : rtrim(str_replace('\\\\', '/', DIR_APPLICATION . '../'), '/');
+		$storage_root = str_replace('\\\\', '/', dirname($site_root)) . '/storage/';
+		$site_name = preg_replace('/[^A-Za-z0-9._-]/', '-', basename($site_root));
+		$site_name = trim($site_name, '.-');
+
+		$data['document_root'] = $storage_root;
+		$data['suggested_directory'] = $site_name . '-' . substr(hash('sha256', $site_root), 0, 8);
 
 		return $this->load->view('common/security', $data);
 	}
@@ -33,105 +36,122 @@ class ControllerCommonSecurity extends Controller {
 
 		$json = array();
 
-		// Validate and sanitize path input
-		if (isset($this->request->post['path'])) {
-			$path = $this->db->escape($this->request->post['path']);
-		} else {
-			$path = '';
-		}
-
-		// Validate and sanitize directory input
-		if (isset($this->request->post['directory'])) {
-			$directory = preg_replace('/[^a-zA-Z0-9_-]/', '', $this->request->post['directory']);
-		} else {
-			$directory = '';
-		}
+		$path = isset($this->request->post['path']) ? trim((string)$this->request->post['path']) : '';
+		$directory = isset($this->request->post['directory']) ? trim((string)$this->request->post['directory']) : '';
 
 		if (!$this->user->hasPermission('modify', 'common/security')) {
 			$json['error'] = $this->language->get('error_permission');
-		} else {
-			if (DIR_STORAGE != DIR_SYSTEM . 'storage/') {
-				$data['error'] = $this->language->get('error_path');
-			}
+		}
 
-			if (!$path || str_replace('\\', '/', realpath($path)) . '/' != str_replace('\\', '/', substr(DIR_SYSTEM, 0, strlen($path)))) {
+		if (!$json && DIR_STORAGE != DIR_SYSTEM . 'storage/') {
+			$json['error'] = $this->language->get('error_path');
+		}
+
+		if (!$json && (!$directory || !preg_match('/^[A-Za-z0-9._-]+$/', $directory))) {
+			$json['error'] = $this->language->get('error_directory');
+		}
+
+		$site_root = realpath(DIR_APPLICATION . '../');
+		$site_root = $site_root ? rtrim(str_replace('\\\\', '/', $site_root), '/') : '';
+
+		if (!$json) {
+			$path = rtrim(str_replace('\\\\', '/', $path), '/') . '/';
+
+			// CodeCart-style default: one shared storage container, one deterministic
+			// subdirectory per site. Create only the shared container automatically.
+			$default_root = $site_root ? str_replace('\\\\', '/', dirname($site_root)) . '/storage/' : '';
+
+			if ($path === $default_root && !is_dir($path)) {
+				$parent = realpath(dirname(rtrim($path, '/')));
+
+				if (!$parent || !is_writable($parent) || (!@mkdir($path, 0750, true) && !is_dir($path))) {
+					$json['error'] = $this->language->get('error_path');
+				}
+			}
+		}
+
+		if (!$json) {
+			$real_path = realpath($path);
+
+			if (!$real_path || !is_dir($real_path) || !is_writable($real_path)) {
 				$json['error'] = $this->language->get('error_path');
-			}
+			} else {
+				$path = rtrim(str_replace('\\\\', '/', $real_path), '/') . '/';
+				$target = $path . $directory;
+				$target_normalized = rtrim(str_replace('\\\\', '/', $target), '/') . '/';
 
-			if (!$directory || !preg_match('/^[a-zA-Z0-9_-]+$/', $directory)) {
+				if (!$site_root || strpos($target_normalized, $site_root . '/') === 0) {
+					$json['error'] = $this->language->get('error_path');
+				} elseif (is_link($target) || (file_exists($target) && !is_dir($target))) {
+					$json['error'] = $this->language->get('error_directory');
+				} elseif (is_dir($target) && !is_writable($target)) {
+					$json['error'] = $this->language->get('error_writable');
+				}
+			}
+		}
+
+		$config_files = array(
+			realpath(DIR_APPLICATION . '../') . '/config.php',
+			DIR_APPLICATION . 'config.php'
+		);
+
+		if (!$json && (!is_writable($config_files[0]) || !is_writable($config_files[1]))) {
+			$json['error'] = $this->language->get('error_writable');
+		}
+
+		if (!$json) {
+			$source = rtrim(DIR_SYSTEM . 'storage/', '/\\\\') . DIRECTORY_SEPARATOR;
+			$target = rtrim($path . $directory, '/\\\\') . DIRECTORY_SEPARATOR;
+
+			if (!is_dir($target) && !@mkdir($target, 0750, true) && !is_dir($target)) {
 				$json['error'] = $this->language->get('error_directory');
-			}
+			} else {
+				$iterator = new RecursiveIteratorIterator(
+					new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
+					RecursiveIteratorIterator::SELF_FIRST
+				);
 
-			if (is_dir($path . $directory)) {
-				$json['error'] = $this->language->get('error_exists');
-			}
+				foreach ($iterator as $item) {
+					if ($item->isLink()) {
+						continue;
+					}
 
-			if (!is_writable(realpath(DIR_APPLICATION . '/../') . '/config.php') || !is_writable(DIR_APPLICATION . 'config.php')) {
-				$json['error'] = $this->language->get('error_writable');
+					$relative = substr($item->getPathname(), strlen($source));
+					$destination = $target . $relative;
+
+					if ($item->isDir()) {
+						if (!is_dir($destination) && !@mkdir($destination, 0750, true) && !is_dir($destination)) {
+							$json['error'] = $this->language->get('error_directory');
+							break;
+						}
+					} else {
+						$destination_dir = dirname($destination);
+
+						if ((!is_dir($destination_dir) && !@mkdir($destination_dir, 0750, true) && !is_dir($destination_dir)) || !@copy($item->getPathname(), $destination)) {
+							$json['error'] = $this->language->get('error_writable');
+							break;
+						}
+					}
+				}
 			}
 
 			if (!$json) {
-				$files = array();
+				$storage_path = str_replace('\\\\', '/', rtrim($target, '/\\\\')) . '/';
 
-				// Make path into an array
-				$source = array(DIR_SYSTEM . 'storage/');
-
-				// While the path array is still populated keep looping through
-				while (count($source) != 0) {
-					$next = array_shift($source);
-
-					foreach (glob($next) as $file) {
-						// If directory add to path array
-						if (is_dir($file)) {
-							$source[] = $file . '/*';
-						}
-
-						// Add the file to the files to be deleted array
-						$files[] = $file;
-					}
-				}
-
-				// Create the new storage folder
-				if (!is_dir($path . $directory)) {
-					mkdir($path . $directory, 0777);
-				}
-
-				// Copy the
-				foreach ($files as $file) {
-					$destination = $path . $directory . substr($file, strlen(DIR_SYSTEM . 'storage/'));
-
-					if (is_dir($file) && !is_dir($destination)) {
-						mkdir($destination, 0777);
-					}
-
-					if (is_file($file)) {
-						copy($file, $destination);
-					}
-				}
-
-				// Modify the config files
-				$files = array(
-					DIR_APPLICATION . 'config.php',
-					realpath(DIR_APPLICATION . '/../') . '/config.php'
-				);
-
-				foreach ($files as $file) {
+				foreach ($config_files as $config_file) {
 					$output = '';
+					$lines = file($config_file);
 
-					$lines = file($file);
-
-					foreach ($lines as $line_id => $line) {
-						if (strpos($line, 'define(\'DIR_STORAGE') !== false) {
-							$output .= 'define(\'DIR_STORAGE\', \'' . $path . $directory . '/\');' . "\n";
+					foreach ($lines as $line) {
+						if (strpos($line, "define('DIR_STORAGE'") !== false) {
+							$output .= "define('DIR_STORAGE', '" . addslashes($storage_path) . "');" . "\\n";
 						} else {
 							$output .= $line;
 						}
 					}
 
-					$file = fopen($file, 'w');
-
+					$file = fopen($config_file, 'w');
 					fwrite($file, $output);
-
 					fclose($file);
 				}
 
