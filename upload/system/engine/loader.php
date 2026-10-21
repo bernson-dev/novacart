@@ -106,6 +106,7 @@ final class Loader {
 	 * @return	string
 	*/
 	public function view($route, $data = array()) {
+		$profile_start = class_exists('NovaCartAdminProfiler', false) ? microtime(true) : null;
 		// Sanitize the call
 		$route = preg_replace('/[^a-zA-Z0-9_\/]/', '', (string)$route);
 
@@ -140,6 +141,9 @@ final class Loader {
 			$output = $result;
 		}
 
+		if ($profile_start !== null) {
+			NovaCartAdminProfiler::add('loader_view', microtime(true) - $profile_start);
+		}
 		return $output;
 	}
 
