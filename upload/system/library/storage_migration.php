@@ -81,39 +81,45 @@ class StorageMigration {
         $source = realpath($source);
         $target = realpath($target);
         if (!$source || !$target || $source === $target) {
-            throw new RuntimeException('Storage paths are not valid');
+            throw new RuntimeException('Invalid storage location');
         }
         $site = realpath(dirname(dirname($source)));
         if (!$site || strpos(str_replace('\\', '/', $target) . '/', rtrim(str_replace('\\', '/', $site), '/') . '/') === 0) {
-            throw new RuntimeException('External storage must be outside the website');
+            throw new RuntimeException('External storage is inside the website');
         }
         foreach ($configs as $config) {
-            $body = @file_get_contents($config);
-            if ($body === false || strpos(str_replace('\\', '/', $body), str_replace('\\', '/', $target)) === false) {
+            $contents = @file_get_contents($config);
+            if ($contents === false || strpos(str_replace('\\', '/', $contents), str_replace('\\', '/', $target)) === false) {
                 throw new RuntimeException('Storage configuration has not been switched');
             }
         }
-        $remaining = array_values(array_diff(scandir($source), array('.', '..')));
-        $protect = array('.htaccess', 'web.config', 'index.html');
-        if (!array_diff($remaining, $protect)) { return true; }
+        if (!is_dir($target . DIRECTORY_SEPARATOR . 'vendor') && !is_file($target . DIRECTORY_SEPARATOR . 'vendor/autoload.php')) {
+            throw new RuntimeException('External storage vendor directory is missing');
+        }
+
+        $protected = array('.htaccess', 'web.config', 'index.html');
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST
         );
-        $items = array();
         foreach ($iterator as $item) {
-            if ($item->isLink()) { throw new RuntimeException('Storage symlink prevents cleanup'); }
-            $items[] = array($item->getPathname(), $item->isDir());
+            $file = $item->getPathname();
+            if ($item->isLink() || $item->isFile()) {
+                if (!in_array($item->getFilename(), $protected, true)) {
+                    @unlink($file);
+                }
+            } elseif ($item->isDir()) {
+                @rmdir($file);
+            }
         }
-        foreach ($items as $item) {
-            $ok = $item[1] ? @rmdir($item[0]) : @unlink($item[0]);
-            if (!$ok) { throw new RuntimeException('Could not finish removing old storage'); }
+        // Leave the directory as a protected empty placeholder, like CodeCart.
+        if (@file_put_contents($source . DIRECTORY_SEPARATOR . '.htaccess', "Options -Indexes\n<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nOrder allow,deny\nDeny from all\n</IfModule>\n", LOCK_EX) === false ||
+            @file_put_contents($source . DIRECTORY_SEPARATOR . 'web.config', '<?xml version="1.0" encoding="UTF-8"?><configuration><system.webServer><security><authorization><add accessType="Deny" users="*"/></authorization></security></system.webServer></configuration>', LOCK_EX) === false ||
+            @file_put_contents($source . DIRECTORY_SEPARATOR . 'index.html', '', LOCK_EX) === false) {
+            throw new RuntimeException('Cannot protect the old storage directory');
         }
-        if (@file_put_contents($source . DIRECTORY_SEPARATOR . '.htaccess', 'Deny from all' . PHP_EOL) === false ||
-            @file_put_contents($source . DIRECTORY_SEPARATOR . 'index.html', '') === false ||
-            @file_put_contents($source . DIRECTORY_SEPARATOR . 'web.config', '<configuration><system.webServer><authorization><deny users="*" /></authorization></system.webServer></configuration>') === false) {
-            throw new RuntimeException('Could not protect old storage directory');
-        }
-        return true;
+
+        $remaining = array_values(array_diff(scandir($source), array('.', '..', '.htaccess', 'web.config', 'index.html')));
+        return count($remaining) === 0;
     }
 }
