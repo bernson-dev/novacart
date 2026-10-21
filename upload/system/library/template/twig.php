@@ -39,6 +39,7 @@ final class Twig {
 	}
 
 	public function render($filename, $code = '') {
+		$profile_start = class_exists('NovaCartAdminProfiler', false) ? microtime(true) : null;
 		if (!$code) {
 			$file = DIR_TEMPLATE . $filename . '.twig';
 			$template_file = '';
@@ -86,7 +87,11 @@ final class Twig {
 				$this->twig->setLoader(new ChainLoader($loaders));
 			}
 
-			return $this->twig->render($filename . '.twig', $this->data);
+			$output = $this->twig->render($filename . '.twig', $this->data);
+			if ($profile_start !== null) {
+				\NovaCartAdminProfiler::add('twig_render', microtime(true) - $profile_start);
+			}
+			return $output;
 		} catch (SyntaxError $e) {
 			$error_message = sprintf(
 				'Syntax Error in template "%s" at line %d: %s',
