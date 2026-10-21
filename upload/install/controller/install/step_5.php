@@ -13,6 +13,19 @@ class ControllerInstallStep5 extends Controller {
 
 		
         $data['install_summary'] = $this->getInstallSummary();
+        if (!empty($this->session->data['installed_storage_path'])) {
+            require_once DIR_OPENCART . 'system/library/storage_migration.php';
+            try {
+                StorageMigration::finalize(
+                    DIR_OPENCART . 'system/storage',
+                    $this->session->data['installed_storage_path'],
+                    array(DIR_OPENCART . 'config.php', DIR_OPENCART . 'admin/config.php')
+                );
+                $data['install_summary'][] = array('label' => 'Old storage', 'value' => 'Protected and cleaned');
+            } catch (Throwable $exception) {
+                $data['install_summary'][] = array('label' => 'Old storage', 'value' => 'Not removed: ' . $exception->getMessage());
+            }
+        }
         $storagePath = isset($this->session->data['installed_storage_path']) ? $this->session->data['installed_storage_path'] : DIR_OPENCART . 'system/storage/';
         $data['install_summary'][] = array('label' => $this->language->get('summary_storage_path'), 'value' => $storagePath);
         $data['install_summary'][] = array('label' => $this->language->get('summary_administrator'), 'value' => isset($this->session->data['install_admin_user']) ? $this->session->data['install_admin_user'] : '—');
@@ -68,7 +81,7 @@ class ControllerInstallStep5 extends Controller {
 
         $storage = defined('DIR_STORAGE') ? realpath(DIR_STORAGE) : false;
         $public = defined('DIR_SYSTEM') ? realpath(DIR_SYSTEM . 'storage') : false;
-        $outside = $storage && $public && $storage !== $public;
+        $outside = !empty($this->session->data['installed_storage_path']);
         $rows[] = array('label' => 'Storage', 'value' => $outside ? 'External' : 'Default');
         return $rows;
     }
