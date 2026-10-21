@@ -183,6 +183,7 @@ function modificationPhpSyntaxValid(string $file): bool {
 		return false;
 	}
 
+	$profile_started = class_exists('NovaCartAdminProfiler', false) ? microtime(true) : null;
 	$code = @file_get_contents($file);
 
 	if ($code === false) {
@@ -226,6 +227,9 @@ function modificationPhpSyntaxValid(string $file): bool {
 		);
 	}
 
+	if ($profile_started !== null) {
+		NovaCartAdminProfiler::add('ocmod_syntax_validation', microtime(true) - $profile_started);
+	}
 	$request_cache[$file] = $valid;
 	return $valid;
 }
