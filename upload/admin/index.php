@@ -9,6 +9,11 @@ if (is_file('config.php')) {
 
 // Install
 if (!defined('DIR_APPLICATION')) {
+	if (!is_file(__DIR__ . '/../install/index.php')) {
+        http_response_code(500);
+        header('Content-Type: text/plain; charset=utf-8');
+        exit('NovaCart: configuration is missing or invalid, and the installer directory is unavailable. Restore config.php and admin/config.php, or restore the install directory to perform installation.');
+    }
 	header('Location: ../install/index.php');
 	exit;
 }

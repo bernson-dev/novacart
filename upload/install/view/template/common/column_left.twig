@@ -1,51 +1,27 @@
-<ul class="list-group">
-    {% set steps = {
-    'install': [
-    {'route': 'install/step_1', 'text': text_license},
-    {'route': 'install/step_2', 'text': text_installation},
-    {'route': 'install/step_3', 'text': text_configuration},
-    {'route': 'install/step_4', 'text': text_settings}
-    ]
-    } %}
-
-    {% for step in steps.install %}
-    <li class="list-group-item {% if route == step.route %}active{% endif %}">
-    {{ step.text }}
-    </li>
+<aside class="cc-sidebar">
+  <div class="cc-step-list">
+    {% set installation_steps = [
+      {'route':'install/step_1','label':text_license},
+      {'route':'install/step_2','label':text_installation},
+      {'route':'install/step_3','label':text_configuration},
+      {'route':'install/step_4','label':text_settings},
+      {'route':'install/step_5','label':text_finished}
+    ] %}
+    {% for step in installation_steps %}
+      <div class="cc-step-item{% if route == step.route %} active{% elseif route > step.route and route|slice(0,8) == 'install/' %} done{% endif %}">
+        <span>{{ loop.index }}</span><div>{{ step.label }}</div>
+      </div>
     {% endfor %}
-</ul>
-
-<form action="{{ action }}" method="post" enctype="multipart/form-data" id="language">
-    <ul class="list-group">
-        <li class="list-group-item">
-            <div class="dropdown">
-                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                    {{ text_language }} <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    {% for language in languages %}
-                    <li>
-                        <a href="{{ language.code }}">
-                        <img src="language/{{ language.code }}/{{ language.code }}.png" alt="{{ language.name }}" />
-                        {{ language.name }}
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </li>
-    </ul>
-    <input type="hidden" name="code" value="" />
-    <input type="hidden" name="redirect" value="{{ redirect }}" />
-</form>
-
-<script type="text/javascript">
-    // Language selection handling
-    document.querySelectorAll('#language a').forEach(link => {
-        link.addEventListener('click', function (e) {
-            e.preventDefault();
-            document.querySelector('#language input[name="code"]').value = this.getAttribute('href');
-            document.getElementById('language').submit();
-        });
-    });
-</script>
+  </div>
+  <form action="{{ action }}" method="post" id="language" class="cc-language">
+    <div class="cc-language__label">{{ text_language }}</div>
+    <div class="cc-language__options" role="group" aria-label="{{ text_language }}">
+      {% for language in languages %}
+        <button type="submit" name="code" value="{{ language.code }}" class="cc-language__option{% if language.code == code %} active{% endif %}"{% if language.code == code %} aria-current="true"{% endif %}>
+          <img src="language/{{ language.code }}/{{ language.code }}.png" alt="" width="20" height="14" onerror="this.style.display='none'"><span>{{ language.name }}</span>
+        </button>
+      {% endfor %}
+    </div>
+    <input type="hidden" name="redirect" value="{{ redirect }}">
+  </form>
+</aside>

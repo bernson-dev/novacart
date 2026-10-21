@@ -23,3 +23,7 @@ $_['help_default_country'] = 'The selected country will be the default after ins
 // Error
 $_['error_delete_demodata'] = 'Demodata action must be selected!';
 $_['error_country'] = 'At least one country must be selected!';
+
+$_['entry_external_storage'] = 'External storage';
+$_['text_external_storage'] = 'Move storage outside the storefront';
+$_['help_external_storage'] = 'Automatically generated path:';

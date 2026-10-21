@@ -105,6 +105,8 @@ class ControllerInstallStep3 extends Controller {
 
 			fclose($file);
 			$this->session->data['install'] = 1;
+            $this->session->data['install_admin_user'] = (string)$this->request->post['username'];
+            unset($this->session->data['installed_storage_path'], $this->session->data['install_result']);
 
 			$this->response->redirect($this->url->link('install/step_4'));
 		}

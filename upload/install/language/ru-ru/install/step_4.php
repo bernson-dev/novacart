@@ -23,3 +23,7 @@ $_['help_default_country'] = 'Выбранная страна будет стр�
 // Error
 $_['error_delete_demodata'] = 'Необходимо выбрать действие с демо данными!';
 $_['error_country'] = 'Необходимо выбрать хотя бы одну страну!';
+
+$_['entry_external_storage'] = 'Внешнее хранилище';
+$_['text_external_storage'] = 'Вынести storage за пределы сайта';
+$_['help_external_storage'] = 'Автоматически созданный путь:';

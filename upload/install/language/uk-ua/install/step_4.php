@@ -23,3 +23,7 @@ $_['help_default_country'] = 'Вибрана країна буде станда�
 // Error
 $_['error_delete_demodata'] = 'Необхідно вибрати дію з демо даними!';
 $_['error_country'] = 'Необхідно вибрати хоча б одну країну!';
+
+$_['entry_external_storage'] = 'Зовнішнє сховище';
+$_['text_external_storage'] = 'Винести storage за межі сайту';
+$_['help_external_storage'] = 'Автоматично створений шлях:';
