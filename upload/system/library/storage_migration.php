@@ -17,7 +17,8 @@ class StorageMigration {
     }
     public static function move($source, $target, $configs) {
         $source = realpath($source);
-        $container = dirname(rtrim($target, '/'));
+        $target = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $target);
+        $container = dirname(rtrim($target, '/\\'));
         if (!is_dir($container)) {
             $base = realpath(dirname($container));
             if (!$base || !is_writable($base) || basename($container) !== 'storage' ||
@@ -29,7 +30,7 @@ class StorageMigration {
         if (!$source || !is_dir($source) || is_link($source) || !$parent || !is_writable($parent)) {
             throw new RuntimeException('Storage location is unavailable');
         }
-        $target = $parent . '/' . basename(rtrim($target, '/'));
+        $target = $parent . '/' . basename(rtrim($target, '/\\'));
         if (strpos(str_replace('\\', '/', $target) . '/', str_replace('\\', '/', rtrim($source, '/')) . '/') === 0 || file_exists($target) || is_link($target)) {
             throw new RuntimeException('Storage destination already exists');
         }
