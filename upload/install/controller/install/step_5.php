@@ -113,7 +113,7 @@ class ControllerInstallStep5 extends Controller {
 					$storagePath = isset($this->session->data['installed_storage_path']) ? $this->session->data['installed_storage_path'] : DIR_STORAGE;
 					$flag = rtrim($storagePath, '/\\') . DIRECTORY_SEPARATOR . 'install_cleanup.flag';
 					if (@file_put_contents($flag, '1', LOCK_EX) !== false) {
-						$json['success'] = $this->language->get('text_success_install_deleted');
+						$json['pending'] = true;
 					} else {
 						$json['error'] = $this->language->get('text_error_dir_delete');
 					}
