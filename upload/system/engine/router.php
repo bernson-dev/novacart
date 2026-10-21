@@ -43,7 +43,11 @@ final class Router {
 		$this->error = $error;
 
 		foreach ($this->pre_action as $pre_action) {
+			$profile_start = class_exists('NovaCartAdminProfiler', false) ? microtime(true) : null;
 			$result = $this->execute($pre_action);
+			if ($profile_start !== null) {
+				NovaCartAdminProfiler::add('router_pre_action', microtime(true) - $profile_start);
+			}
 
 			if ($result instanceof Action) {
 				$action = $result;
@@ -53,7 +57,11 @@ final class Router {
 		}
 
 		while ($action instanceof Action) {
+			$profile_start = class_exists('NovaCartAdminProfiler', false) ? microtime(true) : null;
 			$action = $this->execute($action);
+			if ($profile_start !== null) {
+				NovaCartAdminProfiler::add('router_main_action', microtime(true) - $profile_start);
+			}
 		}
 	}
 
