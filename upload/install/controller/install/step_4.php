@@ -8,33 +8,6 @@ class ControllerInstallStep4 extends Controller {
 		$data = $this->load->language('install/step_4');
 
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
-            if (!empty($this->request->post['external_storage'])) {
-                try {
-                    $migrationFile = DIR_OPENCART . 'system/library/storage_migration.php';
-                    if (!is_file($migrationFile)) {
-                        throw new RuntimeException('Missing storage migration library: ' . $migrationFile);
-                    }
-                    require_once $migrationFile;
-                    $storagePath = isset($this->session->data['suggested_storage_path']) ? $this->session->data['suggested_storage_path'] : StorageMigration::suggestedPath(DIR_OPENCART);
-                    $storagePath = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $storagePath);
-                    $webRoot = isset($this->request->server['DOCUMENT_ROOT']) ? realpath($this->request->server['DOCUMENT_ROOT']) : false;
-                    $destinationParent = realpath(dirname(rtrim($storagePath, '/')));
-                    if ($webRoot && $destinationParent) {
-                        $webRoot = rtrim(str_replace('\\', '/', $webRoot), '/') . '/';
-                        $destination = rtrim(str_replace('\\', '/', $destinationParent), '/') . '/';
-                        if (strpos($destination, $webRoot) === 0) {
-                            throw new RuntimeException('External storage location is inside web root.');
-                        }
-                    }
-                    $this->session->data['installed_storage_path'] = StorageMigration::move(
-                        DIR_OPENCART . 'system/storage', $storagePath,
-                        array(DIR_OPENCART . 'config.php', DIR_OPENCART . 'admin/config.php')
-                    );
-                } catch (Throwable $error) {
-                    $this->error['storage'] = $error->getMessage();
-                }
-            }
-            if (!$this->error) {
 			if ($this->request->post['delete_demodata'] == 'yes') {
 				$demo_images = DIR_IMAGE . 'catalog/demo';
 				if (file_exists($demo_images)) {
@@ -66,14 +39,8 @@ class ControllerInstallStep4 extends Controller {
 
 			// передаём оба параметра в модель
 			$this->model_install_install->enableCountries($countries, $default_country);
-            $this->session->data['install_result'] = array(
-                'country_count' => count($countries),
-                'demo_removed' => $this->request->post['delete_demodata'] == 'yes'
-            );
 
 			$this->response->redirect($this->url->link('install/step_5'));
-            }
-
 		}
 
 		$this->document->setTitle($this->language->get('heading_title'));
@@ -91,20 +58,6 @@ class ControllerInstallStep4 extends Controller {
 		}
 
 		$data['countries'] = $this->model_install_install->getCountries();
-        $data['external_storage'] = !empty($this->request->post['external_storage']);
-        $data['error_storage'] = isset($this->error['storage']) ? $this->error['storage'] : '';
-        $migrationFile = DIR_OPENCART . 'system/library/storage_migration.php';
-        if (is_file($migrationFile)) {
-            require_once $migrationFile;
-            if (empty($this->session->data['suggested_storage_path'])) {
-                $this->session->data['suggested_storage_path'] = StorageMigration::suggestedPath(DIR_OPENCART);
-            }
-            $this->session->data['suggested_storage_path'] = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $this->session->data['suggested_storage_path']);
-            $data['suggested_storage'] = $this->session->data['suggested_storage_path'];
-        } else {
-            $data['suggested_storage'] = '';
-            $data['error_storage'] = 'Missing storage migration library: ' . $migrationFile;
-        }
 
 		if (isset($this->request->post['delete_demodata'])) {
 			$data['delete_demodata'] = $this->request->post['delete_demodata'];
