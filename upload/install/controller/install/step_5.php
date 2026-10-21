@@ -13,10 +13,7 @@ class ControllerInstallStep5 extends Controller {
 
 		
         $data['install_summary'] = $this->getInstallSummary();
-        if (!empty($this->session->data['installed_storage_path'])) {
-            $data['install_summary'][] = array('label' => 'Old storage', 'value' => 'Cleanup deferred: installer still uses its vendor libraries');
-        }
-        $storagePath = isset($this->session->data['installed_storage_path']) ? $this->session->data['installed_storage_path'] : DIR_OPENCART . 'system/storage/';
+        $storagePath = DIR_OPENCART . 'system/storage/';
         $data['install_summary'][] = array('label' => $this->language->get('summary_storage_path'), 'value' => $storagePath);
         $data['install_summary'][] = array('label' => $this->language->get('summary_administrator'), 'value' => isset($this->session->data['install_admin_user']) ? $this->session->data['install_admin_user'] : '—');
         $result = isset($this->session->data['install_result']) ? $this->session->data['install_result'] : array();
@@ -71,7 +68,7 @@ class ControllerInstallStep5 extends Controller {
 
         $storage = defined('DIR_STORAGE') ? realpath(DIR_STORAGE) : false;
         $public = defined('DIR_SYSTEM') ? realpath(DIR_SYSTEM . 'storage') : false;
-        $outside = !empty($this->session->data['installed_storage_path']);
+        $outside = false;
         $rows[] = array('label' => 'Storage', 'value' => $outside ? 'External' : 'Default');
         return $rows;
     }
@@ -92,7 +89,7 @@ class ControllerInstallStep5 extends Controller {
 					$json['success'] = $this->language->get('text_success_install_deleted');
 				} elseif ($result === 'text_error_dir_delete') {
 					// Папка пустая, но rmdir() не сработал — создаём флаг для отложенного удаления
-					$activeStorage = !empty($this->session->data['installed_storage_path']) ? $this->session->data['installed_storage_path'] : DIR_STORAGE;
+					$activeStorage = DIR_STORAGE;
 					$flag = rtrim($activeStorage, '/\\') . DIRECTORY_SEPARATOR . 'install_cleanup.flag';
 					if (@file_put_contents($flag, '1', LOCK_EX) !== false) {
 						$json['pending'] = true;
