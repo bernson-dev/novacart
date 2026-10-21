@@ -569,13 +569,40 @@ if ($config->get('session_autostart')) {
 
 
 // Cache
-$registry->set(
-'cache',
-new Cache(
-$config->get('cache_engine'),
-$config->get('cache_expire')
-)
-);
+//$registry->set('cache', new Cache($config->get('cache_engine'), $config->get('cache_expire')));
+
+// NovaCart: load global cache engine before the cache service is constructed.
+$nova_cache_engine = 'file';
+try {
+    $nova_cache_db = $registry->get('db');
+    if ($nova_cache_db) {
+        $nova_cache_query = $nova_cache_db->query("SELECT `value` FROM `" . DB_PREFIX . "setting` WHERE store_id = 0 AND `key` = 'config_novacart_cache_engine' LIMIT 1");
+        if ($nova_cache_query->num_rows) {
+            $nova_cache_requested = strtolower(trim((string)$nova_cache_query->row['value']));
+            if (in_array($nova_cache_requested, array('file', 'fastfile', 'smartcache', 'apc', 'apcu', 'mem', 'memcached', 'redis'), true)) {
+                $nova_cache_engine = $nova_cache_requested;
+            }
+        }
+    }
+} catch (\Throwable $nova_cache_error) {
+    error_log('NovaCart cache config lookup: ' . $nova_cache_error->getMessage());
+}
+if (($nova_cache_engine === 'apc' && !function_exists('apc_fetch'))
+    || ($nova_cache_engine === 'mem' && !class_exists('Memcache'))
+    || ($nova_cache_engine === 'apcu' && (!function_exists('apcu_fetch') || !filter_var(ini_get('apc.enabled'), FILTER_VALIDATE_BOOLEAN)))
+    || ($nova_cache_engine === 'memcached' && !class_exists('Memcached') && !class_exists('Memcache'))
+    || ($nova_cache_engine === 'redis' && !extension_loaded('redis'))) {
+    $nova_cache_engine = 'file';
+}
+$config->set('cache_engine', $nova_cache_engine);
+try {
+    $nova_cache_instance = new Cache($config->get('cache_engine'), $config->get('cache_expire'));
+} catch (\Throwable $nova_cache_error) {
+    error_log('NovaCart cache fallback to file: ' . $nova_cache_error->getMessage());
+    $config->set('cache_engine', 'file');
+    $nova_cache_instance = new Cache('file', $config->get('cache_expire'));
+}
+$registry->set('cache', $nova_cache_instance);
 
 
 // Url

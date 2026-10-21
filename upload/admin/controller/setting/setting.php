@@ -17,6 +17,20 @@ class ControllerSettingSetting extends Controller {
 		}
 
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
+			$nova_cache = isset($this->request->post['config_novacart_cache_engine']) ? strtolower(trim((string)$this->request->post['config_novacart_cache_engine'])) : 'file';
+			if (!in_array($nova_cache, array('file', 'fastfile', 'smartcache', 'apc', 'apcu', 'mem', 'memcached', 'redis'), true)) {
+				$nova_cache = 'file';
+			}
+
+			if (($nova_cache === 'apc' && !function_exists('apc_fetch'))
+			|| ($nova_cache === 'apcu' && (!function_exists('apcu_fetch') || !filter_var(ini_get('apc.enabled'), FILTER_VALIDATE_BOOLEAN)))
+			|| ($nova_cache === 'memcached' && !class_exists('Memcached') && !class_exists('Memcache'))
+			|| ($nova_cache === 'redis' && !extension_loaded('redis'))) {
+				$nova_cache = 'file';
+			}
+
+			$this->request->post['config_novacart_cache_engine'] = $nova_cache;
+
 			$this->model_setting_setting->editSetting('config', $this->request->post);
 
 			// Start Add svg Favicon generator
@@ -1247,6 +1261,14 @@ class ControllerSettingSetting extends Controller {
 		} else {
 			$data['config_encryption'] = $this->config->get('config_encryption');
 		}
+
+		$nova_cache_value = isset($this->request->post['config_novacart_cache_engine']) ? $this->request->post['config_novacart_cache_engine'] : $this->config->get('config_novacart_cache_engine');
+		$data['config_novacart_cache_engine'] = in_array($nova_cache_value, array('file', 'fastfile', 'smartcache', 'apc', 'apcu', 'mem', 'memcached', 'redis'), true) ? $nova_cache_value : 'file';
+		$data['nova_cache_apc'] = function_exists('apc_fetch');
+		$data['nova_cache_apcu'] = function_exists('apcu_fetch') && filter_var(ini_get('apc.enabled'), FILTER_VALIDATE_BOOLEAN);
+		$data['nova_cache_mem'] = class_exists('Memcache');
+		$data['nova_cache_memcached'] = class_exists('Memcached') || class_exists('Memcache');
+		$data['nova_cache_redis'] = extension_loaded('redis');
 
 		if (isset($this->request->post['config_compression'])) {
 			$data['config_compression'] = (int)$this->request->post['config_compression'];

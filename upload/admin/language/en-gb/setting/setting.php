@@ -71,6 +71,8 @@ $_['text_alert_any']                    = 'Any deviation';
 $_['text_alert_negative']               = 'Only if the store rate is lower';
 $_['text_alert_positive']               = 'Only if the store rate is higher';
 
+$_['text_novacart_cache_unavailable']   = 'extension unavailable';
+
 // Entry
 $_['entry_name']                        = 'Store Name';
 $_['entry_owner']                       = 'Store Owner';
@@ -243,6 +245,8 @@ $_['entry_editor_default']              = 'Default Editor';
 $_['entry_alert_mode']                  = 'Currency Deviation Alert';
 $_['entry_delta_threshold']             = 'Deviation Threshold (%)';
 
+$_['entry_novacart_cache_engine'] = 'Cache engine';
+
 // Button
 $_['button_geocode']                    = 'Get Geocoordinates from OSM Nominatim';
 $_['button_template_setting']           = 'Go to template settings';
@@ -348,6 +352,8 @@ $_['help_valide_params']                = 'Each on a new line';
 $_['help_editor_default']               = 'Set default editor. If TinyMCE is selected, it might not work in some third-party modules.';
 
 $_['help_delta_threshold']              = 'Enter the deviation percentage at which a warning to update currency will be shown.';
+$_['help_novacart_cache_engine'] = 'Choose cache storage. Unavailable PHP extensions are disabled.';
+$_['help_novacart_cache_note'] = 'File cache is used when the backend connection fails. This setting affects storefront and admin.';
 
 // Error
 $_['error_warning']                     = 'Warning: Please check the form carefully for errors!';

@@ -1618,6 +1618,7 @@
                             </fieldset>
                         </div>
                         <div class="tab-pane" id="tab-server">
+
                             <fieldset>
                                 <legend style="background-color:#f5f5f5; padding:6px 10px; border-radius:4px; color:#337ab7;">{{ text_general }}</legend>
                                 <div class="form-group">
@@ -1669,6 +1670,24 @@
                                         <textarea name="config_robots" rows="5" placeholder="{{ entry_robots }}" id="input-robots" class="form-control">{{ config_robots }}</textarea>
                                     </div>
                                 </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="input-novacart-cache-engine"><span data-toggle="tooltip" title="{{ help_novacart_cache_engine }}">{{ entry_novacart_cache_engine }}</span></label>
+                                    <div class="col-sm-10">
+                                        <select name="config_novacart_cache_engine" id="input-novacart-cache-engine" class="form-control">
+                                            <option value="file"{{ config_novacart_cache_engine == 'file' ? ' selected="selected"' : '' }}>File</option>
+                                            <option value="fastfile"{{ config_novacart_cache_engine == 'fastfile' ? ' selected="selected"' : '' }}>FastFile</option>
+                                            <option value="smartcache"{{ config_novacart_cache_engine == 'smartcache' ? ' selected="selected"' : '' }}>SmartCache</option>
+                                            <option value="apc"{{ config_novacart_cache_engine == 'apc' ? ' selected="selected"' : '' }}{{ not nova_cache_apc ? ' disabled="disabled"' : '' }}>APC{{ not nova_cache_apc ? ' — ' ~ text_novacart_cache_unavailable : '' }}</option>
+                                            <option value="apcu"{{ config_novacart_cache_engine == 'apcu' ? ' selected="selected"' : '' }}{{ not nova_cache_apcu ? ' disabled="disabled"' : '' }}>APCu{{ not nova_cache_apcu ? ' — ' ~ text_novacart_cache_unavailable : '' }}</option>
+                                            <option value="mem"{{ config_novacart_cache_engine == 'mem' ? ' selected="selected"' : '' }}{{ not nova_cache_mem ? ' disabled="disabled"' : '' }}>Memcache{{ not nova_cache_mem ? ' — ' ~ text_novacart_cache_unavailable : '' }}</option>
+                                            <option value="memcached"{{ config_novacart_cache_engine == 'memcached' ? ' selected="selected"' : '' }}{{ not nova_cache_memcached ? ' disabled="disabled"' : '' }}>Memcached / UniversalMem{{ not nova_cache_memcached ? ' — ' ~ text_novacart_cache_unavailable : '' }}</option>
+                                            <option value="redis"{{ config_novacart_cache_engine == 'redis' ? ' selected="selected"' : '' }}{{ not nova_cache_redis ? ' disabled="disabled"' : '' }}>Redis{{ not nova_cache_redis ? ' — ' ~ text_novacart_cache_unavailable : '' }}</option>
+                                        </select>
+                                        <p class="help-block">{{ help_novacart_cache_note }}</p>
+                                    </div>
+                                </div>
+
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label" for="input-compression"><span data-toggle="tooltip" title="{{ help_compression }}">{{ entry_compression }}</span></label>
                                     <div class="col-sm-10">
@@ -1676,6 +1695,7 @@
                                     </div>
                                 </div>
                             </fieldset>
+
                             <fieldset>
                                 <legend style="background-color:#f5f5f5; padding:6px 10px; border-radius:4px; color:#337ab7;">{{ text_editor }}</legend>
                                 <div class="form-group">
@@ -1701,6 +1721,7 @@
                                     </div>
                                 </div>
                             </fieldset>
+
                             <fieldset>
                                 <legend style="background-color:#f5f5f5; padding:6px 10px; border-radius:4px; color:#337ab7;">{{ text_security }}</legend>
                                 <div class="form-group">

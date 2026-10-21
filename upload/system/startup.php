@@ -429,7 +429,8 @@ require_once(modification(DIR_SYSTEM . 'helper/utf8.php'));
 // Start
 function start($application_config): void {
 	try {
-		require_once(DIR_SYSTEM . 'framework.php');
+		//require_once(DIR_SYSTEM . 'framework.php');
+		require_once(modification(DIR_SYSTEM . 'framework.php'));
 	} catch (Throwable $e) {
 		/*
 		 * Emergency cleanup is reserved for engine-level PHP errors caused by

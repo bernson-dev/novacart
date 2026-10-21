@@ -21,6 +21,15 @@ class Cache {
 	 *
 	*/
 	public function __construct($adaptor, $expire = 3600) {
+	// Keep the NovaCart UniversalMem adapter unchanged and expose it
+	// under the configured "memcached" engine name.
+	if ($adaptor === 'memcached' && !class_exists('Cache\\Memcached', false)) {
+		require_once DIR_SYSTEM . 'library/cache/memcached.php';
+		if (class_exists('Cache\\UniversalMem', false)) {
+			class_alias('Cache\\UniversalMem', 'Cache\\Memcached');
+		}
+	}
+
 		$class = 'Cache\\' . $adaptor;
 
 		if (class_exists($class)) {
