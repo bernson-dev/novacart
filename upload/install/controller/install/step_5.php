@@ -92,7 +92,7 @@ class ControllerInstallStep5 extends Controller {
 					$activeStorage = DIR_STORAGE;
 					$flag = rtrim($activeStorage, '/\\') . DIRECTORY_SEPARATOR . 'install_cleanup.flag';
 					if (@file_put_contents($flag, '1', LOCK_EX) !== false) {
-						$json['pending'] = true;
+						$json['success'] = $this->language->get('text_success_install_deleted');
 					} else {
 						$json['error'] = $this->language->get('text_error_dir_delete');
 					}
