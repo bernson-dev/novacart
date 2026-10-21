@@ -28,3 +28,5 @@ $_['summary_storage_path'] = 'Storage path';
 $_['summary_administrator'] = 'Administrator';
 
 $_['summary_installer_language'] = 'Installer language';
+
+$_['text_install_cleanup_pending'] = 'Installer folder deletion is scheduled and will finish when the storefront opens.';
