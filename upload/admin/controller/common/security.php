@@ -136,7 +136,7 @@ class ControllerCommonSecurity extends Controller {
 			}
 
 			if (!$json) {
-				$storage_path = str_replace('\\\\', '/', rtrim($target, '/\\\\')) . '/';
+				$storage_path = str_replace('\\', '/', rtrim($target, '/\\')) . '/';
 
 				foreach ($config_files as $config_file) {
 					$output = '';
@@ -144,7 +144,7 @@ class ControllerCommonSecurity extends Controller {
 
 					foreach ($lines as $line) {
 						if (strpos($line, "define('DIR_STORAGE'") !== false) {
-							$output .= "define('DIR_STORAGE', '" . addslashes($storage_path) . "');" . "\\n";
+							$output .= "define('DIR_STORAGE', '" . $storage_path . "');" . "\n";
 						} else {
 							$output .= $line;
 						}
