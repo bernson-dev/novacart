@@ -1,5 +1,12 @@
 <?php
 class ModelLocalisationCountry extends Model {
+	private function clearCatalogCountryCache() {
+		$query = $this->db->query("SELECT language_id FROM `" . DB_PREFIX . "language`");
+		foreach ($query->rows as $language) {
+			$this->cache->delete('country.catalog.' . (int)$language['language_id']);
+		}
+	}
+
 	private function saveDescriptions($country_id, $data) {
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "country_description` WHERE `country_id` = '" . (int)$country_id . "'");
 		if (!empty($data['country_description']) && is_array($data['country_description'])) {
@@ -25,7 +32,7 @@ class ModelLocalisationCountry extends Model {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "country` SET `name` = '" . $this->db->escape($data['name']) . "', `iso_code_2` = '" . $this->db->escape($data['iso_code_2']) . "', `iso_code_3` = '" . $this->db->escape($data['iso_code_3']) . "', `address_format` = '" . $this->db->escape($data['address_format']) . "', `postcode_required` = '" . (int)$data['postcode_required'] . "', `status` = '" . (int)$data['status'] . "'");
 
 		$this->cache->delete('country');
-		$this->cache->delete('country.catalog.*');
+		$this->clearCatalogCountryCache();
 		
 		$country_id = $this->db->getLastId();
 		$this->saveDescriptions($country_id, $data);
@@ -38,7 +45,7 @@ class ModelLocalisationCountry extends Model {
 		$this->saveDescriptions($country_id, $data);
 
 		$this->cache->delete('country');
-		$this->cache->delete('country.catalog.*');
+		$this->clearCatalogCountryCache();
 	}
 
 	public function deleteCountry($country_id) {
@@ -46,19 +53,19 @@ class ModelLocalisationCountry extends Model {
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "country_description` WHERE `country_id` = '" . (int)$country_id . "'");
 
 		$this->cache->delete('country');
-		$this->cache->delete('country.catalog.*');
+		$this->clearCatalogCountryCache();
 	}
 
 	public function enableCountry($country_id) {
 		$this->db->query("UPDATE `" . DB_PREFIX . "country` SET `status` = '1' WHERE `country_id` = '" . (int)$country_id . "'");
 		$this->cache->delete('country');
-		$this->cache->delete('country.catalog.*');
+		$this->clearCatalogCountryCache();
 	}
 
 	public function disableCountry($country_id) {
 		$this->db->query("UPDATE `" . DB_PREFIX . "country` SET `status` = '0' WHERE `country_id` = '" . (int)$country_id . "'");
 		$this->cache->delete('country');
-		$this->cache->delete('country.catalog.*');
+		$this->clearCatalogCountryCache();
 	}
 
 	public function getCountry($country_id) {
