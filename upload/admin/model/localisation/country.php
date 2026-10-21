@@ -71,7 +71,7 @@ class ModelLocalisationCountry extends Model {
 
 			$implode = array();
 			if (!empty($data['filter_name'])) {
-				$implode[] = "COALESCE(NULLIF(cd.name, ''), c.name) LIKE '" . $this->db->escape($data['filter_name']) . "%'";
+				$implode[] = "(c.name LIKE '" . $this->db->escape($data['filter_name']) . "%' OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "country_description` search_translation WHERE search_translation.country_id = c.country_id AND search_translation.name LIKE '" . $this->db->escape($data['filter_name']) . "%'))";
 			}
 
 			if (!empty($data['filter_iso_code_2'])) {
@@ -133,7 +133,7 @@ class ModelLocalisationCountry extends Model {
 
 		$implode = array();
 		if (!empty($data['filter_name'])) {
-			$implode[] = "COALESCE(NULLIF(cd.name, ''), c.name) LIKE '" . $this->db->escape($data['filter_name']) . "%'";
+			$implode[] = "(c.name LIKE '" . $this->db->escape($data['filter_name']) . "%' OR EXISTS (SELECT 1 FROM `" . DB_PREFIX . "country_description` search_translation WHERE search_translation.country_id = c.country_id AND search_translation.name LIKE '" . $this->db->escape($data['filter_name']) . "%'))";
 		}
 
 		if (!empty($data['filter_iso_code_2'])) {
