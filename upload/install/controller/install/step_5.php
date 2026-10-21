@@ -91,7 +91,8 @@ class ControllerInstallStep5 extends Controller {
 					$json['success'] = $this->language->get('text_success_install_deleted');
 				} elseif ($result === 'text_error_dir_delete') {
 					// Папка пустая, но rmdir() не сработал — создаём флаг для отложенного удаления
-					$flag = DIR_STORAGE . 'install_cleanup.flag';
+					$storagePath = isset($this->session->data['installed_storage_path']) ? $this->session->data['installed_storage_path'] : DIR_STORAGE;
+					$flag = rtrim($storagePath, '/\\') . DIRECTORY_SEPARATOR . 'install_cleanup.flag';
 					if (@file_put_contents($flag, '1', LOCK_EX) !== false) {
 						$json['success'] = $this->language->get('text_success_install_deleted');
 					} else {
