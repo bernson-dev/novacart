@@ -11,88 +11,10 @@ class ControllerInstallStep5 extends Controller {
 		$data['footer'] = $this->load->controller('common/footer');
 		$data['header'] = $this->load->controller('common/header');
 
-		
-        $data['install_summary'] = $this->getInstallSummary();
-        $storagePath = isset($this->session->data['installed_storage_path']) ? $this->session->data['installed_storage_path'] : DIR_OPENCART . 'system/storage/';
-        $storagePath = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $storagePath);
-        $data['install_summary'][] = array('label' => $this->language->get('summary_storage_path'), 'value' => $storagePath);
-        $data['install_summary'][] = array('label' => $this->language->get('summary_installer_language'), 'value' => isset($this->session->data['language']) ? $this->session->data['language'] : '—');
-        $data['install_summary'][] = array('label' => $this->language->get('summary_administrator'), 'value' => isset($this->session->data['install_admin_user']) ? $this->session->data['install_admin_user'] : '—');
-        $result = isset($this->session->data['install_result']) ? $this->session->data['install_result'] : array();
-        if (isset($result['country_count'])) {
-            $data['install_summary'][] = array('label' => $this->language->get('summary_countries'), 'value' => (string)$result['country_count']);
-        }
-        if (isset($result['demo_removed'])) {
-            $data['install_summary'][] = array('label' => $this->language->get('summary_demo'), 'value' => $result['demo_removed'] ? $this->language->get('summary_demo_removed') : $this->language->get('summary_demo_kept'));
-        }
-        // Final installation step is complete: authorize cleanup on the NEXT catalog request.
-        if (!empty($this->session->data['installed_storage_path'])) {
-            $active = rtrim($this->session->data['installed_storage_path'], '/\\') . DIRECTORY_SEPARATOR;
-            $source = realpath(DIR_OPENCART . 'system/storage');
-            if ($source && is_dir($active) && is_writable($active) && $this->configsUseStorage($active)) {
-                @file_put_contents($active . 'install_old_storage_cleanup.flag', $source, LOCK_EX);
-            }
-        }
-        $data['column_left'] = $this->load->controller('common/column_left');
-        // Keep installation session metadata until the finish page has been prepared.
-        unset($this->session->data['install'], $this->session->data['install_db']);
+		unset($this->session->data['install'], $this->session->data['install_db']);
 		// Рендерим шаблон
 		$this->response->setOutput($this->load->view('install/step_5', $data));
 	}
-
-
-    private function configsUseStorage($active) {
-        foreach (array(DIR_OPENCART . 'config.php', DIR_OPENCART . 'admin/config.php') as $file) {
-            if (!is_file($file)) { return false; }
-            $body = file_get_contents($file);
-            if ($body === false || strpos(str_replace('\\', '/', $body), str_replace('\\', '/', rtrim($active, '/\\'))) === false) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private function getInstalledVersion() {
-        if (defined('VERSION')) {
-            return VERSION;
-        }
-
-        $entry = DIR_OPENCART . 'index.php';
-        if (is_file($entry)) {
-            $contents = @file_get_contents($entry);
-            if ($contents !== false && preg_match("/define\\s*\\(\\s*['\\\"]VERSION['\\\"]\\s*,\\s*['\\\"]([^'\\\"]+)['\\\"]/", $contents, $matches)) {
-                return $matches[1];
-            }
-        }
-
-        return '—';
-    }
-
-    private function getInstallSummary() {
-        $rows = array(
-            array('label' => 'NovaCart', 'value' => $this->getInstalledVersion()),
-            array('label' => 'PHP', 'value' => PHP_VERSION)
-        );
-
-        $db = null;
-        try {
-            $db = $this->registry->get('db');
-            if ($db) {
-                $query = $db->query('SELECT VERSION() AS version, @@character_set_database AS charset');
-                $version = isset($query->row['version']) ? $query->row['version'] : '';
-                $charset = isset($query->row['charset']) ? $query->row['charset'] : '';
-                $rows[] = array('label' => 'База данных / Database', 'value' => trim($version . ' · ' . $charset, ' ·'));
-            }
-        } catch (\Throwable $e) {
-            $rows[] = array('label' => 'База данных / Database', 'value' => 'Configured');
-        }
-
-        $storage = defined('DIR_STORAGE') ? realpath(DIR_STORAGE) : false;
-        $public = defined('DIR_SYSTEM') ? realpath(DIR_SYSTEM . 'storage') : false;
-        $outside = !empty($this->session->data['installed_storage_path']);
-        $rows[] = array('label' => 'Storage', 'value' => $outside ? 'External' : 'Default');
-        return $rows;
-    }
 
 	// Метод для обработки AJAX-запроса на удаление папки install
 	public function deleteInstallFolder() {
@@ -110,10 +32,9 @@ class ControllerInstallStep5 extends Controller {
 					$json['success'] = $this->language->get('text_success_install_deleted');
 				} elseif ($result === 'text_error_dir_delete') {
 					// Папка пустая, но rmdir() не сработал — создаём флаг для отложенного удаления
-					$storagePath = isset($this->session->data['installed_storage_path']) ? $this->session->data['installed_storage_path'] : DIR_STORAGE;
-					$flag = rtrim($storagePath, '/\\') . DIRECTORY_SEPARATOR . 'install_cleanup.flag';
+					$flag = DIR_STORAGE . 'install_cleanup.flag';
 					if (@file_put_contents($flag, '1', LOCK_EX) !== false) {
-						$json['pending'] = true;
+						$json['success'] = $this->language->get('text_success_install_deleted');
 					} else {
 						$json['error'] = $this->language->get('text_error_dir_delete');
 					}
