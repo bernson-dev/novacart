@@ -11,7 +11,7 @@ class ControllerInstallStep4 extends Controller {
             if (!empty($this->request->post['external_storage'])) {
                 require_once(DIR_OPENCART . 'system/library/storage_migration.php');
                 try {
-                    $storagePath = StorageMigration::suggestedPath(DIR_OPENCART);
+                    $storagePath = isset($this->session->data['suggested_storage_path']) ? $this->session->data['suggested_storage_path'] : StorageMigration::suggestedPath(DIR_OPENCART);
                     $this->session->data['installed_storage_path'] = StorageMigration::move(
                         DIR_OPENCART . 'system/storage', $storagePath,
                         array(DIR_OPENCART . 'config.php', DIR_OPENCART . 'admin/config.php')
@@ -80,7 +80,10 @@ class ControllerInstallStep4 extends Controller {
         $data['external_storage'] = !empty($this->request->post['external_storage']);
         $data['error_storage'] = isset($this->error['storage']) ? $this->error['storage'] : '';
         require_once(DIR_OPENCART . 'system/library/storage_migration.php');
-        $data['suggested_storage'] = StorageMigration::suggestedPath(DIR_OPENCART);
+        if (empty($this->session->data['suggested_storage_path'])) {
+            $this->session->data['suggested_storage_path'] = StorageMigration::suggestedPath(DIR_OPENCART);
+        }
+        $data['suggested_storage'] = $this->session->data['suggested_storage_path'];
 
 		if (isset($this->request->post['delete_demodata'])) {
 			$data['delete_demodata'] = $this->request->post['delete_demodata'];
