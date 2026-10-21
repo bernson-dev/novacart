@@ -14,18 +14,7 @@ class ControllerInstallStep5 extends Controller {
 		
         $data['install_summary'] = $this->getInstallSummary();
         if (!empty($this->session->data['installed_storage_path'])) {
-            require_once DIR_OPENCART . 'system/library/storage_migration.php';
-            try {
-                if (session_status() === PHP_SESSION_ACTIVE) { session_write_close(); }
-                $storageCleaned = StorageMigration::finalize(
-                    DIR_OPENCART . 'system/storage',
-                    $this->session->data['installed_storage_path'],
-                    array(DIR_OPENCART . 'config.php', DIR_OPENCART . 'admin/config.php')
-                );
-                $data['install_summary'][] = array('label' => 'Old storage', 'value' => $storageCleaned ? 'Protected and cleaned' : 'Cleanup incomplete: some files are still in use');
-            } catch (Throwable $exception) {
-                $data['install_summary'][] = array('label' => 'Old storage', 'value' => 'Not removed: ' . $exception->getMessage());
-            }
+            $data['install_summary'][] = array('label' => 'Old storage', 'value' => 'Cleanup deferred: installer still uses its vendor libraries');
         }
         $storagePath = isset($this->session->data['installed_storage_path']) ? $this->session->data['installed_storage_path'] : DIR_OPENCART . 'system/storage/';
         $data['install_summary'][] = array('label' => $this->language->get('summary_storage_path'), 'value' => $storagePath);
