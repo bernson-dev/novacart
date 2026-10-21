@@ -155,7 +155,13 @@ class ControllerCommonSecurity extends Controller {
 					fclose($file);
 				}
 
-				$json['success'] = $this->language->get('text_success');
+				$cleanup_flag = rtrim($storage_path, '/\\') . DIRECTORY_SEPARATOR . 'storage_cleanup.flag';
+
+				if (@file_put_contents($cleanup_flag, '1', LOCK_EX) === false) {
+					$json['error'] = $this->language->get('error_writable');
+				} else {
+					$json['success'] = $this->language->get('text_success');
+				}
 			}
 		}
 
