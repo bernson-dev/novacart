@@ -16,6 +16,7 @@ class ControllerInstallStep5 extends Controller {
         if (!empty($this->session->data['installed_storage_path'])) {
             require_once DIR_OPENCART . 'system/library/storage_migration.php';
             try {
+                if (session_status() === PHP_SESSION_ACTIVE) { session_write_close(); }
                 $storageCleaned = StorageMigration::finalize(
                     DIR_OPENCART . 'system/storage',
                     $this->session->data['installed_storage_path'],
