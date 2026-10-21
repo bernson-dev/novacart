@@ -136,7 +136,7 @@ class ControllerCommonDeveloper extends Controller {
 		$results = array(
 			$this->clearSystemCache(),
 			$this->clearImageCache(),
-			$this->clearSassCache(),
+			// Keep compiled CSS during routine cache clearing; use the separate SASS button to rebuild it.
 			$this->clearTemplateCache()
 		);
 
