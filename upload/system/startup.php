@@ -52,6 +52,50 @@ $_SERVER['HTTPS'] = $isHttps ? 'on' : '';
 
 // Finish installer cleanup deferred by Windows/PHP 8.x
 // Отложенное удаление папки install, если она не удалилась при завершении установки
+
+
+// Finish storage relocation cleanup after config.php has switched DIR_STORAGE.
+if (defined('DIR_STORAGE') && defined('DIR_SYSTEM')) {
+	$storage_cleanup_flag = rtrim(DIR_STORAGE, '/\\') . DIRECTORY_SEPARATOR . 'storage_cleanup.flag';
+
+	if (is_file($storage_cleanup_flag)) {
+		$old_storage = rtrim(DIR_SYSTEM . 'storage', '/\\');
+		$active_storage = rtrim(DIR_STORAGE, '/\\');
+
+		if (str_replace('\\', '/', $old_storage) !== str_replace('\\', '/', $active_storage) && is_dir($old_storage)) {
+			try {
+				$iterator = new RecursiveIteratorIterator(
+					new RecursiveDirectoryIterator($old_storage, FilesystemIterator::SKIP_DOTS),
+					RecursiveIteratorIterator::CHILD_FIRST
+				);
+
+				foreach ($iterator as $item) {
+					$path = $item->getPathname();
+					if ($item->isLink() || $item->isFile()) {
+						@chmod($path, 0660);
+						@unlink($path);
+					} elseif ($item->isDir()) {
+						@chmod($path, 0770);
+						@rmdir($path);
+					}
+				}
+
+				@rmdir($old_storage);
+				@mkdir($old_storage, 0750, true);
+				@file_put_contents($old_storage . DIRECTORY_SEPARATOR . '.htaccess', "Options -Indexes\n<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nOrder allow,deny\nDeny from all\n</IfModule>\n", LOCK_EX);
+				@file_put_contents($old_storage . DIRECTORY_SEPARATOR . 'web.config', '<?xml version="1.0" encoding="UTF-8"?><configuration><system.webServer><security><authorization><add accessType="Deny" users="*"/></authorization></security></system.webServer></configuration>', LOCK_EX);
+				@file_put_contents($old_storage . DIRECTORY_SEPARATOR . 'index.html', '', LOCK_EX);
+			} catch (Throwable $e) {
+				// Retry on the next request if Windows/filesystem keeps anything locked.
+			}
+		}
+
+		$remaining = is_dir($old_storage) ? array_values(array_diff(scandir($old_storage), array('.', '..', '.htaccess', 'web.config', 'index.html'))) : array();
+		if (!$remaining) {
+			@unlink($storage_cleanup_flag);
+		}
+	}
+}
 if (defined('DIR_STORAGE') && defined('DIR_SYSTEM') && defined('DIR_APPLICATION')
     && basename(rtrim(str_replace('\\', '/', DIR_APPLICATION), '/')) !== 'install') {
 	$install_cleanup_flag = DIR_STORAGE . 'install_cleanup.flag';
