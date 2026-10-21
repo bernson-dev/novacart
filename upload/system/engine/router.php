@@ -42,11 +42,13 @@ final class Router {
 	public function dispatch(Action $action, Action $error) {
 		$this->error = $error;
 
-		foreach ($this->pre_action as $pre_action) {
+		foreach ($this->pre_action as $pre_action_index => $pre_action) {
 			$profile_start = class_exists('NovaCartAdminProfiler', false) ? microtime(true) : null;
 			$result = $this->execute($pre_action);
 			if ($profile_start !== null) {
-				NovaCartAdminProfiler::add('router_pre_action', microtime(true) - $profile_start);
+				$elapsed = microtime(true) - $profile_start;
+				NovaCartAdminProfiler::add('router_pre_action', $elapsed);
+				NovaCartAdminProfiler::add('router_pre_action_' . ($pre_action_index + 1), $elapsed);
 			}
 
 			if ($result instanceof Action) {
