@@ -16,12 +16,12 @@ class ControllerInstallStep5 extends Controller {
         if (!empty($this->session->data['installed_storage_path'])) {
             require_once DIR_OPENCART . 'system/library/storage_migration.php';
             try {
-                StorageMigration::finalize(
+                $storageCleaned = StorageMigration::finalize(
                     DIR_OPENCART . 'system/storage',
                     $this->session->data['installed_storage_path'],
                     array(DIR_OPENCART . 'config.php', DIR_OPENCART . 'admin/config.php')
                 );
-                $data['install_summary'][] = array('label' => 'Old storage', 'value' => 'Protected and cleaned');
+                $data['install_summary'][] = array('label' => 'Old storage', 'value' => $storageCleaned ? 'Protected and cleaned' : 'Cleanup incomplete: some files are still in use');
             } catch (Throwable $exception) {
                 $data['install_summary'][] = array('label' => 'Old storage', 'value' => 'Not removed: ' . $exception->getMessage());
             }
