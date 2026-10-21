@@ -81,10 +81,7 @@
                     </div>`;
                     //console.error('Ошибка при удалении папки install: ' + data.error);
                 }
-                if (data.pending) {
-                    messageBox.innerHTML = '<div class="alert alert-info"><i class="fa fa-info-circle"></i> {{ text_install_cleanup_pending|escape('js') }}</div>';
-                }
-                if (data.success || data.pending) { callback(); }
+                if (data.success) { callback(); }
             })
             .catch(error => {
                 //console.error('Ошибка при удалении папки install:', error);
