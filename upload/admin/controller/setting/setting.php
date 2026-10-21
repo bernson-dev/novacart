@@ -24,6 +24,7 @@ class ControllerSettingSetting extends Controller {
 
 			if (($nova_cache === 'apc' && !function_exists('apc_fetch'))
 			|| ($nova_cache === 'apcu' && (!function_exists('apcu_fetch') || !filter_var(ini_get('apc.enabled'), FILTER_VALIDATE_BOOLEAN)))
+			|| ($nova_cache === 'mem' && !class_exists('Memcache'))
 			|| ($nova_cache === 'memcached' && !class_exists('Memcached') && !class_exists('Memcache'))
 			|| ($nova_cache === 'redis' && !extension_loaded('redis'))) {
 				$nova_cache = 'file';
