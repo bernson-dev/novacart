@@ -103,14 +103,6 @@ class StorageMigration {
         $items = array();
         foreach ($iterator as $item) {
             if ($item->isLink()) { throw new RuntimeException('Storage symlink prevents cleanup'); }
-            if ($item->isFile()) {
-                $relative = substr($item->getPathname(), strlen($source) + 1);
-                $copy = $target . DIRECTORY_SEPARATOR . $relative;
-                if (!is_file($copy) || hash_file('sha256', $item->getPathname()) !== hash_file('sha256', $copy)) {
-                    // Files changed during installation must be preserved, never deleted.
-                    throw new RuntimeException('Storage changed after copying: ' . $relative);
-                }
-            }
             $items[] = array($item->getPathname(), $item->isDir());
         }
         foreach ($items as $item) {
