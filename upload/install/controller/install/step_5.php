@@ -25,6 +25,14 @@ class ControllerInstallStep5 extends Controller {
         if (isset($result['demo_removed'])) {
             $data['install_summary'][] = array('label' => $this->language->get('summary_demo'), 'value' => $result['demo_removed'] ? $this->language->get('summary_demo_removed') : $this->language->get('summary_demo_kept'));
         }
+        // Final installation step is complete: authorize cleanup on the NEXT catalog request.
+        if (!empty($this->session->data['installed_storage_path'])) {
+            $active = rtrim($this->session->data['installed_storage_path'], '/\\') . DIRECTORY_SEPARATOR;
+            $source = realpath(DIR_OPENCART . 'system/storage');
+            if ($source && is_dir($active) && is_writable($active) && $this->configsUseStorage($active)) {
+                @file_put_contents($active . 'install_old_storage_cleanup.flag', $source, LOCK_EX);
+            }
+        }
         $data['column_left'] = $this->load->controller('common/column_left');
         // Keep installation session metadata until the finish page has been prepared.
         unset($this->session->data['install'], $this->session->data['install_db']);
@@ -32,6 +40,17 @@ class ControllerInstallStep5 extends Controller {
 		$this->response->setOutput($this->load->view('install/step_5', $data));
 	}
 
+
+    private function configsUseStorage($active) {
+        foreach (array(DIR_OPENCART . 'config.php', DIR_OPENCART . 'admin/config.php') as $file) {
+            if (!is_file($file)) { return false; }
+            $body = file_get_contents($file);
+            if ($body === false || strpos(str_replace('\\', '/', $body), str_replace('\\', '/', rtrim($active, '/\\'))) === false) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     private function getInstalledVersion() {
         if (defined('VERSION')) {
