@@ -170,6 +170,8 @@ if (!function_exists('frameworkSendErrorResponse')) {
 }
 
 
+if (class_exists('NovaCartAdminProfiler', false)) { NovaCartAdminProfiler::mark('framework_registry'); }
+
 // Registry
 $registry = new Registry();
 
@@ -439,6 +441,8 @@ register_shutdown_function(function () use ($log, $config) {
 });
 
 
+if (class_exists('NovaCartAdminProfiler', false)) { NovaCartAdminProfiler::mark('framework_event'); }
+
 // Event
 $event = new Event($registry);
 $registry->set('event', $event);
@@ -482,6 +486,8 @@ $config->get('config_compression')
 $registry->set('response', $response);
 
 
+if (class_exists('NovaCartAdminProfiler', false)) { NovaCartAdminProfiler::mark('framework_database'); }
+
 // Database
 if ($config->get('db_autostart')) {
 	$db = new DB(
@@ -497,6 +503,8 @@ if ($config->get('db_autostart')) {
 
 }
 
+
+if (class_exists('NovaCartAdminProfiler', false)) { NovaCartAdminProfiler::mark('framework_session'); }
 
 // Session
 $session = new Session(
@@ -568,6 +576,8 @@ if ($config->get('session_autostart')) {
 }
 
 
+if (class_exists('NovaCartAdminProfiler', false)) { NovaCartAdminProfiler::mark('framework_cache'); }
+
 // Cache
 //$registry->set('cache', new Cache($config->get('cache_engine'), $config->get('cache_expire')));
 
@@ -632,6 +642,8 @@ new Document()
 );
 
 
+if (class_exists('NovaCartAdminProfiler', false)) { NovaCartAdminProfiler::mark('framework_autoload'); }
+
 // Config Autoload
 if ($config->has('config_autoload')) {
 	foreach ($config->get('config_autoload') as $value) {
@@ -668,6 +680,8 @@ if ($config->has('model_autoload')) {
 $route = new Router($registry);
 
 
+if (class_exists('NovaCartAdminProfiler', false)) { NovaCartAdminProfiler::mark('framework_pre_actions'); }
+
 // Pre Actions
 if ($config->has('action_pre_action')) {
 	foreach ($config->get('action_pre_action') as $value) {
@@ -677,6 +691,8 @@ if ($config->has('action_pre_action')) {
 	}
 }
 
+
+if (class_exists('NovaCartAdminProfiler', false)) { NovaCartAdminProfiler::mark('framework_dispatch'); }
 
 // Dispatch
 $route->dispatch(
@@ -688,6 +704,8 @@ $config->get('action_error')
 )
 );
 
+
+if (class_exists('NovaCartAdminProfiler', false)) { NovaCartAdminProfiler::mark('framework_output'); }
 
 // Output
 $response->output();
