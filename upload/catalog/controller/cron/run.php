@@ -29,6 +29,9 @@ class ControllerCronRun extends Controller {
              } elseif ($command === 'test:register' && $isCli) {
                 $scheduler->register('test.integration', 'cron/test', 3600, array());
                 $result = array('status' => 'ok', 'message' => 'Test task registered');
+            } elseif ($command === 'test:failure' && $isCli) {
+                $scheduler->register('test.failure', 'cron/test', 3600, array('fail' => true));
+                $result = array('status' => 'ok', 'message' => 'Failure test task registered');
             } elseif ($command === 'list' && $isCli) {
                 $result = array('status' => 'ok', 'tasks' => $scheduler->listTasks());
             } else {
