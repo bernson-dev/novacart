@@ -123,11 +123,8 @@ class NovaCartQueue {
             if ($log) {
                 $log->write('NovaCart queue #' . $id . ': ' . $message);
             }
-        } finally {
-            if ($locked) {
-                $this->db->query("SELECT RELEASE_LOCK('" . $this->db->escape($lock) . "')");
-            }
         }
+        try {
         if ($success) {
             $this->db->query("UPDATE `" . DB_PREFIX . "novacart_queue` SET status='done', locked_at=NULL,
                 locked_by=NULL, last_error=NULL, date_modified=NOW() WHERE queue_id=" . $id);
@@ -138,6 +135,11 @@ class NovaCartQueue {
                 "', available_at=DATE_ADD(NOW(), INTERVAL " . (int)$delay . " SECOND), locked_at=NULL,
                 locked_by=NULL, last_error='" . $this->db->escape($message) . "', date_modified=NOW()
                 WHERE queue_id=" . $id);
+        }
+        } finally {
+            if ($locked) {
+                $this->db->query("SELECT RELEASE_LOCK('" . $this->db->escape($lock) . "')");
+            }
         }
         return $success;
     }
