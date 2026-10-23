@@ -29,6 +29,19 @@ class ControllerCronRun extends Controller {
                 (new NovaCartQueue($this->registry))->install();
                 $result = array('status' => 'ok', 'message' => 'Cron schema installed'); } elseif ($command === 'list' && $isCli) {
                 $result = array('status' => 'ok', 'tasks' => $scheduler->listTasks());
+            } elseif ($isCli && $command === 'queue:test:seed') {
+                require_once(DIR_SYSTEM . 'library/novacart/queue.php');
+                $queue = new NovaCartQueue($this->registry);
+                $ids = array(
+                    'success' => $queue->enqueue('test.queue.success', 'cron/queue_probe', array('mode'=>'success'), 100, 1),
+                    'failure' => $queue->enqueue('test.queue.failure', 'cron/queue_probe', array('mode'=>'failure'), 100, 2),
+                    'slow' => $queue->enqueue('test.queue.slow', 'cron/queue_probe', array('mode'=>'slow'), 100, 1)
+                );
+                $result = array('status'=>'ok', 'ids'=>$ids);
+            } elseif ($isCli && $command === 'queue:test:list') {
+                $rows = $this->db->query("SELECT queue_id, code, status, attempts, max_attempts, available_at, last_error
+                    FROM `" . DB_PREFIX . "novacart_queue` WHERE code LIKE 'test.queue.%' ORDER BY queue_id DESC LIMIT 30")->rows;
+                $result = array('status'=>'ok', 'tasks'=>$rows);
             } elseif ($command === 'queue:run' || $command === 'queue:stats') {
                 require_once(DIR_SYSTEM . 'library/novacart/queue.php');
                 $queue = new NovaCartQueue($this->registry);
