@@ -14,6 +14,6 @@ php cli.php queue:run
 
 To enqueue trusted application jobs, load `system/library/novacart/queue.php` and call `(new NovaCartQueue($registry))->enqueue('code', 'cron/handler', array('id'=>123))`. Handlers must be trusted routes, and business-level idempotency is mandatory for operations with external side effects.
 
-**This is a draft implementation awaiting concurrency and failure/recovery integration tests. Do not use it for production mail or payment processing yet.**
+Integration checks on OSPanel/MariaDB covered successful and failing handlers, retry exhaustion, concurrent worker invocation, and simulated stale-job recovery. Production handlers still require idempotency and monitoring; side-effecting workflows need their own acceptance tests.
 
 Queue status counts: pending, processing, done, failed. Queue execution is intentionally not connected to `cron:run` yet; configure `queue:run` separately after validation.
