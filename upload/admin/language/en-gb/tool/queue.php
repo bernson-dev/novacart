@@ -10,3 +10,5 @@ $_['button_retry']='Retry'; $_['button_delete']='Delete'; $_['button_cleanup']='
 $_['text_confirm_retry']='Retry this failed job?'; $_['text_confirm_delete']='Delete this completed job?';
 $_['text_confirm_cleanup']='Delete all completed jobs older than 7 days?';
 $_['error_permission']='Permission denied'; $_['error_action']='Invalid operation';
+
+$_['error_no_changes'] = 'No rows changed: job status changed or the record no longer exists';
