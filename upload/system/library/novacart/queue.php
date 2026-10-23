@@ -127,14 +127,16 @@ class NovaCartQueue {
         try {
         if ($success) {
             $this->db->query("UPDATE `" . DB_PREFIX . "novacart_queue` SET status='done', locked_at=NULL,
-                locked_by=NULL, last_error=NULL, date_modified=NOW() WHERE queue_id=" . $id);
+                locked_by=NULL, last_error=NULL, date_modified=NOW() WHERE queue_id=" . $id .
+                " AND status='processing' AND locked_by='" . $this->db->escape($job['locked_by']) . "'");
         } else {
             $final = (int)$job['attempts'] >= (int)$job['max_attempts'];
             $delay = min(3600, 30 * (2 ** max(0, (int)$job['attempts'] - 1)));
             $this->db->query("UPDATE `" . DB_PREFIX . "novacart_queue` SET status='" . ($final ? 'failed' : 'pending') .
                 "', available_at=DATE_ADD(NOW(), INTERVAL " . (int)$delay . " SECOND), locked_at=NULL,
                 locked_by=NULL, last_error='" . $this->db->escape($message) . "', date_modified=NOW()
-                WHERE queue_id=" . $id);
+                WHERE queue_id=" . $id . " AND status='processing' AND locked_by='" .
+                $this->db->escape($job['locked_by']) . "'");
         }
         } finally {
             if ($locked) {
@@ -152,18 +154,28 @@ class NovaCartQueue {
         foreach ($rows as $row) {
             $id = (int)$row['queue_id'];
             $lock = 'ncq_' . substr(hash('sha256', DB_DATABASE . ':' . DB_PREFIX), 0, 16) . '_' . $id;
+            $recoveryLocked = false;
             try {
-                $q = $this->db->query("SELECT IS_USED_LOCK('" . $this->db->escape($lock) . "') owner");
-                if (!array_key_exists('owner', $q->row) || $q->row['owner'] !== null) {
+                // Acquire the same advisory lock as execute(), closing the
+                // check-then-update race with another worker.
+                $q = $this->db->query("SELECT GET_LOCK('" . $this->db->escape($lock) . "', 0) acquired");
+                if (empty($q->row['acquired'])) {
                     continue;
                 }
+                $recoveryLocked = true;
                 $status = (int)$row['attempts'] >= (int)$row['max_attempts'] ? 'failed' : 'pending';
                 $this->db->query("UPDATE `" . DB_PREFIX . "novacart_queue` SET status='" . $status .
                     "', locked_at=NULL, locked_by=NULL, available_at=NOW(), date_modified=NOW()
-                    WHERE queue_id=" . $id . " AND status='processing'");
+                    WHERE queue_id=" . $id . " AND status='processing'
+                    AND locked_at < DATE_SUB(NOW(), INTERVAL 15 MINUTE)
+                    AND attempts=" . (int)$row['attempts']);
             } catch (Throwable $e) {
                 $log = $this->registry->get('log');
                 if ($log) { $log->write('NovaCart queue recovery: ' . $e->getMessage()); }
+            } finally {
+                if ($recoveryLocked) {
+                    $this->db->query("SELECT RELEASE_LOCK('" . $this->db->escape($lock) . "')");
+                }
             }
         }
     }
