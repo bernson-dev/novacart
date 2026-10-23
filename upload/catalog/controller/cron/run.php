@@ -30,6 +30,12 @@ class ControllerCronRun extends Controller {
                 $result = array('status' => 'ok', 'message' => 'Cron schema installed');
             } elseif ($command === 'list' && $isCli) {
                 $result = array('status' => 'ok', 'tasks' => $scheduler->listTasks());
+            } elseif ($command === 'jobs:run' && $isCli) {
+                $cronResult = $scheduler->runDue(20);
+                require_once(DIR_SYSTEM . 'library/novacart/queue.php');
+                $queueResult = (new NovaCartQueue($this->registry))->run(25);
+                $result = array('status' => ($cronResult['status'] === 'ok' && $queueResult['status'] === 'ok') ? 'ok' : 'partial',
+                    'scheduler' => $cronResult, 'queue' => $queueResult);
             } elseif ($command === 'queue:run' || $command === 'queue:stats') {
                 require_once(DIR_SYSTEM . 'library/novacart/queue.php');
                 $queue = new NovaCartQueue($this->registry);
