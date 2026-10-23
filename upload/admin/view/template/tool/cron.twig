@@ -11,7 +11,7 @@
   <div class="container-fluid">
     {% if error_warning %}<div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}</div>{% endif %}
     {% if success %}<div class="alert alert-success"><i class="fa fa-check-circle"></i> {{ success }}</div>{% endif %}
-    <div class="panel panel-default">
+    <div class="panel panel-default" id="jobs-monitor">
       <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-heartbeat"></i> {{ text_monitor }}</h3></div>
       <div class="panel-body">
         {% if heartbeat_status == 'none' %}
@@ -87,3 +87,28 @@
   </div>
 </div>
 {{ footer }}
+
+<script type="text/javascript">
+(function () {
+    var url = {{ action|json_encode|raw }};
+    var busy = false;
+    window.setInterval(function () {
+        if (busy || document.hidden || !document.getElementById('jobs-monitor')) {
+            return;
+        }
+        busy = true;
+        $.ajax({
+            url: url,
+            type: 'GET',
+            cache: false,
+            success: function (html) {
+                var updated = $('<div>').append($.parseHTML(html, document, false)).find('#jobs-monitor');
+                if (updated.length) {
+                    $('#jobs-monitor').html(updated.html());
+                }
+            },
+            complete: function () { busy = false; }
+        });
+    }, 30000);
+})();
+</script>
