@@ -25,8 +25,15 @@ class ControllerCronRun extends Controller {
         try {
             if ($command === 'install' && $isCli) {
                 $scheduler->install();
-                $result = array('status' => 'ok', 'message' => 'Cron schema installed'); } elseif ($command === 'list' && $isCli) {
+                require_once(DIR_SYSTEM . 'library/novacart/queue.php');
+                (new NovaCartQueue($this->registry))->install();
+                $result = array('status' => 'ok', 'message' => 'Cron schema installed');
+            } elseif ($command === 'list' && $isCli) {
                 $result = array('status' => 'ok', 'tasks' => $scheduler->listTasks());
+            } elseif ($command === 'queue:run' || $command === 'queue:stats') {
+                require_once(DIR_SYSTEM . 'library/novacart/queue.php');
+                $queue = new NovaCartQueue($this->registry);
+                $result = $command === 'queue:stats' ? array('status'=>'ok', 'queue'=>$queue->stats()) : $queue->run(25);
             } else {
                 $result = $scheduler->runDue(20);
             }
