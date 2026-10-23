@@ -17,7 +17,7 @@ class ControllerToolCron extends Controller {
         $data['job_runs'] = array();
         $data['heartbeat_status'] = 'none';
         $data['heartbeat_minutes'] = null;
-        foreach (array('text_monitor','text_monitor_empty','text_heartbeat_ok','text_heartbeat_late','text_heartbeat_missing','column_started','column_finished','column_duration','column_scheduler','column_queue','column_run_status','column_run_error') as $key) {
+        foreach (array('text_monitor','text_monitor_empty','text_heartbeat_ok','text_heartbeat_late','text_heartbeat_missing','text_heartbeat_error','text_heartbeat_running','column_started','column_finished','column_duration','column_scheduler','column_queue','column_run_status','column_run_error') as $key) {
             $data[$key] = $this->language->get($key);
         }
         $data['error_warning'] = '';
@@ -62,7 +62,8 @@ class ControllerToolCron extends Controller {
                 $latest = $data['job_runs'][0];
                 $age = $this->db->query("SELECT TIMESTAMPDIFF(MINUTE, started_at, NOW()) AS minutes FROM `" . DB_PREFIX . "novacart_jobs_run` WHERE run_id=" . (int)$latest['run_id'])->row;
                 $data['heartbeat_minutes'] = max(0, (int)$age['minutes']);
-                $data['heartbeat_status'] = $data['heartbeat_minutes'] > 5 ? 'late' : 'ok';
+                $data['heartbeat_status'] = $data['heartbeat_minutes'] > 5 ? 'late' :
+                    ($latest['status'] === 'ok' ? 'ok' : ($latest['status'] === 'running' ? 'running' : 'error'));
             }
         } catch (Throwable $e) {
             $data['error_warning'] = $e->getMessage();

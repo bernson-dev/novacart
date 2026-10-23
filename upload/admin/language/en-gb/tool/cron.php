@@ -24,3 +24,6 @@ $_['column_scheduler'] = 'Scheduler (processed/failed)';
 $_['column_queue'] = 'Queue (processed/failed)';
 $_['column_run_status'] = 'Result';
 $_['column_run_error'] = 'Error';
+
+$_['text_heartbeat_error'] = 'Last run finished with errors';
+$_['text_heartbeat_running'] = 'Job runner is in progress';

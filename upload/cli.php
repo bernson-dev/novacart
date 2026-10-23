@@ -25,4 +25,6 @@ $_SERVER['HTTPS'] = isset($parts['scheme']) && strtolower($parts['scheme']) === 
 $_GET['route'] = 'cron/run';
 $_GET['command'] = $command === 'jobs:run' ? 'jobs:run' : (strpos($command, 'queue:') === 0 ? $command : substr($command, 5));
 require_once(DIR_SYSTEM . 'startup.php');
+$GLOBALS['NOVACART_CLI_EXIT_STATUS'] = 1;
 start('catalog');
+exit((int)$GLOBALS['NOVACART_CLI_EXIT_STATUS']);
