@@ -27,7 +27,13 @@ class ControllerToolQueue extends Controller {
                     } else {
                         throw new InvalidArgumentException($this->language->get('error_action'));
                     }
+                    if ($this->db->countAffected() < 1) {
+                        throw new RuntimeException($this->language->get('error_no_changes'));
+                    }
                     $this->session->data['queue_success'] = $this->language->get('text_success');
+                    if ($action === 'retry') {
+                        $url = $this->url->link('tool/queue', $base . '&filter_status=pending', true);
+                    }
                 } catch (Throwable $e) {
                     $this->session->data['queue_error'] = $e->getMessage();
                 }
