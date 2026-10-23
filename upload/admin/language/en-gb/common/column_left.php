@@ -114,3 +114,5 @@ $_['text_weight_class']              = 'Weight Classes';
 $_['text_zone']                      = 'Zones';
 
 $_['text_cron'] = 'Task Scheduler';
+
+$_['text_queue'] = 'Job Queue';
