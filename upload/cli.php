@@ -9,8 +9,8 @@ if (!is_file(__DIR__ . '/config.php')) {
     exit(2);
 }
 $command = isset($argv[1]) ? $argv[1] : 'cron:run';
-if (!in_array($command, array('cron:run', 'cron:install', 'cron:list', 'cron:test:register'), true)) {
-    fwrite(STDERR, "Usage: php cli.php cron:install|cron:run|cron:list|cron:test:register\n");
+if (!in_array($command, array('cron:run', 'cron:install', 'cron:list', 'cron:test:register', 'cron:test:failure'), true)) {
+    fwrite(STDERR, "Usage: php cli.php cron:install|cron:run|cron:list|cron:test:register|cron:test:failure\n");
     exit(2);
 }
 require_once(__DIR__ . '/config.php');
