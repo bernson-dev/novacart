@@ -16,6 +16,10 @@
       <div class="panel-body">
         {% if heartbeat_status == 'none' %}
           <div class="alert alert-info">{{ text_heartbeat_missing }}</div>
+        {% elseif heartbeat_status == 'error' %}
+          <div class="alert alert-danger">{{ text_heartbeat_error }} ({{ heartbeat_minutes }} min)</div>
+        {% elseif heartbeat_status == 'running' %}
+          <div class="alert alert-info">{{ text_heartbeat_running }} ({{ heartbeat_minutes }} min)</div>
         {% elseif heartbeat_status == 'late' %}
           <div class="alert alert-warning">{{ text_heartbeat_late }} ({{ heartbeat_minutes }} min)</div>
         {% else %}
