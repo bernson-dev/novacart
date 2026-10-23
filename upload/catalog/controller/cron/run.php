@@ -37,23 +37,28 @@ class ControllerCronRun extends Controller {
                 $monitor = new NovaCartJobsMonitor($this->registry);
                 $started = microtime(true);
                 $runId = $monitor->begin();
-                $cronResult = array();
-                $queueResult = array();
-                $runError = '';
+                $cronResult = array('status' => 'error', 'processed' => 0, 'failed' => 0);
+                $queueResult = array('status' => 'error', 'processed' => 0, 'failed' => 0);
+                $runErrors = array();
                 try {
                     $cronResult = $scheduler->runDue(20);
+                } catch (Throwable $e) {
+                    $runErrors[] = 'Scheduler: ' . get_class($e) . ': ' . $e->getMessage();
+                }
+                try {
                     require_once(DIR_SYSTEM . 'library/novacart/queue.php');
                     $queueResult = (new NovaCartQueue($this->registry))->run(25);
                 } catch (Throwable $e) {
-                    $runError = get_class($e) . ': ' . $e->getMessage();
+                    $runErrors[] = 'Queue: ' . get_class($e) . ': ' . $e->getMessage();
+                }
+                $runError = implode('; ', $runErrors);
+                if ($runError !== '') {
                     $this->log->write('NovaCart jobs run: ' . $runError);
                 }
                 $monitor->finish($runId, $cronResult, $queueResult, (int)round((microtime(true) - $started) * 1000), $runError);
-                $result = array('status' => $runError !== '' ? 'error' : (
-                    isset($cronResult['status'], $queueResult['status']) &&
-                    $cronResult['status'] === 'ok' && $queueResult['status'] === 'ok' &&
-                    empty($cronResult['failed']) && empty($queueResult['failed']) ? 'ok' : 'partial'),
-                    'scheduler' => $cronResult, 'queue' => $queueResult);
+                $healthy = $runError === '' && $cronResult['status'] === 'ok' && $queueResult['status'] === 'ok'
+                    && empty($cronResult['failed']) && empty($queueResult['failed']);
+                $result = array('status' => $healthy ? 'ok' : 'error', 'scheduler' => $cronResult, 'queue' => $queueResult);
                 if ($runError !== '') {
                     $result['message'] = $runError;
                 }
@@ -72,5 +77,8 @@ class ControllerCronRun extends Controller {
         $this->response->addHeader('Content-Type: application/json; charset=utf-8');
         $payload = json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $this->response->setOutput($payload !== false ? $payload : '{"status":"error"}');
+        if ($isCli) {
+            $GLOBALS['NOVACART_CLI_EXIT_STATUS'] = $payload !== false && isset($result['status']) && $result['status'] === 'ok' ? 0 : 1;
+        }
     }
 }
