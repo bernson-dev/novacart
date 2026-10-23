@@ -14,6 +14,12 @@ class ControllerToolCron extends Controller {
         $data['action'] = $this->url->link('tool/cron', 'user_token=' . $this->session->data['user_token'], true);
         $data['can_modify'] = $this->user->hasPermission('modify', 'tool/cron');
         $data['tasks'] = array();
+        $data['job_runs'] = array();
+        $data['heartbeat_status'] = 'none';
+        $data['heartbeat_minutes'] = null;
+        foreach (array('text_monitor','text_monitor_empty','text_heartbeat_ok','text_heartbeat_late','text_heartbeat_missing','column_started','column_finished','column_duration','column_scheduler','column_queue','column_run_status','column_run_error') as $key) {
+            $data[$key] = $this->language->get($key);
+        }
         $data['error_warning'] = '';
         $data['success'] = '';
         if ($this->request->server['REQUEST_METHOD'] === 'POST') {
@@ -49,6 +55,15 @@ class ControllerToolCron extends Controller {
             require_once(DIR_SYSTEM . 'library/novacart/scheduler.php');
             $scheduler = new NovaCartScheduler($this->registry);
             $data['tasks'] = $scheduler->listTasks();
+            require_once(DIR_SYSTEM . 'library/novacart/jobs_monitor.php');
+            $monitor = new NovaCartJobsMonitor($this->registry);
+            $data['job_runs'] = $monitor->recent(30);
+            if ($data['job_runs']) {
+                $latest = $data['job_runs'][0];
+                $age = $this->db->query("SELECT TIMESTAMPDIFF(MINUTE, started_at, NOW()) AS minutes FROM `" . DB_PREFIX . "novacart_jobs_run` WHERE run_id=" . (int)$latest['run_id'])->row;
+                $data['heartbeat_minutes'] = max(0, (int)$age['minutes']);
+                $data['heartbeat_status'] = $data['heartbeat_minutes'] > 5 ? 'late' : 'ok';
+            }
         } catch (Throwable $e) {
             $data['error_warning'] = $e->getMessage();
         }
