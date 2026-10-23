@@ -90,7 +90,8 @@
 
 <script type="text/javascript">
 (function () {
-    var url = {{ action|json_encode|raw }};
+    // Use the browser's canonical URL; OpenCart-generated links may redirect HTTP to HTTPS.
+    var url = window.location.href.split('#')[0];
     var busy = false;
     window.setInterval(function () {
         if (busy || document.hidden || !document.getElementById('jobs-monitor')) {
@@ -102,10 +103,16 @@
             type: 'GET',
             cache: false,
             success: function (html) {
-                var updated = $('<div>').append($.parseHTML(html, document, false)).find('#jobs-monitor');
-                if (updated.length) {
-                    $('#jobs-monitor').html(updated.html());
+                var parsed = new DOMParser().parseFromString(html, 'text/html');
+                var updated = parsed.getElementById('jobs-monitor');
+                if (updated) {
+                    document.getElementById('jobs-monitor').innerHTML = updated.innerHTML;
+                } else {
+                    console.warn('NovaCart monitor refresh: response does not contain #jobs-monitor');
                 }
+            },
+            error: function (xhr, status) {
+                console.warn('NovaCart monitor refresh failed:', status, xhr.status);
             },
             complete: function () { busy = false; }
         });
