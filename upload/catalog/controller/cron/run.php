@@ -27,15 +27,35 @@ class ControllerCronRun extends Controller {
                 $scheduler->install();
                 require_once(DIR_SYSTEM . 'library/novacart/queue.php');
                 (new NovaCartQueue($this->registry))->install();
+                require_once(DIR_SYSTEM . 'library/novacart/jobs_monitor.php');
+                (new NovaCartJobsMonitor($this->registry))->install();
                 $result = array('status' => 'ok', 'message' => 'Cron schema installed');
             } elseif ($command === 'list' && $isCli) {
                 $result = array('status' => 'ok', 'tasks' => $scheduler->listTasks());
             } elseif ($command === 'jobs:run' && $isCli) {
-                $cronResult = $scheduler->runDue(20);
-                require_once(DIR_SYSTEM . 'library/novacart/queue.php');
-                $queueResult = (new NovaCartQueue($this->registry))->run(25);
-                $result = array('status' => ($cronResult['status'] === 'ok' && $queueResult['status'] === 'ok') ? 'ok' : 'partial',
+                require_once(DIR_SYSTEM . 'library/novacart/jobs_monitor.php');
+                $monitor = new NovaCartJobsMonitor($this->registry);
+                $started = microtime(true);
+                $runId = $monitor->begin();
+                $cronResult = array();
+                $queueResult = array();
+                $runError = '';
+                try {
+                    $cronResult = $scheduler->runDue(20);
+                    require_once(DIR_SYSTEM . 'library/novacart/queue.php');
+                    $queueResult = (new NovaCartQueue($this->registry))->run(25);
+                } catch (Throwable $e) {
+                    $runError = get_class($e) . ': ' . $e->getMessage();
+                    $this->log->write('NovaCart jobs run: ' . $runError);
+                }
+                $monitor->finish($runId, $cronResult, $queueResult, (int)round((microtime(true) - $started) * 1000), $runError);
+                $result = array('status' => $runError !== '' ? 'error' : (
+                    isset($cronResult['status'], $queueResult['status']) &&
+                    $cronResult['status'] === 'ok' && $queueResult['status'] === 'ok' ? 'ok' : 'partial'),
                     'scheduler' => $cronResult, 'queue' => $queueResult);
+                if ($runError !== '') {
+                    $result['message'] = $runError;
+                }
             } elseif ($command === 'queue:run' || $command === 'queue:stats') {
                 require_once(DIR_SYSTEM . 'library/novacart/queue.php');
                 $queue = new NovaCartQueue($this->registry);
