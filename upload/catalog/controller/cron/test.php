@@ -10,6 +10,10 @@ class ControllerCronTest extends Controller {
             return array('success' => false, 'message' => 'Forbidden');
         }
 
+        if (!empty($args['fail'])) {
+            return array('success' => false, 'message' => 'Expected test failure (no catalog changes)');
+        }
+
         return array(
             'success' => true,
             'message' => 'NovaCart cron integration test OK'
