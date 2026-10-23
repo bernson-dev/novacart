@@ -13,3 +13,16 @@ $_['column_message'] = 'Сообщение'; $_['column_action'] = 'Действ
 $_['button_enable'] = 'Включить'; $_['button_disable'] = 'Отключить';
 $_['error_permission'] = 'Недостаточно прав для изменения заданий';
 $_['error_action'] = 'Некорректные параметры запроса';
+
+$_['text_monitor'] = 'Мониторинг запусков';
+$_['text_monitor_empty'] = 'История запусков отсутствует';
+$_['text_heartbeat_ok'] = 'Автоматический запуск работает';
+$_['text_heartbeat_late'] = 'Нет запусков более пяти минут';
+$_['text_heartbeat_missing'] = 'Запуски ещё не зарегистрированы';
+$_['column_started'] = 'Начало';
+$_['column_finished'] = 'Завершение';
+$_['column_duration'] = 'Длительность';
+$_['column_scheduler'] = 'Scheduler (обработано/ошибок)';
+$_['column_queue'] = 'Queue (обработано/ошибок)';
+$_['column_run_status'] = 'Результат';
+$_['column_run_error'] = 'Ошибка';
