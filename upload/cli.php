@@ -9,8 +9,8 @@ if (!is_file(__DIR__ . '/config.php')) {
     exit(2);
 }
 $command = isset($argv[1]) ? $argv[1] : 'cron:run';
-if (!in_array($command, array('cron:run', 'cron:install', 'cron:list'), true)) {
-    fwrite(STDERR, "Usage: php cli.php cron:install|cron:run|cron:list\n");
+if (!in_array($command, array('cron:run', 'cron:install', 'cron:list', 'queue:run', 'queue:stats'), true)) {
+    fwrite(STDERR, "Usage: php cli.php cron:install|cron:run|cron:list|queue:run|queue:stats\n");
     exit(2);
 }
 require_once(__DIR__ . '/config.php');
@@ -23,6 +23,6 @@ $_SERVER['SCRIPT_NAME'] = $_SERVER['PHP_SELF'];
 $_SERVER['REQUEST_URI'] = $_SERVER['PHP_SELF'];
 $_SERVER['HTTPS'] = isset($parts['scheme']) && strtolower($parts['scheme']) === 'https' ? 'on' : 'off';
 $_GET['route'] = 'cron/run';
-$_GET['command'] = substr($command, 5);
+$_GET['command'] = strpos($command, 'queue:') === 0 ? $command : substr($command, 5);
 require_once(DIR_SYSTEM . 'startup.php');
 start('catalog');
