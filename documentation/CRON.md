@@ -32,25 +32,6 @@ This first PR contains only the scheduler engine, protected entry points, and sc
 
 For a production release, run integration tests for CLI startup, schema installation, route execution, concurrency, and compatibility with installed extensions.
 
-## Safe integration test (OSPanel / Windows)
+## Validation
 
-Open the OSPanel console in the installed store directory and check out branch `feature/cron-scheduler`. Run:
-
-```bat
-php cli.php cron:install
-php cli.php cron:test:register
-php cli.php cron:list
-php cli.php cron:run
-php cli.php cron:list
-php cli.php cron:run
-```
-
-The probe is `test.integration` and its handler is `cron/test`. It returns only a success message; it never modifies catalog data. After the first successful run, the task should have `last_status: success`, a populated `date_last`, and a future `date_next`. The next immediate run should process zero tasks.
-
-For concurrency testing, start two OSPanel terminals and issue `php cli.php cron:run` simultaneously. As the probe completes rapidly, this alone does **not** prove that the locking mechanism works; deterministic concurrency verification requires a barrier or a slow test handler in an isolated test environment.
-
-To remove the test registration after verification, run this query in the TEST database (replace `oc_` with your configured table prefix):
-
-```sql
-DELETE FROM oc_novacart_cron WHERE code = 'test.integration';
-```
+The scheduler was functionally verified with OSPanel on Windows: schema install, task registration/execution, success/failure reporting, scheduling intervals and MySQL advisory lock contention. Temporary test routes and CLI commands were removed from the release candidate. Run `cron:install` before `cron:run` on each new installation.
