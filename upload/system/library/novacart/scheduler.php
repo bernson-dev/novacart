@@ -94,9 +94,14 @@ class NovaCartScheduler {
                 throw new RuntimeException('Invalid cron parameters');
             }
             $result = $this->registry->get('load')->controller($route, $args);
+            if (is_array($result) && isset($result['message'])) {
+                $message = (string)$result['message'];
+            }
             if ($result === false || (is_array($result) && array_key_exists('success', $result) && !$result['success'])) {
                 $ok = false;
-                $message = is_array($result) && isset($result['message']) ? (string)$result['message'] : 'Handler returned failure';
+                if (!is_array($result) || !isset($result['message'])) {
+                    $message = 'Handler returned failure';
+                }
             }
         } catch (Throwable $e) {
             $ok = false;
