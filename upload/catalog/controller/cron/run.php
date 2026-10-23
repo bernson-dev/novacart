@@ -51,7 +51,8 @@ class ControllerCronRun extends Controller {
                 $monitor->finish($runId, $cronResult, $queueResult, (int)round((microtime(true) - $started) * 1000), $runError);
                 $result = array('status' => $runError !== '' ? 'error' : (
                     isset($cronResult['status'], $queueResult['status']) &&
-                    $cronResult['status'] === 'ok' && $queueResult['status'] === 'ok' ? 'ok' : 'partial'),
+                    $cronResult['status'] === 'ok' && $queueResult['status'] === 'ok' &&
+                    empty($cronResult['failed']) && empty($queueResult['failed']) ? 'ok' : 'partial'),
                     'scheduler' => $cronResult, 'queue' => $queueResult);
                 if ($runError !== '') {
                     $result['message'] = $runError;
