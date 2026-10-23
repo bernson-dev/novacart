@@ -12,7 +12,6 @@ class ControllerToolQueue extends Controller {
         $url = $this->url->link('tool/queue', $base . $filter . '&page=' . $page, true);
         $canModify = $this->user->hasPermission('modify', 'tool/queue');
         if ($this->request->server['REQUEST_METHOD'] === 'POST') {
-            $this->log->write('Queue admin POST: action=' . (isset($this->request->post['queue_action']) ? $this->request->post['queue_action'] : '[missing]') . ', id=' . (isset($this->request->post['queue_id']) ? (int)$this->request->post['queue_id'] : 0) . ', modify=' . (int)$canModify);
             if (!$canModify) {
                 $this->session->data['queue_error'] = $this->language->get('error_permission');
             } else {
@@ -29,7 +28,6 @@ class ControllerToolQueue extends Controller {
                         throw new InvalidArgumentException($this->language->get('error_action'));
                     }
                     $affected = $this->db->countAffected();
-                    $this->log->write('Queue admin result: action=' . $action . ', id=' . $id . ', affected=' . $affected);
                     if ($affected < 1) {
                         throw new RuntimeException($this->language->get('error_no_changes'));
                     }
@@ -38,7 +36,6 @@ class ControllerToolQueue extends Controller {
                         $url = $this->url->link('tool/queue', $base . '&filter_status=pending', true);
                     }
                 } catch (Throwable $e) {
-                    $this->log->write('Queue admin error: ' . $e->getMessage());
                     $this->session->data['queue_error'] = $e->getMessage();
                 }
             }
