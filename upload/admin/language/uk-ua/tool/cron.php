@@ -24,3 +24,6 @@ $_['column_scheduler'] = 'Scheduler (оброблено/помилок)';
 $_['column_queue'] = 'Queue (оброблено/помилок)';
 $_['column_run_status'] = 'Результат';
 $_['column_run_error'] = 'Помилка';
+
+$_['text_heartbeat_error'] = 'Останній запуск завершився з помилкою';
+$_['text_heartbeat_running'] = 'Завдання виконується';
