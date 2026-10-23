@@ -1,0 +1,55 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="container-fluid">
+    {% if error_warning %}<div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}</div>{% endif %}
+    {% if success %}<div class="alert alert-success"><i class="fa fa-check-circle"></i> {{ success }}</div>{% endif %}
+    <div class="panel panel-default">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-clock-o"></i> {{ heading_title }}</h3></div>
+      <div class="panel-body">
+        <p class="help-block">{{ text_cli }}</p>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead><tr>
+              <td>{{ column_code }}</td><td>{{ column_route }}</td><td>{{ column_interval }}</td>
+              <td>{{ column_status }}</td><td>{{ column_last }}</td><td>{{ column_next }}</td>
+              <td>{{ column_result }}</td><td>{{ column_message }}</td><td class="text-right">{{ column_action }}</td>
+            </tr></thead>
+            <tbody>
+              {% if tasks %}
+                {% for task in tasks %}
+                  <tr>
+                    <td>{{ task.code }}</td><td><code>{{ task.route }}</code></td>
+                    <td>{{ task.interval_seconds }} s</td>
+                    <td>{{ task.status ? text_enabled : text_disabled }}</td>
+                    <td>{{ task.date_last ?: '—' }}</td><td>{{ task.date_next }}</td>
+                    <td>{{ task.last_status ?: '—' }}</td><td>{{ task.last_message ?: '—' }}</td>
+                    <td class="text-right">
+                      {% if can_modify %}
+                        <form action="{{ action }}" method="post" style="display:inline">
+                          <input type="hidden" name="cron_id" value="{{ task.cron_id }}">
+                          <input type="hidden" name="status" value="{{ task.status ? 0 : 1 }}">
+                          <button type="submit" class="btn btn-sm {{ task.status ? 'btn-warning' : 'btn-success' }}">{{ task.status ? button_disable : button_enable }}</button>
+                        </form>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="9" class="text-center">{{ text_no_results }}</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}
