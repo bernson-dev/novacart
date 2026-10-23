@@ -52,14 +52,17 @@ class NovaCartJobsMonitor {
             duration_ms=" . max(0, min(4294967295, (int)$durationMs)) . ",
             error_message='" . $this->db->escape(substr((string)$error, 0, 2000)) . "'
             WHERE run_id=" . (int)$id . " AND status='running'");
-        // Keep a fixed-size history to avoid unbounded growth at one run per minute.
+        // Retain the latest 500 runs plus recent failures/incomplete runs.
+        // The seven-day limit bounds extra rows even if every minute fails.
         $this->db->query("DELETE FROM `" . DB_PREFIX . "novacart_jobs_run`
             WHERE run_id NOT IN (
                 SELECT run_id FROM (
                     SELECT run_id FROM `" . DB_PREFIX . "novacart_jobs_run`
                     ORDER BY run_id DESC LIMIT 500
                 ) AS recent_runs
-            )");
+            )
+            AND NOT (status IN ('error', 'warning', 'running')
+                AND started_at >= DATE_SUB(NOW(), INTERVAL 7 DAY))");
     }
 
     public function recent($limit = 30) {
