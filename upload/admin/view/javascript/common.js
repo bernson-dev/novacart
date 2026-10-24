@@ -707,12 +707,18 @@ $(document).ready(function() {
 
 		const getTextWidth = (text) => Math.round(textCtx.measureText(String(text)).width);
 
-		const rootStyles = getComputedStyle(document.documentElement);
-		const progressFill1 = rootStyles.getPropertyValue('--progress-fill-1').trim() || '#28a745';
-		const progressFill2 = rootStyles.getPropertyValue('--progress-fill-2').trim() || '#ffc107';
-		const progressFill3 = rootStyles.getPropertyValue('--progress-fill-3').trim() || '#fd7e14';
-		const progressFill4 = rootStyles.getPropertyValue('--progress-fill-4').trim() || '#dc3545';
-		const progressEmpty = rootStyles.getPropertyValue('--progress-empty').trim() || '#e9ecef';
+		// Resolve palette on each draw so switching the admin theme updates existing canvases.
+		function progressPalette() {
+			const styles = getComputedStyle(document.documentElement);
+			const dark = document.documentElement.classList.contains('novacart-admin-dark');
+			return {
+				fill1: styles.getPropertyValue('--progress-fill-1').trim() || '#28a745',
+				fill2: styles.getPropertyValue('--progress-fill-2').trim() || '#ffc107',
+				fill3: styles.getPropertyValue('--progress-fill-3').trim() || '#fd7e14',
+				fill4: styles.getPropertyValue('--progress-fill-4').trim() || '#dc3545',
+				empty: dark ? '#304153' : (styles.getPropertyValue('--progress-empty').trim() || '#e9ecef')
+			};
+		}
 		// Счётчик длины (справа)
 		let $counter1 = needLengthCounter ? $('<span class="input-group-addon counter"></span>') : $();
 		let $progressContainer = $();
@@ -759,12 +765,13 @@ $(document).ready(function() {
 
 			progressCtx.clearRect(0, 0, progressCanvas.width, progressCanvas.height);
 
+			const palette = progressPalette();
 			// Градиент слева направо: зеленый → желтый → оранжевый → красный
 			const gradient = progressCtx.createLinearGradient(0, 0, progressCanvas.width, 0);
-			gradient.addColorStop(0, progressFill1);
-			gradient.addColorStop(0.5, progressFill2);
-			gradient.addColorStop(0.75, progressFill3);
-			gradient.addColorStop(1, progressFill4);
+			gradient.addColorStop(0, palette.fill1);
+			gradient.addColorStop(0.5, palette.fill2);
+			gradient.addColorStop(0.75, palette.fill3);
+			gradient.addColorStop(1, palette.fill4);
 
 			// Полные блоки
 			progressCtx.fillStyle = gradient;
@@ -779,7 +786,7 @@ $(document).ready(function() {
 				progressCtx.fillStyle = gradient;
 				progressCtx.fillRect(x, 0, blockWidth * partial - 1, progressCanvas.height);
 
-				progressCtx.fillStyle = progressEmpty;
+				progressCtx.fillStyle = palette.empty;
 				progressCtx.fillRect(
 				x + blockWidth * partial - 1,
 				0,
@@ -789,7 +796,7 @@ $(document).ready(function() {
 			}
 
 			// Пустые блоки
-			progressCtx.fillStyle = progressEmpty;
+			progressCtx.fillStyle = palette.empty;
 			for (let i = fullBlocks + (partial > 0 ? 1 : 0); i < blocksTotal; i++) {
 				progressCtx.fillRect(i * blockWidth, 0, blockWidth - 1, progressCanvas.height);
 			}
@@ -817,6 +824,7 @@ $(document).ready(function() {
 		}
 
 		update();
+		$(document).on('novacart:themechange', update);
 
 		let updateRaf = 0;
 
