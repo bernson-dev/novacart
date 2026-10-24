@@ -94,3 +94,7 @@ $_['text_interval_weeks'] = 'Тижні';
 $_['text_interval_seconds'] = 'сек.';
 $_['text_interval_invalid'] = 'Недопустимий інтервал (60–31536000 сек.)';
 $_['text_interval_apply'] = 'Вставити в поле';
+
+$_['text_interval_years'] = 'Роки';
+$_['text_interval_months'] = 'Місяці';
+$_['text_interval_assumptions'] = '1 рік = 365 днів; 1 місяць = 30 днів.';
