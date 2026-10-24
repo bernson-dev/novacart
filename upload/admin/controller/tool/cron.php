@@ -40,7 +40,7 @@ class ControllerToolCron extends Controller {
             $catalog = defined('HTTPS_CATALOG') ? HTTPS_CATALOG : (defined('HTTP_CATALOG') ? HTTP_CATALOG : '');
             if ($key !== '' && $catalog !== '') {
                 $url = rtrim($catalog, '/') . '/cron.php?key=' . rawurlencode($key);
-                $data['http_command'] = 'curl.exe -fsS "' . $url . '"';
+                $data['http_command'] = 'curl.exe -sS -i "' . $url . '"';
             }
         }
         $data['job_runs'] = array();
