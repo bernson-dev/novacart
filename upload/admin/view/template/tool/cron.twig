@@ -126,7 +126,15 @@
     <div class="panel panel-default">
       <div class="panel-heading clearfix">
         <h3 class="panel-title pull-left"><i class="fa fa-tasks"></i> {{ text_queue_panel }}</h3>
-        <a href="{{ queue_url }}" class="btn btn-primary btn-sm pull-right">{{ text_queue_manage }} <i class="fa fa-external-link"></i></a>
+        <div class="pull-right">
+          {% if can_modify %}
+          <form action="" method="post" style="display:inline-block">
+            <input type="hidden" name="scheduler_action" value="run_queue">
+            <button class="btn btn-primary btn-sm"><i class="fa fa-play"></i> {{ text_queue_run }}</button>
+          </form>
+          {% endif %}
+          <a href="{{ queue_url }}" class="btn btn-default btn-sm">{{ text_queue_manage }} <i class="fa fa-external-link"></i></a>
+        </div>
       </div>
       <div class="panel-body">
         <p>{{ text_queue_pending }}: {{ queue_stats.pending }}, {{ text_queue_processing }}: {{ queue_stats.processing }}, {{ text_queue_done }}: {{ queue_stats.done }}, {{ text_queue_failed }}: {{ queue_stats.failed }}</p>
@@ -143,10 +151,28 @@
         </form>
       </div>
       <div class="table-responsive"><table class="table table-bordered table-hover">
-        <thead><tr><th>ID</th><th>{{ column_code }}</th><th>{{ column_route }}</th><th>{{ column_status }}</th><th>{{ text_queue_attempts }}</th><th>{{ text_queue_available }}</th><th>{{ text_queue_error }}</th></tr></thead>
+        <thead><tr><th>ID</th><th>{{ column_code }}</th><th>{{ column_route }}</th><th>{{ column_status }}</th><th>{{ text_queue_attempts }}</th><th>{{ text_queue_available }}</th><th>{{ text_queue_error }}</th><th>{{ column_action }}</th></tr></thead>
         <tbody>{% for item in queue_jobs %}
-          <tr><td>{{ item.queue_id }}</td><td>{{ item.code }}</td><td><code>{{ item.route }}</code></td><td>{{ item.status }}</td><td>{{ item.attempts }}/{{ item.max_attempts }}</td><td>{{ item.available_at }}</td><td>{{ item.last_error ?: '—' }}</td></tr>
-          {% else %}<tr><td colspan="7" class="text-center">{{ text_no_results }}</td></tr>
+          <tr><td>{{ item.queue_id }}</td><td>{{ item.code }}</td><td><code>{{ item.route }}</code></td><td>{{ item.status }}</td><td>{{ item.attempts }}/{{ item.max_attempts }}</td><td>{{ item.available_at }}</td><td>{{ item.last_error ?: '—' }}</td><td class="text-right" style="white-space:nowrap">
+            {% if can_modify %}
+              {% if item.status in ['pending','failed'] %}
+              <form action="" method="post" style="display:inline-block">
+                <input type="hidden" name="scheduler_action" value="run_queue_one">
+                <input type="hidden" name="queue_id" value="{{ item.queue_id }}">
+                <input type="hidden" name="retry" value="{{ item.status == 'failed' ? 1 : 0 }}">
+                <button class="btn btn-sm btn-primary" title="{{ item.status == 'failed' ? text_queue_retry : text_action_run }}"><i class="fa fa-{{ item.status == 'failed' ? 'repeat' : 'play' }}"></i></button>
+              </form>
+              {% endif %}
+              {% if item.status != 'processing' %}
+              <form action="" method="post" style="display:inline-block" onsubmit="return confirm('{{ text_queue_confirm_delete|e('js') }}');">
+                <input type="hidden" name="scheduler_action" value="delete_queue_one">
+                <input type="hidden" name="queue_id" value="{{ item.queue_id }}">
+                <button class="btn btn-sm btn-danger" title="{{ text_action_delete }}"><i class="fa fa-trash"></i></button>
+              </form>
+              {% endif %}
+            {% endif %}
+          </td></tr>
+          {% else %}<tr><td colspan="8" class="text-center">{{ text_no_results }}</td></tr>
         {% endfor %}</tbody>
       </table></div>
     </div>
