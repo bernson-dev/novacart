@@ -38,10 +38,27 @@ class ControllerToolCron extends Controller {
                     } elseif ($operation === 'delete') {
                         $scheduler->deleteTask($id);
                     } elseif ($operation === 'run') {
-                        // Admin and catalog share this lock via the same DB connection.
-                        // Handlers must be trusted internal cron routes only.
-                        $outcome = $scheduler->runOne($id);
-                        if (!$outcome['success']) { throw new RuntimeException($outcome['message']); }
+                        $secretPath = DIR_STORAGE . 'novacart_cron.key';
+                        $key = is_file($secretPath) ? trim((string)file_get_contents($secretPath)) : '';
+                        if ($key === '' || !function_exists('curl_init')) {
+                            throw new RuntimeException('HTTP cron key or cURL is not configured');
+                        }
+                        $base = defined('HTTPS_CATALOG') ? HTTPS_CATALOG : (defined('HTTP_CATALOG') ? HTTP_CATALOG : '');
+                        if ($base === '') { throw new RuntimeException('Catalog URL is unavailable'); }
+                        $url = rtrim($base, '/') . '/cron.php?key=' . rawurlencode($key) .
+                            '&mode=scheduler_one&scheduler_id=' . $id;
+                        $curl = curl_init($url);
+                        curl_setopt_array($curl, array(CURLOPT_RETURNTRANSFER=>true, CURLOPT_CONNECTTIMEOUT=>5,
+                            CURLOPT_TIMEOUT=>120, CURLOPT_FOLLOWLOCATION=>false, CURLOPT_SSL_VERIFYPEER=>true));
+                        $body = curl_exec($curl);
+                        $httpCode = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                        curl_close($curl);
+                        $decoded = is_string($body) ? json_decode($body, true) : null;
+                        if ($httpCode !== 200 || !isset($decoded['scheduler_one']['success']) ||
+                            !$decoded['scheduler_one']['success']) {
+                            throw new RuntimeException(isset($decoded['scheduler_one']['message']) ?
+                                (string)$decoded['scheduler_one']['message'] : 'Scheduler HTTP request failed');
+                        }
                     } elseif ($operation === 'save') {
                         $code = isset($this->request->post['code']) ? trim((string)$this->request->post['code']) : '';
                         $route = isset($this->request->post['route']) ? trim((string)$this->request->post['route']) : '';
