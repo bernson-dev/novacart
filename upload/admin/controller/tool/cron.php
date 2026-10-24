@@ -59,7 +59,20 @@ class ControllerToolCron extends Controller {
                     $scheduler = new NovaCartScheduler($this->registry);
                     $operation = isset($this->request->post['scheduler_action']) ? (string)$this->request->post['scheduler_action'] : 'toggle';
                     $id = isset($this->request->post['cron_id']) ? (int)$this->request->post['cron_id'] : 0;
-                    if ($operation === 'toggle') {
+                    if ($operation === 'queue_probe') {
+                        // Temporary, opt-in smoke-test records; not eligible for automatic workers.
+                        foreach (array(
+                            array('code'=>'probe.queue.success', 'args'=>'{}'),
+                            array('code'=>'probe.queue.failure', 'args'=>'{"probe_fail":true}')
+                        ) as $probe) {
+                            $this->db->query("INSERT INTO `" . DB_PREFIX . "novacart_queue` SET code='" .
+                                $this->db->escape($probe['code']) . "', route='cron/diagnostic', args='" .
+                                $this->db->escape($probe['args']) . "', priority=100, status='pending',
+                                attempts=0, max_attempts=1,
+                                available_at=DATE_ADD(NOW(), INTERVAL 1 DAY),
+                                date_added=NOW(), date_modified=NOW()");
+                        }
+                    } elseif ($operation === 'toggle') {
                         $scheduler->setStatus($id, !empty($this->request->post['status']));
                     } elseif ($operation === 'delete') {
                         $scheduler->deleteTask($id);
