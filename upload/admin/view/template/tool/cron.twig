@@ -210,17 +210,16 @@
           <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_interval }}</label><div class="col-sm-10">
             <input class="form-control" id="input-cron-interval" type="number" name="interval_seconds" min="60" max="31536000" required value="{{ edit_task.interval_seconds }}">
             <div class="nc-interval-calc">
-              <label class="sr-only" for="nc-interval-amount">{{ text_interval_quantity }}</label>
-              <input id="nc-interval-amount" class="form-control" type="number" min="1" max="525600" step="1" value="1" aria-label="{{ text_interval_quantity }}">
-              <label class="sr-only" for="nc-interval-unit">{{ text_interval_unit }}</label>
-              <select id="nc-interval-unit" class="form-control" aria-label="{{ text_interval_unit }}">
-                <option value="60">{{ text_interval_minutes }}</option>
-                <option value="3600">{{ text_interval_hours }}</option>
-                <option value="86400" selected>{{ text_interval_days }}</option>
-                <option value="604800">{{ text_interval_weeks }}</option>
-              </select>
-              <span id="nc-interval-preview" class="nc-interval-preview" aria-live="polite">86400 {{ text_interval_seconds }}</span>
-              <button id="nc-interval-apply" class="btn btn-default" type="button"><i class="fa fa-arrow-up"></i> {{ text_interval_apply }}</button>
+              <div class="nc-interval-fields">
+                <label class="nc-interval-field"><span>{{ text_interval_years }}</span><input class="form-control nc-interval-part" type="number" min="0" max="525600" step="1" value="0" data-seconds="31536000" aria-label="{{ text_interval_years }}"></label>
+                <label class="nc-interval-field"><span>{{ text_interval_months }}</span><input class="form-control nc-interval-part" type="number" min="0" max="525600" step="1" value="0" data-seconds="2592000" aria-label="{{ text_interval_months }}"></label>
+                <label class="nc-interval-field"><span>{{ text_interval_weeks }}</span><input class="form-control nc-interval-part" type="number" min="0" max="525600" step="1" value="0" data-seconds="604800" aria-label="{{ text_interval_weeks }}"></label>
+                <label class="nc-interval-field"><span>{{ text_interval_days }}</span><input class="form-control nc-interval-part" type="number" min="0" max="525600" step="1" value="0" data-seconds="86400" aria-label="{{ text_interval_days }}"></label>
+                <label class="nc-interval-field"><span>{{ text_interval_hours }}</span><input class="form-control nc-interval-part" type="number" min="0" max="525600" step="1" value="0" data-seconds="3600" aria-label="{{ text_interval_hours }}"></label>
+                <label class="nc-interval-field"><span>{{ text_interval_minutes }}</span><input class="form-control nc-interval-part" type="number" min="0" max="525600" step="1" value="0" data-seconds="60" aria-label="{{ text_interval_minutes }}"></label>
+              </div>
+              <div class="nc-interval-actions"><span id="nc-interval-preview" class="nc-interval-preview" aria-live="polite">0 {{ text_interval_seconds }}</span><button id="nc-interval-apply" class="btn btn-default" type="button" disabled><i class="fa fa-arrow-up"></i> {{ text_interval_apply }}</button></div>
+              <small class="help-block">{{ text_interval_assumptions }}</small>
             </div>
           </div></div>
           <div class="form-group"><label class="col-sm-2 control-label">{{ text_action_args }}</label><div class="col-sm-10"><textarea class="form-control" name="args" rows="3">{{ edit_task.args }}</textarea></div></div>
@@ -235,11 +234,16 @@
 {{ footer }}
 
 <style>
-.nc-interval-calc{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px}
-.nc-interval-calc #nc-interval-amount{width:100px}
-.nc-interval-calc #nc-interval-unit{width:135px}
-.nc-interval-calc .nc-interval-preview{font-size:12px;color:#666;min-width:85px}
-.nc-interval-calc .btn{white-space:nowrap}
+.nc-interval-calc{margin-top:10px}
+.nc-interval-fields{display:grid;grid-template-columns:repeat(6,minmax(80px,1fr));gap:8px}
+.nc-interval-field{min-width:0;font-size:12px;font-weight:normal;color:#566577}
+.nc-interval-field span{display:block;margin-bottom:4px}
+.nc-interval-field .form-control{width:100%}
+.nc-interval-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:10px}
+.nc-interval-preview{font-weight:600;color:#34495e}
+.nc-interval-calc .help-block{margin:6px 0 0}
+@media(max-width:767px){.nc-interval-fields{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:400px){.nc-interval-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .nc-queue-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .nc-queue-heading .panel-title{float:none;margin:0;line-height:30px}
 .nc-queue-heading-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
@@ -327,22 +331,26 @@ $('.js-cron-copy').on('click', function () {
 
 <script type="text/javascript">
 (function () {
-    var amount = document.getElementById('nc-interval-amount');
-    var unit = document.getElementById('nc-interval-unit');
+    var fields = document.querySelectorAll('.nc-interval-part');
     var preview = document.getElementById('nc-interval-preview');
     var apply = document.getElementById('nc-interval-apply');
     var target = document.getElementById('input-cron-interval');
-    if (!amount || !unit || !preview || !apply || !target) return;
+    if (!fields.length || !preview || !apply || !target) return;
     function calculate() {
-        var raw = Number(amount.value);
-        var seconds = raw * Number(unit.value);
-        var valid = Number.isInteger(raw) && raw > 0 && Number.isSafeInteger(seconds) && seconds >= 60 && seconds <= 31536000;
+        var seconds = 0;
+        var valid = true;
+        Array.prototype.forEach.call(fields, function (field) {
+            var raw = field.value.trim();
+            var value = Number(raw);
+            if (raw === '' || !Number.isSafeInteger(value) || value < 0) valid = false;
+            seconds += value * Number(field.getAttribute('data-seconds'));
+        });
+        valid = valid && Number.isSafeInteger(seconds) && seconds >= 60 && seconds <= 31536000;
         preview.textContent = valid ? seconds + ' {{ text_interval_seconds|e('js') }}' : '{{ text_interval_invalid|e('js') }}';
         apply.disabled = !valid;
         return valid ? seconds : null;
     }
-    amount.addEventListener('input', calculate);
-    unit.addEventListener('change', calculate);
+    Array.prototype.forEach.call(fields, function (field) { field.addEventListener('input', calculate); });
     apply.addEventListener('click', function () {
         var seconds = calculate();
         if (seconds !== null) {
