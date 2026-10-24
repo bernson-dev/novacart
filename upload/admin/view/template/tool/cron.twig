@@ -33,6 +33,17 @@
         {% endif %}
       </div>
     </div>
+<style>
+  #jobs-monitor-history { margin-top: 14px; }
+  #jobs-monitor-history > summary.nc-monitor-history-toggle { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:#f5f7f9;border:1px solid #dce2e8;border-radius:4px;cursor:pointer;list-style:none;user-select:none;color:#34495e;font-weight:600; }
+  #jobs-monitor-history > summary.nc-monitor-history-toggle::-webkit-details-marker { display:none; }
+  #jobs-monitor-history > summary.nc-monitor-history-toggle:hover { background:#eaf0f5; }
+  #jobs-monitor-history > summary.nc-monitor-history-toggle:focus-visible { outline:2px solid #1976d2;outline-offset:2px; }
+  #jobs-monitor-history .nc-monitor-history-arrow { margin-right:6px;transition:transform .15s ease; }
+  #jobs-monitor-history[open] .nc-monitor-history-arrow { transform:rotate(90deg); }
+  #jobs-monitor-history .nc-monitor-history-hint { color:#697786;font-size:12px;font-weight:400; }
+  #jobs-monitor-history > .table-responsive { margin-top:12px; }
+</style>
     <div class="panel panel-default" id="jobs-monitor">
       <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-heartbeat"></i> {{ text_monitor }}</h3></div>
       <div class="panel-body">
@@ -47,6 +58,11 @@
         {% else %}
           <div class="alert alert-success">{{ text_heartbeat_ok }} ({{ heartbeat_minutes }} min)</div>
         {% endif %}
+        <details id="jobs-monitor-history">
+          <summary class="nc-monitor-history-toggle">
+            <span><i class="fa fa-chevron-right nc-monitor-history-arrow" aria-hidden="true"></i> {{ text_monitor_history }}</span>
+            <span class="nc-monitor-history-hint">{{ text_monitor_history_hint }}</span>
+          </summary>
         <div class="table-responsive">
           <table class="table table-bordered table-striped">
             <thead><tr>
@@ -69,6 +85,7 @@
             </tbody>
           </table>
         </div>
+        </details>
       </div>
     </div>
     <div class="panel panel-default">
@@ -90,7 +107,7 @@
                     <td>{{ task.interval_seconds }} s</td>
                     <td><span class="label label-{{ task.status ? 'success' : 'default' }}">{{ task.status ? text_enabled : text_disabled }}</span></td>
                     <td>{{ task.date_last ?: '—' }}</td><td>{{ task.date_next }}</td>
-                    <td>{% if task.last_status %}<span class="label label-{{ task.last_status == 'success' ? 'success' : 'danger' }}">{{ task.last_status }}</span>{% if task.last_duration_ms is not null %} <small>{{ task.last_duration_ms }} ms</small>{% endif %}{% else %}—{% endif %}</td><td title="{{ task.last_message ?: '' }}">{{ task.last_message ?: '—' }}</td>
+                    <td>{% if task.last_status %}<span class="label label-{{ task.last_status == 'success' ? 'success' : 'danger' }}">{{ task.last_status }}</span>{% if task.last_duration_ms is not null %} <small>{{ task.last_duration_ms }} ms</small>{% endif %}{% else %}—{% endif %}</td><td title="{{ task.last_message == 'text_success' and task.route == 'cron/currency' ? text_currency_refresh_success : (task.last_message ?: '') }}">{{ task.last_message == 'text_success' and task.route == 'cron/currency' ? text_currency_refresh_success : (task.last_message ?: '—') }}</td>
                     <td class="text-right" style="white-space:nowrap">
                       {% if can_modify %}
                         <form action="" method="post" style="display:inline">
@@ -190,7 +207,21 @@
           <input type="hidden" name="cron_id" value="{{ edit_task.cron_id }}">
           <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_code }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-code" name="code" required minlength="2" maxlength="128" value="{{ edit_task.code }}" {{ edit_task.code|slice(0, 5) == 'core.' ? 'readonly' : '' }}></div></div>
           <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_route }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-route" name="route" required value="{{ edit_task.route }}" placeholder="cron/example"></div></div>
-          <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_interval }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-interval" type="number" name="interval_seconds" min="60" max="31536000" required value="{{ edit_task.interval_seconds }}"></div></div>
+          <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_interval }}</label><div class="col-sm-10">
+            <input class="form-control" id="input-cron-interval" type="number" name="interval_seconds" min="60" max="31536000" required value="{{ edit_task.interval_seconds }}">
+            <div class="nc-interval-calc">
+              <div class="nc-interval-fields">
+                <label class="nc-interval-field"><span>{{ text_interval_years }}</span><input class="form-control nc-interval-part" type="number" min="0" max="525600" step="1" value="0" data-seconds="31536000" aria-label="{{ text_interval_years }}"></label>
+                <label class="nc-interval-field"><span>{{ text_interval_months }}</span><input class="form-control nc-interval-part" type="number" min="0" max="525600" step="1" value="0" data-seconds="2592000" aria-label="{{ text_interval_months }}"></label>
+                <label class="nc-interval-field"><span>{{ text_interval_weeks }}</span><input class="form-control nc-interval-part" type="number" min="0" max="525600" step="1" value="0" data-seconds="604800" aria-label="{{ text_interval_weeks }}"></label>
+                <label class="nc-interval-field"><span>{{ text_interval_days }}</span><input class="form-control nc-interval-part" type="number" min="0" max="525600" step="1" value="0" data-seconds="86400" aria-label="{{ text_interval_days }}"></label>
+                <label class="nc-interval-field"><span>{{ text_interval_hours }}</span><input class="form-control nc-interval-part" type="number" min="0" max="525600" step="1" value="0" data-seconds="3600" aria-label="{{ text_interval_hours }}"></label>
+                <label class="nc-interval-field"><span>{{ text_interval_minutes }}</span><input class="form-control nc-interval-part" type="number" min="0" max="525600" step="1" value="0" data-seconds="60" aria-label="{{ text_interval_minutes }}"></label>
+              </div>
+              <div class="nc-interval-actions"><span id="nc-interval-preview" class="nc-interval-preview" aria-live="polite">0 {{ text_interval_seconds }}</span><button id="nc-interval-apply" class="btn btn-default" type="button" disabled><i class="fa fa-arrow-up"></i> {{ text_interval_apply }}</button></div>
+              <small class="help-block">{{ text_interval_assumptions }}</small>
+            </div>
+          </div></div>
           <div class="form-group"><label class="col-sm-2 control-label">{{ text_action_args }}</label><div class="col-sm-10"><textarea class="form-control" name="args" rows="3">{{ edit_task.args }}</textarea></div></div>
           <div class="form-group"><label class="col-sm-2 control-label">{{ column_status }}</label><div class="col-sm-10"><select class="form-control" name="status"><option value="1" {{ edit_task.status ? 'selected' : '' }}>{{ text_enabled }}</option><option value="0" {{ not edit_task.status ? 'selected' : '' }}>{{ text_disabled }}</option></select></div></div>
           <div class="text-right"><a class="btn btn-default" href="{{ action }}">{{ text_action_cancel }}</a> <button class="btn btn-primary" type="submit"><i class="fa fa-save"></i> {{ text_action_save }}</button></div>
@@ -203,6 +234,16 @@
 {{ footer }}
 
 <style>
+.nc-interval-calc{margin-top:10px}
+.nc-interval-fields{display:grid;grid-template-columns:repeat(6,minmax(80px,1fr));gap:8px}
+.nc-interval-field{min-width:0;font-size:12px;font-weight:normal;color:#566577}
+.nc-interval-field span{display:block;margin-bottom:4px}
+.nc-interval-field .form-control{width:100%}
+.nc-interval-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:10px}
+.nc-interval-preview{font-weight:600;color:#34495e}
+.nc-interval-calc .help-block{margin:6px 0 0}
+@media(max-width:767px){.nc-interval-fields{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:400px){.nc-interval-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .nc-queue-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .nc-queue-heading .panel-title{float:none;margin:0;line-height:30px}
 .nc-queue-heading-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
@@ -243,7 +284,11 @@
                 var parsed = new DOMParser().parseFromString(html, 'text/html');
                 var updated = parsed.getElementById('jobs-monitor');
                 if (updated) {
+                    var currentHistory = document.getElementById('jobs-monitor-history');
+                    var historyOpen = currentHistory && currentHistory.open;
                     document.getElementById('jobs-monitor').innerHTML = updated.innerHTML;
+                    var newHistory = document.getElementById('jobs-monitor-history');
+                    if (newHistory) newHistory.open = !!historyOpen;
                 } else {
                     console.warn('NovaCart monitor refresh: response does not contain #jobs-monitor');
                 }
@@ -282,4 +327,37 @@ $('.js-cron-copy').on('click', function () {
         copyFallback();
     }
 });
+</script>
+
+<script type="text/javascript">
+(function () {
+    var fields = document.querySelectorAll('.nc-interval-part');
+    var preview = document.getElementById('nc-interval-preview');
+    var apply = document.getElementById('nc-interval-apply');
+    var target = document.getElementById('input-cron-interval');
+    if (!fields.length || !preview || !apply || !target) return;
+    function calculate() {
+        var seconds = 0;
+        var valid = true;
+        Array.prototype.forEach.call(fields, function (field) {
+            var raw = field.value.trim();
+            var value = Number(raw);
+            if (raw === '' || !Number.isSafeInteger(value) || value < 0) valid = false;
+            seconds += value * Number(field.getAttribute('data-seconds'));
+        });
+        valid = valid && Number.isSafeInteger(seconds) && seconds >= 60 && seconds <= 31536000;
+        preview.textContent = valid ? seconds + ' {{ text_interval_seconds|e('js') }}' : '{{ text_interval_invalid|e('js') }}';
+        apply.disabled = !valid;
+        return valid ? seconds : null;
+    }
+    Array.prototype.forEach.call(fields, function (field) { field.addEventListener('input', calculate); });
+    apply.addEventListener('click', function () {
+        var seconds = calculate();
+        if (seconds !== null) {
+            target.value = seconds;
+            target.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    });
+    calculate();
+})();
 </script>

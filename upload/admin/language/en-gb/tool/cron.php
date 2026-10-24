@@ -79,3 +79,22 @@ $_['text_source_unknown'] = 'Unknown';
 $_['text_queue_locked'] = 'Locked at';
 $_['text_queue_cleanup'] = 'Clear completed older than 7 days';
 $_['text_queue_cleanup_confirm'] = 'Delete completed jobs older than 7 days?';
+
+$_['text_monitor_history'] = 'Run history';
+
+$_['text_monitor_history_hint'] = 'Click to expand or collapse';
+
+$_['text_currency_refresh_success'] = 'Currency rates updated successfully';
+$_['text_interval_quantity'] = 'Quantity';
+$_['text_interval_unit'] = 'Time unit';
+$_['text_interval_minutes'] = 'Minutes';
+$_['text_interval_hours'] = 'Hours';
+$_['text_interval_days'] = 'Days';
+$_['text_interval_weeks'] = 'Weeks';
+$_['text_interval_seconds'] = 'sec.';
+$_['text_interval_invalid'] = 'Invalid interval (60–31536000 sec.)';
+$_['text_interval_apply'] = 'Insert into field';
+
+$_['text_interval_years'] = 'Years';
+$_['text_interval_months'] = 'Months';
+$_['text_interval_assumptions'] = '1 year = 365 days; 1 month = 30 days.';

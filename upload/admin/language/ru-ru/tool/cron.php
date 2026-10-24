@@ -81,3 +81,22 @@ $_['text_source_unknown'] = 'Не определён';
 $_['text_queue_locked'] = 'Заблокировано с';
 $_['text_queue_cleanup'] = 'Очистить завершённые старше 7 дней';
 $_['text_queue_cleanup_confirm'] = 'Удалить завершённые задания старше 7 дней?';
+
+$_['text_monitor_history'] = 'История запусков';
+
+$_['text_monitor_history_hint'] = 'Нажмите, чтобы раскрыть или свернуть';
+
+$_['text_currency_refresh_success'] = 'Курсы валют успешно обновлены';
+$_['text_interval_quantity'] = 'Количество';
+$_['text_interval_unit'] = 'Единица времени';
+$_['text_interval_minutes'] = 'Минуты';
+$_['text_interval_hours'] = 'Часы';
+$_['text_interval_days'] = 'Дни';
+$_['text_interval_weeks'] = 'Недели';
+$_['text_interval_seconds'] = 'сек.';
+$_['text_interval_invalid'] = 'Недопустимый интервал (60–31536000 сек.)';
+$_['text_interval_apply'] = 'Вставить в поле';
+
+$_['text_interval_years'] = 'Годы';
+$_['text_interval_months'] = 'Месяцы';
+$_['text_interval_assumptions'] = '1 год = 365 дней; 1 месяц = 30 дней.';
