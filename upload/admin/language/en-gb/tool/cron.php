@@ -66,3 +66,6 @@ $_['text_system_task'] = 'System';
 
 $_['text_queue_all'] = 'All statuses';
 
+
+$_['text_queue_run_result'] = 'Queue: processed %d, failed %d';
+$_['error_queue_failed'] = 'Queue finished with failures: processed %d, failed %d';
