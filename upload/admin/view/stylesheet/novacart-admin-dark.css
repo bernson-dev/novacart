@@ -127,3 +127,70 @@ html.novacart-admin-dark #oc-search-result .ccp-setting-search-copy small,html.n
 html.novacart-admin-dark .ccp-setting-search-focus{box-shadow:0 0 0 3px rgba(77,163,255,.24)!important}
 html.novacart-admin-dark #oc-search-result .ccp-search-rich-copy small,html.novacart-admin-dark #oc-search-result .ccp-search-rich-copy code{color:#8fa0b2!important}
 html.novacart-admin-dark #oc-search-result .oc-search-group + .oc-search-group{border-top-color:#344150!important}
+
+
+/* NovaCart dashboard: preserve one consistent dark surface for every KPI tile. */
+html.novacart-admin-dark #content .tile,
+html.novacart-admin-dark #content .tile.tile-primary {
+  background:#1d2935!important;
+  border:1px solid #39485a!important;
+  color:#e6edf6!important;
+}
+html.novacart-admin-dark #content .tile .tile-heading {
+  background:#26384a!important;
+  color:#dbe7f4!important;
+  border-color:#39485a!important;
+}
+html.novacart-admin-dark #content .tile .tile-body {
+  background:#1d2935!important;
+  color:#f1f6fc!important;
+}
+html.novacart-admin-dark #content .tile .tile-body h2 {
+  color:#fff!important;
+  text-shadow:none!important;
+}
+html.novacart-admin-dark #content .tile .tile-body .fa {
+  color:#82b7ef!important;
+  opacity:.75;
+}
+html.novacart-admin-dark #content .tile .tile-footer {
+  background:#2a4260!important;
+  border-color:#39485a!important;
+}
+html.novacart-admin-dark #content .tile .tile-footer a {
+  color:#ecf4ff!important;
+}
+html.novacart-admin-dark #content .tile .tile-footer:hover {
+  background:#34567d!important;
+}
+html.novacart-admin-dark .breadcrumb a,
+html.novacart-admin-dark .breadcrumb > li {
+  color:#aebfd3!important;
+}
+html.novacart-admin-dark .page-header .breadcrumb > li + li:before {
+  color:#8798ad!important;
+}
+html.novacart-admin-dark .novacart-world-map {
+  background:#1d2935!important;
+  border-color:#3e5064!important;
+}
+html.novacart-admin-dark .novacart-country-orders .text-muted,
+html.novacart-admin-dark #chart-sale,
+html.novacart-admin-dark #chart-sale text {
+  color:#afc2d7!important;
+}
+html.novacart-admin-dark .novacart-world-map-table,
+html.novacart-admin-dark .novacart-world-map-table table,
+html.novacart-admin-dark #content .panel .table-responsive {
+  border-color:#39485a!important;
+}
+html.novacart-admin-dark .novacart-world-map-table th,
+html.novacart-admin-dark .novacart-world-map-table td,
+html.novacart-admin-dark #content .panel .table > thead > tr > td,
+html.novacart-admin-dark #content .panel .table > tbody > tr > td {
+  border-color:#39485a!important;
+}
+html.novacart-admin-dark .chart-by-country-and-region__country,
+html.novacart-admin-dark .chart-by-country-and-region__region {
+  background:#1d2935!important;
+}
