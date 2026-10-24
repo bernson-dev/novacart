@@ -13,6 +13,16 @@ class ControllerToolCron extends Controller {
         }
         $data['action'] = $this->url->link('tool/cron', 'user_token=' . $this->session->data['user_token'], true);
         $data['can_modify'] = $this->user->hasPermission('modify', 'tool/cron');
+        $data['queue_jobs'] = array();
+        $data['queue_stats'] = array('pending'=>0,'processing'=>0,'done'=>0,'failed'=>0);
+        $data['queue_status'] = isset($this->request->get['queue_status']) ? (string)$this->request->get['queue_status'] : 'all';
+        if (!in_array($data['queue_status'], array('all','pending','processing','done','failed'), true)) {
+            $data['queue_status'] = 'all';
+        }
+        $data['queue_search'] = isset($this->request->get['queue_search']) ? trim((string)$this->request->get['queue_search']) : '';
+        $data['queue_search'] = substr($data['queue_search'], 0, 128);
+        $data['queue_url'] = $this->url->link('tool/queue', 'user_token=' . $this->session->data['user_token'], true);
+        $data['user_token'] = $this->session->data['user_token'];
         $data['tasks'] = array();
         $data['edit_task'] = array('cron_id'=>0,'code'=>'','route'=>'','interval_seconds'=>3600,'args'=>'{}','status'=>1);
         $data['cli_command'] = 'php ' . rtrim(dirname(DIR_APPLICATION), '/\\') . '/cli.php jobs:run';
@@ -96,6 +106,20 @@ class ControllerToolCron extends Controller {
             require_once(DIR_SYSTEM . 'library/novacart/scheduler.php');
             $scheduler = new NovaCartScheduler($this->registry);
             $data['tasks'] = $scheduler->listTasks();
+            require_once(DIR_SYSTEM . 'library/novacart/queue.php');
+            $data['queue_stats'] = (new NovaCartQueue($this->registry))->stats();
+            $filterParts = array();
+            if ($data['queue_status'] !== 'all') {
+                $filterParts[] = "status='" . $this->db->escape($data['queue_status']) . "'";
+            }
+            if ($data['queue_search'] !== '') {
+                $escaped = $this->db->escape($data['queue_search']);
+                $filterParts[] = "(code LIKE '%" . $escaped . "%' OR route LIKE '%" . $escaped . "%')";
+            }
+            $where = $filterParts ? ' WHERE ' . implode(' AND ', $filterParts) : '';
+            $data['queue_jobs'] = $this->db->query("SELECT queue_id,code,route,status,attempts,max_attempts,available_at,last_error
+                FROM `" . DB_PREFIX . "novacart_queue`" . $where . " ORDER BY queue_id DESC LIMIT 25")->rows;
+
             if (!empty($this->request->get['edit_id'])) {
                 $task = $scheduler->getTask((int)$this->request->get['edit_id']);
                 if ($task) { $data['edit_task'] = $task; }
