@@ -105,8 +105,15 @@ class NovaCartQueue {
             return array('success'=>false,'status'=>'error','message'=>'Claimed job not found');
         }
         $success = $this->execute($q->row);
+        $message = 'OK';
+        if (!$success) {
+            $errorRow = $this->db->query("SELECT last_error FROM `" . DB_PREFIX .
+                "novacart_queue` WHERE queue_id=" . $id . " LIMIT 1");
+            $message = $errorRow->num_rows && !empty($errorRow->row['last_error'])
+                ? (string)$errorRow->row['last_error'] : 'Queue job failed';
+        }
         return array('success'=>$success,'status'=>$success?'ok':'error',
-            'message'=>$success?'OK':'Job failed; see last_error');
+            'message'=>$message);
     }
 
     public function deleteById($id) {
