@@ -51,6 +51,66 @@ class NovaCartScheduler {
             ", date_next=NOW(), date_added=NOW(), date_modified=NOW()");
     }
 
+    // CodeCart-compatible administration API, backed by the existing NovaCart table.
+    public function getTask($id) {
+        $q = $this->db->query("SELECT * FROM `" . DB_PREFIX . "novacart_cron` WHERE cron_id=" . (int)$id . " LIMIT 1");
+        return $q->num_rows ? $q->row : array();
+    }
+
+    public function save($id, $code, $route, $interval, $status, $args = array()) {
+        $existing = $this->getTask($id);
+        if (!$existing) { throw new RuntimeException('Scheduler task not found'); }
+        if (!preg_match('/^[a-z0-9_.:-]{2,128}$/i', $code)
+            || !preg_match('#^cron/[a-z0-9_/]+$#i', $route)
+            || $interval < 60 || $interval > 31536000 || !is_array($args)) {
+            throw new InvalidArgumentException('Invalid scheduler task');
+        }
+        if (strpos($existing['code'], 'core.') === 0 && $existing['code'] !== $code) {
+            throw new RuntimeException('Cannot rename a system task');
+        }
+        $duplicate = $this->db->query("SELECT cron_id FROM `" . DB_PREFIX . "novacart_cron` WHERE code='" .
+            $this->db->escape($code) . "' AND cron_id!=" . (int)$id . " LIMIT 1");
+        if ($duplicate->num_rows) { throw new RuntimeException('Scheduler code already exists'); }
+        $json = json_encode($args, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($json === false) { throw new InvalidArgumentException('Invalid JSON arguments'); }
+        $this->db->query("UPDATE `" . DB_PREFIX . "novacart_cron` SET code='" . $this->db->escape($code) .
+            "', route='" . $this->db->escape($route) . "', args='" . $this->db->escape($json) .
+            "', interval_seconds=" . (int)$interval . ", status=" . (int)(bool)$status .
+            ", date_next=" . (!$existing['status'] && $status ? "NOW()" : "DATE_ADD(NOW(), INTERVAL " . (int)$interval . " SECOND)") .
+            ", date_modified=NOW() WHERE cron_id=" . (int)$id);
+    }
+
+    public function setStatus($id, $enabled) {
+        if (!$this->getTask($id)) { throw new RuntimeException('Scheduler task not found'); }
+        $this->db->query("UPDATE `" . DB_PREFIX . "novacart_cron` SET status=" . (int)(bool)$enabled .
+            ($enabled ? ", date_next=NOW()" : "") . ", date_modified=NOW() WHERE cron_id=" . (int)$id);
+    }
+
+    public function deleteTask($id) {
+        $job = $this->getTask($id);
+        if (!$job) { return; }
+        if (strpos($job['code'], 'core.') === 0) { throw new RuntimeException('System tasks cannot be deleted'); }
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "novacart_cron` WHERE cron_id=" . (int)$id);
+    }
+
+    public function runOne($id) {
+        $job = $this->getTask($id);
+        if (!$job) { throw new RuntimeException('Scheduler task not found'); }
+        $lock = 'nc_cron_' . substr(hash('sha256', DB_DATABASE . ':' . DB_PREFIX), 0, 30);
+        $q = $this->db->query("SELECT GET_LOCK('" . $this->db->escape($lock) . "', 0) acquired");
+        if (empty($q->row['acquired'])) {
+            return array('success'=>false, 'status'=>'locked', 'duration_ms'=>0, 'message'=>'Scheduler is busy');
+        }
+        try {
+            $ok = $this->execute($job);
+            $fresh = $this->getTask($id);
+            return array('success'=>$ok, 'status'=>$ok ? 'success' : 'error',
+                'duration_ms'=>(int)$fresh['last_duration_ms'], 'message'=>(string)$fresh['last_message']);
+        } finally {
+            $this->db->query("SELECT RELEASE_LOCK('" . $this->db->escape($lock) . "')");
+        }
+    }
+
     public function listTasks() {
         return $this->db->query("SELECT * FROM `" . DB_PREFIX . "novacart_cron` ORDER BY code")->rows;
     }
