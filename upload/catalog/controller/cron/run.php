@@ -30,6 +30,12 @@ class ControllerCronRun extends Controller {
                 require_once(DIR_SYSTEM . 'library/novacart/jobs_monitor.php');
                 (new NovaCartJobsMonitor($this->registry))->install();
                 $result = array('status' => 'ok', 'message' => 'Cron schema installed');
+            } elseif (!$isCli && isset($this->request->get['mode']) && $this->request->get['mode'] === 'scheduler_one') {
+                $id = isset($this->request->get['scheduler_id']) ? (int)$this->request->get['scheduler_id'] : 0;
+                $result = array('scheduler_one' => $scheduler->runOne($id));
+            } elseif (!$isCli && isset($this->request->get['mode']) && $this->request->get['mode'] === 'queue') {
+                require_once(DIR_SYSTEM . 'library/novacart/queue.php');
+                $result = array('queue' => (new NovaCartQueue($this->registry))->run(25));
             } elseif ($command === 'list' && $isCli) {
                 $result = array('status' => 'ok', 'tasks' => $scheduler->listTasks());
             } elseif ($command === 'jobs:run' && $isCli) {
