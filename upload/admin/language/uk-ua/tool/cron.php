@@ -83,3 +83,14 @@ $_['text_queue_cleanup_confirm'] = 'Видалити завершені завд
 $_['text_monitor_history'] = 'Історія запусків';
 
 $_['text_monitor_history_hint'] = 'Натисніть, щоб розгорнути або згорнути';
+
+$_['text_currency_refresh_success'] = 'Курси валют успішно оновлено';
+$_['text_interval_quantity'] = 'Кількість';
+$_['text_interval_unit'] = 'Одиниця часу';
+$_['text_interval_minutes'] = 'Хвилини';
+$_['text_interval_hours'] = 'Години';
+$_['text_interval_days'] = 'Дні';
+$_['text_interval_weeks'] = 'Тижні';
+$_['text_interval_seconds'] = 'сек.';
+$_['text_interval_invalid'] = 'Недопустимий інтервал (60–31536000 сек.)';
+$_['text_interval_apply'] = 'Вставити в поле';
