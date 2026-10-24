@@ -27,3 +27,15 @@ $_['column_run_error'] = 'Помилка';
 
 $_['text_heartbeat_error'] = 'Останній запуск завершився з помилкою';
 $_['text_heartbeat_running'] = 'Завдання виконується';
+
+$_['text_action_run'] = 'Запустити зараз';
+$_['text_action_edit'] = 'Редагувати';
+$_['text_action_delete'] = 'Видалити';
+$_['text_action_confirm'] = 'Видалити завдання?';
+$_['text_action_add'] = 'Додати завдання';
+$_['text_action_code'] = 'Код завдання';
+$_['text_action_route'] = 'Внутрішній маршрут';
+$_['text_action_interval'] = 'Інтервал, секунд';
+$_['text_action_args'] = 'Параметри JSON';
+$_['text_action_cancel'] = 'Скасувати';
+$_['text_action_save'] = 'Зберегти';
