@@ -39,3 +39,15 @@ $_['text_action_interval'] = 'Interval, seconds';
 $_['text_action_args'] = 'JSON arguments';
 $_['text_action_cancel'] = 'Cancel';
 $_['text_action_save'] = 'Save';
+
+$_['text_queue_panel'] = 'Background Queue';
+$_['text_queue_manage'] = 'Manage Queue';
+$_['text_queue_pending'] = 'Pending';
+$_['text_queue_processing'] = 'Processing';
+$_['text_queue_done'] = 'Done';
+$_['text_queue_failed'] = 'Failed';
+$_['text_queue_search'] = 'Search code or route';
+$_['text_queue_filter'] = 'Filter';
+$_['text_queue_attempts'] = 'Attempts';
+$_['text_queue_available'] = 'Available at';
+$_['text_queue_error'] = 'Last error';
