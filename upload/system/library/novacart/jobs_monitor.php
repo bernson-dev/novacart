@@ -14,6 +14,7 @@ class NovaCartJobsMonitor {
         $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "novacart_jobs_run` (
             `run_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             `started_at` DATETIME NOT NULL,
+            `source` VARCHAR(24) NOT NULL DEFAULT 'unknown',
             `finished_at` DATETIME NULL,
             `status` VARCHAR(16) NOT NULL DEFAULT 'running',
             `scheduler_status` VARCHAR(16) NULL,
@@ -27,10 +28,21 @@ class NovaCartJobsMonitor {
             PRIMARY KEY (`run_id`),
             KEY `recent` (`started_at`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $columns = $this->db->query("SHOW COLUMNS FROM `" . DB_PREFIX . "novacart_jobs_run` LIKE 'source'");
+        if (!$columns->num_rows) {
+            $this->db->query("ALTER TABLE `" . DB_PREFIX . "novacart_jobs_run` ADD `source` VARCHAR(24) NOT NULL DEFAULT 'unknown' AFTER `started_at`");
+        }
     }
 
-    public function begin() {
-        $this->db->query("INSERT INTO `" . DB_PREFIX . "novacart_jobs_run` SET started_at=NOW(), status='running'");
+    public function begin($source = 'unknown') {
+        if (!in_array($source, array('cli', 'scheduled', 'http'), true)) { $source = 'unknown'; }
+        // Existing stores may have installed the monitor before source tracking.
+        // This migration is idempotent and must precede the first sourced insert.
+        $columns = $this->db->query("SHOW COLUMNS FROM `" . DB_PREFIX . "novacart_jobs_run` LIKE 'source'");
+        if (!$columns->num_rows) {
+            $this->db->query("ALTER TABLE `" . DB_PREFIX . "novacart_jobs_run` ADD `source` VARCHAR(24) NOT NULL DEFAULT 'unknown' AFTER `started_at`");
+        }
+        $this->db->query("INSERT INTO `" . DB_PREFIX . "novacart_jobs_run` SET started_at=NOW(), source='" . $this->db->escape($source) . "', status='running'");
         return (int)$this->db->getLastId();
     }
 

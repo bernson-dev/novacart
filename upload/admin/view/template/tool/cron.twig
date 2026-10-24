@@ -11,6 +11,28 @@
   <div class="container-fluid">
     {% if error_warning %}<div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}</div>{% endif %}
     {% if success %}<div class="alert alert-success"><i class="fa fa-check-circle"></i> {{ success }}</div>{% endif %}
+    <div class="panel panel-default">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-terminal"></i> {{ text_cron_commands }}</h3></div>
+      <div class="panel-body">
+        <p class="help-block">{{ text_cron_help }}</p>
+        <div class="form-group">
+          <label for="novacart-cron-cli">{{ text_cron_cli }}</label>
+          <div class="input-group">
+            <input id="novacart-cron-cli" type="text" readonly class="form-control" value="{{ cli_command }}">
+            <span class="input-group-btn"><button class="btn btn-default js-cron-copy" type="button" data-copy="novacart-cron-cli" title="{{ text_cron_copy }}"><i class="fa fa-copy"></i></button></span>
+          </div>
+        </div>
+        {% if http_command %}
+        <div class="form-group">
+          <label for="novacart-cron-web">{{ text_cron_web }}</label>
+          <div class="input-group">
+            <div id="novacart-cron-web" class="form-control" style="height:auto;min-height:34px;overflow-wrap:anywhere;white-space:normal;background:#eee;color:#555">{{ http_command }}</div>
+            <span class="input-group-btn"><button class="btn btn-default js-cron-copy" type="button" data-copy="novacart-cron-web" title="{{ text_cron_copy }}"><i class="fa fa-copy"></i></button></span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
     <div class="panel panel-default" id="jobs-monitor">
       <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-heartbeat"></i> {{ text_monitor }}</h3></div>
       <div class="panel-body">
@@ -28,13 +50,13 @@
         <div class="table-responsive">
           <table class="table table-bordered table-striped">
             <thead><tr>
-              <td>{{ column_started }}</td><td>{{ column_finished }}</td><td>{{ column_run_status }}</td>
+              <td>{{ column_started }}</td><td>{{ column_source }}</td><td>{{ column_finished }}</td><td>{{ column_run_status }}</td>
               <td>{{ column_scheduler }}</td><td>{{ column_queue }}</td><td>{{ column_duration }}</td><td>{{ column_run_error }}</td>
             </tr></thead>
             <tbody>
             {% for run in job_runs %}
               <tr>
-                <td>{{ run.started_at }}</td><td>{{ run.finished_at ?: '—' }}</td>
+                <td>{{ run.started_at }}</td><td>{{ run_source_labels[run.source]|default(run.source) }}</td><td>{{ run.finished_at ?: '—' }}</td>
                 <td>{{ run.status }}</td>
                 <td>{{ run.scheduler_status ?: '—' }} ({{ run.scheduler_processed }}/{{ run.scheduler_failed }})</td>
                 <td>{{ run.queue_status ?: '—' }} ({{ run.queue_processed }}/{{ run.queue_failed }})</td>
@@ -42,7 +64,7 @@
                 <td>{{ run.error_message ?: '—' }}</td>
               </tr>
             {% else %}
-              <tr><td colspan="7" class="text-center">{{ text_monitor_empty }}</td></tr>
+              <tr><td colspan="8" class="text-center">{{ text_monitor_empty }}</td></tr>
             {% endfor %}
             </tbody>
           </table>
@@ -64,14 +86,27 @@
               {% if tasks %}
                 {% for task in tasks %}
                   <tr>
-                    <td>{{ task.code }}</td><td><code>{{ task.route }}</code></td>
+                    <td><strong>{{ task.code }}</strong>{% if task.code|slice(0, 5) == 'core.' %} <span class="label label-info">{{ text_system_task }}</span>{% endif %}</td><td><code>{{ task.route }}</code></td>
                     <td>{{ task.interval_seconds }} s</td>
-                    <td>{{ task.status ? text_enabled : text_disabled }}</td>
+                    <td><span class="label label-{{ task.status ? 'success' : 'default' }}">{{ task.status ? text_enabled : text_disabled }}</span></td>
                     <td>{{ task.date_last ?: '—' }}</td><td>{{ task.date_next }}</td>
-                    <td>{{ task.last_status ?: '—' }}</td><td>{{ task.last_message ?: '—' }}</td>
-                    <td class="text-right">
+                    <td>{% if task.last_status %}<span class="label label-{{ task.last_status == 'success' ? 'success' : 'danger' }}">{{ task.last_status }}</span>{% if task.last_duration_ms is not null %} <small>{{ task.last_duration_ms }} ms</small>{% endif %}{% else %}—{% endif %}</td><td title="{{ task.last_message ?: '' }}">{{ task.last_message ?: '—' }}</td>
+                    <td class="text-right" style="white-space:nowrap">
                       {% if can_modify %}
-                        <form action="{{ action }}" method="post" style="display:inline">
+                        <form action="" method="post" style="display:inline">
+                          <input type="hidden" name="scheduler_action" value="run">
+                          <input type="hidden" name="cron_id" value="{{ task.cron_id }}">
+                          <button class="btn btn-sm btn-info" title="{{ text_action_run }}"><i class="fa fa-play"></i></button>
+                        </form>
+                        <a class="btn btn-sm btn-primary" href="{{ action }}&edit_id={{ task.cron_id }}#scheduler-form" title="{{ text_action_edit }}"><i class="fa fa-pencil"></i></a>
+                        {% if task.code|slice(0, 5) != 'core.' %}
+                        <form action="" method="post" style="display:inline" onsubmit="return confirm('{{ text_action_confirm|e('js') }}');">
+                          <input type="hidden" name="scheduler_action" value="delete">
+                          <input type="hidden" name="cron_id" value="{{ task.cron_id }}">
+                          <button class="btn btn-sm btn-danger" title="{{ text_action_delete }}"><i class="fa fa-trash"></i></button>
+                        </form>
+                        {% endif %}
+                        <form action="" method="post" style="display:inline">
                           <input type="hidden" name="cron_id" value="{{ task.cron_id }}">
                           <input type="hidden" name="status" value="{{ task.status ? 0 : 1 }}">
                           <button type="submit" class="btn btn-sm {{ task.status ? 'btn-warning' : 'btn-success' }}">{{ task.status ? button_disable : button_enable }}</button>
@@ -88,9 +123,104 @@
         </div>
       </div>
     </div>
+    <div class="panel panel-default nc-queue-panel">
+      <div class="panel-heading nc-queue-heading">
+        <h3 class="panel-title"><i class="fa fa-tasks"></i> {{ text_queue_panel }}</h3>
+        <div class="nc-queue-heading-actions">
+          {% if can_modify %}
+          <form action="" method="post" style="display:inline-block">
+            <input type="hidden" name="scheduler_action" value="run_queue">
+            <button class="btn btn-primary btn-sm"><i class="fa fa-play"></i> {{ text_queue_run }}</button>
+          </form>
+          {% endif %}
+          <a href="{{ queue_url }}" class="btn btn-default btn-sm">{{ text_queue_manage }} <i class="fa fa-external-link"></i></a>
+        </div>
+      </div>
+      <div class="panel-body">
+        <p>{{ text_queue_pending }}: {{ queue_stats.pending }}, {{ text_queue_processing }}: {{ queue_stats.processing }}, {{ text_queue_done }}: {{ queue_stats.done }}, {{ text_queue_failed }}: {{ queue_stats.failed }}</p>
+        <form action="" method="get" class="nc-queue-filters">
+          <input type="hidden" name="route" value="tool/cron">
+          <input type="hidden" name="user_token" value="{{ user_token }}">
+          <div class="nc-queue-search"><input name="queue_search" class="form-control" value="{{ queue_search }}" placeholder="{{ text_queue_search }}"></div>
+          <div class="nc-queue-status"><select class="form-control" name="queue_status">
+            {% for status in ['all','pending','processing','done','failed'] %}
+            <option value="{{ status }}" {{ queue_status == status ? 'selected' : '' }}>{{ queue_status_labels[status] }}</option>
+            {% endfor %}
+          </select></div>
+          <div class="nc-queue-limit"><select class="form-control" name="queue_limit">{% for item in [10,25,50,100] %}<option value="{{ item }}" {{ queue_limit == item ? 'selected' : '' }}>{{ item }}</option>{% endfor %}</select></div>
+          <div class="nc-queue-submit"><button class="btn btn-primary" type="submit"><i class="fa fa-filter"></i> {{ text_queue_filter }}</button></div>
+        </form>
+      </div>
+      <div class="nc-queue-table-wrap"><div class="table-responsive"><table class="table table-bordered table-hover nc-queue-table">
+        <thead><tr><th><a href="{{ queue_sort_urls.queue_id }}">ID</a></th><th><a href="{{ queue_sort_urls.code }}">{{ column_code }}</a></th><th><a href="{{ queue_sort_urls.route }}">{{ column_route }}</a></th><th><a href="{{ queue_sort_urls.status }}">{{ column_status }}</a></th><th><a href="{{ queue_sort_urls.attempts }}">{{ text_queue_attempts }}</a></th><th><a href="{{ queue_sort_urls.available_at }}">{{ text_queue_available }}</a></th><th>{{ text_queue_error }}</th><th>{{ column_action }}</th></tr></thead>
+        <tbody>{% for item in queue_jobs %}
+          <tr><td>{{ item.queue_id }}</td><td>{{ item.code }}</td><td><code>{{ item.route }}</code></td><td><span class="label label-{{ item.status == 'done' ? 'success' : (item.status == 'failed' ? 'danger' : (item.status == 'processing' ? 'info' : 'warning')) }}">{{ queue_status_labels[item.status]|default(item.status) }}</span></td><td>{{ item.attempts }}/{{ item.max_attempts }}</td><td>{{ item.available_at }}</td><td>{{ item.last_error ?: '—' }}</td><td class="text-right" style="white-space:nowrap">
+            {% if can_modify %}
+              {% if item.status in ['pending','failed'] %}
+              <form action="" method="post" style="display:inline-block">
+                <input type="hidden" name="scheduler_action" value="run_queue_one">
+                <input type="hidden" name="queue_id" value="{{ item.queue_id }}">
+                <input type="hidden" name="retry" value="{{ item.status == 'failed' ? 1 : 0 }}">
+                <button class="btn btn-sm btn-primary" title="{{ item.status == 'failed' ? text_queue_retry : text_action_run }}"><i class="fa fa-{{ item.status == 'failed' ? 'repeat' : 'play' }}"></i></button>
+              </form>
+              {% endif %}
+              {% if item.status != 'processing' %}
+              <form action="" method="post" style="display:inline-block" onsubmit="return confirm('{{ text_queue_confirm_delete|e('js') }}');">
+                <input type="hidden" name="scheduler_action" value="delete_queue_one">
+                <input type="hidden" name="queue_id" value="{{ item.queue_id }}">
+                <button class="btn btn-sm btn-danger" title="{{ text_action_delete }}"><i class="fa fa-trash"></i></button>
+              </form>
+              {% endif %}
+            {% endif %}
+          </td></tr>
+          {% else %}<tr><td colspan="8" class="text-center nc-queue-empty">{{ text_no_results }}</td></tr>
+        {% endfor %}</tbody>
+      </table></div></div>
+      <div class="panel-footer text-right">{{ queue_pagination }}</div>
+    </div>
+    {% if can_modify %}
+    <div class="panel panel-default" id="scheduler-form">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-plus"></i> {{ edit_task.cron_id ? text_action_edit : text_action_add }}</h3></div>
+      <div class="panel-body">
+        <form action="" method="post" class="form-horizontal">
+          <input type="hidden" name="scheduler_action" value="save">
+          <input type="hidden" name="cron_id" value="{{ edit_task.cron_id }}">
+          <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_code }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-code" name="code" required minlength="2" maxlength="128" value="{{ edit_task.code }}" {{ edit_task.code|slice(0, 5) == 'core.' ? 'readonly' : '' }}></div></div>
+          <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_route }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-route" name="route" required value="{{ edit_task.route }}" placeholder="cron/example"></div></div>
+          <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_interval }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-interval" type="number" name="interval_seconds" min="60" max="31536000" required value="{{ edit_task.interval_seconds }}"></div></div>
+          <div class="form-group"><label class="col-sm-2 control-label">{{ text_action_args }}</label><div class="col-sm-10"><textarea class="form-control" name="args" rows="3">{{ edit_task.args }}</textarea></div></div>
+          <div class="form-group"><label class="col-sm-2 control-label">{{ column_status }}</label><div class="col-sm-10"><select class="form-control" name="status"><option value="1" {{ edit_task.status ? 'selected' : '' }}>{{ text_enabled }}</option><option value="0" {{ not edit_task.status ? 'selected' : '' }}>{{ text_disabled }}</option></select></div></div>
+          <div class="text-right"><a class="btn btn-default" href="{{ action }}">{{ text_action_cancel }}</a> <button class="btn btn-primary" type="submit"><i class="fa fa-save"></i> {{ text_action_save }}</button></div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 {{ footer }}
+
+<style>
+.nc-queue-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.nc-queue-heading .panel-title{float:none;margin:0;line-height:30px}
+.nc-queue-heading-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.nc-queue-heading-actions form{margin:0}
+.nc-queue-filters{display:grid;grid-template-columns:minmax(220px,1fr) minmax(150px,210px) 100px auto;gap:10px;align-items:center;margin:0}
+.nc-queue-filters>div{min-width:0}
+.nc-queue-filters .form-control{width:100%;min-width:0}
+.nc-queue-submit .btn{white-space:nowrap;min-width:110px}
+.nc-queue-panel .panel-body>p{margin:0 0 12px}
+.nc-queue-table-wrap{padding:0 15px 15px}
+.nc-queue-table-wrap .table-responsive{border:0;border-radius:0}
+.nc-queue-table{margin-bottom:0;min-width:840px}
+.nc-queue-table th,.nc-queue-table td{vertical-align:middle!important}
+.nc-queue-table th{white-space:nowrap}
+.nc-queue-table th:first-child{width:60px}
+.nc-queue-table th:last-child{width:104px}
+.nc-queue-empty{padding:16px!important;color:#64748b}
+.nc-queue-panel .panel-footer .pagination{margin:0}
+@media(max-width:900px){.nc-queue-filters{grid-template-columns:minmax(180px,1fr) minmax(130px,1fr) 90px auto}}
+@media(max-width:640px){.nc-queue-filters{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nc-queue-search{grid-column:1/-1}.nc-queue-submit .btn{width:100%}.nc-queue-heading-actions{width:100%}}
+</style>
 
 <script type="text/javascript">
 (function () {
@@ -122,4 +252,31 @@
         });
     }, 30000);
 })();
+</script>
+
+<script type="text/javascript">
+$('.js-cron-copy').on('click', function () {
+    var node = document.getElementById($(this).attr('data-copy'));
+    if (!node) return;
+    var command = node.textContent.trim();
+    if (!command) return;
+    function copyFallback() {
+        var area = document.createElement('textarea');
+        area.value = command;
+        area.style.position = 'fixed';
+        area.style.top = '0';
+        area.style.left = '0';
+        document.body.appendChild(area);
+        area.focus();
+        area.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(area);
+        if (!ok) window.prompt('Copy command:', command);
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(command).catch(copyFallback);
+    } else {
+        copyFallback();
+    }
+});
 </script>

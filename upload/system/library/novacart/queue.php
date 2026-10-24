@@ -77,6 +77,51 @@ class NovaCartQueue {
         return array('status'=>'ok', 'processed'=>$processed, 'failed'=>$failed);
     }
 
+    /**
+     * CodeCart-style single job execution. Claims by ID atomically so it
+     * remains safe when the normal queue worker is running concurrently.
+     */
+    public function runOne($id, $retry = false) {
+        $id = (int)$id;
+        if ($id < 1) { throw new InvalidArgumentException('Invalid queue ID'); }
+        if ($retry) {
+            $this->db->query("UPDATE `" . DB_PREFIX . "novacart_queue`
+                SET status='pending', attempts=0, available_at=NOW(), last_error=NULL,
+                    locked_at=NULL, locked_by=NULL, date_modified=NOW()
+                WHERE queue_id=" . $id . " AND status='failed'");
+        }
+        $worker = bin2hex(random_bytes(16));
+        $this->db->query("UPDATE `" . DB_PREFIX . "novacart_queue`
+            SET status='processing', attempts=attempts+1, locked_at=NOW(),
+                locked_by='" . $this->db->escape($worker) . "', date_modified=NOW()
+            WHERE queue_id=" . $id . " AND status='pending'");
+        if ($this->db->countAffected() !== 1) {
+            return array('success'=>false,'status'=>'skipped','message'=>'Queue job is unavailable');
+        }
+        $q = $this->db->query("SELECT * FROM `" . DB_PREFIX . "novacart_queue`
+            WHERE queue_id=" . $id . " AND status='processing' AND locked_by='" .
+            $this->db->escape($worker) . "' LIMIT 1");
+        if (!$q->num_rows) {
+            return array('success'=>false,'status'=>'error','message'=>'Claimed job not found');
+        }
+        $success = $this->execute($q->row);
+        $message = 'OK';
+        if (!$success) {
+            $errorRow = $this->db->query("SELECT last_error FROM `" . DB_PREFIX .
+                "novacart_queue` WHERE queue_id=" . $id . " LIMIT 1");
+            $message = $errorRow->num_rows && !empty($errorRow->row['last_error'])
+                ? (string)$errorRow->row['last_error'] : 'Queue job failed';
+        }
+        return array('success'=>$success,'status'=>$success?'ok':'error',
+            'message'=>$message);
+    }
+
+    public function deleteById($id) {
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "novacart_queue`
+            WHERE queue_id=" . (int)$id . " AND status<>'processing'");
+        return $this->db->countAffected() > 0;
+    }
+
     private function claim() {
         $worker = substr(bin2hex(random_bytes(16)), 0, 96);
         // One atomic update claims a single available row, even with multiple workers.
