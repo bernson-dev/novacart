@@ -94,3 +94,7 @@ $_['text_interval_weeks'] = 'Weeks';
 $_['text_interval_seconds'] = 'sec.';
 $_['text_interval_invalid'] = 'Invalid interval (60–31536000 sec.)';
 $_['text_interval_apply'] = 'Insert into field';
+
+$_['text_interval_years'] = 'Years';
+$_['text_interval_months'] = 'Months';
+$_['text_interval_assumptions'] = '1 year = 365 days; 1 month = 30 days.';
