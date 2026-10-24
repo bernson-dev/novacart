@@ -51,6 +51,11 @@ class ControllerCronRun extends Controller {
             } elseif (!$isCli && isset($this->request->get['mode']) && $this->request->get['mode'] === 'scheduler_one') {
                 $id = isset($this->request->get['scheduler_id']) ? (int)$this->request->get['scheduler_id'] : 0;
                 $result = array('scheduler_one' => $scheduler->runOne($id));
+            } elseif (!$isCli && isset($this->request->get['mode']) && $this->request->get['mode'] === 'queue_one') {
+                $id = isset($this->request->get['queue_id']) ? (int)$this->request->get['queue_id'] : 0;
+                $retry = !empty($this->request->get['retry']);
+                require_once(DIR_SYSTEM . 'library/novacart/queue.php');
+                $result = array('queue_one' => (new NovaCartQueue($this->registry))->runOne($id, $retry));
             } elseif (!$isCli && isset($this->request->get['mode']) && $this->request->get['mode'] === 'queue') {
                 require_once(DIR_SYSTEM . 'library/novacart/queue.php');
                 $result = array('queue' => (new NovaCartQueue($this->registry))->run(25));
