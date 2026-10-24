@@ -83,3 +83,5 @@ $_['text_queue_cleanup'] = 'Очистить завершённые старше
 $_['text_queue_cleanup_confirm'] = 'Удалить завершённые задания старше 7 дней?';
 
 $_['text_monitor_history'] = 'История запусков';
+
+$_['text_monitor_history_hint'] = 'Нажмите, чтобы раскрыть или свернуть';
