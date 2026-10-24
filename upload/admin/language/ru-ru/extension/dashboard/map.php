@@ -17,8 +17,6 @@ $_['text_map_controls'] = 'Управление картой';
 $_['text_zoom_in'] = 'Увеличить карту';
 $_['text_zoom_out'] = 'Уменьшить карту';
 $_['text_map_reset'] = 'Показать всю карту';
-
-$_['entry_map_type'] = 'Тип карты';
 $_['text_map_world'] = 'Карта мира';
 $_['text_map_ukraine'] = 'Карта Украины';
 $_['text_region'] = 'Область';
@@ -30,6 +28,7 @@ $_['text_map_ukraine_geo'] = 'Украина — географическая к
 $_['entry_status']     = 'Статус';
 $_['entry_sort_order'] = 'Порядок сортировки';
 $_['entry_width']      = 'Ширина';
+$_['entry_map_type'] = 'Тип карты';
 
 // Error
 $_['error_permission'] = 'У вас недостаточно прав для внесения изменений!';

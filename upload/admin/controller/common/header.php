@@ -52,9 +52,9 @@ class ControllerCommonHeader extends Controller {
 		$data['direction'] = $this->language->get('direction');
 
 		$this->load->language('common/header');
-        foreach (array('text_admin_theme','text_theme_light','text_theme_dark','text_theme_system') as $key) {
-            $data[$key] = $this->language->get($key);
-        }
+		foreach (array('text_admin_theme','text_theme_light','text_theme_dark','text_theme_system') as $key) {
+			$data[$key] = $this->language->get($key);
+		}
 
 		$data['text_logged'] = sprintf($this->language->get('text_logged'), $this->user->getUserName());
 

@@ -244,7 +244,7 @@ $_['entry_editor_default']              = 'Редактор по умолчан�
 $_['entry_alert_mode']                  = 'Предупреждение при отклонении курса';
 $_['entry_delta_threshold']             = 'Порог отклонения (%)';
 
-$_['entry_novacart_cache_engine'] = 'Механизм кеша';
+$_['entry_novacart_cache_engine']       = 'Механизм кеша';
 
 // Button
 $_['button_geocode']                    = 'Получить геокоординаты из OSM Nominatim';

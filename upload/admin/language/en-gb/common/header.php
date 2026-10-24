@@ -23,9 +23,11 @@ $_['text_new_product']          = 'Product';
 $_['text_maintenance']          = 'Maintenance mode';
 $_['text_maintenance_enabled']  = 'Maintenance mode enabled';
 $_['text_maintenance_disabled'] = 'Maintenance mode disabled';
-$_['error_maintenance']         = 'Failed to change maintenance mode';
-
 $_['text_admin_theme'] = 'Appearance';
 $_['text_theme_light'] = 'Light';
 $_['text_theme_dark'] = 'Dark';
 $_['text_theme_system'] = 'System';
+
+// Error
+$_['error_maintenance']         = 'Failed to change maintenance mode';
+
