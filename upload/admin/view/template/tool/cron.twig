@@ -123,7 +123,7 @@
         </div>
       </div>
     </div>
-    <div class="panel panel-default nc-queue-panel">
+    <div class="panel panel-default nc-queue-panel" id="queue-panel">
       <div class="panel-heading nc-queue-heading">
         <h3 class="panel-title"><i class="fa fa-tasks"></i> {{ text_queue_panel }}</h3>
         <div class="nc-queue-heading-actions">
@@ -133,10 +133,13 @@
             <button class="btn btn-primary btn-sm"><i class="fa fa-play"></i> {{ text_queue_run }}</button>
           </form>
           {% endif %}
-          <a href="{{ queue_url }}" class="btn btn-default btn-sm">{{ text_queue_manage }} <i class="fa fa-external-link"></i></a>
         </div>
       </div>
       <div class="panel-body">
+        {% if can_modify %}<form action="" method="post" onsubmit="return confirm('{{ text_queue_cleanup_confirm|e('js') }}')" class="text-right">
+          <input type="hidden" name="scheduler_action" value="purge_queue_done">
+          <button type="submit" class="btn btn-default btn-sm"><i class="fa fa-trash"></i> {{ text_queue_cleanup }}</button>
+        </form>{% endif %}
         <p>{{ text_queue_pending }}: {{ queue_stats.pending }}, {{ text_queue_processing }}: {{ queue_stats.processing }}, {{ text_queue_done }}: {{ queue_stats.done }}, {{ text_queue_failed }}: {{ queue_stats.failed }}</p>
         <form action="" method="get" class="nc-queue-filters">
           <input type="hidden" name="route" value="tool/cron">
@@ -152,9 +155,9 @@
         </form>
       </div>
       <div class="nc-queue-table-wrap"><div class="table-responsive"><table class="table table-bordered table-hover nc-queue-table">
-        <thead><tr><th><a href="{{ queue_sort_urls.queue_id }}">ID</a></th><th><a href="{{ queue_sort_urls.code }}">{{ column_code }}</a></th><th><a href="{{ queue_sort_urls.route }}">{{ column_route }}</a></th><th><a href="{{ queue_sort_urls.status }}">{{ column_status }}</a></th><th><a href="{{ queue_sort_urls.attempts }}">{{ text_queue_attempts }}</a></th><th><a href="{{ queue_sort_urls.available_at }}">{{ text_queue_available }}</a></th><th>{{ text_queue_error }}</th><th>{{ column_action }}</th></tr></thead>
+        <thead><tr><th><a href="{{ queue_sort_urls.queue_id }}">ID</a></th><th><a href="{{ queue_sort_urls.code }}">{{ column_code }}</a></th><th><a href="{{ queue_sort_urls.route }}">{{ column_route }}</a></th><th><a href="{{ queue_sort_urls.status }}">{{ column_status }}</a></th><th><a href="{{ queue_sort_urls.attempts }}">{{ text_queue_attempts }}</a></th><th><a href="{{ queue_sort_urls.available_at }}">{{ text_queue_available }}</a></th><th>{{ text_queue_locked }}</th><th>{{ text_queue_error }}</th><th>{{ column_action }}</th></tr></thead>
         <tbody>{% for item in queue_jobs %}
-          <tr><td>{{ item.queue_id }}</td><td>{{ item.code }}</td><td><code>{{ item.route }}</code></td><td><span class="label label-{{ item.status == 'done' ? 'success' : (item.status == 'failed' ? 'danger' : (item.status == 'processing' ? 'info' : 'warning')) }}">{{ queue_status_labels[item.status]|default(item.status) }}</span></td><td>{{ item.attempts }}/{{ item.max_attempts }}</td><td>{{ item.available_at }}</td><td>{{ item.last_error ?: '—' }}</td><td class="text-right" style="white-space:nowrap">
+          <tr><td>{{ item.queue_id }}</td><td>{{ item.code }}</td><td><code>{{ item.route }}</code></td><td><span class="label label-{{ item.status == 'done' ? 'success' : (item.status == 'failed' ? 'danger' : (item.status == 'processing' ? 'info' : 'warning')) }}">{{ queue_status_labels[item.status]|default(item.status) }}</span></td><td>{{ item.attempts }}/{{ item.max_attempts }}</td><td>{{ item.available_at }}</td><td>{{ item.locked_at ?: '—' }}</td><td>{{ item.last_error ?: '—' }}</td><td class="text-right" style="white-space:nowrap">
             {% if can_modify %}
               {% if item.status in ['pending','failed'] %}
               <form action="" method="post" style="display:inline-block">
@@ -173,7 +176,7 @@
               {% endif %}
             {% endif %}
           </td></tr>
-          {% else %}<tr><td colspan="8" class="text-center nc-queue-empty">{{ text_no_results }}</td></tr>
+          {% else %}<tr><td colspan="9" class="text-center nc-queue-empty">{{ text_no_results }}</td></tr>
         {% endfor %}</tbody>
       </table></div></div>
       <div class="panel-footer text-right">{{ queue_pagination }}</div>

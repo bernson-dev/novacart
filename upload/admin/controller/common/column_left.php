@@ -693,14 +693,6 @@ class ControllerCommonColumnLeft extends Controller {
 			// Tools
 			$maintenance = array();
 
-			if ($this->user->hasPermission('access', 'tool/queue')) {
-				$maintenance[] = array(
-					'name' => $this->language->get('text_queue'),
-					'href' => $this->url->link('tool/queue', 'user_token=' . $this->session->data['user_token'], true),
-					'children' => array()
-				);
-			}
-
 
 			if ($this->user->hasPermission('access', 'tool/cron')) {
 				$maintenance[] = array(
