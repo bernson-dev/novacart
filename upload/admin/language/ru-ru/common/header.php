@@ -24,3 +24,8 @@ $_['text_maintenance']          = 'Режим обслуживания';
 $_['text_maintenance_enabled']  = 'Режим обслуживания включен';
 $_['text_maintenance_disabled'] = 'Режим обслуживания выключен';
 $_['error_maintenance']         = 'Не удалось изменить режим обслуживания';
+
+$_['text_admin_theme'] = 'Тема оформления';
+$_['text_theme_light'] = 'Светлая';
+$_['text_theme_dark'] = 'Тёмная';
+$_['text_theme_system'] = 'Системная';
