@@ -129,8 +129,39 @@ class ControllerToolCron extends Controller {
                 $filterParts[] = "(code LIKE '%" . $escaped . "%' OR route LIKE '%" . $escaped . "%')";
             }
             $where = $filterParts ? ' WHERE ' . implode(' AND ', $filterParts) : '';
+            $data['queue_limit'] = isset($this->request->get['queue_limit']) ? (int)$this->request->get['queue_limit'] : 25;
+            if (!in_array($data['queue_limit'], array(10,25,50,100), true)) { $data['queue_limit'] = 25; }
+            $data['queue_page'] = isset($this->request->get['queue_page']) ? max(1, (int)$this->request->get['queue_page']) : 1;
+            $sortMap = array('queue_id'=>'queue_id','code'=>'code','route'=>'route','status'=>'status',
+                'attempts'=>'attempts','available_at'=>'available_at');
+            $sort = isset($this->request->get['queue_sort']) ? (string)$this->request->get['queue_sort'] : 'queue_id';
+            if (!isset($sortMap[$sort])) { $sort = 'queue_id'; }
+            $order = isset($this->request->get['queue_order']) && strtoupper((string)$this->request->get['queue_order']) === 'ASC' ? 'ASC' : 'DESC';
+            $data['queue_sort'] = $sort;
+            $data['queue_order'] = $order;
+            $base = 'user_token=' . $this->session->data['user_token'] . '&queue_search=' .
+                urlencode($data['queue_search']) . '&queue_status=' . urlencode($data['queue_status']) .
+                '&queue_limit=' . $data['queue_limit'];
+            $data['queue_sort_urls'] = array();
+            foreach ($sortMap as $key => $column) {
+                $nextOrder = $sort === $key && $order === 'ASC' ? 'DESC' : 'ASC';
+                $data['queue_sort_urls'][$key] = $this->url->link('tool/cron',
+                    $base . '&queue_sort=' . $key . '&queue_order=' . $nextOrder, true);
+            }
+            $count = (int)$this->db->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX .
+                "novacart_queue`" . $where)->row['total'];
+            $offset = ($data['queue_page'] - 1) * $data['queue_limit'];
             $data['queue_jobs'] = $this->db->query("SELECT queue_id,code,route,status,attempts,max_attempts,available_at,last_error
-                FROM `" . DB_PREFIX . "novacart_queue`" . $where . " ORDER BY queue_id DESC LIMIT 25")->rows;
+                FROM `" . DB_PREFIX . "novacart_queue`" . $where . " ORDER BY " .
+                $sortMap[$sort] . " " . $order . ", queue_id DESC LIMIT " .
+                $offset . "," . $data['queue_limit'])->rows;
+            $pagination = new Pagination();
+            $pagination->total = $count;
+            $pagination->page = $data['queue_page'];
+            $pagination->limit = $data['queue_limit'];
+            $pagination->url = $this->url->link('tool/cron',
+                $base . '&queue_sort=' . $sort . '&queue_order=' . $order . '&queue_page={page}', true);
+            $data['queue_pagination'] = $pagination->render();
 
             if (!empty($this->request->get['edit_id'])) {
                 $task = $scheduler->getTask((int)$this->request->get['edit_id']);
