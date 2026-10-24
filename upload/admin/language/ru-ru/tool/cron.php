@@ -41,3 +41,15 @@ $_['text_action_interval'] = 'Интервал, секунд';
 $_['text_action_args'] = 'Параметры JSON';
 $_['text_action_cancel'] = 'Отмена';
 $_['text_action_save'] = 'Сохранить';
+
+$_['text_queue_panel'] = 'Очередь фоновых задач';
+$_['text_queue_manage'] = 'Управление очередью';
+$_['text_queue_pending'] = 'В ожидании';
+$_['text_queue_processing'] = 'В обработке';
+$_['text_queue_done'] = 'Выполнено';
+$_['text_queue_failed'] = 'Ошибка';
+$_['text_queue_search'] = 'Поиск по коду или маршруту';
+$_['text_queue_filter'] = 'Фильтр';
+$_['text_queue_attempts'] = 'Попытки';
+$_['text_queue_available'] = 'Доступно с';
+$_['text_queue_error'] = 'Последняя ошибка';
