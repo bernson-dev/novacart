@@ -26,6 +26,15 @@ class ControllerToolCron extends Controller {
         $data['tasks'] = array();
         $data['edit_task'] = array('cron_id'=>0,'code'=>'','route'=>'','interval_seconds'=>3600,'args'=>'{}','status'=>1);
         $data['cli_command'] = 'php ' . rtrim(dirname(DIR_APPLICATION), '/\\') . '/cli.php jobs:run';
+        $data['http_command'] = '';
+        $keyPath = DIR_STORAGE . 'novacart_cron.key';
+        if (is_file($keyPath)) {
+            $key = trim((string)file_get_contents($keyPath));
+            $catalog = defined('HTTPS_CATALOG') ? HTTPS_CATALOG : (defined('HTTP_CATALOG') ? HTTP_CATALOG : '');
+            if ($key !== '' && $catalog !== '') {
+                $data['http_command'] = 'curl -fsS ' . escapeshellarg(rtrim($catalog, '/') . '/cron.php?key=' . rawurlencode($key));
+            }
+        }
         $data['job_runs'] = array();
         $data['heartbeat_status'] = 'none';
         $data['heartbeat_minutes'] = null;
