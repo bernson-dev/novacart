@@ -51,3 +51,9 @@ $_['text_queue_filter'] = 'Filter';
 $_['text_queue_attempts'] = 'Attempts';
 $_['text_queue_available'] = 'Available at';
 $_['text_queue_error'] = 'Last error';
+
+$_['text_cron_commands'] = 'CRON commands';
+$_['text_cron_help'] = 'CLI is recommended for automatic runs. The HTTPS command contains a secret key; do not share it.';
+$_['text_cron_cli'] = 'CLI command';
+$_['text_cron_web'] = 'HTTPS Web Cron command';
+$_['text_cron_copy'] = 'Copy';
