@@ -33,6 +33,17 @@
         {% endif %}
       </div>
     </div>
+<style>
+  #jobs-monitor-history { margin-top: 14px; }
+  #jobs-monitor-history > summary.nc-monitor-history-toggle { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:#f5f7f9;border:1px solid #dce2e8;border-radius:4px;cursor:pointer;list-style:none;user-select:none;color:#34495e;font-weight:600; }
+  #jobs-monitor-history > summary.nc-monitor-history-toggle::-webkit-details-marker { display:none; }
+  #jobs-monitor-history > summary.nc-monitor-history-toggle:hover { background:#eaf0f5; }
+  #jobs-monitor-history > summary.nc-monitor-history-toggle:focus-visible { outline:2px solid #1976d2;outline-offset:2px; }
+  #jobs-monitor-history .nc-monitor-history-arrow { margin-right:6px;transition:transform .15s ease; }
+  #jobs-monitor-history[open] .nc-monitor-history-arrow { transform:rotate(90deg); }
+  #jobs-monitor-history .nc-monitor-history-hint { color:#697786;font-size:12px;font-weight:400; }
+  #jobs-monitor-history > .table-responsive { margin-top:12px; }
+</style>
     <div class="panel panel-default" id="jobs-monitor">
       <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-heartbeat"></i> {{ text_monitor }}</h3></div>
       <div class="panel-body">
@@ -48,7 +59,10 @@
           <div class="alert alert-success">{{ text_heartbeat_ok }} ({{ heartbeat_minutes }} min)</div>
         {% endif %}
         <details id="jobs-monitor-history">
-          <summary style="cursor:pointer;padding:8px 0;font-weight:600">{{ text_monitor_history }}</summary>
+          <summary class="nc-monitor-history-toggle">
+            <span><i class="fa fa-chevron-right nc-monitor-history-arrow" aria-hidden="true"></i> {{ text_monitor_history }}</span>
+            <span class="nc-monitor-history-hint">{{ text_monitor_history_hint }}</span>
+          </summary>
         <div class="table-responsive">
           <table class="table table-bordered table-striped">
             <thead><tr>
