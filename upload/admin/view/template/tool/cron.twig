@@ -123,10 +123,10 @@
         </div>
       </div>
     </div>
-    <div class="panel panel-default">
-      <div class="panel-heading clearfix">
-        <h3 class="panel-title pull-left"><i class="fa fa-tasks"></i> {{ text_queue_panel }}</h3>
-        <div class="pull-right">
+    <div class="panel panel-default nc-queue-panel">
+      <div class="panel-heading nc-queue-heading">
+        <h3 class="panel-title"><i class="fa fa-tasks"></i> {{ text_queue_panel }}</h3>
+        <div class="nc-queue-heading-actions">
           {% if can_modify %}
           <form action="" method="post" style="display:inline-block">
             <input type="hidden" name="scheduler_action" value="run_queue">
@@ -138,20 +138,20 @@
       </div>
       <div class="panel-body">
         <p>{{ text_queue_pending }}: {{ queue_stats.pending }}, {{ text_queue_processing }}: {{ queue_stats.processing }}, {{ text_queue_done }}: {{ queue_stats.done }}, {{ text_queue_failed }}: {{ queue_stats.failed }}</p>
-        <form action="" method="get" class="row">
+        <form action="" method="get" class="nc-queue-filters">
           <input type="hidden" name="route" value="tool/cron">
           <input type="hidden" name="user_token" value="{{ user_token }}">
-          <div class="col-sm-6"><input name="queue_search" class="form-control" value="{{ queue_search }}" placeholder="{{ text_queue_search }}"></div>
-          <div class="col-sm-3"><select class="form-control" name="queue_status">
+          <div class="nc-queue-search"><input name="queue_search" class="form-control" value="{{ queue_search }}" placeholder="{{ text_queue_search }}"></div>
+          <div class="nc-queue-status"><select class="form-control" name="queue_status">
             {% for status in ['all','pending','processing','done','failed'] %}
             <option value="{{ status }}" {{ queue_status == status ? 'selected' : '' }}>{{ status }}</option>
             {% endfor %}
           </select></div>
-          <div class="col-sm-1"><select class="form-control" name="queue_limit">{% for item in [10,25,50,100] %}<option value="{{ item }}" {{ queue_limit == item ? 'selected' : '' }}>{{ item }}</option>{% endfor %}</select></div>
-          <div class="col-sm-2"><button class="btn btn-primary btn-block" type="submit"><i class="fa fa-filter"></i> {{ text_queue_filter }}</button></div>
+          <div class="nc-queue-limit"><select class="form-control" name="queue_limit">{% for item in [10,25,50,100] %}<option value="{{ item }}" {{ queue_limit == item ? 'selected' : '' }}>{{ item }}</option>{% endfor %}</select></div>
+          <div class="nc-queue-submit"><button class="btn btn-primary" type="submit"><i class="fa fa-filter"></i> {{ text_queue_filter }}</button></div>
         </form>
       </div>
-      <div class="table-responsive"><table class="table table-bordered table-hover">
+      <div class="table-responsive"><table class="table table-bordered table-hover nc-queue-table">
         <thead><tr><th><a href="{{ queue_sort_urls.queue_id }}">ID</a></th><th><a href="{{ queue_sort_urls.code }}">{{ column_code }}</a></th><th><a href="{{ queue_sort_urls.route }}">{{ column_route }}</a></th><th><a href="{{ queue_sort_urls.status }}">{{ column_status }}</a></th><th><a href="{{ queue_sort_urls.attempts }}">{{ text_queue_attempts }}</a></th><th><a href="{{ queue_sort_urls.available_at }}">{{ text_queue_available }}</a></th><th>{{ text_queue_error }}</th><th>{{ column_action }}</th></tr></thead>
         <tbody>{% for item in queue_jobs %}
           <tr><td>{{ item.queue_id }}</td><td>{{ item.code }}</td><td><code>{{ item.route }}</code></td><td>{{ item.status }}</td><td>{{ item.attempts }}/{{ item.max_attempts }}</td><td>{{ item.available_at }}</td><td>{{ item.last_error ?: '—' }}</td><td class="text-right" style="white-space:nowrap">
@@ -173,7 +173,7 @@
               {% endif %}
             {% endif %}
           </td></tr>
-          {% else %}<tr><td colspan="8" class="text-center">{{ text_no_results }}</td></tr>
+          {% else %}<tr><td colspan="8" class="text-center nc-queue-empty">{{ text_no_results }}</td></tr>
         {% endfor %}</tbody>
       </table></div>
       <div class="panel-footer text-right">{{ queue_pagination }}</div>
@@ -198,6 +198,27 @@
   </div>
 </div>
 {{ footer }}
+
+<style>
+.nc-queue-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.nc-queue-heading .panel-title{float:none;margin:0;line-height:30px}
+.nc-queue-heading-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.nc-queue-heading-actions form{margin:0}
+.nc-queue-filters{display:grid;grid-template-columns:minmax(220px,1fr) minmax(150px,210px) 100px auto;gap:10px;align-items:center;margin:0}
+.nc-queue-filters>div{min-width:0}
+.nc-queue-filters .form-control{width:100%;min-width:0}
+.nc-queue-submit .btn{white-space:nowrap;min-width:110px}
+.nc-queue-panel .panel-body>p{margin:0 0 12px}
+.nc-queue-table{margin-bottom:0;min-width:840px}
+.nc-queue-table th,.nc-queue-table td{vertical-align:middle!important}
+.nc-queue-table th{white-space:nowrap}
+.nc-queue-table th:first-child{width:60px}
+.nc-queue-table th:last-child{width:104px}
+.nc-queue-empty{padding:16px!important;color:#64748b}
+.nc-queue-panel .panel-footer .pagination{margin:0}
+@media(max-width:900px){.nc-queue-filters{grid-template-columns:minmax(180px,1fr) minmax(130px,1fr) 90px auto}}
+@media(max-width:640px){.nc-queue-filters{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nc-queue-search{grid-column:1/-1}.nc-queue-submit .btn{width:100%}.nc-queue-heading-actions{width:100%}}
+</style>
 
 <script type="text/javascript">
 (function () {
