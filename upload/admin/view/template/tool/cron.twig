@@ -129,10 +129,6 @@
         <div class="nc-queue-heading-actions">
           {% if can_modify %}
           <form action="" method="post" style="display:inline-block">
-            <input type="hidden" name="scheduler_action" value="queue_probe">
-            <button type="submit" class="btn btn-default btn-sm" title="{{ text_queue_probe_help }}"><i class="fa fa-flask"></i> {{ text_queue_probe }}</button>
-          </form>
-          <form action="" method="post" style="display:inline-block">
             <input type="hidden" name="scheduler_action" value="run_queue">
             <button class="btn btn-primary btn-sm"><i class="fa fa-play"></i> {{ text_queue_run }}</button>
           </form>
