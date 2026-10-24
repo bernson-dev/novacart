@@ -27,3 +27,15 @@ $_['column_run_error'] = 'Error';
 
 $_['text_heartbeat_error'] = 'Last run finished with errors';
 $_['text_heartbeat_running'] = 'Job runner is in progress';
+
+$_['text_action_run'] = 'Run now';
+$_['text_action_edit'] = 'Edit';
+$_['text_action_delete'] = 'Delete';
+$_['text_action_confirm'] = 'Delete task?';
+$_['text_action_add'] = 'Add task';
+$_['text_action_code'] = 'Task code';
+$_['text_action_route'] = 'Internal route';
+$_['text_action_interval'] = 'Interval, seconds';
+$_['text_action_args'] = 'JSON arguments';
+$_['text_action_cancel'] = 'Cancel';
+$_['text_action_save'] = 'Save';
