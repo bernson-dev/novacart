@@ -100,3 +100,12 @@ $_['text_interval_apply'] = 'Вставить в поле';
 $_['text_interval_years'] = 'Годы';
 $_['text_interval_months'] = 'Месяцы';
 $_['text_interval_assumptions'] = '1 год = 365 дней; 1 месяц = 30 дней.';
+
+$_['text_duration_year'] = 'г.';
+$_['text_duration_month'] = 'мес.';
+$_['text_duration_week'] = 'нед.';
+$_['text_duration_day'] = 'д.';
+$_['text_duration_hour'] = 'ч';
+$_['text_duration_minute'] = 'мин';
+$_['text_duration_second'] = 'с';
+$_['text_cron_curl_help'] = 'Параметры curl: -sS показывает ошибки, -i выводит HTTP-заголовки, -L разрешает перенаправления (не более 3), --max-time 120 ограничивает время запроса 120 секундами. Тело ответа при HTTP-ошибке сохраняется для диагностики.';
