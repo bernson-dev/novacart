@@ -232,3 +232,33 @@ html.novacart-admin-dark .novacart-world-map-table tr.is-selected>td {
   background:#24415a!important;
   color:#f1f6fc!important;
 }
+
+
+/* Product editing: reduce harsh form separators and contrast of length meters. */
+html.novacart-admin-dark #content .form-group + .form-group {
+  border-top-color:#364556!important;
+}
+html.novacart-admin-dark #content .progress-container canvas {
+  border-color:#52657a!important;
+  background-color:#243243;
+}
+html.novacart-admin-dark #content .progress-counter,
+html.novacart-admin-dark #content .input-group-addon.counter {
+  color:#afc1d4!important;
+}
+/* All geographic dashboard modes: keep long regional lists within the card. */
+.novacart-world-map-panel .novacart-world-map-table {
+  max-height:240px;
+  overflow-y:auto;
+  overflow-x:auto;
+  overscroll-behavior:contain;
+}
+.novacart-world-map-panel .novacart-world-map-table thead th {
+  position:sticky;
+  top:0;
+  z-index:2;
+}
+html.novacart-admin-dark .novacart-world-map-panel .novacart-world-map-table thead th {
+  background:#243243!important;
+  color:#e6edf6!important;
+}
