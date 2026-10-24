@@ -11,6 +11,28 @@
   <div class="container-fluid">
     {% if error_warning %}<div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}</div>{% endif %}
     {% if success %}<div class="alert alert-success"><i class="fa fa-check-circle"></i> {{ success }}</div>{% endif %}
+    <div class="panel panel-default">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-terminal"></i> {{ text_cron_commands }}</h3></div>
+      <div class="panel-body">
+        <p class="help-block">{{ text_cron_help }}</p>
+        <div class="form-group">
+          <label for="novacart-cron-cli">{{ text_cron_cli }}</label>
+          <div class="input-group">
+            <input id="novacart-cron-cli" type="text" readonly class="form-control" value="{{ cli_command }}">
+            <span class="input-group-btn"><button class="btn btn-default js-cron-copy" type="button" data-copy="novacart-cron-cli" title="{{ text_cron_copy }}"><i class="fa fa-copy"></i></button></span>
+          </div>
+        </div>
+        {% if http_command %}
+        <div class="form-group">
+          <label for="novacart-cron-web">{{ text_cron_web }}</label>
+          <div class="input-group">
+            <input id="novacart-cron-web" type="text" readonly class="form-control" value="{{ http_command }}">
+            <span class="input-group-btn"><button class="btn btn-default js-cron-copy" type="button" data-copy="novacart-cron-web" title="{{ text_cron_copy }}"><i class="fa fa-copy"></i></button></span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
     <div class="panel panel-default" id="jobs-monitor">
       <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-heartbeat"></i> {{ text_monitor }}</h3></div>
       <div class="panel-body">
@@ -179,4 +201,17 @@
         });
     }, 30000);
 })();
+</script>
+
+<script type="text/javascript">
+$('.js-cron-copy').on('click', function () {
+    var el = document.getElementById($(this).attr('data-copy'));
+    if (!el) return;
+    el.select();
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(el.value).catch(function () { document.execCommand('copy'); });
+    } else {
+        document.execCommand('copy');
+    }
+});
 </script>
