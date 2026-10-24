@@ -57,3 +57,7 @@ $_['text_cron_help'] = 'Для автоматичного запуску рек�
 $_['text_cron_cli'] = 'CLI-команда';
 $_['text_cron_web'] = 'HTTPS Web Cron-команда';
 $_['text_cron_copy'] = 'Копіювати';
+
+$_['text_queue_run'] = 'Запустити чергу';
+$_['text_queue_retry'] = 'Повторити';
+$_['text_queue_confirm_delete'] = 'Видалити завдання з черги?';
