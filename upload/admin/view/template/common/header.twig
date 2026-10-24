@@ -2,7 +2,8 @@
 <html dir="{{ direction }}" lang="{{ lang }}">
 <head>
     <meta charset="UTF-8" />
-    <title>{{ title }}</title>
+    <script>(function(){try{var mode=localStorage.getItem('novacart_admin_theme')||'light';if(['light','dark','system'].indexOf(mode)<0)mode='light';var dark=mode==='dark'||(mode==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('novacart-admin-dark',dark);document.documentElement.setAttribute('data-novacart-theme',mode);}catch(e){}})();</script>
+<title>{{ title }}</title>
     <base href="{{ base }}" />
     <link rel="icon" type="image/png" href="view/image/favicon/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="view/image/favicon/favicon.svg" />
@@ -59,6 +60,7 @@
     <script src="view/javascript/jquery/datetimepicker/bootstrap-datetimepicker.min.js" type="text/javascript"> </script>
     <link href="view/javascript/jquery/datetimepicker/bootstrap-datetimepicker.min.css" type="text/css" rel="stylesheet" media="screen" />
     <link type="text/css" href="view/stylesheet/stylesheet.css" rel="stylesheet" media="screen" />
+    <link type="text/css" href="view/stylesheet/novacart-admin-dark.css" rel="stylesheet" media="screen" />
 
     {% for style in styles %}
     <link type="text/css" href="{{ style.href }}" rel="{{ style.rel }}" media="{{ style.media }}" />
@@ -126,6 +128,14 @@
             {{ search }}
         </div>
         <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown" id="novacart-theme-menu">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="{{ text_admin_theme }}" aria-label="{{ text_admin_theme }}"><i class="fa fa-moon-o"></i></a>
+                <ul class="dropdown-menu dropdown-menu-right">
+                    <li><a href="#" data-novacart-theme-choice="light">{{ text_theme_light }}</a></li>
+                    <li><a href="#" data-novacart-theme-choice="dark">{{ text_theme_dark }}</a></li>
+                    <li><a href="#" data-novacart-theme-choice="system">{{ text_theme_system }}</a></li>
+                </ul>
+            </li>
             <li id="maintenance-status"{% if maintenance %} class="maintenance-active"{% endif %}>
                 {% if maintenance_modify %}
                 <a href="{{ maintenance_url }}"
