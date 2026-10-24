@@ -65,3 +65,5 @@ $_['text_queue_retry'] = 'Повторить';
 $_['text_queue_confirm_delete'] = 'Удалить задание из очереди?';
 
 $_['text_system_task'] = 'Системное';
+
+$_['text_queue_all'] = 'Все статусы';
