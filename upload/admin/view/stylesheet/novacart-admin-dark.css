@@ -194,3 +194,41 @@ html.novacart-admin-dark .chart-by-country-and-region__country,
 html.novacart-admin-dark .chart-by-country-and-region__region {
   background:#1d2935!important;
 }
+
+
+/* Dashboard map controls: high-contrast controls in all map variants. */
+html.novacart-admin-dark .novacart-world-map button,
+html.novacart-admin-dark .novacart-world-map .novacart-world-map-control,
+html.novacart-admin-dark .novacart-world-map .leaflet-control-zoom a {
+  background:#30445c!important;
+  color:#fff!important;
+  border:1px solid #6f92b4!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+html.novacart-admin-dark .novacart-world-map button:hover,
+html.novacart-admin-dark .novacart-world-map button:focus,
+html.novacart-admin-dark .novacart-world-map .novacart-world-map-control:hover,
+html.novacart-admin-dark .novacart-world-map .novacart-world-map-control:focus {
+  background:#42658b!important;
+  color:#fff!important;
+  border-color:#9cc8f4!important;
+}
+html.novacart-admin-dark .novacart-world-map button:disabled {
+  opacity:.5!important;
+  cursor:not-allowed;
+}
+html.novacart-admin-dark .novacart-world-map button svg,
+html.novacart-admin-dark .novacart-world-map button i {
+  color:inherit!important;
+  fill:currentColor;
+}
+html.novacart-admin-dark #chart-sale svg text,
+html.novacart-admin-dark #chart-sale .tick text,
+html.novacart-admin-dark #chart-sale .legend text {
+  fill:#afc4da!important;
+}
+html.novacart-admin-dark .novacart-world-map-table tr.is-selected>td {
+  background:#24415a!important;
+  color:#f1f6fc!important;
+}
