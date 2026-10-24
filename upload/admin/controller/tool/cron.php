@@ -47,7 +47,7 @@ class ControllerToolCron extends Controller {
         $data['run_source_labels'] = array('cli'=>$this->language->get('text_source_cli'), 'scheduled'=>$this->language->get('text_source_scheduled'), 'http'=>$this->language->get('text_source_http'), 'unknown'=>$this->language->get('text_source_unknown'));
         $data['heartbeat_status'] = 'none';
         $data['heartbeat_minutes'] = null;
-        foreach (array('text_currency_refresh_success','text_interval_years','text_interval_months','text_interval_assumptions','text_interval_quantity','text_interval_unit','text_interval_minutes','text_interval_hours','text_interval_days','text_interval_weeks','text_interval_seconds','text_interval_invalid','text_interval_apply','text_monitor','text_monitor_history','text_monitor_history_hint','text_monitor_empty','text_heartbeat_ok','text_heartbeat_late','text_heartbeat_missing','text_heartbeat_error','text_heartbeat_running','text_action_run','text_action_edit','text_action_delete','text_action_confirm','text_action_add','text_action_code','text_action_route','text_action_interval','text_action_args','text_action_cancel','text_action_save','text_system_task','text_cron_commands','text_cron_help','text_cron_cli','text_cron_web','text_cron_copy','text_cron_curl_help','text_queue_locked','text_queue_cleanup','text_queue_cleanup_confirm','text_queue_run_result','text_queue_run','text_queue_retry','text_queue_confirm_delete','text_queue_panel','text_queue_manage','text_queue_pending','text_queue_processing','text_queue_done','text_queue_failed','text_queue_search','text_queue_filter','text_queue_attempts','text_queue_available','text_queue_error','column_source','column_started','column_finished','column_duration','column_scheduler','column_queue','column_run_status','column_run_error') as $key) {
+        foreach (array('text_currency_refresh_success','text_interval_years','text_interval_months','text_interval_assumptions','text_interval_quantity','text_interval_unit','text_interval_minutes','text_interval_hours','text_interval_days','text_interval_weeks','text_interval_seconds','text_interval_invalid','text_interval_apply','text_monitor','text_monitor_history','text_monitor_history_hint','text_monitor_empty','text_heartbeat_ok','text_heartbeat_late','text_heartbeat_missing','text_heartbeat_error','text_heartbeat_running','text_action_run','text_action_edit','text_action_delete','text_action_confirm','text_action_add','text_action_code','text_action_route','text_action_interval','text_action_args','text_action_cancel','text_action_save','text_system_task','text_cron_commands','text_cron_help','text_cron_cli','text_cron_web','text_cron_copy','text_cron_curl_help','text_cron_key_rotate','text_cron_key_confirm','text_cron_key_rotated','text_queue_locked','text_queue_cleanup','text_queue_cleanup_confirm','text_queue_run_result','text_queue_run','text_queue_retry','text_queue_confirm_delete','text_queue_panel','text_queue_manage','text_queue_pending','text_queue_processing','text_queue_done','text_queue_failed','text_queue_search','text_queue_filter','text_queue_attempts','text_queue_available','text_queue_error','column_source','column_started','column_finished','column_duration','column_scheduler','column_queue','column_run_status','column_run_error') as $key) {
             $data[$key] = $this->language->get($key);
         }
         $data['error_warning'] = '';
@@ -61,7 +61,28 @@ class ControllerToolCron extends Controller {
                     $scheduler = new NovaCartScheduler($this->registry);
                     $operation = isset($this->request->post['scheduler_action']) ? (string)$this->request->post['scheduler_action'] : 'toggle';
                     $id = isset($this->request->post['cron_id']) ? (int)$this->request->post['cron_id'] : 0;
-                    if ($operation === 'toggle') {
+                    if ($operation === 'rotate_http_key') {
+                        $keyFile = DIR_STORAGE . 'novacart_cron.key';
+                        $newKey = bin2hex(random_bytes(32));
+                        $tempFile = tempnam(DIR_STORAGE, 'cronkey_');
+                        if ($tempFile === false) {
+                            throw new RuntimeException('Unable to create temporary cron key');
+                        }
+                        try {
+                            if (file_put_contents($tempFile, $newKey, LOCK_EX) !== 64) {
+                                throw new RuntimeException('Unable to write new cron key');
+                            }
+                            @chmod($tempFile, 0600);
+                            if (!@rename($tempFile, $keyFile)) {
+                                throw new RuntimeException('Unable to replace cron key; previous key remains active');
+                            }
+                        } finally {
+                            if (is_file($tempFile)) {
+                                @unlink($tempFile);
+                            }
+                        }
+                        $this->session->data['success'] = $this->language->get('text_cron_key_rotated');
+                    } elseif ($operation === 'toggle') {
                         $scheduler->setStatus($id, !empty($this->request->post['status']));
                     } elseif ($operation === 'delete') {
                         $scheduler->deleteTask($id);
