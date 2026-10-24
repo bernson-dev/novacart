@@ -71,3 +71,9 @@ $_['text_queue_all'] = 'Все статусы';
 
 $_['text_queue_run_result'] = 'Очередь: обработано %d, ошибок %d';
 $_['error_queue_failed'] = 'Очередь завершена с ошибками: обработано %d, ошибок %d';
+
+$_['column_source'] = 'Источник';
+$_['text_source_cli'] = 'CLI (вручную/без метки)';
+$_['text_source_scheduled'] = 'CLI (по расписанию)';
+$_['text_source_http'] = 'HTTPS Web Cron';
+$_['text_source_unknown'] = 'Не определён';
