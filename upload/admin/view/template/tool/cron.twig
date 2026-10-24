@@ -26,7 +26,7 @@
         <div class="form-group">
           <label for="novacart-cron-web">{{ text_cron_web }}</label>
           <div class="input-group">
-            <input id="novacart-cron-web" type="text" readonly class="form-control" value="{{ http_command }}" style="background:#eee;color:#555;text-align:left" title="{{ http_command }}">
+            <div id="novacart-cron-web" class="form-control" style="height:auto;min-height:34px;overflow-wrap:anywhere;white-space:normal;background:#eee;color:#555">{{ http_command }}</div>
             <span class="input-group-btn"><button class="btn btn-default js-cron-copy" type="button" data-copy="novacart-cron-web" title="{{ text_cron_copy }}"><i class="fa fa-copy"></i></button></span>
           </div>
         </div>
@@ -256,15 +256,27 @@
 
 <script type="text/javascript">
 $('.js-cron-copy').on('click', function () {
-    var el = document.getElementById($(this).attr('data-copy'));
-    if (!el || !el.value) return;
-    el.focus();
-    el.select();
-    el.setSelectionRange(0, el.value.length);
+    var node = document.getElementById($(this).attr('data-copy'));
+    if (!node) return;
+    var command = node.textContent.trim();
+    if (!command) return;
+    function copyFallback() {
+        var area = document.createElement('textarea');
+        area.value = command;
+        area.style.position = 'fixed';
+        area.style.top = '0';
+        area.style.left = '0';
+        document.body.appendChild(area);
+        area.focus();
+        area.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(area);
+        if (!ok) window.prompt('Copy command:', command);
+    }
     if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(el.value).catch(function () { el.focus(); el.select(); document.execCommand('copy'); });
+        navigator.clipboard.writeText(command).catch(copyFallback);
     } else {
-        document.execCommand('copy');
+        copyFallback();
     }
 });
 </script>
