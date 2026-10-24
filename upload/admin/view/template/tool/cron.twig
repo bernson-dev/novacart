@@ -101,6 +101,33 @@
         </div>
       </div>
     </div>
+    <div class="panel panel-default">
+      <div class="panel-heading clearfix">
+        <h3 class="panel-title pull-left"><i class="fa fa-tasks"></i> {{ text_queue_panel }}</h3>
+        <a href="{{ queue_url }}" class="btn btn-primary btn-sm pull-right">{{ text_queue_manage }} <i class="fa fa-external-link"></i></a>
+      </div>
+      <div class="panel-body">
+        <p>{{ text_queue_pending }}: {{ queue_stats.pending }}, {{ text_queue_processing }}: {{ queue_stats.processing }}, {{ text_queue_done }}: {{ queue_stats.done }}, {{ text_queue_failed }}: {{ queue_stats.failed }}</p>
+        <form action="" method="get" class="row">
+          <input type="hidden" name="route" value="tool/cron">
+          <input type="hidden" name="user_token" value="{{ user_token }}">
+          <div class="col-sm-6"><input name="queue_search" class="form-control" value="{{ queue_search }}" placeholder="{{ text_queue_search }}"></div>
+          <div class="col-sm-4"><select class="form-control" name="queue_status">
+            {% for status in ['all','pending','processing','done','failed'] %}
+            <option value="{{ status }}" {{ queue_status == status ? 'selected' : '' }}>{{ status }}</option>
+            {% endfor %}
+          </select></div>
+          <div class="col-sm-2"><button class="btn btn-primary btn-block" type="submit"><i class="fa fa-filter"></i> {{ text_queue_filter }}</button></div>
+        </form>
+      </div>
+      <div class="table-responsive"><table class="table table-bordered table-hover">
+        <thead><tr><th>ID</th><th>{{ column_code }}</th><th>{{ column_route }}</th><th>{{ column_status }}</th><th>{{ text_queue_attempts }}</th><th>{{ text_queue_available }}</th><th>{{ text_queue_error }}</th></tr></thead>
+        <tbody>{% for item in queue_jobs %}
+          <tr><td>{{ item.queue_id }}</td><td>{{ item.code }}</td><td><code>{{ item.route }}</code></td><td>{{ item.status }}</td><td>{{ item.attempts }}/{{ item.max_attempts }}</td><td>{{ item.available_at }}</td><td>{{ item.last_error ?: '—' }}</td></tr>
+          {% else %}<tr><td colspan="7" class="text-center">{{ text_no_results }}</td></tr>
+        {% endfor %}</tbody>
+      </table></div>
+    </div>
     {% if can_modify %}
     <div class="panel panel-default" id="scheduler-form">
       <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-plus"></i> {{ edit_task.cron_id ? text_action_edit : text_action_add }}</h3></div>
