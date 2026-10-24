@@ -189,6 +189,7 @@
         var dark = mode === 'dark' || (mode === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
         document.documentElement.classList.toggle('novacart-admin-dark', dark);
         document.documentElement.setAttribute('data-novacart-theme', mode);
+        $(document).trigger('novacart:themechange');
         $('#novacart-theme-menu [data-novacart-theme-choice]').each(function () {
             var selected = $(this).attr('data-novacart-theme-choice') === mode;
             $(this).attr('aria-current', selected ? 'true' : 'false');
