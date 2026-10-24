@@ -79,3 +79,5 @@ $_['text_source_unknown'] = 'Не визначено';
 $_['text_queue_locked'] = 'Заблоковано з';
 $_['text_queue_cleanup'] = 'Очистити завершені старші за 7 днів';
 $_['text_queue_cleanup_confirm'] = 'Видалити завершені завдання старші за 7 днів?';
+
+$_['text_monitor_history'] = 'Історія запусків';
