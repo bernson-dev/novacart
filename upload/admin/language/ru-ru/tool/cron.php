@@ -59,3 +59,7 @@ $_['text_cron_help'] = 'Для автоматического запуска р�
 $_['text_cron_cli'] = 'CLI-команда';
 $_['text_cron_web'] = 'HTTPS Web Cron-команда';
 $_['text_cron_copy'] = 'Копировать';
+
+$_['text_queue_run'] = 'Запустить очередь';
+$_['text_queue_retry'] = 'Повторить';
+$_['text_queue_confirm_delete'] = 'Удалить задание из очереди?';
