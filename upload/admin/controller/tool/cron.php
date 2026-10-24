@@ -93,6 +93,14 @@ class ControllerToolCron extends Controller {
                         if ($id > 0) {
                             $scheduler->save($id, $code, $route, $interval, !empty($this->request->post['status']), $args);
                         } else {
+                            if (strpos($code, 'core.') === 0) {
+                                throw new InvalidArgumentException('Reserved system task code');
+                            }
+                            $duplicate = $this->db->query("SELECT cron_id FROM `" . DB_PREFIX .
+                                "novacart_cron` WHERE code='" . $this->db->escape($code) . "' LIMIT 1");
+                            if ($duplicate->num_rows) {
+                                throw new RuntimeException('Scheduler task code already exists');
+                            }
                             $scheduler->register($code, $route, $interval, $args, !empty($this->request->post['status']));
                         }
                     } else {
