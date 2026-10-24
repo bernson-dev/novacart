@@ -25,9 +25,20 @@ Source: `CodeCartPro/CodeCartPro-3.0.6.0` at `main`; destination NovaCart existi
 - Does **not** auto-register potentially destructive CodeCart tasks.
 - No DB schema migration or parallel scheduler is introduced.
 
-## Outstanding integration
+## Functional coverage of CodeCart administration
 
-The CodeCart page contains a full integrated Queue listing with search, paging, sorting and one-job actions. NovaCart currently exposes Queue separately at `tool/queue`. Complete parity needs an integrated view, plus explicit one-job queue execution under the existing worker locking rules; this is not claimed complete here.
+- Scheduler: list, create, edit, enable/disable, delete, run one, interval, route and JSON args.
+- Queue: combined panel, status totals, search, status filter, sort, page size and pagination; protected run-all, run-one/retry and safe deletion.
+- Copyable CLI and HTTPS commands; the HTTP secret is provisioned at explicit `cron:install` and should never be shared.
+- NovaCart's existing 30-second auto-refresh monitor remains intact.
+- Existing Queue admin at `tool/queue` is retained as an alternate interface.
+
+## Important differences and limits
+
+- Core CodeCart tasks requiring `CodeCart\\Core` dependencies are **not** registered automatically: health, security, currency, mail, GDPR and stock notifications require separate compatibility/side-effect review.
+- Full HTML/CSS parity to CodeCart is secondary to retaining NovaCart's monitor and actual data.
+- Queue execution is protected with the existing storage secret; Windows Task Scheduler continues using `php cli.php jobs:run` unchanged.
+- There is no data migration to `codecart_scheduler` or `codecart_queue`; existing NovaCart records stay in place.
 
 ## Acceptance tests
 
