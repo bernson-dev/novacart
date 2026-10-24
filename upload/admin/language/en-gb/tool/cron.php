@@ -107,3 +107,7 @@ $_['text_duration_hour'] = 'h';
 $_['text_duration_minute'] = 'min';
 $_['text_duration_second'] = 's';
 $_['text_cron_curl_help'] = 'curl flags: -sS shows errors; -i includes HTTP headers; -L follows up to 3 redirects; --max-time 120 limits the request to 120 seconds. The response body remains visible on HTTP errors.';
+
+$_['text_cron_key_rotate'] = 'Generate new secret key';
+$_['text_cron_key_confirm'] = 'Replace the HTTPS Web Cron secret? Previously copied URLs and commands will stop working.';
+$_['text_cron_key_rotated'] = 'HTTPS Web Cron secret replaced. Copy the updated command.';
