@@ -183,6 +183,37 @@
         {% endif %}
     </div>
 </header>
+<script type="text/javascript">
+(function ($) {
+    function setTheme(mode) {
+        var dark = mode === 'dark' || (mode === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('novacart-admin-dark', dark);
+        document.documentElement.setAttribute('data-novacart-theme', mode);
+        $('#novacart-theme-menu [data-novacart-theme-choice]').each(function () {
+            var selected = $(this).attr('data-novacart-theme-choice') === mode;
+            $(this).attr('aria-current', selected ? 'true' : 'false');
+            $(this).find('.theme-choice-check').remove();
+            if (selected) $(this).prepend('<i class="fa fa-check fa-fw theme-choice-check"></i> ');
+        });
+    }
+    $(document).on('click', '[data-novacart-theme-choice]', function (event) {
+        event.preventDefault();
+        var mode = $(this).attr('data-novacart-theme-choice');
+        if (['light', 'dark', 'system'].indexOf(mode) === -1) return;
+        try { localStorage.setItem('novacart_admin_theme', mode); } catch (error) {}
+        setTheme(mode);
+    });
+    setTheme(document.documentElement.getAttribute('data-novacart-theme') || 'light');
+    if (window.matchMedia) {
+        var media = window.matchMedia('(prefers-color-scheme: dark)');
+        var sync = function () {
+            if (document.documentElement.getAttribute('data-novacart-theme') === 'system') setTheme('system');
+        };
+        if (media.addEventListener) media.addEventListener('change', sync);
+        else if (media.addListener) media.addListener(sync);
+    }
+})(jQuery);
+</script>
 
 {% if maintenance_modify %}
 <script type="text/javascript">
