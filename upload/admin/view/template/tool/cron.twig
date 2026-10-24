@@ -69,9 +69,22 @@
                     <td>{{ task.status ? text_enabled : text_disabled }}</td>
                     <td>{{ task.date_last ?: '—' }}</td><td>{{ task.date_next }}</td>
                     <td>{{ task.last_status ?: '—' }}</td><td>{{ task.last_message ?: '—' }}</td>
-                    <td class="text-right">
+                    <td class="text-right" style="white-space:nowrap">
                       {% if can_modify %}
-                        <form action="{{ action }}" method="post" style="display:inline">
+                        <form action="" method="post" style="display:inline">
+                          <input type="hidden" name="scheduler_action" value="run">
+                          <input type="hidden" name="cron_id" value="{{ task.cron_id }}">
+                          <button class="btn btn-sm btn-info" title="Run now"><i class="fa fa-play"></i></button>
+                        </form>
+                        <a class="btn btn-sm btn-primary" href="{{ action }}&edit_id={{ task.cron_id }}#scheduler-form" title="Edit"><i class="fa fa-pencil"></i></a>
+                        {% if task.code|slice(0, 5) != 'core.' %}
+                        <form action="" method="post" style="display:inline" onsubmit="return confirm('Delete task?');">
+                          <input type="hidden" name="scheduler_action" value="delete">
+                          <input type="hidden" name="cron_id" value="{{ task.cron_id }}">
+                          <button class="btn btn-sm btn-danger" title="Delete"><i class="fa fa-trash"></i></button>
+                        </form>
+                        {% endif %}
+                        <form action="" method="post" style="display:inline">
                           <input type="hidden" name="cron_id" value="{{ task.cron_id }}">
                           <input type="hidden" name="status" value="{{ task.status ? 0 : 1 }}">
                           <button type="submit" class="btn btn-sm {{ task.status ? 'btn-warning' : 'btn-success' }}">{{ task.status ? button_disable : button_enable }}</button>
@@ -88,6 +101,23 @@
         </div>
       </div>
     </div>
+    {% if can_modify %}
+    <div class="panel panel-default" id="scheduler-form">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-plus"></i> {{ edit_task.cron_id ? 'Edit task' : 'Add task' }}</h3></div>
+      <div class="panel-body">
+        <form action="" method="post" class="form-horizontal">
+          <input type="hidden" name="scheduler_action" value="save">
+          <input type="hidden" name="cron_id" value="{{ edit_task.cron_id }}">
+          <div class="form-group"><label class="col-sm-2 control-label">Code</label><div class="col-sm-10"><input class="form-control" name="code" required maxlength="128" value="{{ edit_task.code }}" {{ edit_task.code|slice(0, 5) == 'core.' ? 'readonly' : '' }}></div></div>
+          <div class="form-group"><label class="col-sm-2 control-label">Route</label><div class="col-sm-10"><input class="form-control" name="route" required value="{{ edit_task.route }}" placeholder="cron/example"></div></div>
+          <div class="form-group"><label class="col-sm-2 control-label">Interval, seconds</label><div class="col-sm-10"><input class="form-control" type="number" name="interval_seconds" min="60" max="31536000" required value="{{ edit_task.interval_seconds }}"></div></div>
+          <div class="form-group"><label class="col-sm-2 control-label">JSON arguments</label><div class="col-sm-10"><textarea class="form-control" name="args" rows="3">{{ edit_task.args }}</textarea></div></div>
+          <div class="form-group"><label class="col-sm-2 control-label">Status</label><div class="col-sm-10"><select class="form-control" name="status"><option value="1" {{ edit_task.status ? 'selected' : '' }}>{{ text_enabled }}</option><option value="0" {{ not edit_task.status ? 'selected' : '' }}>{{ text_disabled }}</option></select></div></div>
+          <div class="text-right"><a class="btn btn-default" href="{{ action }}">Cancel</a> <button class="btn btn-primary" type="submit"><i class="fa fa-save"></i> Save</button></div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 {{ footer }}
