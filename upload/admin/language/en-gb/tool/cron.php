@@ -75,3 +75,7 @@ $_['text_source_cli'] = 'CLI (manual/unmarked)';
 $_['text_source_scheduled'] = 'CLI (scheduled)';
 $_['text_source_http'] = 'HTTPS Web Cron';
 $_['text_source_unknown'] = 'Unknown';
+
+$_['text_queue_locked'] = 'Locked at';
+$_['text_queue_cleanup'] = 'Clear completed older than 7 days';
+$_['text_queue_cleanup_confirm'] = 'Delete completed jobs older than 7 days?';
