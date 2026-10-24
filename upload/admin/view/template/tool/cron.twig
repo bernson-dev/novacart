@@ -142,16 +142,17 @@
           <input type="hidden" name="route" value="tool/cron">
           <input type="hidden" name="user_token" value="{{ user_token }}">
           <div class="col-sm-6"><input name="queue_search" class="form-control" value="{{ queue_search }}" placeholder="{{ text_queue_search }}"></div>
-          <div class="col-sm-4"><select class="form-control" name="queue_status">
+          <div class="col-sm-3"><select class="form-control" name="queue_status">
             {% for status in ['all','pending','processing','done','failed'] %}
             <option value="{{ status }}" {{ queue_status == status ? 'selected' : '' }}>{{ status }}</option>
             {% endfor %}
           </select></div>
+          <div class="col-sm-1"><select class="form-control" name="queue_limit">{% for item in [10,25,50,100] %}<option value="{{ item }}" {{ queue_limit == item ? 'selected' : '' }}>{{ item }}</option>{% endfor %}</select></div>
           <div class="col-sm-2"><button class="btn btn-primary btn-block" type="submit"><i class="fa fa-filter"></i> {{ text_queue_filter }}</button></div>
         </form>
       </div>
       <div class="table-responsive"><table class="table table-bordered table-hover">
-        <thead><tr><th>ID</th><th>{{ column_code }}</th><th>{{ column_route }}</th><th>{{ column_status }}</th><th>{{ text_queue_attempts }}</th><th>{{ text_queue_available }}</th><th>{{ text_queue_error }}</th><th>{{ column_action }}</th></tr></thead>
+        <thead><tr><th><a href="{{ queue_sort_urls.queue_id }}">ID</a></th><th><a href="{{ queue_sort_urls.code }}">{{ column_code }}</a></th><th><a href="{{ queue_sort_urls.route }}">{{ column_route }}</a></th><th><a href="{{ queue_sort_urls.status }}">{{ column_status }}</a></th><th><a href="{{ queue_sort_urls.attempts }}">{{ text_queue_attempts }}</a></th><th><a href="{{ queue_sort_urls.available_at }}">{{ text_queue_available }}</a></th><th>{{ text_queue_error }}</th><th>{{ column_action }}</th></tr></thead>
         <tbody>{% for item in queue_jobs %}
           <tr><td>{{ item.queue_id }}</td><td>{{ item.code }}</td><td><code>{{ item.route }}</code></td><td>{{ item.status }}</td><td>{{ item.attempts }}/{{ item.max_attempts }}</td><td>{{ item.available_at }}</td><td>{{ item.last_error ?: '—' }}</td><td class="text-right" style="white-space:nowrap">
             {% if can_modify %}
@@ -175,6 +176,7 @@
           {% else %}<tr><td colspan="8" class="text-center">{{ text_no_results }}</td></tr>
         {% endfor %}</tbody>
       </table></div>
+      <div class="panel-footer text-right">{{ queue_pagination }}</div>
     </div>
     {% if can_modify %}
     <div class="panel panel-default" id="scheduler-form">
