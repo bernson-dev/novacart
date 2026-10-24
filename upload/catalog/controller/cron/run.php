@@ -21,7 +21,7 @@ class ControllerCronRun extends Controller {
 
         require_once(DIR_SYSTEM . 'library/novacart/scheduler.php');
         $scheduler = new NovaCartScheduler($this->registry);
-        $command = $isCli && isset($this->request->get['command']) ? $this->request->get['command'] : 'run';
+        $command = $isCli ? (isset($this->request->get['command']) ? $this->request->get['command'] : 'run') : ((!isset($this->request->get['mode']) || $this->request->get['mode'] === 'all') ? 'jobs:run' : 'run');
         try {
             if ($command === 'install' && $isCli) {
                 $scheduler->install();
@@ -61,7 +61,7 @@ class ControllerCronRun extends Controller {
                 $result = array('queue' => (new NovaCartQueue($this->registry))->run(25));
             } elseif ($command === 'list' && $isCli) {
                 $result = array('status' => 'ok', 'tasks' => $scheduler->listTasks());
-            } elseif ($command === 'jobs:run' && $isCli) {
+            } elseif ($command === 'jobs:run') {
                 require_once(DIR_SYSTEM . 'library/novacart/jobs_monitor.php');
                 $monitor = new NovaCartJobsMonitor($this->registry);
                 $started = microtime(true);
@@ -90,6 +90,9 @@ class ControllerCronRun extends Controller {
                 $result = array('status' => $healthy ? 'ok' : 'error', 'scheduler' => $cronResult, 'queue' => $queueResult);
                 if ($runError !== '') {
                     $result['message'] = $runError;
+                }
+                if (!$isCli && !$healthy) {
+                    http_response_code(500);
                 }
             } elseif ($command === 'queue:run' || $command === 'queue:stats') {
                 require_once(DIR_SYSTEM . 'library/novacart/queue.php');
