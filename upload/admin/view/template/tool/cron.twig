@@ -26,8 +26,7 @@
         <div class="form-group">
           <label for="novacart-cron-web">{{ text_cron_web }}</label>
           <div class="input-group">
-            <div class="form-control" style="height:34px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#eee;color:#555">{{ text_cron_web }} — {{ text_cron_copy }}</div>
-            <input id="novacart-cron-web" type="text" readonly value="{{ http_command }}" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+            <input id="novacart-cron-web" type="text" readonly class="form-control" value="{{ http_command }}" style="background:#eee;color:#555;text-align:left" title="{{ http_command }}">
             <span class="input-group-btn"><button class="btn btn-default js-cron-copy" type="button" data-copy="novacart-cron-web" title="{{ text_cron_copy }}"><i class="fa fa-copy"></i></button></span>
           </div>
         </div>
@@ -258,9 +257,10 @@
 <script type="text/javascript">
 $('.js-cron-copy').on('click', function () {
     var el = document.getElementById($(this).attr('data-copy'));
-    if (!el) return;
+    if (!el || !el.value) return;
     el.focus();
     el.select();
+    el.setSelectionRange(0, el.value.length);
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(el.value).catch(function () { el.focus(); el.select(); document.execCommand('copy'); });
     } else {
