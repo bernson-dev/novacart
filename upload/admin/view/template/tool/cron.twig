@@ -50,13 +50,13 @@
         <div class="table-responsive">
           <table class="table table-bordered table-striped">
             <thead><tr>
-              <td>{{ column_started }}</td><td>{{ column_finished }}</td><td>{{ column_run_status }}</td>
+              <td>{{ column_started }}</td><td>{{ column_source }}</td><td>{{ column_finished }}</td><td>{{ column_run_status }}</td>
               <td>{{ column_scheduler }}</td><td>{{ column_queue }}</td><td>{{ column_duration }}</td><td>{{ column_run_error }}</td>
             </tr></thead>
             <tbody>
             {% for run in job_runs %}
               <tr>
-                <td>{{ run.started_at }}</td><td>{{ run.finished_at ?: '—' }}</td>
+                <td>{{ run.started_at }}</td><td>{{ run_source_labels[run.source]|default(run.source) }}</td><td>{{ run.finished_at ?: '—' }}</td>
                 <td>{{ run.status }}</td>
                 <td>{{ run.scheduler_status ?: '—' }} ({{ run.scheduler_processed }}/{{ run.scheduler_failed }})</td>
                 <td>{{ run.queue_status ?: '—' }} ({{ run.queue_processed }}/{{ run.queue_failed }})</td>
@@ -64,7 +64,7 @@
                 <td>{{ run.error_message ?: '—' }}</td>
               </tr>
             {% else %}
-              <tr><td colspan="7" class="text-center">{{ text_monitor_empty }}</td></tr>
+              <tr><td colspan="8" class="text-center">{{ text_monitor_empty }}</td></tr>
             {% endfor %}
             </tbody>
           </table>
