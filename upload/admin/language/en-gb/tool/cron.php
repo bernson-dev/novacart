@@ -66,5 +66,3 @@ $_['text_system_task'] = 'System';
 
 $_['text_queue_all'] = 'All statuses';
 
-$_['text_queue_probe'] = 'Create test jobs';
-$_['text_queue_probe_help'] = 'Creates two safe delayed jobs; delete them after testing';
