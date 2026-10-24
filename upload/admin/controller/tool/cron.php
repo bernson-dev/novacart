@@ -45,7 +45,7 @@ class ControllerToolCron extends Controller {
         $data['job_runs'] = array();
         $data['heartbeat_status'] = 'none';
         $data['heartbeat_minutes'] = null;
-        foreach (array('text_monitor','text_monitor_empty','text_heartbeat_ok','text_heartbeat_late','text_heartbeat_missing','text_heartbeat_error','text_heartbeat_running','text_action_run','text_action_edit','text_action_delete','text_action_confirm','text_action_add','text_action_code','text_action_route','text_action_interval','text_action_args','text_action_cancel','text_action_save','text_system_task','text_cron_commands','text_cron_help','text_cron_cli','text_cron_web','text_cron_copy','text_queue_run','text_queue_retry','text_queue_confirm_delete','text_queue_panel','text_queue_manage','text_queue_pending','text_queue_processing','text_queue_done','text_queue_failed','text_queue_search','text_queue_filter','text_queue_attempts','text_queue_available','text_queue_error','column_started','column_finished','column_duration','column_scheduler','column_queue','column_run_status','column_run_error') as $key) {
+        foreach (array('text_monitor','text_monitor_empty','text_heartbeat_ok','text_heartbeat_late','text_heartbeat_missing','text_heartbeat_error','text_heartbeat_running','text_action_run','text_action_edit','text_action_delete','text_action_confirm','text_action_add','text_action_code','text_action_route','text_action_interval','text_action_args','text_action_cancel','text_action_save','text_system_task','text_cron_commands','text_cron_help','text_cron_cli','text_cron_web','text_cron_copy','text_queue_run_result','text_queue_run','text_queue_retry','text_queue_confirm_delete','text_queue_panel','text_queue_manage','text_queue_pending','text_queue_processing','text_queue_done','text_queue_failed','text_queue_search','text_queue_filter','text_queue_attempts','text_queue_available','text_queue_error','column_started','column_finished','column_duration','column_scheduler','column_queue','column_run_status','column_run_error') as $key) {
             $data[$key] = $this->language->get($key);
         }
         $data['error_warning'] = '';
@@ -74,6 +74,12 @@ class ControllerToolCron extends Controller {
                         if (empty($result['queue']) || $result['queue']['status'] !== 'ok') {
                             throw new RuntimeException('Queue worker did not complete');
                         }
+                        $processed = isset($result['queue']['processed']) ? (int)$result['queue']['processed'] : 0;
+                        $failed = isset($result['queue']['failed']) ? (int)$result['queue']['failed'] : 0;
+                        if ($failed > 0) {
+                            throw new RuntimeException(sprintf($this->language->get('error_queue_failed'), $processed, $failed));
+                        }
+                        $this->session->data['success'] = sprintf($this->language->get('text_queue_run_result'), $processed, $failed);
                     } elseif ($operation === 'run_queue_one') {
                         $queueId = isset($this->request->post['queue_id']) ? (int)$this->request->post['queue_id'] : 0;
                         $retry = !empty($this->request->post['retry']) ? 1 : 0;
@@ -113,7 +119,9 @@ class ControllerToolCron extends Controller {
                     } else {
                         throw new InvalidArgumentException('Unknown scheduler action');
                     }
-                    $this->session->data['success'] = $this->language->get('text_success');
+                    if (!isset($this->session->data['success'])) {
+                        $this->session->data['success'] = $this->language->get('text_success');
+                    }
                 } catch (Throwable $e) {
                     $this->session->data['error_warning'] = $e->getMessage();
                 }
