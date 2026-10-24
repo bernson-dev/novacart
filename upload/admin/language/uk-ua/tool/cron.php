@@ -81,3 +81,5 @@ $_['text_queue_cleanup'] = 'Очистити завершені старші з�
 $_['text_queue_cleanup_confirm'] = 'Видалити завершені завдання старші за 7 днів?';
 
 $_['text_monitor_history'] = 'Історія запусків';
+
+$_['text_monitor_history_hint'] = 'Натисніть, щоб розгорнути або згорнути';
