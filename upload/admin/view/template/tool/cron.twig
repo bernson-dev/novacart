@@ -144,17 +144,17 @@
           <div class="nc-queue-search"><input name="queue_search" class="form-control" value="{{ queue_search }}" placeholder="{{ text_queue_search }}"></div>
           <div class="nc-queue-status"><select class="form-control" name="queue_status">
             {% for status in ['all','pending','processing','done','failed'] %}
-            <option value="{{ status }}" {{ queue_status == status ? 'selected' : '' }}>{{ status }}</option>
+            <option value="{{ status }}" {{ queue_status == status ? 'selected' : '' }}>{{ queue_status_labels[status] }}</option>
             {% endfor %}
           </select></div>
           <div class="nc-queue-limit"><select class="form-control" name="queue_limit">{% for item in [10,25,50,100] %}<option value="{{ item }}" {{ queue_limit == item ? 'selected' : '' }}>{{ item }}</option>{% endfor %}</select></div>
           <div class="nc-queue-submit"><button class="btn btn-primary" type="submit"><i class="fa fa-filter"></i> {{ text_queue_filter }}</button></div>
         </form>
       </div>
-      <div class="table-responsive"><table class="table table-bordered table-hover nc-queue-table">
+      <div class="nc-queue-table-wrap"><div class="table-responsive"><table class="table table-bordered table-hover nc-queue-table">
         <thead><tr><th><a href="{{ queue_sort_urls.queue_id }}">ID</a></th><th><a href="{{ queue_sort_urls.code }}">{{ column_code }}</a></th><th><a href="{{ queue_sort_urls.route }}">{{ column_route }}</a></th><th><a href="{{ queue_sort_urls.status }}">{{ column_status }}</a></th><th><a href="{{ queue_sort_urls.attempts }}">{{ text_queue_attempts }}</a></th><th><a href="{{ queue_sort_urls.available_at }}">{{ text_queue_available }}</a></th><th>{{ text_queue_error }}</th><th>{{ column_action }}</th></tr></thead>
         <tbody>{% for item in queue_jobs %}
-          <tr><td>{{ item.queue_id }}</td><td>{{ item.code }}</td><td><code>{{ item.route }}</code></td><td>{{ item.status }}</td><td>{{ item.attempts }}/{{ item.max_attempts }}</td><td>{{ item.available_at }}</td><td>{{ item.last_error ?: '—' }}</td><td class="text-right" style="white-space:nowrap">
+          <tr><td>{{ item.queue_id }}</td><td>{{ item.code }}</td><td><code>{{ item.route }}</code></td><td><span class="label label-{{ item.status == 'done' ? 'success' : (item.status == 'failed' ? 'danger' : (item.status == 'processing' ? 'info' : 'warning')) }}">{{ queue_status_labels[item.status]|default(item.status) }}</span></td><td>{{ item.attempts }}/{{ item.max_attempts }}</td><td>{{ item.available_at }}</td><td>{{ item.last_error ?: '—' }}</td><td class="text-right" style="white-space:nowrap">
             {% if can_modify %}
               {% if item.status in ['pending','failed'] %}
               <form action="" method="post" style="display:inline-block">
@@ -175,7 +175,7 @@
           </td></tr>
           {% else %}<tr><td colspan="8" class="text-center nc-queue-empty">{{ text_no_results }}</td></tr>
         {% endfor %}</tbody>
-      </table></div>
+      </table></div></div>
       <div class="panel-footer text-right">{{ queue_pagination }}</div>
     </div>
     {% if can_modify %}
@@ -185,9 +185,9 @@
         <form action="" method="post" class="form-horizontal">
           <input type="hidden" name="scheduler_action" value="save">
           <input type="hidden" name="cron_id" value="{{ edit_task.cron_id }}">
-          <div class="form-group"><label class="col-sm-2 control-label">{{ text_action_code }}</label><div class="col-sm-10"><input class="form-control" name="code" required maxlength="128" value="{{ edit_task.code }}" {{ edit_task.code|slice(0, 5) == 'core.' ? 'readonly' : '' }}></div></div>
-          <div class="form-group"><label class="col-sm-2 control-label">{{ text_action_route }}</label><div class="col-sm-10"><input class="form-control" name="route" required value="{{ edit_task.route }}" placeholder="cron/example"></div></div>
-          <div class="form-group"><label class="col-sm-2 control-label">{{ text_action_interval }}</label><div class="col-sm-10"><input class="form-control" type="number" name="interval_seconds" min="60" max="31536000" required value="{{ edit_task.interval_seconds }}"></div></div>
+          <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_code }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-code" name="code" required minlength="2" maxlength="128" value="{{ edit_task.code }}" {{ edit_task.code|slice(0, 5) == 'core.' ? 'readonly' : '' }}></div></div>
+          <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_route }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-route" name="route" required value="{{ edit_task.route }}" placeholder="cron/example"></div></div>
+          <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_interval }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-interval" type="number" name="interval_seconds" min="60" max="31536000" required value="{{ edit_task.interval_seconds }}"></div></div>
           <div class="form-group"><label class="col-sm-2 control-label">{{ text_action_args }}</label><div class="col-sm-10"><textarea class="form-control" name="args" rows="3">{{ edit_task.args }}</textarea></div></div>
           <div class="form-group"><label class="col-sm-2 control-label">{{ column_status }}</label><div class="col-sm-10"><select class="form-control" name="status"><option value="1" {{ edit_task.status ? 'selected' : '' }}>{{ text_enabled }}</option><option value="0" {{ not edit_task.status ? 'selected' : '' }}>{{ text_disabled }}</option></select></div></div>
           <div class="text-right"><a class="btn btn-default" href="{{ action }}">{{ text_action_cancel }}</a> <button class="btn btn-primary" type="submit"><i class="fa fa-save"></i> {{ text_action_save }}</button></div>
@@ -209,6 +209,8 @@
 .nc-queue-filters .form-control{width:100%;min-width:0}
 .nc-queue-submit .btn{white-space:nowrap;min-width:110px}
 .nc-queue-panel .panel-body>p{margin:0 0 12px}
+.nc-queue-table-wrap{padding:0 15px 15px}
+.nc-queue-table-wrap .table-responsive{border:1px solid #dce4ed;border-radius:4px}
 .nc-queue-table{margin-bottom:0;min-width:840px}
 .nc-queue-table th,.nc-queue-table td{vertical-align:middle!important}
 .nc-queue-table th{white-space:nowrap}
