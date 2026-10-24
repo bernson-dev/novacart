@@ -297,3 +297,19 @@ html.novacart-admin-dark .novacart-world-map .map-label {
   border-radius:4px;
   padding:2px 5px;
 }
+
+
+/* Final dashboard/category polish: targeted rules, no light-mode changes. */
+html.novacart-admin-dark #content .panel .table-responsive {
+  border-color:#39485a!important;
+}
+html.novacart-admin-dark #content .panel .table {
+  border-color:#39485a!important;
+}
+html.novacart-admin-dark #content .panel .table > tbody > tr > td,
+html.novacart-admin-dark #content .panel .table > thead > tr > th {
+  border-color:#39485a!important;
+}
+html.novacart-admin-dark #content .novacart-world-map-table .table {
+  margin-bottom:0;
+}
