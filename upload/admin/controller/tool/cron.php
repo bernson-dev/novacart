@@ -13,6 +13,13 @@ class ControllerToolCron extends Controller {
         }
         $data['action'] = $this->url->link('tool/cron', 'user_token=' . $this->session->data['user_token'], true);
         $data['can_modify'] = $this->user->hasPermission('modify', 'tool/cron');
+        $data['queue_status_labels'] = array(
+            'all' => $this->language->get('text_queue_all'),
+            'pending' => $this->language->get('text_queue_pending'),
+            'processing' => $this->language->get('text_queue_processing'),
+            'done' => $this->language->get('text_queue_done'),
+            'failed' => $this->language->get('text_queue_failed')
+        );
         $data['queue_jobs'] = array();
         $data['queue_stats'] = array('pending'=>0,'processing'=>0,'done'=>0,'failed'=>0);
         $data['queue_status'] = isset($this->request->get['queue_status']) ? (string)$this->request->get['queue_status'] : 'all';
