@@ -9,6 +9,10 @@ class ControllerCronDiagnostic extends Controller {
             return array('success' => false, 'message' => 'Cron entry required');
         }
 
+        if (is_array($args) && !empty($args['probe_fail'])) {
+            return array('success' => false, 'message' => 'Queue diagnostic expected failure');
+        }
+
         return array(
             'success' => true,
             'message' => 'Scheduler diagnostic OK'
