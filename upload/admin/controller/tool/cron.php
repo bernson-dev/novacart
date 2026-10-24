@@ -57,26 +57,29 @@ class ControllerToolCron extends Controller {
                     } elseif ($operation === 'delete') {
                         $scheduler->deleteTask($id);
                     } elseif ($operation === 'run') {
-                        $secretPath = DIR_STORAGE . 'novacart_cron.key';
-                        $key = is_file($secretPath) ? trim((string)file_get_contents($secretPath)) : '';
-                        if ($key === '' || !function_exists('curl_init')) {
-                            throw new RuntimeException('HTTP cron key or cURL is not configured');
+                        $result = $this->callCatalogCron('scheduler_one', array('scheduler_id'=>$id));
+                        if (empty($result['scheduler_one']['success'])) {
+                            throw new RuntimeException(isset($result['scheduler_one']['message']) ?
+                                (string)$result['scheduler_one']['message'] : 'Scheduler job failed');
                         }
-                        $base = defined('HTTPS_CATALOG') ? HTTPS_CATALOG : (defined('HTTP_CATALOG') ? HTTP_CATALOG : '');
-                        if ($base === '') { throw new RuntimeException('Catalog URL is unavailable'); }
-                        $url = rtrim($base, '/') . '/cron.php?key=' . rawurlencode($key) .
-                            '&mode=scheduler_one&scheduler_id=' . $id;
-                        $curl = curl_init($url);
-                        curl_setopt_array($curl, array(CURLOPT_RETURNTRANSFER=>true, CURLOPT_CONNECTTIMEOUT=>5,
-                            CURLOPT_TIMEOUT=>120, CURLOPT_FOLLOWLOCATION=>false, CURLOPT_SSL_VERIFYPEER=>true));
-                        $body = curl_exec($curl);
-                        $httpCode = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
-                        curl_close($curl);
-                        $decoded = is_string($body) ? json_decode($body, true) : null;
-                        if ($httpCode !== 200 || !isset($decoded['scheduler_one']['success']) ||
-                            !$decoded['scheduler_one']['success']) {
-                            throw new RuntimeException(isset($decoded['scheduler_one']['message']) ?
-                                (string)$decoded['scheduler_one']['message'] : 'Scheduler HTTP request failed');
+                    } elseif ($operation === 'run_queue') {
+                        $result = $this->callCatalogCron('queue');
+                        if (empty($result['queue']) || $result['queue']['status'] !== 'ok') {
+                            throw new RuntimeException('Queue worker did not complete');
+                        }
+                    } elseif ($operation === 'run_queue_one') {
+                        $queueId = isset($this->request->post['queue_id']) ? (int)$this->request->post['queue_id'] : 0;
+                        $retry = !empty($this->request->post['retry']) ? 1 : 0;
+                        $result = $this->callCatalogCron('queue_one', array('queue_id'=>$queueId,'retry'=>$retry));
+                        if (empty($result['queue_one']['success'])) {
+                            throw new RuntimeException(isset($result['queue_one']['message']) ?
+                                (string)$result['queue_one']['message'] : 'Queue job failed');
+                        }
+                    } elseif ($operation === 'delete_queue_one') {
+                        require_once(DIR_SYSTEM . 'library/novacart/queue.php');
+                        $queueId = isset($this->request->post['queue_id']) ? (int)$this->request->post['queue_id'] : 0;
+                        if ($queueId < 1 || !(new NovaCartQueue($this->registry))->deleteById($queueId)) {
+                            throw new RuntimeException('Queue job is not removable');
                         }
                     } elseif ($operation === 'save') {
                         $code = isset($this->request->post['code']) ? trim((string)$this->request->post['code']) : '';
@@ -155,4 +158,31 @@ class ControllerToolCron extends Controller {
         $data['footer'] = $this->load->controller('common/footer');
         $this->response->setOutput($this->load->view('tool/cron', $data));
     }
+    private function callCatalogCron($mode, $params = array()) {
+        $secretPath = DIR_STORAGE . 'novacart_cron.key';
+        $key = is_file($secretPath) ? trim((string)file_get_contents($secretPath)) : '';
+        if ($key === '' || !function_exists('curl_init')) {
+            throw new RuntimeException('HTTP cron key or cURL is not configured');
+        }
+        $base = defined('HTTPS_CATALOG') ? HTTPS_CATALOG : (defined('HTTP_CATALOG') ? HTTP_CATALOG : '');
+        if ($base === '') { throw new RuntimeException('Catalog URL is unavailable'); }
+        $url = rtrim($base, '/') . '/cron.php?key=' . rawurlencode($key) . '&mode=' . rawurlencode($mode);
+        foreach ($params as $name => $value) {
+            $url .= '&' . rawurlencode($name) . '=' . rawurlencode((string)$value);
+        }
+        $curl = curl_init($url);
+        curl_setopt_array($curl, array(CURLOPT_RETURNTRANSFER=>true, CURLOPT_CONNECTTIMEOUT=>5,
+            CURLOPT_TIMEOUT=>120, CURLOPT_FOLLOWLOCATION=>false, CURLOPT_SSL_VERIFYPEER=>true,
+            CURLOPT_SSL_VERIFYHOST=>2, CURLOPT_HTTPHEADER=>array('Accept: application/json')));
+        $body = curl_exec($curl);
+        $httpCode = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $error = curl_error($curl);
+        curl_close($curl);
+        $decoded = is_string($body) ? json_decode($body, true) : null;
+        if ($httpCode !== 200 || !is_array($decoded)) {
+            throw new RuntimeException($error !== '' ? $error : 'Scheduler endpoint returned HTTP ' . $httpCode);
+        }
+        return $decoded;
+    }
+
 }
