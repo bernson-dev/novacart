@@ -29,3 +29,15 @@ $_['column_run_error'] = 'Ошибка';
 
 $_['text_heartbeat_error'] = 'Последний запуск завершился с ошибкой';
 $_['text_heartbeat_running'] = 'Задание выполняется';
+
+$_['text_action_run'] = 'Запустить сейчас';
+$_['text_action_edit'] = 'Редактировать';
+$_['text_action_delete'] = 'Удалить';
+$_['text_action_confirm'] = 'Удалить задание?';
+$_['text_action_add'] = 'Добавить задание';
+$_['text_action_code'] = 'Код задания';
+$_['text_action_route'] = 'Внутренний маршрут';
+$_['text_action_interval'] = 'Интервал, секунд';
+$_['text_action_args'] = 'Параметры JSON';
+$_['text_action_cancel'] = 'Отмена';
+$_['text_action_save'] = 'Сохранить';
