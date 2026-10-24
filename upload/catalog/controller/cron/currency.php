@@ -39,8 +39,11 @@ class ControllerCronCurrency extends Controller {
             if (isset($model->refreshResult)) {
                 $result = $model->refreshResult();
             } else {
-                $ok = $model->refresh() !== false;
-                $result = array('success' => $ok, 'message' => $ok ? 'OK' : 'Currency refresh failed: ' . $engine);
+                $result = $model->refresh();
+                if (!is_array($result)) {
+                    $ok = $result !== false;
+                    $result = array('success' => $ok, 'message' => $ok ? 'OK' : 'Currency refresh failed: ' . $engine);
+                }
             }
         } catch (\Throwable $e) {
             $message = 'Currency refresh exception (' . $engine . '): ' . $e->getMessage();
