@@ -61,3 +61,5 @@ $_['text_cron_copy'] = 'Copy';
 $_['text_queue_run'] = 'Run Queue Now';
 $_['text_queue_retry'] = 'Retry';
 $_['text_queue_confirm_delete'] = 'Delete queued job?';
+
+$_['text_system_task'] = 'System';
