@@ -39,3 +39,15 @@ $_['text_action_interval'] = 'Інтервал, секунд';
 $_['text_action_args'] = 'Параметри JSON';
 $_['text_action_cancel'] = 'Скасувати';
 $_['text_action_save'] = 'Зберегти';
+
+$_['text_queue_panel'] = 'Черга фонових завдань';
+$_['text_queue_manage'] = 'Керування чергою';
+$_['text_queue_pending'] = 'Очікує';
+$_['text_queue_processing'] = 'Обробляється';
+$_['text_queue_done'] = 'Виконано';
+$_['text_queue_failed'] = 'Помилка';
+$_['text_queue_search'] = 'Пошук за кодом або маршрутом';
+$_['text_queue_filter'] = 'Фільтр';
+$_['text_queue_attempts'] = 'Спроби';
+$_['text_queue_available'] = 'Доступно з';
+$_['text_queue_error'] = 'Остання помилка';
