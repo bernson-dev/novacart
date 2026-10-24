@@ -22,3 +22,8 @@ $_['text_maintenance']          = 'Режим обслуговування';
 $_['text_maintenance_enabled']  = 'Режим обслуговування включений';
 $_['text_maintenance_disabled'] = 'Режим обслуговування вимкнений';
 $_['error_maintenance']         = 'Не вдалося змінити режим обслуговування';
+
+$_['text_admin_theme'] = 'Тема оформлення';
+$_['text_theme_light'] = 'Світла';
+$_['text_theme_dark'] = 'Темна';
+$_['text_theme_system'] = 'Системна';
