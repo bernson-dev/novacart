@@ -96,3 +96,7 @@ $_['text_interval_weeks'] = 'Недели';
 $_['text_interval_seconds'] = 'сек.';
 $_['text_interval_invalid'] = 'Недопустимый интервал (60–31536000 сек.)';
 $_['text_interval_apply'] = 'Вставить в поле';
+
+$_['text_interval_years'] = 'Годы';
+$_['text_interval_months'] = 'Месяцы';
+$_['text_interval_assumptions'] = '1 год = 365 дней; 1 месяц = 30 дней.';
