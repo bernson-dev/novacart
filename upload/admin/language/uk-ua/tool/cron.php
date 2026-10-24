@@ -69,3 +69,9 @@ $_['text_queue_all'] = 'Усі статуси';
 
 $_['text_queue_run_result'] = 'Черга: оброблено %d, помилок %d';
 $_['error_queue_failed'] = 'Черга завершилася з помилками: оброблено %d, помилок %d';
+
+$_['column_source'] = 'Джерело';
+$_['text_source_cli'] = 'CLI (вручну/без позначки)';
+$_['text_source_scheduled'] = 'CLI (за розкладом)';
+$_['text_source_http'] = 'HTTPS Web Cron';
+$_['text_source_unknown'] = 'Не визначено';
