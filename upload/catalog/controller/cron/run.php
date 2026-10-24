@@ -3,7 +3,7 @@ class ControllerCronRun extends Controller {
     public function index() {
         // Never allow the route through the public catalog front controller.
         if (!defined('NOVACART_CRON_ENTRY')) {
-            $this->response->setStatusCode(403);
+            http_response_code(403);
             $this->response->setOutput('Forbidden');
             return;
         }
@@ -13,7 +13,7 @@ class ControllerCronRun extends Controller {
             $secret = is_file($secretFile) ? trim((string)file_get_contents($secretFile)) : '';
             $provided = isset($this->request->get['key']) && is_string($this->request->get['key']) ? $this->request->get['key'] : '';
             if ($secret === '' || !hash_equals($secret, $provided)) {
-                $this->response->setStatusCode(403);
+                http_response_code(403);
                 $this->response->setOutput('Forbidden');
                 return;
             }
@@ -99,7 +99,7 @@ class ControllerCronRun extends Controller {
                 $result = $scheduler->runDue(20);
             }
         } catch (Throwable $e) {
-            $this->response->setStatusCode(500);
+            http_response_code(500);
             $result = array('status' => 'error', 'message' => $e->getMessage());
             $this->log->write('NovaCart cron: ' . $e->getMessage());
         }
