@@ -29,6 +29,13 @@
             <div id="novacart-cron-web" class="form-control" style="height:auto;min-height:34px;overflow-wrap:anywhere;white-space:normal;background:#eee;color:#555">{{ http_command }}</div>
             <span class="input-group-btn"><button class="btn btn-default js-cron-copy" type="button" data-copy="novacart-cron-web" title="{{ text_cron_copy }}"><i class="fa fa-copy"></i></button></span>
           </div>
+          <p class="help-block">{{ text_cron_curl_help }}</p>
+          {% if can_modify %}
+          <form method="post" action="{{ action }}" onsubmit="return confirm('{{ text_cron_key_confirm|e('js') }}');">
+            <input type="hidden" name="scheduler_action" value="rotate_http_key">
+            <button type="submit" class="btn btn-default btn-sm"><i class="fa fa-refresh"></i> {{ text_cron_key_rotate }}</button>
+          </form>
+          {% endif %}
         </div>
         {% endif %}
       </div>
@@ -104,7 +111,7 @@
                 {% for task in tasks %}
                   <tr>
                     <td><strong>{{ task.code }}</strong>{% if task.code|slice(0, 5) == 'core.' %} <span class="label label-info">{{ text_system_task }}</span>{% endif %}</td><td><code>{{ task.route }}</code></td>
-                    <td>{{ task.interval_seconds }} s</td>
+                    <td title="{{ task.interval_seconds }} {{ text_interval_seconds }}">{{ task.interval_display }}</td>
                     <td><span class="label label-{{ task.status ? 'success' : 'default' }}">{{ task.status ? text_enabled : text_disabled }}</span></td>
                     <td>{{ task.date_last ?: '—' }}</td><td>{{ task.date_next }}</td>
                     <td>{% if task.last_status %}<span class="label label-{{ task.last_status == 'success' ? 'success' : 'danger' }}">{{ task.last_status }}</span>{% if task.last_duration_ms is not null %} <small>{{ task.last_duration_ms }} ms</small>{% endif %}{% else %}—{% endif %}</td><td title="{{ task.last_message == 'text_success' and task.route == 'cron/currency' ? text_currency_refresh_success : (task.last_message ?: '') }}">{{ task.last_message == 'text_success' and task.route == 'cron/currency' ? text_currency_refresh_success : (task.last_message ?: '—') }}</td>

@@ -98,3 +98,16 @@ $_['text_interval_apply'] = 'Вставити в поле';
 $_['text_interval_years'] = 'Роки';
 $_['text_interval_months'] = 'Місяці';
 $_['text_interval_assumptions'] = '1 рік = 365 днів; 1 місяць = 30 днів.';
+
+$_['text_duration_year'] = 'р.';
+$_['text_duration_month'] = 'міс.';
+$_['text_duration_week'] = 'тиж.';
+$_['text_duration_day'] = 'д.';
+$_['text_duration_hour'] = 'год';
+$_['text_duration_minute'] = 'хв';
+$_['text_duration_second'] = 'с';
+$_['text_cron_curl_help'] = 'Параметри curl: -sS показує помилки, -i виводить HTTP-заголовки, -L дозволяє переспрямування (не більше 3), --max-time 120 обмежує час запиту 120 секундами. Тіло відповіді при HTTP-помилці залишається видимим.';
+
+$_['text_cron_key_rotate'] = 'Згенерувати новий секретний ключ';
+$_['text_cron_key_confirm'] = 'Замінити секретний ключ HTTPS Web Cron? Старі URL та команди перестануть працювати.';
+$_['text_cron_key_rotated'] = 'Секретний ключ HTTPS Web Cron замінено. Скопіюйте оновлену команду.';
