@@ -51,3 +51,9 @@ $_['text_queue_filter'] = 'Фільтр';
 $_['text_queue_attempts'] = 'Спроби';
 $_['text_queue_available'] = 'Доступно з';
 $_['text_queue_error'] = 'Остання помилка';
+
+$_['text_cron_commands'] = 'Команди запуску CRON';
+$_['text_cron_help'] = 'Для автоматичного запуску рекомендовано CLI. HTTPS-команда містить секретний ключ — не публікуйте її.';
+$_['text_cron_cli'] = 'CLI-команда';
+$_['text_cron_web'] = 'HTTPS Web Cron-команда';
+$_['text_cron_copy'] = 'Копіювати';
