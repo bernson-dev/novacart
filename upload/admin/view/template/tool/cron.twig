@@ -259,6 +259,8 @@
 $('.js-cron-copy').on('click', function () {
     var el = document.getElementById($(this).attr('data-copy'));
     if (!el) return;
+    el.style.left = '0';
+    el.style.opacity = '1';
     el.focus();
     el.select();
     if (navigator.clipboard && window.isSecureContext) {
