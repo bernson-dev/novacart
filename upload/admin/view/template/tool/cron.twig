@@ -47,6 +47,8 @@
         {% else %}
           <div class="alert alert-success">{{ text_heartbeat_ok }} ({{ heartbeat_minutes }} min)</div>
         {% endif %}
+        <details id="jobs-monitor-history">
+          <summary style="cursor:pointer;padding:8px 0;font-weight:600">{{ text_monitor_history }}</summary>
         <div class="table-responsive">
           <table class="table table-bordered table-striped">
             <thead><tr>
@@ -69,6 +71,7 @@
             </tbody>
           </table>
         </div>
+        </details>
       </div>
     </div>
     <div class="panel panel-default">
@@ -243,7 +246,11 @@
                 var parsed = new DOMParser().parseFromString(html, 'text/html');
                 var updated = parsed.getElementById('jobs-monitor');
                 if (updated) {
+                    var currentHistory = document.getElementById('jobs-monitor-history');
+                    var historyOpen = currentHistory && currentHistory.open;
                     document.getElementById('jobs-monitor').innerHTML = updated.innerHTML;
+                    var newHistory = document.getElementById('jobs-monitor-history');
+                    if (newHistory) newHistory.open = !!historyOpen;
                 } else {
                     console.warn('NovaCart monitor refresh: response does not contain #jobs-monitor');
                 }
