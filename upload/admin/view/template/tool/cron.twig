@@ -74,14 +74,14 @@
                         <form action="" method="post" style="display:inline">
                           <input type="hidden" name="scheduler_action" value="run">
                           <input type="hidden" name="cron_id" value="{{ task.cron_id }}">
-                          <button class="btn btn-sm btn-info" title="Run now"><i class="fa fa-play"></i></button>
+                          <button class="btn btn-sm btn-info" title="{{ text_action_run }}"><i class="fa fa-play"></i></button>
                         </form>
-                        <a class="btn btn-sm btn-primary" href="{{ action }}&edit_id={{ task.cron_id }}#scheduler-form" title="Edit"><i class="fa fa-pencil"></i></a>
+                        <a class="btn btn-sm btn-primary" href="{{ action }}&edit_id={{ task.cron_id }}#scheduler-form" title="{{ text_action_edit }}"><i class="fa fa-pencil"></i></a>
                         {% if task.code|slice(0, 5) != 'core.' %}
-                        <form action="" method="post" style="display:inline" onsubmit="return confirm('Delete task?');">
+                        <form action="" method="post" style="display:inline" onsubmit="return confirm('{{ text_action_confirm|e('js') }}');">
                           <input type="hidden" name="scheduler_action" value="delete">
                           <input type="hidden" name="cron_id" value="{{ task.cron_id }}">
-                          <button class="btn btn-sm btn-danger" title="Delete"><i class="fa fa-trash"></i></button>
+                          <button class="btn btn-sm btn-danger" title="{{ text_action_delete }}"><i class="fa fa-trash"></i></button>
                         </form>
                         {% endif %}
                         <form action="" method="post" style="display:inline">
@@ -103,7 +103,7 @@
     </div>
     {% if can_modify %}
     <div class="panel panel-default" id="scheduler-form">
-      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-plus"></i> {{ edit_task.cron_id ? 'Edit task' : 'Add task' }}</h3></div>
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-plus"></i> {{ edit_task.cron_id ? text_action_edit : text_action_add }}</h3></div>
       <div class="panel-body">
         <form action="" method="post" class="form-horizontal">
           <input type="hidden" name="scheduler_action" value="save">
