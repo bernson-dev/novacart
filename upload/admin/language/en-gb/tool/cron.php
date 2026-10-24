@@ -81,3 +81,5 @@ $_['text_queue_cleanup'] = 'Clear completed older than 7 days';
 $_['text_queue_cleanup_confirm'] = 'Delete completed jobs older than 7 days?';
 
 $_['text_monitor_history'] = 'Run history';
+
+$_['text_monitor_history_hint'] = 'Click to expand or collapse';
