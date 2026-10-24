@@ -48,3 +48,20 @@ Source: `CodeCartPro/CodeCartPro-3.0.6.0` at `main`; destination NovaCart existi
 4. Verify protected single-task run with storage key configured; invalid key must return 403.
 5. Check redirects and forms on HTTPS canonical admin URL; test RU/UK/EN.
 6. Do not merge until tested in OSPanel; do not enable copied cleanup/security handlers until dependencies and side effects are reviewed.
+
+
+## Jobs Monitor source attribution (PR #125)
+
+After deploying this version, run `php cli.php cron:install` **once** to add
+`source` to an existing `novacart_jobs_run` table. Historical rows retain
+`unknown`; no retrospective attribution is attempted.
+
+* `php cli.php jobs:run` records `cli` (manual or unmarked CLI).
+* `php cli.php jobs:run --source=scheduled` records `scheduled`. Set this
+  argument only for the recurring Windows Task Scheduler / server cron entry.
+* Authenticated `cron.php?key=...` records `http` and runs both Scheduler and Queue.
+
+The admin HTTP command is formatted for Windows PowerShell as
+`curl.exe -fsS "<full URL>"`; copy the **entire** command, including the URL.
+Do not publish the URL because it includes the secret key. Do not configure
+both HTTP and CLI background schedules at once.
