@@ -61,3 +61,5 @@ $_['text_cron_copy'] = 'Копіювати';
 $_['text_queue_run'] = 'Запустити чергу';
 $_['text_queue_retry'] = 'Повторити';
 $_['text_queue_confirm_delete'] = 'Видалити завдання з черги?';
+
+$_['text_system_task'] = 'Системне';
