@@ -262,3 +262,38 @@ html.novacart-admin-dark .novacart-world-map-panel .novacart-world-map-table the
   background:#243243!important;
   color:#e6edf6!important;
 }
+
+
+/* Softer hierarchy for secondary labels, keeping input contents and active tabs bright. */
+html.novacart-admin-dark #content .form-horizontal .control-label,
+html.novacart-admin-dark #content .form-group > label,
+html.novacart-admin-dark #column-left #menu > li > a,
+html.novacart-admin-dark #column-left #menu > li > ul a,
+html.novacart-admin-dark #content .breadcrumb a,
+html.novacart-admin-dark #content .text-muted {
+  color:#afc0d2!important;
+}
+html.novacart-admin-dark #column-left #menu li.active > a,
+html.novacart-admin-dark #column-left #menu a:hover,
+html.novacart-admin-dark #content .nav-tabs > li.active > a {
+  color:#eaf3ff!important;
+}
+/* Geographic SVG labels: outline against filled regions and dark map background. */
+html.novacart-admin-dark #novacart-ukraine-geo-map svg text,
+html.novacart-admin-dark #novacart-ukraine-map svg text {
+  fill:#fff!important;
+  paint-order:stroke fill;
+  stroke:#101c2b!important;
+  stroke-width:3px;
+  stroke-linejoin:round;
+}
+/* DOM-based labels / tooltip bubbles, if rendered by the selected map engine. */
+html.novacart-admin-dark .novacart-world-map .ua-map-tooltip,
+html.novacart-admin-dark .novacart-world-map .novacart-map-label,
+html.novacart-admin-dark .novacart-world-map .map-label {
+  background:#122235!important;
+  color:#f5f9ff!important;
+  border:1px solid #54718f!important;
+  border-radius:4px;
+  padding:2px 5px;
+}
