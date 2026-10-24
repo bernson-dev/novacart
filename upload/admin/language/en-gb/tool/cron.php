@@ -69,3 +69,9 @@ $_['text_queue_all'] = 'All statuses';
 
 $_['text_queue_run_result'] = 'Queue: processed %d, failed %d';
 $_['error_queue_failed'] = 'Queue finished with failures: processed %d, failed %d';
+
+$_['column_source'] = 'Source';
+$_['text_source_cli'] = 'CLI (manual/unmarked)';
+$_['text_source_scheduled'] = 'CLI (scheduled)';
+$_['text_source_http'] = 'HTTPS Web Cron';
+$_['text_source_unknown'] = 'Unknown';
