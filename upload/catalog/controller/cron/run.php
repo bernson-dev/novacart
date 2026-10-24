@@ -65,7 +65,8 @@ class ControllerCronRun extends Controller {
                 require_once(DIR_SYSTEM . 'library/novacart/jobs_monitor.php');
                 $monitor = new NovaCartJobsMonitor($this->registry);
                 $started = microtime(true);
-                $runId = $monitor->begin();
+                $source = $isCli ? (isset($this->request->get['run_source']) && $this->request->get['run_source'] === 'scheduled' ? 'scheduled' : 'cli') : 'http';
+                $runId = $monitor->begin($source);
                 $cronResult = array('status' => 'error', 'processed' => 0, 'failed' => 0);
                 $queueResult = array('status' => 'error', 'processed' => 0, 'failed' => 0);
                 $runErrors = array();
