@@ -14,6 +14,8 @@ class ControllerToolCron extends Controller {
         $data['action'] = $this->url->link('tool/cron', 'user_token=' . $this->session->data['user_token'], true);
         $data['can_modify'] = $this->user->hasPermission('modify', 'tool/cron');
         $data['tasks'] = array();
+        $data['edit_task'] = array('cron_id'=>0,'code'=>'','route'=>'','interval_seconds'=>3600,'args'=>'{}','status'=>1);
+        $data['cli_command'] = 'php ' . rtrim(dirname(DIR_APPLICATION), '/\\') . '/cli.php jobs:run';
         $data['job_runs'] = array();
         $data['heartbeat_status'] = 'none';
         $data['heartbeat_minutes'] = null;
@@ -26,18 +28,40 @@ class ControllerToolCron extends Controller {
             if (!$data['can_modify']) {
                 $this->session->data['error_warning'] = $this->language->get('error_permission');
             } else {
-                $id = isset($this->request->post['cron_id']) ? (int)$this->request->post['cron_id'] : 0;
-                $status = isset($this->request->post['status']) ? (int)$this->request->post['status'] : -1;
-                if ($id > 0 && ($status === 0 || $status === 1)) {
-                    try {
-                        $this->db->query("UPDATE `" . DB_PREFIX . "novacart_cron` SET status=" . $status .
-                            ", date_modified=NOW() WHERE cron_id=" . $id);
-                        $this->session->data['success'] = $this->language->get('text_success');
-                    } catch (Throwable $e) {
-                        $this->session->data['error_warning'] = $e->getMessage();
+                try {
+                    require_once(DIR_SYSTEM . 'library/novacart/scheduler.php');
+                    $scheduler = new NovaCartScheduler($this->registry);
+                    $operation = isset($this->request->post['scheduler_action']) ? (string)$this->request->post['scheduler_action'] : 'toggle';
+                    $id = isset($this->request->post['cron_id']) ? (int)$this->request->post['cron_id'] : 0;
+                    if ($operation === 'toggle') {
+                        $scheduler->setStatus($id, !empty($this->request->post['status']));
+                    } elseif ($operation === 'delete') {
+                        $scheduler->deleteTask($id);
+                    } elseif ($operation === 'run') {
+                        // Admin and catalog share this lock via the same DB connection.
+                        // Handlers must be trusted internal cron routes only.
+                        $outcome = $scheduler->runOne($id);
+                        if (!$outcome['success']) { throw new RuntimeException($outcome['message']); }
+                    } elseif ($operation === 'save') {
+                        $code = isset($this->request->post['code']) ? trim((string)$this->request->post['code']) : '';
+                        $route = isset($this->request->post['route']) ? trim((string)$this->request->post['route']) : '';
+                        $interval = isset($this->request->post['interval_seconds']) ? (int)$this->request->post['interval_seconds'] : 0;
+                        $raw = isset($this->request->post['args']) ? (string)$this->request->post['args'] : '{}';
+                        $args = json_decode($raw, true);
+                        if (!is_array($args) || json_last_error() !== JSON_ERROR_NONE) {
+                            throw new InvalidArgumentException('Invalid JSON arguments');
+                        }
+                        if ($id > 0) {
+                            $scheduler->save($id, $code, $route, $interval, !empty($this->request->post['status']), $args);
+                        } else {
+                            $scheduler->register($code, $route, $interval, $args, !empty($this->request->post['status']));
+                        }
+                    } else {
+                        throw new InvalidArgumentException('Unknown scheduler action');
                     }
-                } else {
-                    $this->session->data['error_warning'] = $this->language->get('error_action');
+                    $this->session->data['success'] = $this->language->get('text_success');
+                } catch (Throwable $e) {
+                    $this->session->data['error_warning'] = $e->getMessage();
                 }
             }
             $this->response->redirect($data['action']);
@@ -55,6 +79,10 @@ class ControllerToolCron extends Controller {
             require_once(DIR_SYSTEM . 'library/novacart/scheduler.php');
             $scheduler = new NovaCartScheduler($this->registry);
             $data['tasks'] = $scheduler->listTasks();
+            if (!empty($this->request->get['edit_id'])) {
+                $task = $scheduler->getTask((int)$this->request->get['edit_id']);
+                if ($task) { $data['edit_task'] = $task; }
+            }
             require_once(DIR_SYSTEM . 'library/novacart/jobs_monitor.php');
             $monitor = new NovaCartJobsMonitor($this->registry);
             $data['job_runs'] = $monitor->recent(30);
