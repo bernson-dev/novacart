@@ -29,6 +29,24 @@ class ControllerCronRun extends Controller {
                 (new NovaCartQueue($this->registry))->install();
                 require_once(DIR_SYSTEM . 'library/novacart/jobs_monitor.php');
                 (new NovaCartJobsMonitor($this->registry))->install();
+                // Provision the HTTP cron secret once; do not rotate an existing key.
+                $secretPath = DIR_STORAGE . 'novacart_cron.key';
+                if (!is_file($secretPath)) {
+                    $handle = @fopen($secretPath, 'x');
+                    if ($handle !== false) {
+                        try {
+                            if (fwrite($handle, bin2hex(random_bytes(32))) !== 64) {
+                                throw new RuntimeException('Could not write the cron key');
+                            }
+                        } finally {
+                            fclose($handle);
+                        }
+                        @chmod($secretPath, 0600);
+                    }
+                }
+                if (!is_file($secretPath) || trim((string)file_get_contents($secretPath)) === '') {
+                    throw new RuntimeException('HTTP cron key is missing or empty');
+                }
                 $result = array('status' => 'ok', 'message' => 'Cron schema installed');
             } elseif (!$isCli && isset($this->request->get['mode']) && $this->request->get['mode'] === 'scheduler_one') {
                 $id = isset($this->request->get['scheduler_id']) ? (int)$this->request->get['scheduler_id'] : 0;
