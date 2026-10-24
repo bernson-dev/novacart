@@ -26,7 +26,7 @@
         <div class="form-group">
           <label for="novacart-cron-web">{{ text_cron_web }}</label>
           <div class="input-group">
-            <input id="novacart-cron-web" type="text" readonly class="form-control" value="{{ http_command }}">
+            <textarea id="novacart-cron-web" readonly class="form-control" rows="2" style="height:auto;overflow-wrap:anywhere;white-space:pre-wrap;resize:vertical">{{ http_command }}</textarea>
             <span class="input-group-btn"><button class="btn btn-default js-cron-copy" type="button" data-copy="novacart-cron-web" title="{{ text_cron_copy }}"><i class="fa fa-copy"></i></button></span>
           </div>
         </div>
@@ -260,7 +260,7 @@ $('.js-cron-copy').on('click', function () {
     if (!el) return;
     el.select();
     if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(el.value).catch(function () { document.execCommand('copy'); });
+        navigator.clipboard.writeText(el.value).catch(function () { el.focus(); el.select(); document.execCommand('copy'); });
     } else {
         document.execCommand('copy');
     }
