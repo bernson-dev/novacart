@@ -133,3 +133,5 @@ $_['text_run_status_locked'] = 'Locked';
 $_['text_run_status_pending'] = 'Pending';
 
 $_['text_cron_handler_hint'] = 'Select an available handler from the suggestions or enter a cron/... route manually.';
+
+$_['text_cron_required_error'] = 'Enter a valid value for this field.';
