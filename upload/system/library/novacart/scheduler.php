@@ -79,7 +79,7 @@ class NovaCartScheduler {
             WHERE cron_id=" . (int)$cronId . " ORDER BY history_id DESC LIMIT " . $limit)->rows;
     }
 
-    private function recordHistory($job, $source, $ok, $duration, $message) {
+    private function recordHistory($job, $source, $ok, $duration, $message, $status = '') {
         try {
             if (!$this->historyReady) { $this->installHistory(); }
             $this->db->query("INSERT INTO `" . DB_PREFIX . "novacart_cron_history`
@@ -87,7 +87,7 @@ class NovaCartScheduler {
                     task_code='" . $this->db->escape((string)$job['code']) . "',
                     source='" . $this->db->escape($source) . "',
                     started_at=NOW(),
-                    status='" . ($ok ? 'success' : 'error') . "',
+                    status='" . $this->db->escape($status !== '' ? $status : ($ok ? 'success' : 'error')) . "',
                     duration_ms=" . max(0, min(4294967295, (int)$duration)) . ",
                     message='" . $this->db->escape(substr((string)$message, 0, 2000)) . "'");
             $this->db->query("DELETE FROM `" . DB_PREFIX . "novacart_cron_history`
@@ -208,10 +208,11 @@ class NovaCartScheduler {
         $lock = 'nc_cron_' . substr(hash('sha256', DB_DATABASE . ':' . DB_PREFIX), 0, 30);
         $query = $this->db->query("SELECT GET_LOCK('" . $this->db->escape($lock) . "', 0) AS acquired");
         if (empty($query->row['acquired'])) {
-            return array('status' => 'locked', 'processed' => 0, 'failed' => 0);
+            return array('status' => 'locked', 'processed' => 0, 'failed' => 0, 'skipped' => 0);
         }
         $processed = 0;
         $failed = 0;
+        $skipped = 0;
         try {
             $jobs = $this->db->query("SELECT * FROM `" . DB_PREFIX .
                 "novacart_cron` WHERE status=1 AND date_next<=NOW() ORDER BY date_next, cron_id LIMIT " . $limit);
@@ -228,6 +229,8 @@ class NovaCartScheduler {
                         $this->db->query("UPDATE `" . DB_PREFIX . "novacart_cron` SET date_next=" .
                             $nextSql . ", last_status='skipped', last_message='Missed execution skipped', " .
                             "date_modified=NOW() WHERE cron_id=" . (int)$job['cron_id']);
+                        $this->recordHistory($job, 'scheduled', true, 0, 'Missed execution skipped', 'skipped');
+                        $skipped++;
                         continue;
                     }
                 }
@@ -239,7 +242,7 @@ class NovaCartScheduler {
         } finally {
             $this->db->query("SELECT RELEASE_LOCK('" . $this->db->escape($lock) . "')");
         }
-        return array('status' => 'ok', 'processed' => $processed, 'failed' => $failed);
+        return array('status' => 'ok', 'processed' => $processed, 'failed' => $failed, 'skipped' => $skipped);
     }
 
     private function execute($job, $source) {
