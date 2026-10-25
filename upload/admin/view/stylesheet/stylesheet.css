@@ -2335,3 +2335,97 @@ FLYOUT И СКРОЛЛБАРЫ
             background: #eaf5ff;
             box-shadow: inset 0 0 6px rgba(0,0,0,0.15);
         }
+SEO URL audit UI: extracted from design/seo_url_list.twig. */
+.seo-audit-panel .panel-body { padding: 15px; }
+        .seo-audit-reset { margin-top: -3px; }
+        .seo-audit-grid > [class*="col-"] { margin-bottom: 0; }
+        .seo-audit-list {
+            border: 1px solid #e5e8ec;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .seo-audit-item {
+            position: relative;
+            display: block;
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 44px 10px 12px;
+            color: #4d5b67;
+            background: #fff;
+            border: 0;
+            border-bottom: 1px solid #e8ebef;
+            text-align: left;
+            font: inherit;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .seo-audit-item:last-child { border-bottom: 0; }
+        .seo-audit-item:hover,
+        .seo-audit-item:focus {
+            color: #2f4050;
+            background: #f7f9fb;
+            text-decoration: none;
+        }
+        .seo-audit-item.active {
+            color: #fff;
+            background: #337ab7;
+            border-color: #337ab7;
+        }
+        .seo-audit-item .badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .seo-audit-item .small {
+            margin-top: 3px;
+            padding-right: 4px;
+            opacity: .8;
+            line-height: 1.35;
+        }
+        .seo-audit-stats {
+            height: 100%;
+            padding: 0 5px;
+        }
+        .seo-audit-stats-title {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4d5b67;
+        }
+        .seo-stat-tile {
+            min-height: 76px;
+            margin-bottom: 10px;
+            padding: 10px 8px;
+            border: 1px solid #e5e8ec;
+            border-radius: 4px;
+            background: #f8fafc;
+            text-align: center;
+        }
+        .seo-stat-value {
+            font-size: 24px;
+            line-height: 1.1;
+            font-weight: 600;
+            color: #337ab7;
+        }
+        .seo-stat-label {
+            margin-top: 6px;
+            font-size: 12px;
+            line-height: 1.25;
+            color: #6f7d89;
+        }
+        @media (max-width: 991px) {
+            .seo-audit-grid > [class*="col-"] { margin-bottom: 12px; }
+            .seo-audit-grid > [class*="col-"]:last-child { margin-bottom: 0; }
+            .seo-audit-stats { padding: 0; }
+        }
+        @media (max-width: 767px) {
+            .seo-audit-item { min-height: 0; }
+        }
+        .seo-source-name { margin-top: 5px; font-size: 12px; }
+        .seo-keyword-cell { min-width: 300px; }
+        .seo-keyword-cell .input-group { min-width: 260px; }
+        .seo-keyword-input.is-dirty { border-color: #f0ad4e; background: #fffdf5; }
+        .seo-keyword-input.has-error { border-color: #a94442; }
+        .seo-group-row td { padding: 9px 12px !important; }
+        .seo-group-row .badge { margin-left: 6px; }
+        

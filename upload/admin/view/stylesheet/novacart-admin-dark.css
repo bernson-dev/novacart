@@ -339,3 +339,13 @@ html.novacart-admin-dark .nc-interval-preview{color:#e4edf7}
 html.novacart-admin-dark #form-product tbody[data-role="sortable-list"] tr:hover{background:#273747!important}
 html.novacart-admin-dark #form-product .drag-hint{color:#aebed0}
 html.novacart-admin-dark #form-product .sortable-ghost{background:#294660!important}
+SEO URL audit panels: contrast in dark appearance. */
+html.novacart-admin-dark .seo-audit-list{background:#18212b;border-color:#39485a}
+html.novacart-admin-dark .seo-audit-item{background:#18212b;color:#dbe4ee;border-bottom-color:#39485a}
+html.novacart-admin-dark .seo-audit-item:hover,html.novacart-admin-dark .seo-audit-item:focus{background:#273747;color:#fff}
+html.novacart-admin-dark .seo-audit-item.active{background:#2864a0;color:#fff;border-color:#2864a0}
+html.novacart-admin-dark .seo-audit-stats-title{color:#dce5ef}
+html.novacart-admin-dark .seo-stat-tile{background:#202b37;border-color:#39485a}
+html.novacart-admin-dark .seo-stat-value{color:#83bcff}
+html.novacart-admin-dark .seo-stat-label{color:#afc0d2}
+html.novacart-admin-dark .seo-keyword-input.is-dirty{background:#3a3223;color:#f0e5ce;border-color:#b08a49}
