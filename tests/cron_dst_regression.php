@@ -3,7 +3,23 @@
  * Regression tests for DST-sensitive NovaCart Cron schedules.
  * Run: php tests/cron_dst_regression.php
  */
-require_once dirname(__DIR__) . '/upload/system/library/novacart/cron_expression.php';
+$root = dirname(__DIR__);
+$candidates = array(
+    $root . '/system/library/novacart/cron_expression.php',        // Installed storefront
+    $root . '/upload/system/library/novacart/cron_expression.php' // Source repository
+);
+$library = null;
+foreach ($candidates as $candidate) {
+    if (is_file($candidate)) {
+        $library = $candidate;
+        break;
+    }
+}
+if ($library === null) {
+    fwrite(STDERR, "Cron library not found in system/ or upload/system/. Check that the PR branch files are installed.\\n");
+    exit(2);
+}
+require_once $library;
 
 function expectNext($expression, $instantUtc, $expected) {
     $instant = new DateTimeImmutable($instantUtc, new DateTimeZone('UTC'));
