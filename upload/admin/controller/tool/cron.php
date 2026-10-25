@@ -237,6 +237,8 @@ class ControllerToolCron extends Controller {
                     }
                 }
                 $task['interval_display'] = !empty($task['cron_expression']) ? $task['cron_expression'] : implode(' ', $parts);
+                $task['status_display'] = $this->displayRunStatus($task['last_status']);
+                $task['message_display'] = $this->displayRunMessage($task['last_message'], $task['last_status'], $task['route']);
             }
             unset($task);
             require_once(DIR_SYSTEM . 'library/novacart/queue.php');
