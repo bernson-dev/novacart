@@ -6,6 +6,7 @@
 class NovaCartScheduler {
     private $registry;
     private $db;
+    private $historyReady = false;
 
     public function __construct($registry) {
         $this->registry = $registry;
@@ -36,6 +37,7 @@ class NovaCartScheduler {
         if (!$columns->num_rows) {
             $this->db->query("ALTER TABLE `" . DB_PREFIX . "novacart_cron` ADD `cron_expression` VARCHAR(100) NULL AFTER `interval_seconds`");
         }
+        $this->installHistory();
     }
 
     private function nextCron($expression) {
@@ -48,6 +50,54 @@ class NovaCartScheduler {
         require_once(DIR_SYSTEM . 'library/novacart/cron_expression.php');
         $now = $this->db->query("SELECT NOW() AS cron_now")->row['cron_now'];
         return NovaCartCronExpression::next($expression, $now, $count);
+    }
+
+    public function installHistory() {
+        $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "novacart_cron_history` (
+            `history_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `cron_id` INT UNSIGNED NOT NULL,
+            `task_code` VARCHAR(128) NOT NULL,
+            `source` VARCHAR(16) NOT NULL,
+            `started_at` DATETIME NOT NULL,
+            `status` VARCHAR(16) NOT NULL,
+            `duration_ms` INT UNSIGNED NOT NULL DEFAULT 0,
+            `message` TEXT NULL,
+            PRIMARY KEY (`history_id`),
+            KEY `task_recent` (`cron_id`, `history_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->historyReady = true;
+    }
+
+    public function recentHistory($cronId, $limit = 30) {
+        $limit = max(1, min(100, (int)$limit));
+        return $this->db->query("SELECT * FROM `" . DB_PREFIX . "novacart_cron_history`
+            WHERE cron_id=" . (int)$cronId . " ORDER BY history_id DESC LIMIT " . $limit)->rows;
+    }
+
+    private function recordHistory($job, $source, $ok, $duration, $message) {
+        try {
+            if (!$this->historyReady) { $this->installHistory(); }
+            $this->db->query("INSERT INTO `" . DB_PREFIX . "novacart_cron_history`
+                SET cron_id=" . (int)$job['cron_id'] . ",
+                    task_code='" . $this->db->escape((string)$job['code']) . "',
+                    source='" . $this->db->escape($source) . "',
+                    started_at=NOW(),
+                    status='" . ($ok ? 'success' : 'error') . "',
+                    duration_ms=" . max(0, min(4294967295, (int)$duration)) . ",
+                    message='" . $this->db->escape(substr((string)$message, 0, 2000)) . "'");
+            $this->db->query("DELETE FROM `" . DB_PREFIX . "novacart_cron_history`
+                WHERE cron_id=" . (int)$job['cron_id'] . "
+                  AND history_id NOT IN (
+                    SELECT history_id FROM (
+                        SELECT history_id FROM `" . DB_PREFIX . "novacart_cron_history`
+                        WHERE cron_id=" . (int)$job['cron_id'] . "
+                        ORDER BY history_id DESC LIMIT 100
+                    ) AS recent
+                  )");
+        } catch (Throwable $e) {
+            $log = $this->registry->get('log');
+            if ($log) { $log->write('NovaCart cron history: ' . $e->getMessage()); }
+        }
     }
 
     public function register($code, $route, $interval, $args = array(), $enabled = true, $expression = '') {
@@ -132,7 +182,7 @@ class NovaCartScheduler {
             return array('success'=>false, 'status'=>'locked', 'duration_ms'=>0, 'message'=>'Scheduler is busy');
         }
         try {
-            $ok = $this->execute($job);
+            $ok = $this->execute($job, 'manual');
             $fresh = $this->getTask($id);
             return array('success'=>$ok, 'status'=>$ok ? 'success' : 'error',
                 'duration_ms'=>(int)$fresh['last_duration_ms'], 'message'=>(string)$fresh['last_message']);
@@ -160,7 +210,7 @@ class NovaCartScheduler {
                 "novacart_cron` WHERE status=1 AND date_next<=NOW() ORDER BY date_next, cron_id LIMIT " . $limit);
             foreach ($jobs->rows as $job) {
                 $processed++;
-                if (!$this->execute($job)) {
+                if (!$this->execute($job, 'scheduled')) {
                     $failed++;
                 }
             }
@@ -170,7 +220,7 @@ class NovaCartScheduler {
         return array('status' => 'ok', 'processed' => $processed, 'failed' => $failed);
     }
 
-    private function execute($job) {
+    private function execute($job, $source) {
         $ok = true;
         $message = 'OK';
         $start = microtime(true);
@@ -211,6 +261,7 @@ class NovaCartScheduler {
             ($ok ? 'success' : 'error') . "', last_message='" .
             $this->db->escape(substr($message, 0, 1000)) . "', last_duration_ms=" .
             $duration . ", date_modified=NOW() WHERE cron_id=" . (int)$job['cron_id']);
+        $this->recordHistory($job, $source, $ok, $duration, $message);
         return $ok;
     }
 }
