@@ -156,8 +156,8 @@
           <thead><tr><td>{{ column_started }}</td><td>{{ column_source }}</td><td>{{ column_run_status }}</td><td>{{ column_duration }}</td><td>{{ column_message }}</td></tr></thead>
           <tbody>
           {% for entry in task_history %}
-            <tr><td>{{ entry.started_at }}</td><td>{{ entry.source == 'manual' ? text_task_manual : text_task_scheduled }}</td>
-            <td><span class="label label-{{ entry.status == 'success' ? 'success' : 'danger' }}">{{ entry.status_display }}</span></td>
+            <tr><td>{{ entry.started_at }}</td><td>{{ entry.source_display }}</td>
+            <td><span class="label label-{{ entry.status == 'success' ? 'success' : (entry.status == 'skipped' ? 'warning' : 'danger') }}">{{ entry.status_display }}</span></td>
             <td>{{ entry.duration_ms }} ms</td><td>{{ entry.message_display }}</td></tr>
           {% else %}
             <tr><td colspan="5" class="text-center">{{ text_task_history_empty }}</td></tr>
