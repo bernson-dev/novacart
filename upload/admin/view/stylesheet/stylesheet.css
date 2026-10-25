@@ -3050,3 +3050,14 @@ SEO URL audit UI: extracted from design/seo_url_list.twig. */
 	.chart-by-country-and-region__no-orders{position:absolute;top:50%;left:50%;transform:translate(-50%, -50%)}
 	.chart-by-country-and-region__back{position:absolute;bottom:0px;z-index:9;padding:2px 4px;font-size:12px;cursor:pointer;background:rgba(255 255 255 / .8)}
 	.chart-by-country-and-region__tooltip{position:absolute;z-index:9;padding:2px 4px;font-size:11px;background:rgba(255 255 255 / .8)}
+
+
+/* Product translation-copy results dialog. */
+.nc-copy-stats-title{margin-top:15px;font-size:12px;color:#777;font-weight:bold}
+.nc-copy-stats-list{margin:8px 0 0 20px;font-size:12px;color:#555}
+.nc-copy-stats-list-large{font-size:13px}
+.nc-copy-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;justify-content:center;align-items:center;z-index:9999}
+.nc-copy-modal-dialog{background:#fff;padding:24px;border-radius:8px;max-width:450px;width:calc(100% - 32px);font-family:Arial,sans-serif}
+.nc-copy-modal-title{margin:0 0 16px;color:#333}
+.nc-copy-modal-body{color:#444}
+.nc-copy-modal-close{margin-top:20px;padding:10px 20px;background:#007bff;color:#fff;border:0;border-radius:4px;cursor:pointer;font-size:14px}
