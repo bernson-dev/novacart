@@ -101,6 +101,18 @@ class NovaCartCronExpression {
         $end = $cursor->modify('+5 years');
         $count = max(1, min(5, (int)$count));
         $result = array();
+        // Compute overlap windows once, rather than querying transitions each minute.
+        $transitions = $zone->getTransitions($cursor->getTimestamp() - 86400, $end->getTimestamp());
+        $overlaps = array();
+        if (is_array($transitions)) {
+            for ($i = 1; $i < count($transitions); $i++) {
+                $oldOffset = (int)$transitions[$i - 1]['offset'];
+                $newOffset = (int)$transitions[$i]['offset'];
+                if ($newOffset < $oldOffset) {
+                    $overlaps[] = array($transitions[$i]['ts'], $transitions[$i]['ts'] + $oldOffset - $newOffset);
+                }
+            }
+        }
 
         while ($cursor < $end && count($result) < $count) {
             $local = $cursor->setTimezone($zone);
@@ -115,19 +127,11 @@ class NovaCartCronExpression {
                 && isset($fields['minute'][(int)$local->format('i')])) {
                 $timestamp = $cursor->getTimestamp();
                 // If the local minute appears twice, retain the first occurrence.
-                $previous = $zone->getTransitions($timestamp - 7200, $timestamp);
                 $first = true;
-                if (is_array($previous) && count($previous) > 1) {
-                    for ($j = 1; $j < count($previous); $j++) {
-                        $transition = $previous[$j];
-                        $oldOffset = (int)$previous[$j - 1]['offset'];
-                        $newOffset = (int)$transition['offset'];
-                        if ($newOffset < $oldOffset
-                            && $timestamp >= $transition['ts']
-                            && $timestamp < $transition['ts'] + ($oldOffset - $newOffset)) {
-                            $first = false;
-                            break;
-                        }
+                foreach ($overlaps as $overlap) {
+                    if ($timestamp >= $overlap[0] && $timestamp < $overlap[1]) {
+                        $first = false;
+                        break;
                     }
                 }
                 if ($first) { $result[] = $local->format('Y-m-d H:i:s'); }
