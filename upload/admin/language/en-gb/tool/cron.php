@@ -135,3 +135,9 @@ $_['text_run_status_pending'] = 'Pending';
 $_['text_cron_handler_hint'] = 'Select an available handler from the suggestions or enter a cron/... route manually.';
 
 $_['text_cron_required_error'] = 'Enter a valid value for this field.';
+
+$_['text_misfire_policy'] = 'Missed runs';
+$_['text_misfire_run_once'] = 'Run once when service resumes (default)';
+$_['text_misfire_skip'] = 'Skip overdue run';
+$_['text_misfire_help'] = 'Skip mode ignores runs more than 2 minutes late and recalculates the next execution.';
+$_['text_run_status_skipped'] = 'Skipped';
