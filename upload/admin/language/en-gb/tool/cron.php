@@ -111,3 +111,10 @@ $_['text_cron_curl_help'] = 'curl flags: -sS shows errors; -i includes HTTP head
 $_['text_cron_key_rotate'] = 'Generate new secret key';
 $_['text_cron_key_confirm'] = 'Replace the HTTPS Web Cron secret? Previously copied URLs and commands will stop working.';
 $_['text_cron_key_rotated'] = 'HTTPS Web Cron secret replaced. Copy the updated command.';
+
+$_['text_schedule_mode'] = 'Schedule mode';
+$_['text_schedule_interval'] = 'Interval';
+$_['text_schedule_cron'] = 'Cron expression';
+$_['text_cron_expression'] = 'Cron schedule (5 fields)';
+$_['text_cron_preview'] = 'Preview next runs';
+$_['text_cron_example'] = 'Example: 0 3 * * * — daily at 03:00 database local time.';
