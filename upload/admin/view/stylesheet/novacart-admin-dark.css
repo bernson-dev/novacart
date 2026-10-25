@@ -313,3 +313,14 @@ html.novacart-admin-dark #content .panel .table > thead > tr > th {
 html.novacart-admin-dark #content .novacart-world-map-table .table {
   margin-bottom:0;
 }
+
+
+/* Stock shortage settings: override light section headings in dark mode. */
+html.novacart-admin-dark #tab-stock-popup .settings-section-title {
+    background-color: #243243;
+    color: #dce9f8;
+    border-color: #39485a;
+}
+html.novacart-admin-dark #tab-stock-popup .settings-section-title .settings-section-toggle {
+    color: inherit;
+}
