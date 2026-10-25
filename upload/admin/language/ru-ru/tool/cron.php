@@ -118,3 +118,10 @@ $_['text_task_history'] = 'История задачи';
 $_['text_task_manual'] = 'Ручной запуск';
 $_['text_task_scheduled'] = 'По расписанию';
 $_['text_task_history_empty'] = 'Запусков пока нет';
+
+$_['text_run_status_success'] = 'Успешно';
+$_['text_run_status_error'] = 'Ошибка';
+$_['text_run_status_warning'] = 'Предупреждение';
+$_['text_run_status_running'] = 'Выполняется';
+$_['text_run_status_locked'] = 'Заблокировано';
+$_['text_run_status_pending'] = 'Ожидает';
