@@ -21,6 +21,7 @@ class NovaCartScheduler {
             `args` TEXT NOT NULL,
             `interval_seconds` INT UNSIGNED NOT NULL DEFAULT 3600,
             `cron_expression` VARCHAR(100) NULL,
+            `misfire_policy` VARCHAR(16) NOT NULL DEFAULT 'run_once',
             `status` TINYINT(1) NOT NULL DEFAULT 1,
             `date_next` DATETIME NOT NULL,
             `date_last` DATETIME NULL,
@@ -36,6 +37,10 @@ class NovaCartScheduler {
         $columns = $this->db->query("SHOW COLUMNS FROM `" . DB_PREFIX . "novacart_cron` LIKE 'cron_expression'");
         if (!$columns->num_rows) {
             $this->db->query("ALTER TABLE `" . DB_PREFIX . "novacart_cron` ADD `cron_expression` VARCHAR(100) NULL AFTER `interval_seconds`");
+        }
+        $policyColumn = $this->db->query("SHOW COLUMNS FROM `" . DB_PREFIX . "novacart_cron` LIKE 'misfire_policy'");
+        if (!$policyColumn->num_rows) {
+            $this->db->query("ALTER TABLE `" . DB_PREFIX . "novacart_cron` ADD `misfire_policy` VARCHAR(16) NOT NULL DEFAULT 'run_once' AFTER `cron_expression`");
         }
         $this->installHistory();
     }
@@ -100,7 +105,7 @@ class NovaCartScheduler {
         }
     }
 
-    public function register($code, $route, $interval, $args = array(), $enabled = true, $expression = '') {
+    public function register($code, $route, $interval, $args = array(), $enabled = true, $expression = '', $policy = 'run_once') {
         if (!preg_match('/^[a-z0-9_.:-]{2,128}$/i', $code)
             || !preg_match('#^cron/[a-z0-9_/]+$#i', $route)
             || $interval < 60 || $interval > 31536000) {
@@ -110,6 +115,7 @@ class NovaCartScheduler {
         if ($json === false) {
             throw new InvalidArgumentException('Invalid cron task parameters');
         }
+        if (!in_array($policy, array('run_once', 'skip'), true)) { throw new InvalidArgumentException('Invalid misfire policy'); }
         $expression = trim((string)$expression);
         $next = $expression !== '' ? $this->nextCron($expression) : null;
         // Existing schedules are retained on registration (including user status).
@@ -118,7 +124,7 @@ class NovaCartScheduler {
             "', args='" . $this->db->escape($json) . "', interval_seconds=" .
             (int)$interval . ", cron_expression=" .
             ($expression === '' ? "NULL" : "'" . $this->db->escape($expression) . "'") .
-            ", status=" . (int)(bool)$enabled . ", date_next=" .
+            ", misfire_policy='" . $this->db->escape($policy) . "', status=" . (int)(bool)$enabled . ", date_next=" .
             ($next === null ? "NOW()" : "'" . $this->db->escape($next) . "'") .
             ", date_added=NOW(), date_modified=NOW()");
     }
@@ -129,7 +135,7 @@ class NovaCartScheduler {
         return $q->num_rows ? $q->row : array();
     }
 
-    public function save($id, $code, $route, $interval, $status, $args = array(), $expression = '') {
+    public function save($id, $code, $route, $interval, $status, $args = array(), $expression = '', $policy = 'run_once') {
         $existing = $this->getTask($id);
         if (!$existing) { throw new RuntimeException('Scheduler task not found'); }
         if (!preg_match('/^[a-z0-9_.:-]{2,128}$/i', $code)
@@ -143,6 +149,7 @@ class NovaCartScheduler {
         $duplicate = $this->db->query("SELECT cron_id FROM `" . DB_PREFIX . "novacart_cron` WHERE code='" .
             $this->db->escape($code) . "' AND cron_id!=" . (int)$id . " LIMIT 1");
         if ($duplicate->num_rows) { throw new RuntimeException('Scheduler code already exists'); }
+        if (!in_array($policy, array('run_once', 'skip'), true)) { throw new InvalidArgumentException('Invalid misfire policy'); }
         $expression = trim((string)$expression);
         $next = $expression !== '' ? $this->nextCron($expression) : null;
         $json = json_encode($args, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -151,7 +158,7 @@ class NovaCartScheduler {
             "', route='" . $this->db->escape($route) . "', args='" . $this->db->escape($json) .
             "', interval_seconds=" . (int)$interval . ", cron_expression=" .
             ($expression === '' ? "NULL" : "'" . $this->db->escape($expression) . "'") .
-            ", status=" . (int)(bool)$status .
+            ", misfire_policy='" . $this->db->escape($policy) . "', status=" . (int)(bool)$status .
             ", date_next=" . ($next !== null ? "'" . $this->db->escape($next) . "'" :
                 (!$existing['status'] && $status ? "NOW()" : "DATE_ADD(NOW(), INTERVAL " . (int)$interval . " SECOND)")) .
             ", date_modified=NOW() WHERE cron_id=" . (int)$id);
@@ -209,6 +216,21 @@ class NovaCartScheduler {
             $jobs = $this->db->query("SELECT * FROM `" . DB_PREFIX .
                 "novacart_cron` WHERE status=1 AND date_next<=NOW() ORDER BY date_next, cron_id LIMIT " . $limit);
             foreach ($jobs->rows as $job) {
+                // A delayed worker executes an overdue task once by default.
+                // Optional skip policy ignores stale runs (more than two minutes late).
+                if (isset($job['misfire_policy']) && $job['misfire_policy'] === 'skip') {
+                    $late = $this->db->query("SELECT TIMESTAMPDIFF(SECOND, '" .
+                        $this->db->escape($job['date_next']) . "', NOW()) AS seconds_late")->row;
+                    if ((int)$late['seconds_late'] > 120) {
+                        $nextSql = !empty($job['cron_expression']) ?
+                            "'" . $this->db->escape($this->nextCron($job['cron_expression'])) . "'" :
+                            "DATE_ADD(NOW(), INTERVAL " . max(60, min(31536000, (int)$job['interval_seconds'])) . " SECOND)";
+                        $this->db->query("UPDATE `" . DB_PREFIX . "novacart_cron` SET date_next=" .
+                            $nextSql . ", last_status='skipped', last_message='Missed execution skipped', " .
+                            "date_modified=NOW() WHERE cron_id=" . (int)$job['cron_id']);
+                        continue;
+                    }
+                }
                 $processed++;
                 if (!$this->execute($job, 'scheduled')) {
                     $failed++;
