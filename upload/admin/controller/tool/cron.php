@@ -37,6 +37,26 @@ class ControllerToolCron extends Controller {
         return $message;
     }
 
+    private function discoverCronHandlers() {
+        $base = rtrim(DIR_CATALOG, '/\\') . '/controller/cron';
+        $routes = array();
+        if (!is_dir($base)) { return $routes; }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($base, FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $file) {
+            if (!$file->isFile() || strtolower($file->getExtension()) !== 'php') { continue; }
+            $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($base) + 1));
+            $route = 'cron/' . substr($relative, 0, -4);
+            // Internal entry point is not a schedulable catalog handler.
+            if ($route === 'cron/run' || !preg_match('#^cron/[a-z0-9_/]+$#i', $route)) { continue; }
+            $routes[$route] = $route;
+        }
+        ksort($routes, SORT_STRING);
+        return array_values($routes);
+    }
+
     public function index() {
         $this->load->language('tool/cron');
         $this->document->setTitle($this->language->get('heading_title'));
@@ -68,6 +88,7 @@ class ControllerToolCron extends Controller {
         $data['queue_search'] = substr($data['queue_search'], 0, 128);
         $data['queue_url'] = $this->url->link('tool/queue', 'user_token=' . $this->session->data['user_token'], true);
         $data['user_token'] = $this->session->data['user_token'];
+        $data['cron_handlers'] = $this->discoverCronHandlers();
         $data['tasks'] = array();
         $data['task_history'] = array();
         $data['history_task'] = array();
@@ -87,7 +108,7 @@ class ControllerToolCron extends Controller {
         $data['run_source_labels'] = array('cli'=>$this->language->get('text_source_cli'), 'scheduled'=>$this->language->get('text_source_scheduled'), 'http'=>$this->language->get('text_source_http'), 'unknown'=>$this->language->get('text_source_unknown'));
         $data['heartbeat_status'] = 'none';
         $data['heartbeat_minutes'] = null;
-        foreach (array('text_run_status_success','text_run_status_error','text_run_status_warning','text_run_status_running','text_run_status_locked','text_run_status_pending','text_task_history','text_task_manual','text_task_scheduled','text_task_history_empty','text_schedule_mode','text_schedule_interval','text_schedule_cron','text_cron_expression','text_cron_preview','text_cron_example','text_cron_preview_failed','text_currency_refresh_success','text_interval_years','text_interval_months','text_interval_assumptions','text_interval_quantity','text_interval_unit','text_interval_minutes','text_interval_hours','text_interval_days','text_interval_weeks','text_interval_seconds','text_interval_invalid','text_interval_apply','text_monitor','text_monitor_history','text_monitor_history_hint','text_monitor_empty','text_heartbeat_ok','text_heartbeat_late','text_heartbeat_missing','text_heartbeat_error','text_heartbeat_running','text_action_run','text_action_edit','text_action_delete','text_action_confirm','text_action_add','text_action_code','text_action_route','text_action_interval','text_action_args','text_action_cancel','text_action_save','text_system_task','text_cron_commands','text_cron_help','text_cron_cli','text_cron_web','text_cron_copy','text_cron_curl_help','text_cron_key_rotate','text_cron_key_confirm','text_cron_key_rotated','text_queue_locked','text_queue_cleanup','text_queue_cleanup_confirm','text_queue_run_result','text_queue_run','text_queue_retry','text_queue_confirm_delete','text_queue_panel','text_queue_manage','text_queue_pending','text_queue_processing','text_queue_done','text_queue_failed','text_queue_search','text_queue_filter','text_queue_attempts','text_queue_available','text_queue_error','column_source','column_started','column_finished','column_duration','column_scheduler','column_queue','column_run_status','column_run_error') as $key) {
+        foreach (array('text_run_status_success','text_run_status_error','text_run_status_warning','text_run_status_running','text_run_status_locked','text_run_status_pending','text_task_history','text_task_manual','text_task_scheduled','text_task_history_empty','text_schedule_mode','text_schedule_interval','text_schedule_cron','text_cron_expression','text_cron_preview','text_cron_example','text_cron_preview_failed','text_cron_handler_hint','text_cron_required_error','text_currency_refresh_success','text_interval_years','text_interval_months','text_interval_assumptions','text_interval_quantity','text_interval_unit','text_interval_minutes','text_interval_hours','text_interval_days','text_interval_weeks','text_interval_seconds','text_interval_invalid','text_interval_apply','text_monitor','text_monitor_history','text_monitor_history_hint','text_monitor_empty','text_heartbeat_ok','text_heartbeat_late','text_heartbeat_missing','text_heartbeat_error','text_heartbeat_running','text_action_run','text_action_edit','text_action_delete','text_action_confirm','text_action_add','text_action_code','text_action_route','text_action_interval','text_action_args','text_action_cancel','text_action_save','text_system_task','text_cron_commands','text_cron_help','text_cron_cli','text_cron_web','text_cron_copy','text_cron_curl_help','text_cron_key_rotate','text_cron_key_confirm','text_cron_key_rotated','text_queue_locked','text_queue_cleanup','text_queue_cleanup_confirm','text_queue_run_result','text_queue_run','text_queue_retry','text_queue_confirm_delete','text_queue_panel','text_queue_manage','text_queue_pending','text_queue_processing','text_queue_done','text_queue_failed','text_queue_search','text_queue_filter','text_queue_attempts','text_queue_available','text_queue_error','column_source','column_started','column_finished','column_duration','column_scheduler','column_queue','column_run_status','column_run_error') as $key) {
             $data[$key] = $this->language->get($key);
         }
         $data['error_warning'] = '';

@@ -133,3 +133,7 @@ $_['text_run_status_warning'] = 'Предупреждение';
 $_['text_run_status_running'] = 'Выполняется';
 $_['text_run_status_locked'] = 'Заблокировано';
 $_['text_run_status_pending'] = 'Ожидает';
+
+$_['text_cron_handler_hint'] = 'Выберите доступный обработчик из подсказок или введите маршрут cron/... вручную.';
+
+$_['text_cron_required_error'] = 'Заполните поле корректным значением.';
