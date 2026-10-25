@@ -229,7 +229,7 @@
     <div class="panel panel-default" id="scheduler-form">
       <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-plus"></i> {{ edit_task.cron_id ? text_action_edit : text_action_add }}</h3></div>
       <div class="panel-body">
-        <form action="" method="post" class="form-horizontal">
+        <form action="" method="post" class="form-horizontal" id="nc-scheduler-form" novalidate>
           <input type="hidden" name="scheduler_action" value="save">
           <input type="hidden" name="cron_id" value="{{ edit_task.cron_id }}">
           <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_code }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-code" name="code" required minlength="2" maxlength="128" value="{{ edit_task.code }}" {{ edit_task.code|slice(0, 5) == 'core.' ? 'readonly' : '' }}></div></div>
@@ -291,7 +291,44 @@
     interval.required = !cron;
     expression.required = cron;
   }
-  mode.addEventListener('change', toggle);
+  var form = document.getElementById('nc-scheduler-form');
+  var fields = [
+    { node: document.getElementById('input-cron-code'), check: function (v) { return v.length >= 2 && v.length <= 128 && /^[a-z0-9_.:-]+$/i.test(v); } },
+    { node: document.getElementById('input-cron-route'), check: function (v) { return /^cron\\/[a-z0-9_/]+$/i.test(v); } },
+    { node: interval, check: function (v) { return /^\\d+$/.test(v) && Number(v) >= 60 && Number(v) <= 31536000; }, mode: 'interval' },
+    { node: expression, check: function (v) { return v.length > 0; }, mode: 'cron' }
+  ];
+  function showError(field, invalid) {
+    var group = field.node.closest('.form-group');
+    if (!group) { return; }
+    var feedback = group.querySelector('.nc-field-error');
+    if (!feedback) {
+      feedback = document.createElement('div');
+      feedback.className = 'text-danger nc-field-error';
+      field.node.parentNode.insertBefore(feedback, field.node.nextSibling);
+    }
+    group.classList.toggle('has-error', invalid);
+    feedback.textContent = invalid ? {{ text_cron_required_error|json_encode|raw }} : '';
+  }
+  function check(field) {
+    if (field.mode && field.mode !== mode.value) { showError(field, false); return true; }
+    var valid = field.check(field.node.value.trim());
+    showError(field, !valid);
+    return valid;
+  }
+  fields.forEach(function (field) {
+    field.node.addEventListener('input', function () {
+      if (form.dataset.validated === 'yes' || field.node.closest('.form-group').classList.contains('has-error')) check(field);
+    });
+    field.node.addEventListener('blur', function () { if (field.node.value.trim() !== '') check(field); });
+  });
+  form.addEventListener('submit', function (event) {
+    form.dataset.validated = 'yes';
+    var first = null;
+    fields.forEach(function (field) { if (!check(field) && !first) first = field.node; });
+    if (first) { event.preventDefault(); first.focus(); }
+  });
+  mode.addEventListener('change', function () { toggle(); fields.forEach(function (field) { showError(field, false); }); });
   toggle();
   document.getElementById('nc-cron-preview-btn').addEventListener('click', function () {
     results.textContent = '...';
