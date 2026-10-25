@@ -9,8 +9,8 @@
     </div>
   </div>
   <div class="container-fluid">
-    {% if error_warning %}<div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}</div>{% endif %}
-    {% if success %}<div class="alert alert-success"><i class="fa fa-check-circle"></i> {{ success }}</div>{% endif %}
+    {% if error_warning %}<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}<button type="button" class="close" data-dismiss="alert" aria-label="Close">&times;</button></div>{% endif %}
+    {% if success %}<div class="alert alert-success alert-dismissible"><i class="fa fa-check-circle"></i> {{ success }}<button type="button" class="close" data-dismiss="alert" aria-label="Close">&times;</button></div>{% endif %}
     <div class="panel panel-default">
       <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-terminal"></i> {{ text_cron_commands }}</h3></div>
       <div class="panel-body">
@@ -275,10 +275,23 @@
   toggle();
   document.getElementById('nc-cron-preview-btn').addEventListener('click', function () {
     results.textContent = '...';
-    $.getJSON({{ cron_preview_url|json_encode|raw }} + '&expression=' + encodeURIComponent(expression.value))
-      .done(function (data) {
-        results.textContent = data.error ? data.error : (data.dates || []).join('  ·  ');
-      }).fail(function () { results.textContent = 'Preview unavailable'; });
+    $.ajax({
+      url: {{ cron_preview_url|json_encode|raw }},
+      type: 'GET',
+      dataType: 'json',
+      data: { expression: expression.value },
+      cache: false
+    }).done(function (data) {
+      results.textContent = data.error ? data.error : (data.dates || []).join('  ·  ');
+    }).fail(function (xhr, status, error) {
+      var message = (xhr.responseJSON && xhr.responseJSON.error) || '';
+      if (!message && xhr.responseText) {
+        var plain = $('<div>').html(xhr.responseText).text().replace(/\\s+/g, ' ').trim();
+        message = plain.substring(0, 240);
+      }
+      results.textContent = {{ text_cron_preview_failed|json_encode|raw }} + ' (HTTP ' + xhr.status + ', ' + status + ')' +
+        (message ? ': ' + message : (error ? ': ' + error : ''));
+    });
   });
 })();
 </script>
