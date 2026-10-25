@@ -355,3 +355,53 @@ html.novacart-admin-dark .seo-keyword-input.is-dirty{background:#3a3223;color:#f
 html.novacart-admin-dark #content .nc-order-comment{background:#302d26!important;border-left-color:#d79a38!important}
 html.novacart-admin-dark #content .nc-order-comment .nc-order-comment-heading{background:#51402a!important;color:#f8e7c5!important}
 html.novacart-admin-dark #content .nc-order-comment .nc-order-comment-text{background:#302d26!important;color:#e9ddc7!important}
+
+
+/* Dump installer dark palette — extracted from tool/dump_install.twig. */
+/* Dark appearance: preserve the original light-mode palette above. */
+                    html.novacart-admin-dark .dump-panel .dump-auto-mode,
+                    html.novacart-admin-dark .dump-panel .dump-note-warning {
+                        background: #473920;
+                        border-color: #76603a;
+                        color: #f4d8a2;
+                    }
+                    html.novacart-admin-dark .dump-panel .dump-auto-mode-reason {
+                        color: #e9cc9a;
+                    }
+                    html.novacart-admin-dark .dump-panel .dump-hosting-details,
+                    html.novacart-admin-dark .dump-panel .dump-table-control-panel {
+                        background: #253344;
+                        border-color: #425369;
+                        color: #d6e2ef;
+                    }
+                    html.novacart-admin-dark .dump-panel .dump-note-info,
+                    html.novacart-admin-dark .dump-panel .dump-counter-info {
+                        background: #1b3951;
+                        border-color: #3c6884;
+                        color: #c2e6ff;
+                    }
+                    html.novacart-admin-dark .dump-panel .dump-note-success,
+                    html.novacart-admin-dark .dump-panel .dump-counter-success {
+                        background: #244430;
+                        border-color: #426a4e;
+                        color: #c5f0cb;
+                    }
+                    html.novacart-admin-dark .dump-panel .dump-counter-muted {
+                        background: #303c4b;
+                        border-color: #536174;
+                        color: #d1dce8;
+                    }
+                    html.novacart-admin-dark .dump-panel .dump-table-list {
+                        background: #192530;
+                        border-color: #425369;
+                        color: #dce8f5;
+                    }
+                    html.novacart-admin-dark .dump-panel .dump-table-name {
+                        color: #e5edf7;
+                    }
+                    html.novacart-admin-dark .dump-panel .dump-table-item:hover {
+                        background: #2b4156;
+                    }
+                    html.novacart-admin-dark .dump-panel .dump-submit-row {
+                        border-top-color: #425369;
+                    }
