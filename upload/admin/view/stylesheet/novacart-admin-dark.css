@@ -425,3 +425,23 @@ html.novacart-admin-dark .nc-copy-modal-title{color:#f0f5fa}
 html.novacart-admin-dark .nc-copy-modal-body{color:#dce5ef}
 html.novacart-admin-dark .nc-copy-stats-title{color:#b9c9d9}
 html.novacart-admin-dark .nc-copy-stats-list{color:#d3dfeb}
+
+
+/* Category tree search results: readable text on highlighted rows in dark mode. */
+html.novacart-admin-dark #category-tree-table tr.category-tree-row.is-search-match > td {
+    background: #e9e2bf !important;
+    color: #17212b !important;
+}
+html.novacart-admin-dark #category-tree-table tr.category-tree-row.is-search-match .category-tree-name,
+html.novacart-admin-dark #category-tree-table tr.category-tree-row.is-search-match .category-tree-name a,
+html.novacart-admin-dark #category-tree-table tr.category-tree-row.is-search-match .category-tree-level-badge,
+html.novacart-admin-dark #category-tree-table tr.category-tree-row.is-search-match .small {
+    color: #17212b !important;
+}
+html.novacart-admin-dark #category-tree-table tr.category-tree-row.is-search-match mark,
+html.novacart-admin-dark #category-tree-table tr.category-tree-row.is-search-match .search-highlight {
+    background: #ffe34d;
+    color: #111 !important;
+    padding: 0 2px;
+    border-radius: 2px;
+}
