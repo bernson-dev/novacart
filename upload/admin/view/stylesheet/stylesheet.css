@@ -2247,3 +2247,47 @@ FLYOUT И СКРОЛЛБАРЫ
 #tab-stock-popup legend [data-toggle="collapse"]:not(.collapsed) .fa-chevron-down {
     transform: rotate(180deg);
 }
+
+
+/* Cron / queue admin page (moved from tool/cron.twig). */
+#jobs-monitor-history { margin-top: 14px; }
+  #jobs-monitor-history > summary.nc-monitor-history-toggle { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:#f5f7f9;border:1px solid #dce2e8;border-radius:4px;cursor:pointer;list-style:none;user-select:none;color:#34495e;font-weight:600; }
+  #jobs-monitor-history > summary.nc-monitor-history-toggle::-webkit-details-marker { display:none; }
+  #jobs-monitor-history > summary.nc-monitor-history-toggle:hover { background:#eaf0f5; }
+  #jobs-monitor-history > summary.nc-monitor-history-toggle:focus-visible { outline:2px solid #1976d2;outline-offset:2px; }
+  #jobs-monitor-history .nc-monitor-history-arrow { margin-right:6px;transition:transform .15s ease; }
+  #jobs-monitor-history[open] .nc-monitor-history-arrow { transform:rotate(90deg); }
+  #jobs-monitor-history .nc-monitor-history-hint { color:#697786;font-size:12px;font-weight:400; }
+  #jobs-monitor-history > .table-responsive { margin-top:12px; }
+
+.nc-interval-calc{margin-top:10px}
+.nc-interval-fields{display:grid;grid-template-columns:repeat(6,minmax(80px,1fr));gap:8px}
+.nc-interval-field{min-width:0;font-size:12px;font-weight:normal;color:#566577}
+.nc-interval-field span{display:block;margin-bottom:4px}
+.nc-interval-field .form-control{width:100%}
+.nc-interval-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:10px}
+.nc-interval-preview{font-weight:600;color:#34495e}
+.nc-interval-calc .help-block{margin:6px 0 0}
+@media(max-width:767px){.nc-interval-fields{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:400px){.nc-interval-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.nc-cron-toggle{width:34px;min-width:34px;text-align:center;padding-left:0;padding-right:0}\n.nc-queue-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.nc-queue-heading .panel-title{float:none;margin:0;line-height:30px}
+.nc-queue-heading-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.nc-queue-heading-actions form{margin:0}
+.nc-queue-filters{display:grid;grid-template-columns:minmax(220px,1fr) minmax(150px,210px) 100px auto;gap:10px;align-items:center;margin:0}
+.nc-queue-filters>div{min-width:0}
+.nc-queue-filters .form-control{width:100%;min-width:0}
+.nc-queue-submit .btn{white-space:nowrap;min-width:110px}
+.nc-queue-panel .panel-body>p{margin:0 0 12px}
+.nc-queue-table-wrap{padding:0 15px 15px}
+.nc-queue-table-wrap .table-responsive{border:0;border-radius:0}
+.nc-queue-table{margin-bottom:0;min-width:840px}
+.nc-queue-table th,.nc-queue-table td{vertical-align:middle!important}
+.nc-queue-table th{white-space:nowrap}
+.nc-queue-table th:first-child{width:60px}
+.nc-queue-table th:last-child{width:104px}
+.nc-queue-empty{padding:16px!important;color:#64748b}
+.nc-queue-panel .panel-footer .pagination{margin:0}
+@media(max-width:900px){.nc-queue-filters{grid-template-columns:minmax(180px,1fr) minmax(130px,1fr) 90px auto}}
+@media(max-width:640px){.nc-queue-filters{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nc-queue-search{grid-column:1/-1}.nc-queue-submit .btn{width:100%}.nc-queue-heading-actions{width:100%}}
+#novacart-cron-cli[readonly],#novacart-cron-web.nc-cron-web-command[readonly]{background:#f1f3f5;color:#687889;cursor:default;box-shadow:none}

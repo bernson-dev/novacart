@@ -324,3 +324,12 @@ html.novacart-admin-dark #form-setting .settings-section-title {
 html.novacart-admin-dark #tab-stock-popup .settings-section-title .settings-section-toggle {
     color: inherit;
 }
+
+
+/* Cron / queue contrast fixes in dark appearance. */
+html.novacart-admin-dark #jobs-monitor-history > summary.nc-monitor-history-toggle{background:#243243;color:#e4edf7;border-color:#435265}
+html.novacart-admin-dark #jobs-monitor-history > summary.nc-monitor-history-toggle:hover{background:#304256}
+html.novacart-admin-dark #jobs-monitor-history .nc-monitor-history-hint{color:#afc0d2}
+html.novacart-admin-dark #novacart-cron-cli[readonly],html.novacart-admin-dark #novacart-cron-web.nc-cron-web-command[readonly]{background:#202b37!important;border-color:#3b4959!important;color:#aebed0!important;box-shadow:none!important}
+html.novacart-admin-dark .nc-interval-field{color:#b7c9db}
+html.novacart-admin-dark .nc-interval-preview{color:#e4edf7}
