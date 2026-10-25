@@ -1,5 +1,25 @@
 <?php
 class ControllerToolCron extends Controller {
+    private function displayRunStatus($status) {
+        $status = trim((string)$status);
+        $map = array('success'=>'success','ok'=>'success','done'=>'success','error'=>'error','failed'=>'error',
+            'warning'=>'warning','running'=>'running','locked'=>'locked','pending'=>'pending','processing'=>'running');
+        $key = isset($map[$status]) ? $map[$status] : '';
+        return $key !== '' ? $this->language->get('text_run_status_' . $key) : ($status !== '' ? $status : '—');
+    }
+
+    private function displayRunMessage($message, $status, $route = '') {
+        $message = trim((string)$message);
+        if ($message === 'text_success' && $route === 'cron/currency') {
+            return $this->language->get('text_currency_refresh_success');
+        }
+        // Handler text must be preserved; unresolved language keys are not useful messages.
+        if ($message === '' || $message === 'OK' || preg_match('/^(?:text|error)_[a-z0-9_]+$/i', $message)) {
+            return $this->displayRunStatus($status);
+        }
+        return $message;
+    }
+
     public function index() {
         $this->load->language('tool/cron');
         $this->document->setTitle($this->language->get('heading_title'));
@@ -49,7 +69,7 @@ class ControllerToolCron extends Controller {
         $data['run_source_labels'] = array('cli'=>$this->language->get('text_source_cli'), 'scheduled'=>$this->language->get('text_source_scheduled'), 'http'=>$this->language->get('text_source_http'), 'unknown'=>$this->language->get('text_source_unknown'));
         $data['heartbeat_status'] = 'none';
         $data['heartbeat_minutes'] = null;
-        foreach (array('text_currency_refresh_success','text_interval_years','text_interval_months','text_interval_assumptions','text_interval_quantity','text_interval_unit','text_interval_minutes','text_interval_hours','text_interval_days','text_interval_weeks','text_interval_seconds','text_interval_invalid','text_interval_apply','text_monitor','text_monitor_history','text_monitor_history_hint','text_monitor_empty','text_heartbeat_ok','text_heartbeat_late','text_heartbeat_missing','text_heartbeat_error','text_heartbeat_running','text_action_run','text_action_edit','text_action_delete','text_action_confirm','text_action_add','text_action_code','text_action_route','text_action_interval','text_action_args','text_action_cancel','text_action_save','text_system_task','text_cron_commands','text_cron_help','text_cron_cli','text_cron_web','text_cron_copy','text_cron_curl_help','text_cron_key_rotate','text_cron_key_confirm','text_cron_key_rotated','text_queue_locked','text_queue_cleanup','text_queue_cleanup_confirm','text_queue_run_result','text_queue_run','text_queue_retry','text_queue_confirm_delete','text_queue_panel','text_queue_manage','text_queue_pending','text_queue_processing','text_queue_done','text_queue_failed','text_queue_search','text_queue_filter','text_queue_attempts','text_queue_available','text_queue_error','text_task_history','text_task_manual','text_task_scheduled','text_task_history_empty','column_source','column_started','column_finished','column_duration','column_scheduler','column_queue','column_run_status','column_run_error') as $key) {
+        foreach (array('text_currency_refresh_success','text_interval_years','text_interval_months','text_interval_assumptions','text_interval_quantity','text_interval_unit','text_interval_minutes','text_interval_hours','text_interval_days','text_interval_weeks','text_interval_seconds','text_interval_invalid','text_interval_apply','text_monitor','text_monitor_history','text_monitor_history_hint','text_monitor_empty','text_heartbeat_ok','text_heartbeat_late','text_heartbeat_missing','text_heartbeat_error','text_heartbeat_running','text_action_run','text_action_edit','text_action_delete','text_action_confirm','text_action_add','text_action_code','text_action_route','text_action_interval','text_action_args','text_action_cancel','text_action_save','text_system_task','text_cron_commands','text_cron_help','text_cron_cli','text_cron_web','text_cron_copy','text_cron_curl_help','text_cron_key_rotate','text_cron_key_confirm','text_cron_key_rotated','text_queue_locked','text_queue_cleanup','text_queue_cleanup_confirm','text_queue_run_result','text_queue_run','text_queue_retry','text_queue_confirm_delete','text_queue_panel','text_queue_manage','text_queue_pending','text_queue_processing','text_queue_done','text_queue_failed','text_queue_search','text_queue_filter','text_queue_attempts','text_queue_available','text_queue_error','text_run_status_success','text_run_status_error','text_run_status_warning','text_run_status_running','text_run_status_locked','text_run_status_pending','text_task_history','text_task_manual','text_task_scheduled','text_task_history_empty','column_source','column_started','column_finished','column_duration','column_scheduler','column_queue','column_run_status','column_run_error') as $key) {
             $data[$key] = $this->language->get($key);
         }
         $data['error_warning'] = '';
@@ -173,6 +193,11 @@ class ControllerToolCron extends Controller {
                 if ($data['history_task']) {
                     $scheduler->installHistory();
                     $data['task_history'] = $scheduler->recentHistory($historyId, 30);
+                    foreach ($data['task_history'] as &$entry) {
+                        $entry['status_display'] = $this->displayRunStatus($entry['status']);
+                        $entry['message_display'] = $this->displayRunMessage($entry['message'], $entry['status'], $data['history_task']['route']);
+                    }
+                    unset($entry);
                 }
             }
             $data['tasks'] = $scheduler->listTasks();
@@ -187,6 +212,11 @@ class ControllerToolCron extends Controller {
                     }
                 }
                 $task['interval_display'] = implode(' ', $parts);
+            }
+            unset($task);
+            foreach ($data['tasks'] as &$task) {
+                $task['status_display'] = $this->displayRunStatus($task['last_status']);
+                $task['message_display'] = $this->displayRunMessage($task['last_message'], $task['last_status'], $task['route']);
             }
             unset($task);
             require_once(DIR_SYSTEM . 'library/novacart/queue.php');
@@ -241,6 +271,13 @@ class ControllerToolCron extends Controller {
             require_once(DIR_SYSTEM . 'library/novacart/jobs_monitor.php');
             $monitor = new NovaCartJobsMonitor($this->registry);
             $data['job_runs'] = $monitor->recent(30);
+            foreach ($data['job_runs'] as &$run) {
+                $run['status_display'] = $this->displayRunStatus($run['status']);
+                $run['scheduler_status_display'] = $this->displayRunStatus($run['scheduler_status']);
+                $run['queue_status_display'] = $this->displayRunStatus($run['queue_status']);
+                $run['error_display'] = $this->displayRunMessage($run['error_message'], $run['status']);
+            }
+            unset($run);
             if ($data['job_runs']) {
                 $latest = $data['job_runs'][0];
                 $age = $this->db->query("SELECT TIMESTAMPDIFF(MINUTE, started_at, NOW()) AS minutes FROM `" . DB_PREFIX . "novacart_jobs_run` WHERE run_id=" . (int)$latest['run_id'])->row;
