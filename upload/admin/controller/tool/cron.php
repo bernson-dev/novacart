@@ -243,6 +243,9 @@ class ControllerToolCron extends Controller {
                     $scheduler->installHistory();
                     $data['task_history'] = $scheduler->recentHistory($historyId, 30);
                     foreach ($data['task_history'] as &$entry) {
+                        $entry['source_display'] = isset($data['run_source_labels'][$entry['source']]) ?
+                            $data['run_source_labels'][$entry['source']] :
+                            ($entry['source'] === 'manual' ? $this->language->get('text_task_manual') : $this->language->get('text_task_scheduled'));
                         $entry['status_display'] = $this->displayRunStatus($entry['status']);
                         $entry['message_display'] = $this->displayRunMessage($entry['message'], $entry['status'], $data['history_task']['route']);
                     }
