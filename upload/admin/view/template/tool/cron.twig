@@ -26,7 +26,7 @@
         <div class="form-group">
           <label for="novacart-cron-web">{{ text_cron_web }}</label>
           <div class="input-group">
-            <input id="novacart-cron-web" type="text" readonly="readonly" aria-readonly="true" class="form-control nc-cron-web-command" value="{{ http_command }}">
+            <input id="novacart-cron-web" type="text" readonly="readonly" aria-readonly="true" class="form-control nc-cron-web-command" value="{{ http_command|e('html_attr') }}">
             <span class="input-group-btn"><button class="btn btn-default js-cron-copy" type="button" data-copy="novacart-cron-web" title="{{ text_cron_copy }}"><i class="fa fa-copy"></i></button></span>
           </div>
           <p class="help-block">{{ text_cron_curl_help }}</p>
