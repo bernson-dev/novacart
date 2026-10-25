@@ -3038,3 +3038,15 @@ SEO URL audit UI: extracted from design/seo_url_list.twig. */
         .ocmod-log-success { color: #81c784; }
         .ocmod-log-error { color: #ff8a80; font-weight: bold; border-left: 2px solid #f44336; padding-left: 3px; }
         .ocmod-log-separator { color: #90a4ae; font-weight: bold; display: block; margin: 2px 0; padding: 1px 0; }
+
+
+/* Dashboard country and region chart: extracted from Twig. */
+.chart-by-country-and-region{position:relative;width:100%;height:260px}
+	.chart-by-country-and-region__country, .chart-by-country-and-region__region{width:100%;height:260px;opacity:0;background:#fff;overflow:hidden}
+	.chart-by-country-and-region__country.active, .chart-by-country-and-region__region.active{z-index:1 !important; opacity:1; transition:all linear .5s}
+	.chart-by-country-and-region__region{position:absolute !important;z-index:-1;top:0px;left:0px;right:0px;width:auto !important}
+	.chart-by-country-and-region__country .legendLabel, .chart-by-country-and-region__region .legendLabel{padding:0 0 3px 3px}
+	.chart-by-country-and-region__country .legend, .chart-by-country-and-region__region .legend{overflow-y:auto}
+	.chart-by-country-and-region__no-orders{position:absolute;top:50%;left:50%;transform:translate(-50%, -50%)}
+	.chart-by-country-and-region__back{position:absolute;bottom:0px;z-index:9;padding:2px 4px;font-size:12px;cursor:pointer;background:rgba(255 255 255 / .8)}
+	.chart-by-country-and-region__tooltip{position:absolute;z-index:9;padding:2px 4px;font-size:11px;background:rgba(255 255 255 / .8)}
