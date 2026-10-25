@@ -111,3 +111,8 @@ $_['text_cron_curl_help'] = 'Параметри curl: -sS показує пом�
 $_['text_cron_key_rotate'] = 'Згенерувати новий секретний ключ';
 $_['text_cron_key_confirm'] = 'Замінити секретний ключ HTTPS Web Cron? Старі URL та команди перестануть працювати.';
 $_['text_cron_key_rotated'] = 'Секретний ключ HTTPS Web Cron замінено. Скопіюйте оновлену команду.';
+
+$_['text_task_history'] = 'Історія завдання';
+$_['text_task_manual'] = 'Ручний запуск';
+$_['text_task_scheduled'] = 'За розкладом';
+$_['text_task_history_empty'] = 'Запусків поки немає';
