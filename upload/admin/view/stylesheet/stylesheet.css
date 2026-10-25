@@ -2429,3 +2429,9 @@ SEO URL audit UI: extracted from design/seo_url_list.twig. */
         .seo-group-row td { padding: 9px 12px !important; }
         .seo-group-row .badge { margin-left: 6px; }
         
+
+
+/* Order details: customer comment block. */
+#content .nc-order-comment{background:#fffde7;border-left:5px solid #ff9800;box-shadow:2px 2px 5px rgba(0,0,0,.1)}
+#content .nc-order-comment .nc-order-comment-heading{background:#ffcc80;font-weight:bold;text-align:center;color:#000}
+#content .nc-order-comment .nc-order-comment-text{padding:10px;font-size:14px;color:#444}
