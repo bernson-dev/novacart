@@ -85,4 +85,56 @@ class NovaCartCronExpression {
         if (count($result) !== $count) { throw new InvalidArgumentException('No Cron occurrence within five years'); }
         return $result;
     }
+
+    /**
+     * Calculate occurrences in a named timezone, using real instants.
+     * Nonexistent spring-forward minutes are never generated. During a
+     * fall-back overlap only the first occurrence of a wall-clock minute
+     * is eligible, preventing duplicate executions for one Cron slot.
+     * The caller must pass an unambiguous current instant.
+     */
+    public static function nextInTimezone($expression, $afterInstant, $timezone, $count = 1) {
+        $fields = self::parse($expression);
+        $zone = new DateTimeZone($timezone);
+        $cursor = $afterInstant->setTimezone(new DateTimeZone('UTC'));
+        $cursor = $cursor->setTime((int)$cursor->format('H'), (int)$cursor->format('i'), 0)->modify('+1 minute');
+        $end = $cursor->modify('+5 years');
+        $count = max(1, min(5, (int)$count));
+        $result = array();
+
+        while ($cursor < $end && count($result) < $count) {
+            $local = $cursor->setTimezone($zone);
+            $month = (int)$local->format('n');
+            $day = (int)$local->format('j');
+            $weekday = (int)$local->format('w');
+            $dom = isset($fields['day'][$day]);
+            $dow = isset($fields['weekday'][$weekday]);
+            $dayMatches = $fields['day_any'] ? $dow : ($fields['weekday_any'] ? $dom : ($dom || $dow));
+            if (isset($fields['month'][$month]) && $dayMatches
+                && isset($fields['hour'][(int)$local->format('G')])
+                && isset($fields['minute'][(int)$local->format('i')])) {
+                $timestamp = $cursor->getTimestamp();
+                // If the local minute appears twice, retain the first occurrence.
+                $previous = $zone->getTransitions($timestamp - 7200, $timestamp);
+                $first = true;
+                if (is_array($previous) && count($previous) > 1) {
+                    for ($j = 1; $j < count($previous); $j++) {
+                        $transition = $previous[$j];
+                        $oldOffset = (int)$previous[$j - 1]['offset'];
+                        $newOffset = (int)$transition['offset'];
+                        if ($newOffset < $oldOffset
+                            && $timestamp >= $transition['ts']
+                            && $timestamp < $transition['ts'] + ($oldOffset - $newOffset)) {
+                            $first = false;
+                            break;
+                        }
+                    }
+                }
+                if ($first) { $result[] = $local->format('Y-m-d H:i:s'); }
+            }
+            $cursor = $cursor->modify('+1 minute');
+        }
+        if (count($result) !== $count) { throw new InvalidArgumentException('No Cron occurrence within five years'); }
+        return $result;
+    }
 }
