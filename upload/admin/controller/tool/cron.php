@@ -28,7 +28,7 @@ class ControllerToolCron extends Controller {
             'button_disable','error_permission') as $key) {
             $data[$key] = $this->language->get($key);
         }
-        $data['cron_preview_url'] = $this->url->link('tool/cron/preview', 'user_token=' . $this->session->data['user_token'], true);
+        $data['cron_preview_url'] = str_replace('&amp;', '&', $this->url->link('tool/cron/preview', 'user_token=' . $this->session->data['user_token'], true));
         $data['action'] = $this->url->link('tool/cron', 'user_token=' . $this->session->data['user_token'], true);
         $data['can_modify'] = $this->user->hasPermission('modify', 'tool/cron');
         $data['queue_status_labels'] = array(
