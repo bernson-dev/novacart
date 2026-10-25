@@ -214,6 +214,21 @@
           <input type="hidden" name="cron_id" value="{{ edit_task.cron_id }}">
           <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_code }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-code" name="code" required minlength="2" maxlength="128" value="{{ edit_task.code }}" {{ edit_task.code|slice(0, 5) == 'core.' ? 'readonly' : '' }}></div></div>
           <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_route }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-route" name="route" required value="{{ edit_task.route }}" placeholder="cron/example"></div></div>
+          <div class="form-group"><label class="col-sm-2 control-label">{{ text_schedule_mode }}</label>
+            <div class="col-sm-10"><select id="nc-schedule-mode" name="schedule_mode" class="form-control">
+              <option value="interval" {{ not edit_task.cron_expression ? 'selected' : '' }}>{{ text_schedule_interval }}</option>
+              <option value="cron" {{ edit_task.cron_expression ? 'selected' : '' }}>{{ text_schedule_cron }}</option>
+            </select></div>
+          </div>
+          <div class="form-group" id="nc-cron-expression-row"><label class="col-sm-2 control-label">{{ text_cron_expression }}</label>
+            <div class="col-sm-10">
+              <input class="form-control" id="nc-cron-expression" name="cron_expression" value="{{ edit_task.cron_expression }}" placeholder="0 3 * * *" maxlength="100">
+              <small class="help-block">{{ text_cron_example }}</small>
+              <button type="button" id="nc-cron-preview-btn" class="btn btn-default btn-sm">{{ text_cron_preview }}</button>
+              <div id="nc-cron-preview-results" aria-live="polite"></div>
+            </div>
+          </div>
+          <div id="nc-interval-row">
           <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_interval }}</label><div class="col-sm-10">
             <input class="form-control" id="input-cron-interval" type="number" name="interval_seconds" min="60" max="31536000" required value="{{ edit_task.interval_seconds }}">
             <div class="nc-interval-calc">
@@ -229,6 +244,7 @@
               <small class="help-block">{{ text_interval_assumptions }}</small>
             </div>
           </div></div>
+          </div>
           <div class="form-group"><label class="col-sm-2 control-label">{{ text_action_args }}</label><div class="col-sm-10"><textarea class="form-control" name="args" rows="3">{{ edit_task.args }}</textarea></div></div>
           <div class="form-group"><label class="col-sm-2 control-label">{{ column_status }}</label><div class="col-sm-10"><select class="form-control" name="status"><option value="1" {{ edit_task.status ? 'selected' : '' }}>{{ text_enabled }}</option><option value="0" {{ not edit_task.status ? 'selected' : '' }}>{{ text_disabled }}</option></select></div></div>
           <div class="text-right"><a class="btn btn-default" href="{{ action }}">{{ text_action_cancel }}</a> <button class="btn btn-primary" type="submit"><i class="fa fa-save"></i> {{ text_action_save }}</button></div>
@@ -239,6 +255,33 @@
   </div>
 </div>
 {{ footer }}
+<script>
+(function () {
+  var mode = document.getElementById('nc-schedule-mode');
+  if (!mode) { return; }
+  var intervalRow = document.getElementById('nc-interval-row');
+  var cronRow = document.getElementById('nc-cron-expression-row');
+  var interval = document.getElementById('input-cron-interval');
+  var expression = document.getElementById('nc-cron-expression');
+  var results = document.getElementById('nc-cron-preview-results');
+  function toggle() {
+    var cron = mode.value === 'cron';
+    intervalRow.style.display = cron ? 'none' : '';
+    cronRow.style.display = cron ? '' : 'none';
+    interval.required = !cron;
+    expression.required = cron;
+  }
+  mode.addEventListener('change', toggle);
+  toggle();
+  document.getElementById('nc-cron-preview-btn').addEventListener('click', function () {
+    results.textContent = '...';
+    $.getJSON({{ cron_preview_url|json_encode|raw }} + '&expression=' + encodeURIComponent(expression.value))
+      .done(function (data) {
+        results.textContent = data.error ? data.error : (data.dates || []).join('  ·  ');
+      }).fail(function () { results.textContent = 'Preview unavailable'; });
+  });
+})();
+</script>
 
 <style>
 .nc-interval-calc{margin-top:10px}
