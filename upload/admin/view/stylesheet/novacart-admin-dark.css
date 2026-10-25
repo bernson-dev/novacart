@@ -412,3 +412,8 @@ html.novacart-admin-dark .permission-counter-box{background:#203448!important;bo
 html.novacart-admin-dark .permission-matrix-wrap{background:#18212b!important;border-color:#425369!important}
 html.novacart-admin-dark .permission-matrix>thead>tr>th{background:#263647!important;color:#edf3f9!important}
 html.novacart-admin-dark .permission-section-row>td{background:#253b51!important;color:#e1edfa!important}
+
+
+/* Country / region dashboard chart controls in dark mode. */
+html.novacart-admin-dark .chart-by-country-and-region__back,html.novacart-admin-dark .chart-by-country-and-region__tooltip{background:rgba(32,43,55,.93);color:#e4edf7}
+html.novacart-admin-dark .chart-by-country-and-region__country,html.novacart-admin-dark .chart-by-country-and-region__region{background:#18212b}
