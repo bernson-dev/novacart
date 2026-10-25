@@ -118,3 +118,5 @@ $_['text_schedule_cron'] = 'Cron expression';
 $_['text_cron_expression'] = 'Cron schedule (5 fields)';
 $_['text_cron_preview'] = 'Preview next runs';
 $_['text_cron_example'] = 'Example: 0 3 * * * — daily at 03:00 database local time.';
+
+$_['text_cron_preview_failed'] = 'Could not load schedule preview';
