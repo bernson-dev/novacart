@@ -233,7 +233,7 @@
           <input type="hidden" name="scheduler_action" value="save">
           <input type="hidden" name="cron_id" value="{{ edit_task.cron_id }}">
           <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_code }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-code" name="code" required minlength="2" maxlength="128" value="{{ edit_task.code }}" {{ edit_task.code|slice(0, 5) == 'core.' ? 'readonly' : '' }}></div></div>
-          <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_route }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-route" name="route" required value="{{ edit_task.route }}" placeholder="cron/example"></div></div>
+          <div class="form-group required"><label class="col-sm-2 control-label">{{ text_action_route }}</label><div class="col-sm-10"><input class="form-control" id="input-cron-route" name="route" list="nc-cron-handlers" required value="{{ edit_task.route }}" placeholder="cron/example" autocomplete="off"><datalist id="nc-cron-handlers">{% for handler in cron_handlers %}<option value="{{ handler }}"></option>{% endfor %}</datalist><small class="help-block">{{ text_cron_handler_hint }}</small></div></div>
           <div class="form-group"><label class="col-sm-2 control-label">{{ text_schedule_mode }}</label>
             <div class="col-sm-10"><select id="nc-schedule-mode" name="schedule_mode" class="form-control">
               <option value="interval" {{ not edit_task.cron_expression ? 'selected' : '' }}>{{ text_schedule_interval }}</option>
