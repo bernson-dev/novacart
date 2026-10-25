@@ -417,3 +417,11 @@ html.novacart-admin-dark .permission-section-row>td{background:#253b51!important
 /* Country / region dashboard chart controls in dark mode. */
 html.novacart-admin-dark .chart-by-country-and-region__back,html.novacart-admin-dark .chart-by-country-and-region__tooltip{background:rgba(32,43,55,.93);color:#e4edf7}
 html.novacart-admin-dark .chart-by-country-and-region__country,html.novacart-admin-dark .chart-by-country-and-region__region{background:#18212b}
+
+
+/* Translation-copy results dialog in dark admin theme. */
+html.novacart-admin-dark .nc-copy-modal-dialog{background:#202b37;color:#e4edf7;border:1px solid #425369}
+html.novacart-admin-dark .nc-copy-modal-title{color:#f0f5fa}
+html.novacart-admin-dark .nc-copy-modal-body{color:#dce5ef}
+html.novacart-admin-dark .nc-copy-stats-title{color:#b9c9d9}
+html.novacart-admin-dark .nc-copy-stats-list{color:#d3dfeb}
