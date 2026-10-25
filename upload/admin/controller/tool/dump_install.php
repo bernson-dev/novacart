@@ -40,6 +40,7 @@ class ControllerToolDumpInstall extends Controller {
 			'manufacturer_to_layout',
 			'marketing',
 			'novacart_cron',
+			'novacart_cron_history',
 			'novacart_jobs_run',
 			'novacart_queue',
 			'modification',

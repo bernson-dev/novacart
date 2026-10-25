@@ -6,6 +6,7 @@
 class NovaCartScheduler {
     private $registry;
     private $db;
+    private $historyReady = false;
 
     public function __construct($registry) {
         $this->registry = $registry;
@@ -19,6 +20,7 @@ class NovaCartScheduler {
             `route` VARCHAR(255) NOT NULL,
             `args` TEXT NOT NULL,
             `interval_seconds` INT UNSIGNED NOT NULL DEFAULT 3600,
+            `cron_expression` VARCHAR(100) NULL,
             `status` TINYINT(1) NOT NULL DEFAULT 1,
             `date_next` DATETIME NOT NULL,
             `date_last` DATETIME NULL,
@@ -31,9 +33,74 @@ class NovaCartScheduler {
             UNIQUE KEY `code` (`code`),
             KEY `due` (`status`, `date_next`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $columns = $this->db->query("SHOW COLUMNS FROM `" . DB_PREFIX . "novacart_cron` LIKE 'cron_expression'");
+        if (!$columns->num_rows) {
+            $this->db->query("ALTER TABLE `" . DB_PREFIX . "novacart_cron` ADD `cron_expression` VARCHAR(100) NULL AFTER `interval_seconds`");
+        }
+        $this->installHistory();
     }
 
-    public function register($code, $route, $interval, $args = array(), $enabled = true) {
+    private function nextCron($expression) {
+        require_once(DIR_SYSTEM . 'library/novacart/cron_expression.php');
+        $now = $this->db->query("SELECT NOW() AS cron_now")->row['cron_now'];
+        return NovaCartCronExpression::next($expression, $now, 1)[0];
+    }
+
+    public function previewCron($expression, $count = 5) {
+        require_once(DIR_SYSTEM . 'library/novacart/cron_expression.php');
+        $now = $this->db->query("SELECT NOW() AS cron_now")->row['cron_now'];
+        return NovaCartCronExpression::next($expression, $now, $count);
+    }
+
+    public function installHistory() {
+        $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "novacart_cron_history` (
+            `history_id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `cron_id` INT UNSIGNED NOT NULL,
+            `task_code` VARCHAR(128) NOT NULL,
+            `source` VARCHAR(16) NOT NULL,
+            `started_at` DATETIME NOT NULL,
+            `status` VARCHAR(16) NOT NULL,
+            `duration_ms` INT UNSIGNED NOT NULL DEFAULT 0,
+            `message` TEXT NULL,
+            PRIMARY KEY (`history_id`),
+            KEY `task_recent` (`cron_id`, `history_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $this->historyReady = true;
+    }
+
+    public function recentHistory($cronId, $limit = 30) {
+        $limit = max(1, min(100, (int)$limit));
+        return $this->db->query("SELECT * FROM `" . DB_PREFIX . "novacart_cron_history`
+            WHERE cron_id=" . (int)$cronId . " ORDER BY history_id DESC LIMIT " . $limit)->rows;
+    }
+
+    private function recordHistory($job, $source, $ok, $duration, $message) {
+        try {
+            if (!$this->historyReady) { $this->installHistory(); }
+            $this->db->query("INSERT INTO `" . DB_PREFIX . "novacart_cron_history`
+                SET cron_id=" . (int)$job['cron_id'] . ",
+                    task_code='" . $this->db->escape((string)$job['code']) . "',
+                    source='" . $this->db->escape($source) . "',
+                    started_at=NOW(),
+                    status='" . ($ok ? 'success' : 'error') . "',
+                    duration_ms=" . max(0, min(4294967295, (int)$duration)) . ",
+                    message='" . $this->db->escape(substr((string)$message, 0, 2000)) . "'");
+            $this->db->query("DELETE FROM `" . DB_PREFIX . "novacart_cron_history`
+                WHERE cron_id=" . (int)$job['cron_id'] . "
+                  AND history_id NOT IN (
+                    SELECT history_id FROM (
+                        SELECT history_id FROM `" . DB_PREFIX . "novacart_cron_history`
+                        WHERE cron_id=" . (int)$job['cron_id'] . "
+                        ORDER BY history_id DESC LIMIT 100
+                    ) AS recent
+                  )");
+        } catch (Throwable $e) {
+            $log = $this->registry->get('log');
+            if ($log) { $log->write('NovaCart cron history: ' . $e->getMessage()); }
+        }
+    }
+
+    public function register($code, $route, $interval, $args = array(), $enabled = true, $expression = '') {
         if (!preg_match('/^[a-z0-9_.:-]{2,128}$/i', $code)
             || !preg_match('#^cron/[a-z0-9_/]+$#i', $route)
             || $interval < 60 || $interval > 31536000) {
@@ -43,12 +110,17 @@ class NovaCartScheduler {
         if ($json === false) {
             throw new InvalidArgumentException('Invalid cron task parameters');
         }
+        $expression = trim((string)$expression);
+        $next = $expression !== '' ? $this->nextCron($expression) : null;
         // Existing schedules are retained on registration (including user status).
         $this->db->query("INSERT IGNORE INTO `" . DB_PREFIX . "novacart_cron` SET code='" .
             $this->db->escape($code) . "', route='" . $this->db->escape($route) .
             "', args='" . $this->db->escape($json) . "', interval_seconds=" .
-            (int)$interval . ", status=" . (int)(bool)$enabled .
-            ", date_next=NOW(), date_added=NOW(), date_modified=NOW()");
+            (int)$interval . ", cron_expression=" .
+            ($expression === '' ? "NULL" : "'" . $this->db->escape($expression) . "'") .
+            ", status=" . (int)(bool)$enabled . ", date_next=" .
+            ($next === null ? "NOW()" : "'" . $this->db->escape($next) . "'") .
+            ", date_added=NOW(), date_modified=NOW()");
     }
 
     // CodeCart-compatible administration API, backed by the existing NovaCart table.
@@ -57,7 +129,7 @@ class NovaCartScheduler {
         return $q->num_rows ? $q->row : array();
     }
 
-    public function save($id, $code, $route, $interval, $status, $args = array()) {
+    public function save($id, $code, $route, $interval, $status, $args = array(), $expression = '') {
         $existing = $this->getTask($id);
         if (!$existing) { throw new RuntimeException('Scheduler task not found'); }
         if (!preg_match('/^[a-z0-9_.:-]{2,128}$/i', $code)
@@ -71,19 +143,27 @@ class NovaCartScheduler {
         $duplicate = $this->db->query("SELECT cron_id FROM `" . DB_PREFIX . "novacart_cron` WHERE code='" .
             $this->db->escape($code) . "' AND cron_id!=" . (int)$id . " LIMIT 1");
         if ($duplicate->num_rows) { throw new RuntimeException('Scheduler code already exists'); }
+        $expression = trim((string)$expression);
+        $next = $expression !== '' ? $this->nextCron($expression) : null;
         $json = json_encode($args, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($json === false) { throw new InvalidArgumentException('Invalid JSON arguments'); }
         $this->db->query("UPDATE `" . DB_PREFIX . "novacart_cron` SET code='" . $this->db->escape($code) .
             "', route='" . $this->db->escape($route) . "', args='" . $this->db->escape($json) .
-            "', interval_seconds=" . (int)$interval . ", status=" . (int)(bool)$status .
-            ", date_next=" . (!$existing['status'] && $status ? "NOW()" : "DATE_ADD(NOW(), INTERVAL " . (int)$interval . " SECOND)") .
+            "', interval_seconds=" . (int)$interval . ", cron_expression=" .
+            ($expression === '' ? "NULL" : "'" . $this->db->escape($expression) . "'") .
+            ", status=" . (int)(bool)$status .
+            ", date_next=" . ($next !== null ? "'" . $this->db->escape($next) . "'" :
+                (!$existing['status'] && $status ? "NOW()" : "DATE_ADD(NOW(), INTERVAL " . (int)$interval . " SECOND)")) .
             ", date_modified=NOW() WHERE cron_id=" . (int)$id);
     }
 
     public function setStatus($id, $enabled) {
-        if (!$this->getTask($id)) { throw new RuntimeException('Scheduler task not found'); }
+        $task = $this->getTask($id);
+        if (!$task) { throw new RuntimeException('Scheduler task not found'); }
+        $next = $enabled && !empty($task['cron_expression']) ?
+            "'" . $this->db->escape($this->nextCron($task['cron_expression'])) . "'" : 'NOW()';
         $this->db->query("UPDATE `" . DB_PREFIX . "novacart_cron` SET status=" . (int)(bool)$enabled .
-            ($enabled ? ", date_next=NOW()" : "") . ", date_modified=NOW() WHERE cron_id=" . (int)$id);
+            ($enabled ? ", date_next=" . $next : "") . ", date_modified=NOW() WHERE cron_id=" . (int)$id);
     }
 
     public function deleteTask($id) {
@@ -102,7 +182,7 @@ class NovaCartScheduler {
             return array('success'=>false, 'status'=>'locked', 'duration_ms'=>0, 'message'=>'Scheduler is busy');
         }
         try {
-            $ok = $this->execute($job);
+            $ok = $this->execute($job, 'manual');
             $fresh = $this->getTask($id);
             return array('success'=>$ok, 'status'=>$ok ? 'success' : 'error',
                 'duration_ms'=>(int)$fresh['last_duration_ms'], 'message'=>(string)$fresh['last_message']);
@@ -130,7 +210,7 @@ class NovaCartScheduler {
                 "novacart_cron` WHERE status=1 AND date_next<=NOW() ORDER BY date_next, cron_id LIMIT " . $limit);
             foreach ($jobs->rows as $job) {
                 $processed++;
-                if (!$this->execute($job)) {
+                if (!$this->execute($job, 'scheduled')) {
                     $failed++;
                 }
             }
@@ -140,7 +220,7 @@ class NovaCartScheduler {
         return array('status' => 'ok', 'processed' => $processed, 'failed' => $failed);
     }
 
-    private function execute($job) {
+    private function execute($job, $source) {
         $ok = true;
         $message = 'OK';
         $start = microtime(true);
@@ -173,11 +253,15 @@ class NovaCartScheduler {
         }
         $duration = (int)round((microtime(true) - $start) * 1000);
         // Schedule relative to current database time; avoid PHP/MySQL timezone drift.
-        $this->db->query("UPDATE `" . DB_PREFIX . "novacart_cron` SET date_last=NOW(), date_next=DATE_ADD(NOW(), INTERVAL " .
-            max(60, min(31536000, (int)$job['interval_seconds'])) . " SECOND), last_status='" .
+        $nextSql = !empty($job['cron_expression']) ?
+            "'" . $this->db->escape($this->nextCron($job['cron_expression'])) . "'" :
+            "DATE_ADD(NOW(), INTERVAL " . max(60, min(31536000, (int)$job['interval_seconds'])) . " SECOND)";
+        $this->db->query("UPDATE `" . DB_PREFIX . "novacart_cron` SET date_last=NOW(), date_next=" .
+            $nextSql . ", last_status='" .
             ($ok ? 'success' : 'error') . "', last_message='" .
             $this->db->escape(substr($message, 0, 1000)) . "', last_duration_ms=" .
             $duration . ", date_modified=NOW() WHERE cron_id=" . (int)$job['cron_id']);
+        $this->recordHistory($job, $source, $ok, $duration, $message);
         return $ok;
     }
 }
