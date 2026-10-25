@@ -202,7 +202,8 @@ class NovaCartScheduler {
         return $this->db->query("SELECT * FROM `" . DB_PREFIX . "novacart_cron` ORDER BY code")->rows;
     }
 
-    public function runDue($limit = 20) {
+    public function runDue($limit = 20, $source = 'scheduled') {
+        if (!in_array($source, array('cli', 'scheduled', 'http'), true)) { $source = 'scheduled'; }
         $limit = max(1, min(100, (int)$limit));
         // This initial implementation serializes scheduler runs across all workers.
         $lock = 'nc_cron_' . substr(hash('sha256', DB_DATABASE . ':' . DB_PREFIX), 0, 30);
@@ -229,13 +230,13 @@ class NovaCartScheduler {
                         $this->db->query("UPDATE `" . DB_PREFIX . "novacart_cron` SET date_next=" .
                             $nextSql . ", last_status='skipped', last_message='Missed execution skipped', " .
                             "date_modified=NOW() WHERE cron_id=" . (int)$job['cron_id']);
-                        $this->recordHistory($job, 'scheduled', true, 0, 'Missed execution skipped', 'skipped');
+                        $this->recordHistory($job, $source, true, 0, 'Missed execution skipped', 'skipped');
                         $skipped++;
                         continue;
                     }
                 }
                 $processed++;
-                if (!$this->execute($job, 'scheduled')) {
+                if (!$this->execute($job, $source)) {
                     $failed++;
                 }
             }
