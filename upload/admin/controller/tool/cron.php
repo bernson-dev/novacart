@@ -37,6 +37,26 @@ class ControllerToolCron extends Controller {
         return $message;
     }
 
+    private function discoverCronHandlers() {
+        $base = rtrim(DIR_CATALOG, '/\\') . '/controller/cron';
+        $routes = array();
+        if (!is_dir($base)) { return $routes; }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($base, FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $file) {
+            if (!$file->isFile() || strtolower($file->getExtension()) !== 'php') { continue; }
+            $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($base) + 1));
+            $route = 'cron/' . substr($relative, 0, -4);
+            // Internal entry point is not a schedulable catalog handler.
+            if ($route === 'cron/run' || !preg_match('#^cron/[a-z0-9_/]+$#i', $route)) { continue; }
+            $routes[$route] = $route;
+        }
+        ksort($routes, SORT_STRING);
+        return array_values($routes);
+    }
+
     public function index() {
         $this->load->language('tool/cron');
         $this->document->setTitle($this->language->get('heading_title'));
@@ -68,6 +88,7 @@ class ControllerToolCron extends Controller {
         $data['queue_search'] = substr($data['queue_search'], 0, 128);
         $data['queue_url'] = $this->url->link('tool/queue', 'user_token=' . $this->session->data['user_token'], true);
         $data['user_token'] = $this->session->data['user_token'];
+        $data['cron_handlers'] = $this->discoverCronHandlers();
         $data['tasks'] = array();
         $data['task_history'] = array();
         $data['history_task'] = array();
