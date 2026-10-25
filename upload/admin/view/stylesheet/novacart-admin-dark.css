@@ -349,3 +349,9 @@ html.novacart-admin-dark .seo-stat-tile{background:#202b37;border-color:#39485a}
 html.novacart-admin-dark .seo-stat-value{color:#83bcff}
 html.novacart-admin-dark .seo-stat-label{color:#afc0d2}
 html.novacart-admin-dark .seo-keyword-input.is-dirty{background:#3a3223;color:#f0e5ce;border-color:#b08a49}
+
+
+/* Order comment: readable contrast in dark appearance. */
+html.novacart-admin-dark #content .nc-order-comment{background:#302d26!important;border-left-color:#d79a38!important}
+html.novacart-admin-dark #content .nc-order-comment .nc-order-comment-heading{background:#51402a!important;color:#f8e7c5!important}
+html.novacart-admin-dark #content .nc-order-comment .nc-order-comment-text{background:#302d26!important;color:#e9ddc7!important}
