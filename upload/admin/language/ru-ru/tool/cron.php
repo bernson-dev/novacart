@@ -113,3 +113,10 @@ $_['text_cron_curl_help'] = 'Параметры curl: -sS показывает �
 $_['text_cron_key_rotate'] = 'Сгенерировать новый секретный ключ';
 $_['text_cron_key_confirm'] = 'Заменить секретный ключ HTTPS Web Cron? Старые URL и команды перестанут работать.';
 $_['text_cron_key_rotated'] = 'Секретный ключ HTTPS Web Cron заменён. Скопируйте обновлённую команду.';
+
+$_['text_schedule_mode'] = 'Режим расписания';
+$_['text_schedule_interval'] = 'Интервал';
+$_['text_schedule_cron'] = 'Cron-выражение';
+$_['text_cron_expression'] = 'Расписание Cron (5 полей)';
+$_['text_cron_preview'] = 'Показать ближайшие запуски';
+$_['text_cron_example'] = 'Пример: 0 3 * * * — ежедневно в 03:00 по времени базы данных.';
