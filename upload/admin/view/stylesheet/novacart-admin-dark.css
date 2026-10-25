@@ -405,3 +405,10 @@ html.novacart-admin-dark #content .nc-order-comment .nc-order-comment-text{backg
                     html.novacart-admin-dark .dump-panel .dump-submit-row {
                         border-top-color: #425369;
                     }
+
+
+/* User group permission matrix: dark-mode contrast. */
+html.novacart-admin-dark .permission-counter-box{background:#203448!important;border-color:#476178!important;color:#dce8f5!important}
+html.novacart-admin-dark .permission-matrix-wrap{background:#18212b!important;border-color:#425369!important}
+html.novacart-admin-dark .permission-matrix>thead>tr>th{background:#263647!important;color:#edf3f9!important}
+html.novacart-admin-dark .permission-section-row>td{background:#253b51!important;color:#e1edfa!important}
