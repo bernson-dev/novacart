@@ -253,15 +253,15 @@
 
                 </table>
                 {% if comment %}
-                <table class="table table-bordered" style="background: #fffde7; border-left: 5px solid #ff9800; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);">
+                <table class="table table-bordered nc-order-comment">
                     <thead>
                         <tr>
-                            <td style="background: #ffcc80; font-weight: bold; text-align: center; color: #000;">{{ text_comment }}</td>
+                            <td class="nc-order-comment-heading">{{ text_comment }}</td>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td style="padding: 10px; font-size: 14px; color: #444;">{{ comment }}</td>
+                            <td class="nc-order-comment-text">{{ comment }}</td>
                         </tr>
                     </tbody>
                 </table>
