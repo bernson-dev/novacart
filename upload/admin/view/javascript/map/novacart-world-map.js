@@ -168,8 +168,9 @@
             state.width = baseWidth;
             state.height = baseHeight;
             if (clearSelection !== false) {
-                selectRegion('', null, false);
+                selectRegion('', null, true);
             }
+            hideTooltip();
             updateViewBox();
         }
 
@@ -199,13 +200,13 @@
             }
             reset.disabled = state.scale <= MIN_SCALE + 0.001 && !selectedCode;
 
-            if (emit && selectedCode) {
+            if (emit) {
                 var region = paths[selectedCode] || {};
-                var detail = {
+                var detail = selectedCode ? {
                     code: selectedCode,
                     name: String(region.name || selectedCode.toUpperCase()),
                     value: safeInteger(values[selectedCode])
-                };
+                } : null;
                 var customEvent;
                 if (typeof window.CustomEvent === 'function') {
                     customEvent = new CustomEvent('novacart:mapselect', {detail: detail});
@@ -241,9 +242,6 @@
             path.setAttribute('aria-pressed', 'false');
             path.classList.add('novacart-world-map-region');
 
-            var title = createSvg('title');
-            title.textContent = String(region.name || code.toUpperCase()) + (value > 0 ? ' — ' + value : '');
-            path.appendChild(title);
 
             path.addEventListener('mouseenter', function (event) {
                 showTooltip(event, String(region.name || code.toUpperCase()), value);
@@ -261,13 +259,15 @@
                     state.dragMoved = false;
                     return;
                 }
-                selectRegion(code, event, true);
-                showTooltip(event, String(region.name || code.toUpperCase()), value);
+                selectRegion(selectedCode === code ? '' : code, event, true);
+                if (selectedCode) showTooltip(event, String(region.name || code.toUpperCase()), value);
+                else hideTooltip();
             });
             path.addEventListener('keydown', function (event) {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    selectRegion(code, event, true);
+                    selectRegion(selectedCode === code ? '' : code, event, true);
+                    if (!selectedCode) hideTooltip();
                 }
             });
 

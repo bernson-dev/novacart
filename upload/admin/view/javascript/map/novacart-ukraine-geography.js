@@ -19,6 +19,6 @@ if(city&&city.total){
  cityGroup.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();select('kyiv-city');}});
 }
 function button(label,sign,fn,top){var b=document.createElement('button');b.type='button';b.className='ua-map-btn';b.style.top=top+'px';b.textContent=sign;b.title=label;b.setAttribute('aria-label',label);b.addEventListener('click',fn);el.appendChild(b);}
-button(opts.zoomIn||'Zoom in','+',function(){scale=Math.min(4,scale+.3);transform();},8);button(opts.zoomOut||'Zoom out','−',function(){scale=Math.max(1,scale-.3);if(scale===1){dx=dy=0;}transform();},42);button(opts.reset||'Reset','⌂',function(){scale=1;dx=dy=0;transform();},76);
+button(opts.zoomIn||'Zoom in','+',function(){scale=Math.min(4,scale+.3);transform();},8);button(opts.zoomOut||'Zoom out','−',function(){scale=Math.max(1,scale-.3);if(scale===1){dx=dy=0;}transform();},42);button(opts.reset||'Reset','⌂',function(){scale=1;dx=dy=0;transform();if(chosen!==null)select(chosen);tip.style.display='none';},76);
 var drag=null;root.addEventListener('pointerdown',function(e){if(scale<=1)return;drag={x:e.clientX,y:e.clientY,dx:dx,dy:dy};root.setPointerCapture(e.pointerId);});root.addEventListener('pointermove',function(e){if(!drag)return;var r=el.getBoundingClientRect();dx=drag.dx+(e.clientX-drag.x)*1350/r.width;dy=drag.dy+(e.clientY-drag.y)*950/r.height;transform();});root.addEventListener('pointerup',function(){drag=null;});root.addEventListener('pointercancel',function(){drag=null;});}
 global.NovaCartUkraineGeography={render:render};})(window);
