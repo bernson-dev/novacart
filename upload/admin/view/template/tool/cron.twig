@@ -294,8 +294,8 @@
   var form = document.getElementById('nc-scheduler-form');
   var fields = [
     { node: document.getElementById('input-cron-code'), check: function (v) { return v.length >= 2 && v.length <= 128 && /^[a-z0-9_.:-]+$/i.test(v); } },
-    { node: document.getElementById('input-cron-route'), check: function (v) { return /^cron\\/[a-z0-9_/]+$/i.test(v); } },
-    { node: interval, check: function (v) { return /^\\d+$/.test(v) && Number(v) >= 60 && Number(v) <= 31536000; }, mode: 'interval' },
+    { node: document.getElementById('input-cron-route'), check: function (v) { return new RegExp('^cron/[a-z0-9_/]+$', 'i').test(v); } },
+    { node: interval, check: function (v) { return /^[0-9]+$/.test(v) && Number(v) >= 60 && Number(v) <= 31536000; }, mode: 'interval' },
     { node: expression, check: function (v) { return v.length > 0; }, mode: 'cron' }
   ];
   function showError(field, invalid) {
