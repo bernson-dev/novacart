@@ -1,5 +1,22 @@
 <?php
 class ControllerToolCron extends Controller {
+    public function preview() {
+        $this->load->language('tool/cron');
+        $json = array();
+        try {
+            if (!$this->user->hasPermission('access', 'tool/cron')) {
+                throw new RuntimeException('Access denied');
+            }
+            require_once(DIR_SYSTEM . 'library/novacart/scheduler.php');
+            $scheduler = new NovaCartScheduler($this->registry);
+            $json['dates'] = $scheduler->previewCron((string)($this->request->get['expression'] ?? ''), 5);
+        } catch (Throwable $e) {
+            $json['error'] = $e->getMessage();
+        }
+        $this->response->addHeader('Content-Type: application/json');
+        $this->response->setOutput(json_encode($json));
+    }
+
     public function index() {
         $this->load->language('tool/cron');
         $this->document->setTitle($this->language->get('heading_title'));
@@ -11,6 +28,7 @@ class ControllerToolCron extends Controller {
             'button_disable','error_permission') as $key) {
             $data[$key] = $this->language->get($key);
         }
+        $data['cron_preview_url'] = $this->url->link('tool/cron/preview', 'user_token=' . $this->session->data['user_token'], true);
         $data['action'] = $this->url->link('tool/cron', 'user_token=' . $this->session->data['user_token'], true);
         $data['can_modify'] = $this->user->hasPermission('modify', 'tool/cron');
         $data['queue_status_labels'] = array(
@@ -31,7 +49,7 @@ class ControllerToolCron extends Controller {
         $data['queue_url'] = $this->url->link('tool/queue', 'user_token=' . $this->session->data['user_token'], true);
         $data['user_token'] = $this->session->data['user_token'];
         $data['tasks'] = array();
-        $data['edit_task'] = array('cron_id'=>0,'code'=>'','route'=>'','interval_seconds'=>3600,'args'=>'{}','status'=>1);
+        $data['edit_task'] = array('cron_id'=>0,'code'=>'','route'=>'','interval_seconds'=>3600,'cron_expression'=>'','args'=>'{}','status'=>1);
         $data['cli_command'] = 'php ' . rtrim(dirname(DIR_APPLICATION), '/\\') . '/cli.php jobs:run';
         $data['http_command'] = '';
         $keyPath = DIR_STORAGE . 'novacart_cron.key';
@@ -122,6 +140,12 @@ class ControllerToolCron extends Controller {
                     } elseif ($operation === 'save') {
                         $code = isset($this->request->post['code']) ? trim((string)$this->request->post['code']) : '';
                         $route = isset($this->request->post['route']) ? trim((string)$this->request->post['route']) : '';
+                        $expression = isset($this->request->post['schedule_mode']) && $this->request->post['schedule_mode'] === 'cron' ?
+                            trim((string)($this->request->post['cron_expression'] ?? '')) : '';
+                        if (isset($this->request->post['schedule_mode']) && $this->request->post['schedule_mode'] === 'cron' && $expression === '') {
+                            throw new InvalidArgumentException('Cron expression is required');
+                        }
+                        $scheduler->install();
                         $interval = isset($this->request->post['interval_seconds']) ? (int)$this->request->post['interval_seconds'] : 0;
                         $raw = isset($this->request->post['args']) ? (string)$this->request->post['args'] : '{}';
                         $args = json_decode($raw, true);
@@ -129,7 +153,7 @@ class ControllerToolCron extends Controller {
                             throw new InvalidArgumentException('Invalid JSON arguments');
                         }
                         if ($id > 0) {
-                            $scheduler->save($id, $code, $route, $interval, !empty($this->request->post['status']), $args);
+                            $scheduler->save($id, $code, $route, $interval, !empty($this->request->post['status']), $args, $expression);
                         } else {
                             if (strpos($code, 'core.') === 0) {
                                 throw new InvalidArgumentException('Reserved system task code');
@@ -139,7 +163,7 @@ class ControllerToolCron extends Controller {
                             if ($duplicate->num_rows) {
                                 throw new RuntimeException('Scheduler task code already exists');
                             }
-                            $scheduler->register($code, $route, $interval, $args, !empty($this->request->post['status']));
+                            $scheduler->register($code, $route, $interval, $args, !empty($this->request->post['status']), $expression);
                         }
                     } else {
                         throw new InvalidArgumentException('Unknown scheduler action');
@@ -165,6 +189,7 @@ class ControllerToolCron extends Controller {
         try {
             require_once(DIR_SYSTEM . 'library/novacart/scheduler.php');
             $scheduler = new NovaCartScheduler($this->registry);
+            $scheduler->install();
             $data['tasks'] = $scheduler->listTasks();
             foreach ($data['tasks'] as &$task) {
                 $remaining = (int)$task['interval_seconds'];
@@ -176,7 +201,7 @@ class ControllerToolCron extends Controller {
                         $remaining %= $factor;
                     }
                 }
-                $task['interval_display'] = implode(' ', $parts);
+                $task['interval_display'] = !empty($task['cron_expression']) ? $task['cron_expression'] : implode(' ', $parts);
             }
             unset($task);
             require_once(DIR_SYSTEM . 'library/novacart/queue.php');
