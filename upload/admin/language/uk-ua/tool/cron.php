@@ -116,3 +116,10 @@ $_['text_task_history'] = 'Історія завдання';
 $_['text_task_manual'] = 'Ручний запуск';
 $_['text_task_scheduled'] = 'За розкладом';
 $_['text_task_history_empty'] = 'Запусків поки немає';
+
+$_['text_run_status_success'] = 'Успішно';
+$_['text_run_status_error'] = 'Помилка';
+$_['text_run_status_warning'] = 'Попередження';
+$_['text_run_status_running'] = 'Виконується';
+$_['text_run_status_locked'] = 'Заблоковано';
+$_['text_run_status_pending'] = 'Очікує';
