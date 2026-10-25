@@ -17,6 +17,26 @@ class ControllerToolCron extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
+    private function displayRunStatus($status) {
+        $status = trim((string)$status);
+        $map = array('success'=>'success','ok'=>'success','done'=>'success','error'=>'error','failed'=>'error',
+            'warning'=>'warning','running'=>'running','locked'=>'locked','pending'=>'pending','processing'=>'running');
+        $key = isset($map[$status]) ? $map[$status] : '';
+        return $key !== '' ? $this->language->get('text_run_status_' . $key) : ($status !== '' ? $status : '—');
+    }
+
+    private function displayRunMessage($message, $status, $route = '') {
+        $message = trim((string)$message);
+        if ($message === 'text_success' && $route === 'cron/currency') {
+            return $this->language->get('text_run_status_success','text_run_status_error','text_run_status_warning','text_run_status_running','text_run_status_locked','text_run_status_pending','text_task_history','text_task_manual','text_task_scheduled','text_task_history_empty','text_currency_refresh_success');
+        }
+        // Handler text must be preserved; unresolved language keys are not useful messages.
+        if ($message === '' || $message === 'OK' || preg_match('/^(?:text|error)_[a-z0-9_]+$/i', $message)) {
+            return $this->displayRunStatus($status);
+        }
+        return $message;
+    }
+
     public function index() {
         $this->load->language('tool/cron');
         $this->document->setTitle($this->language->get('heading_title'));
@@ -49,6 +69,8 @@ class ControllerToolCron extends Controller {
         $data['queue_url'] = $this->url->link('tool/queue', 'user_token=' . $this->session->data['user_token'], true);
         $data['user_token'] = $this->session->data['user_token'];
         $data['tasks'] = array();
+        $data['task_history'] = array();
+        $data['history_task'] = array();
         $data['edit_task'] = array('cron_id'=>0,'code'=>'','route'=>'','interval_seconds'=>3600,'cron_expression'=>'','args'=>'{}','status'=>1);
         $data['cli_command'] = 'php ' . rtrim(dirname(DIR_APPLICATION), '/\\') . '/cli.php jobs:run';
         $data['http_command'] = '';
@@ -190,6 +212,19 @@ class ControllerToolCron extends Controller {
             require_once(DIR_SYSTEM . 'library/novacart/scheduler.php');
             $scheduler = new NovaCartScheduler($this->registry);
             $scheduler->install();
+            $historyId = isset($this->request->get['history_id']) ? (int)$this->request->get['history_id'] : 0;
+            if ($historyId > 0) {
+                $data['history_task'] = $scheduler->getTask($historyId);
+                if ($data['history_task']) {
+                    $scheduler->installHistory();
+                    $data['task_history'] = $scheduler->recentHistory($historyId, 30);
+                    foreach ($data['task_history'] as &$entry) {
+                        $entry['status_display'] = $this->displayRunStatus($entry['status']);
+                        $entry['message_display'] = $this->displayRunMessage($entry['message'], $entry['status'], $data['history_task']['route']);
+                    }
+                    unset($entry);
+                }
+            }
             $data['tasks'] = $scheduler->listTasks();
             foreach ($data['tasks'] as &$task) {
                 $remaining = (int)$task['interval_seconds'];
@@ -256,6 +291,13 @@ class ControllerToolCron extends Controller {
             require_once(DIR_SYSTEM . 'library/novacart/jobs_monitor.php');
             $monitor = new NovaCartJobsMonitor($this->registry);
             $data['job_runs'] = $monitor->recent(30);
+            foreach ($data['job_runs'] as &$run) {
+                $run['status_display'] = $this->displayRunStatus($run['status']);
+                $run['scheduler_status_display'] = $this->displayRunStatus($run['scheduler_status']);
+                $run['queue_status_display'] = $this->displayRunStatus($run['queue_status']);
+                $run['error_display'] = $this->displayRunMessage($run['error_message'], $run['status']);
+            }
+            unset($run);
             if ($data['job_runs']) {
                 $latest = $data['job_runs'][0];
                 $age = $this->db->query("SELECT TIMESTAMPDIFF(MINUTE, started_at, NOW()) AS minutes FROM `" . DB_PREFIX . "novacart_jobs_run` WHERE run_id=" . (int)$latest['run_id'])->row;
