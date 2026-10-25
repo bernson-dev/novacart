@@ -80,11 +80,11 @@
             {% for run in job_runs %}
               <tr>
                 <td>{{ run.started_at }}</td><td>{{ run_source_labels[run.source]|default(run.source) }}</td><td>{{ run.finished_at ?: '—' }}</td>
-                <td>{{ run.status }}</td>
-                <td>{{ run.scheduler_status ?: '—' }} ({{ run.scheduler_processed }}/{{ run.scheduler_failed }})</td>
-                <td>{{ run.queue_status ?: '—' }} ({{ run.queue_processed }}/{{ run.queue_failed }})</td>
+                <td>{{ run.status_display }}</td>
+                <td>{{ run.scheduler_status_display }} ({{ run.scheduler_processed }}/{{ run.scheduler_failed }})</td>
+                <td>{{ run.queue_status_display }} ({{ run.queue_processed }}/{{ run.queue_failed }})</td>
                 <td>{{ run.duration_ms is not null ? run.duration_ms ~ ' ms' : '—' }}</td>
-                <td>{{ run.error_message ?: '—' }}</td>
+                <td>{{ run.error_message ? run.error_display : '—' }}</td>
               </tr>
             {% else %}
               <tr><td colspan="8" class="text-center">{{ text_monitor_empty }}</td></tr>
@@ -114,8 +114,9 @@
                     <td title="{{ task.interval_seconds }} {{ text_interval_seconds }}">{{ task.interval_display }}</td>
                     <td><span class="label label-{{ task.status ? 'success' : 'default' }}">{{ task.status ? text_enabled : text_disabled }}</span></td>
                     <td>{{ task.date_last ?: '—' }}</td><td>{{ task.date_next }}</td>
-                    <td>{% if task.last_status %}<span class="label label-{{ task.last_status == 'success' ? 'success' : 'danger' }}">{{ task.last_status }}</span>{% if task.last_duration_ms is not null %} <small>{{ task.last_duration_ms }} ms</small>{% endif %}{% else %}—{% endif %}</td><td title="{{ task.last_message == 'text_success' and task.route == 'cron/currency' ? text_currency_refresh_success : (task.last_message ?: '') }}">{{ task.last_message == 'text_success' and task.route == 'cron/currency' ? text_currency_refresh_success : (task.last_message ?: '—') }}</td>
+                    <td>{% if task.last_status %}<span class="label label-{{ task.last_status == 'success' ? 'success' : 'danger' }}">{{ task.status_display }}</span>{% if task.last_duration_ms is not null %} <small>{{ task.last_duration_ms }} ms</small>{% endif %}{% else %}—{% endif %}</td><td title="{{ task.message_display }}">{{ task.last_message ? task.message_display : '—' }}</td>
                     <td class="text-right" style="white-space:nowrap">
+                      <a class="btn btn-sm btn-default" href="{{ action }}&history_id={{ task.cron_id }}#task-history" title="{{ text_task_history }}"><i class="fa fa-history"></i></a>
                       {% if can_modify %}
                         <form action="" method="post" style="display:inline">
                           <input type="hidden" name="scheduler_action" value="run">
@@ -147,6 +148,25 @@
         </div>
       </div>
     </div>
+    {% if history_task %}
+    <div class="panel panel-default" id="task-history">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-history"></i> {{ text_task_history }}: {{ history_task.code }}</h3></div>
+      <div class="panel-body">
+        <div class="table-responsive"><table class="table table-bordered table-striped">
+          <thead><tr><td>{{ column_started }}</td><td>{{ column_source }}</td><td>{{ column_run_status }}</td><td>{{ column_duration }}</td><td>{{ column_message }}</td></tr></thead>
+          <tbody>
+          {% for entry in task_history %}
+            <tr><td>{{ entry.started_at }}</td><td>{{ entry.source == 'manual' ? text_task_manual : text_task_scheduled }}</td>
+            <td><span class="label label-{{ entry.status == 'success' ? 'success' : 'danger' }}">{{ entry.status_display }}</span></td>
+            <td>{{ entry.duration_ms }} ms</td><td>{{ entry.message_display }}</td></tr>
+          {% else %}
+            <tr><td colspan="5" class="text-center">{{ text_task_history_empty }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+    {% endif %}
     <div class="panel panel-default nc-queue-panel" id="queue-panel">
       <div class="panel-heading nc-queue-heading">
         <h3 class="panel-title"><i class="fa fa-tasks"></i> {{ text_queue_panel }}</h3>
