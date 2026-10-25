@@ -31,6 +31,8 @@ class ControllerToolCron extends Controller {
         $data['queue_url'] = $this->url->link('tool/queue', 'user_token=' . $this->session->data['user_token'], true);
         $data['user_token'] = $this->session->data['user_token'];
         $data['tasks'] = array();
+        $data['task_history'] = array();
+        $data['history_task'] = array();
         $data['edit_task'] = array('cron_id'=>0,'code'=>'','route'=>'','interval_seconds'=>3600,'args'=>'{}','status'=>1);
         $data['cli_command'] = 'php ' . rtrim(dirname(DIR_APPLICATION), '/\\') . '/cli.php jobs:run';
         $data['http_command'] = '';
@@ -165,6 +167,14 @@ class ControllerToolCron extends Controller {
         try {
             require_once(DIR_SYSTEM . 'library/novacart/scheduler.php');
             $scheduler = new NovaCartScheduler($this->registry);
+            $historyId = isset($this->request->get['history_id']) ? (int)$this->request->get['history_id'] : 0;
+            if ($historyId > 0) {
+                $data['history_task'] = $scheduler->getTask($historyId);
+                if ($data['history_task']) {
+                    $scheduler->installHistory();
+                    $data['task_history'] = $scheduler->recentHistory($historyId, 30);
+                }
+            }
             $data['tasks'] = $scheduler->listTasks();
             foreach ($data['tasks'] as &$task) {
                 $remaining = (int)$task['interval_seconds'];
