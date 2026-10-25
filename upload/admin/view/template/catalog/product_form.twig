@@ -1900,8 +1900,8 @@
                         let body = `<p>${r.message}</p>`;
 
                         if (r.filled_languages_stats && r.source_language) {
-                            body += '<p style="margin-top: 15px; font-size:12px; color:#777; font-weight: bold;">{{ text_before_copy }}:</p>';
-                            body += '<ul style="margin: 8px 0 0 20px; font-size:12px; color:#555;">';
+                            body += '<p class="nc-copy-stats-title">{{ text_before_copy }}:</p>';
+                            body += '<ul class="nc-copy-stats-list">';
                             for (const code in r.filled_languages_stats) {
                                 if (r.filled_languages_stats.hasOwnProperty(code)) {
                                     const count = r.filled_languages_stats[code];
@@ -1917,8 +1917,8 @@
                         }
 
                         if (r.copied_fields && r.copied_fields.length > 0) {
-                            body += '<p style="margin-top: 15px; font-size:12px; color:#777; font-weight: bold;">{{ text_copied_fields }}:</p>';
-                            body += '<ul style="margin: 8px 0 0 20px; font-size:13px; color:#555;">';
+                            body += '<p class="nc-copy-stats-title">{{ text_copied_fields }}:</p>';
+                            body += '<ul class="nc-copy-stats-list nc-copy-stats-list-large">';
 
                             r.copied_fields.forEach(item => {
                                 const fieldName = item.field;
@@ -1932,23 +1932,14 @@
 
                         const modal = document.createElement('div');
                         modal.innerHTML = `
-                    <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;justify-content:center;align-items:center;z-index:9999;">
-                        <div style="background:white;padding:24px;border-radius:8px;max-width:450px;font-family:Arial,sans-serif;">
-                            <h3 style="margin:0 0 16px 0; color:#333;">${title}</h3>
-                            <div style="color:#444;">${body}</div>
+                    <div class="nc-copy-modal-overlay">
+                        <div class="nc-copy-modal-dialog">
+                            <h3 class="nc-copy-modal-title">${title}</h3>
+                            <div class="nc-copy-modal-body">${body}</div>
                             <button onclick="
                                 this.closest('div').parentElement.remove();
                                 window.location.href = window.location.pathname + window.location.search;
-                            " style="
-                                margin-top:20px;
-                                padding:10px 20px;
-                                background:#007bff;
-                                color:white;
-                                border:none;
-                                border-radius:4px;
-                                cursor:pointer;
-                                font-size:14px;
-                            ">
+                            " class="nc-copy-modal-close">
                                 {{ text_close_and_refresh }}
                             </button>
                         </div>
