@@ -134,7 +134,7 @@
                         <form action="" method="post" style="display:inline">
                           <input type="hidden" name="cron_id" value="{{ task.cron_id }}">
                           <input type="hidden" name="status" value="{{ task.status ? 0 : 1 }}">
-                          <button type="submit" class="btn btn-sm {{ task.status ? 'btn-warning' : 'btn-success' }}">{{ task.status ? button_disable : button_enable }}</button>
+                          <button type="submit" class="btn btn-sm nc-cron-toggle {{ task.status ? 'btn-warning' : 'btn-success' }}" title="{{ task.status ? button_disable : button_enable }}" aria-label="{{ task.status ? button_disable : button_enable }}"><i class="fa fa-{{ task.status ? 'pause' : 'check' }}" aria-hidden="true"></i></button>
                         </form>
                       {% endif %}
                     </td>
@@ -327,7 +327,7 @@
 .nc-interval-calc .help-block{margin:6px 0 0}
 @media(max-width:767px){.nc-interval-fields{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:400px){.nc-interval-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.nc-queue-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.nc-cron-toggle{width:34px;min-width:34px;text-align:center;padding-left:0;padding-right:0}\n.nc-queue-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .nc-queue-heading .panel-title{float:none;margin:0;line-height:30px}
 .nc-queue-heading-actions{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
 .nc-queue-heading-actions form{margin:0}
