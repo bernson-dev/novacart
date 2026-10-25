@@ -120,3 +120,5 @@ $_['text_schedule_cron'] = 'Cron-выражение';
 $_['text_cron_expression'] = 'Расписание Cron (5 полей)';
 $_['text_cron_preview'] = 'Показать ближайшие запуски';
 $_['text_cron_example'] = 'Пример: 0 3 * * * — ежедневно в 03:00 по времени базы данных.';
+
+$_['text_cron_preview_failed'] = 'Не удалось получить предпросмотр';
