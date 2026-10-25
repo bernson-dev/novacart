@@ -2210,7 +2210,7 @@ FLYOUT И СКРОЛЛБАРЫ
 
 
 /* Store settings: shortage popup controls and reusable section headings. */
-#tab-stock-popup .settings-section-title {
+#form-setting .settings-section-title {
     background-color: #f5f5f5;
     padding: 6px 10px;
     border-radius: 4px;
