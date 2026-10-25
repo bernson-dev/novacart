@@ -40,13 +40,13 @@ class NovaCartScheduler {
 
     private function nextCron($expression) {
         require_once(DIR_SYSTEM . 'library/novacart/cron_expression.php');
-        $now = $this->db->query("SELECT NOW() AS current_time")->row['current_time'];
+        $now = $this->db->query("SELECT NOW() AS cron_now")->row['cron_now'];
         return NovaCartCronExpression::next($expression, $now, 1)[0];
     }
 
     public function previewCron($expression, $count = 5) {
         require_once(DIR_SYSTEM . 'library/novacart/cron_expression.php');
-        $now = $this->db->query("SELECT NOW() AS current_time")->row['current_time'];
+        $now = $this->db->query("SELECT NOW() AS cron_now")->row['cron_now'];
         return NovaCartCronExpression::next($expression, $now, $count);
     }
 
