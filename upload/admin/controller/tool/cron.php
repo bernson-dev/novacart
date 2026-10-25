@@ -28,7 +28,7 @@ class ControllerToolCron extends Controller {
     private function displayRunMessage($message, $status, $route = '') {
         $message = trim((string)$message);
         if ($message === 'text_success' && $route === 'cron/currency') {
-            return $this->language->get('text_run_status_success','text_run_status_error','text_run_status_warning','text_run_status_running','text_run_status_locked','text_run_status_pending','text_task_history','text_task_manual','text_task_scheduled','text_task_history_empty','text_currency_refresh_success');
+            return $this->language->get('text_currency_refresh_success');
         }
         // Handler text must be preserved; unresolved language keys are not useful messages.
         if ($message === '' || $message === 'OK' || preg_match('/^(?:text|error)_[a-z0-9_]+$/i', $message)) {
