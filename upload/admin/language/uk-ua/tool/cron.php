@@ -118,3 +118,5 @@ $_['text_schedule_cron'] = 'Cron-вираз';
 $_['text_cron_expression'] = 'Розклад Cron (5 полів)';
 $_['text_cron_preview'] = 'Показати найближчі запуски';
 $_['text_cron_example'] = 'Приклад: 0 3 * * * — щодня о 03:00 за часом бази даних.';
+
+$_['text_cron_preview_failed'] = 'Не вдалося отримати попередній перегляд';
