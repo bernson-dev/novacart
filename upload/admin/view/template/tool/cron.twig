@@ -156,8 +156,8 @@
           <thead><tr><td>{{ column_started }}</td><td>{{ column_source }}</td><td>{{ column_run_status }}</td><td>{{ column_duration }}</td><td>{{ column_message }}</td></tr></thead>
           <tbody>
           {% for entry in task_history %}
-            <tr><td>{{ entry.started_at }}</td><td>{{ entry.source == 'manual' ? text_task_manual : text_task_scheduled }}</td>
-            <td><span class="label label-{{ entry.status == 'success' ? 'success' : 'danger' }}">{{ entry.status_display }}</span></td>
+            <tr><td>{{ entry.started_at }}</td><td>{{ entry.source_display }}</td>
+            <td><span class="label label-{{ entry.status == 'success' ? 'success' : (entry.status == 'skipped' ? 'warning' : 'danger') }}">{{ entry.status_display }}</span></td>
             <td>{{ entry.duration_ms }} ms</td><td>{{ entry.message_display }}</td></tr>
           {% else %}
             <tr><td colspan="5" class="text-center">{{ text_task_history_empty }}</td></tr>
@@ -265,6 +265,12 @@
             </div>
           </div></div>
           </div>
+          <div class="form-group"><label class="col-sm-2 control-label">{{ text_misfire_policy }}</label><div class="col-sm-10">
+            <select class="form-control" name="misfire_policy">
+              <option value="run_once" {{ edit_task.misfire_policy|default('run_once') == 'run_once' ? 'selected' : '' }}>{{ text_misfire_run_once }}</option>
+              <option value="skip" {{ edit_task.misfire_policy|default('run_once') == 'skip' ? 'selected' : '' }}>{{ text_misfire_skip }}</option>
+            </select><small class="help-block">{{ text_misfire_help }}</small>
+          </div></div>
           <div class="form-group"><label class="col-sm-2 control-label">{{ text_action_args }}</label><div class="col-sm-10"><textarea class="form-control" name="args" rows="3">{{ edit_task.args }}</textarea></div></div>
           <div class="form-group"><label class="col-sm-2 control-label">{{ column_status }}</label><div class="col-sm-10"><select class="form-control" name="status"><option value="1" {{ edit_task.status ? 'selected' : '' }}>{{ text_enabled }}</option><option value="0" {{ not edit_task.status ? 'selected' : '' }}>{{ text_disabled }}</option></select></div></div>
           <div class="text-right"><a class="btn btn-default" href="{{ action }}">{{ text_action_cancel }}</a> <button class="btn btn-primary" type="submit"><i class="fa fa-save"></i> {{ text_action_save }}</button></div>

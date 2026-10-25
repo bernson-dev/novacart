@@ -71,7 +71,7 @@ class ControllerCronRun extends Controller {
                 $queueResult = array('status' => 'error', 'processed' => 0, 'failed' => 0);
                 $runErrors = array();
                 try {
-                    $cronResult = $scheduler->runDue(20);
+                    $cronResult = $scheduler->runDue(20, $source);
                 } catch (Throwable $e) {
                     $runErrors[] = 'Scheduler: ' . get_class($e) . ': ' . $e->getMessage();
                 }
