@@ -47,14 +47,17 @@ class NovaCartScheduler {
 
     private function nextCron($expression) {
         require_once(DIR_SYSTEM . 'library/novacart/cron_expression.php');
-        $now = $this->db->query("SELECT NOW() AS cron_now")->row['cron_now'];
-        return NovaCartCronExpression::next($expression, $now, 1)[0];
+        $utc = $this->db->query("SELECT UTC_TIMESTAMP() AS cron_utc")->row['cron_utc'];
+        $instant = new DateTimeImmutable($utc, new DateTimeZone('UTC'));
+        $timezone = date_default_timezone_get();
+        return NovaCartCronExpression::nextInTimezone($expression, $instant, $timezone, 1)[0];
     }
 
     public function previewCron($expression, $count = 5) {
         require_once(DIR_SYSTEM . 'library/novacart/cron_expression.php');
-        $now = $this->db->query("SELECT NOW() AS cron_now")->row['cron_now'];
-        return NovaCartCronExpression::next($expression, $now, $count);
+        $utc = $this->db->query("SELECT UTC_TIMESTAMP() AS cron_utc")->row['cron_utc'];
+        $instant = new DateTimeImmutable($utc, new DateTimeZone('UTC'));
+        return NovaCartCronExpression::nextInTimezone($expression, $instant, date_default_timezone_get(), $count);
     }
 
     public function installHistory() {
