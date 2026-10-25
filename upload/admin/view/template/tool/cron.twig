@@ -286,7 +286,7 @@
     }).fail(function (xhr, status, error) {
       var message = (xhr.responseJSON && xhr.responseJSON.error) || '';
       if (!message && xhr.responseText) {
-        var plain = $('<div>').html(xhr.responseText).text().replace(/\\s+/g, ' ').trim();
+        var plain = $('<div>').html(xhr.responseText).text().replace(/\s+/g, ' ').trim();
         message = plain.substring(0, 240);
       }
       results.textContent = {{ text_cron_preview_failed|json_encode|raw }} + ' (HTTP ' + xhr.status + ', ' + status + ')' +
