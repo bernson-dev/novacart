@@ -116,3 +116,10 @@ $_['text_task_history'] = 'Task history';
 $_['text_task_manual'] = 'Manual run';
 $_['text_task_scheduled'] = 'Scheduled run';
 $_['text_task_history_empty'] = 'No task runs yet';
+
+$_['text_run_status_success'] = 'Success';
+$_['text_run_status_error'] = 'Error';
+$_['text_run_status_warning'] = 'Warning';
+$_['text_run_status_running'] = 'Running';
+$_['text_run_status_locked'] = 'Locked';
+$_['text_run_status_pending'] = 'Pending';
