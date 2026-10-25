@@ -68,69 +68,7 @@
     </div>
 </div>
 
-<style>
-    /* Стиль для контейнера и тостов */
-    .fm-toast-container {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1060;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .fm-toast-item {
-        position: relative;
-        width: 300px;
-        padding: 15px;
-        border-radius: 5px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        color: #fff;
-        display: none;
-        cursor: pointer;
-    }
-    .fm-toast-item.info {
-        background-color: #5bc0de;
-    }
-    .fm-toast-item.success {
-        background-color: #5cb85c;
-    }
-    .fm-toast-item.danger {
-        background-color: #d9534f;
-    }
-    .fm-toast-item.warning {
-        background-color: #f0ad4e;
-    }
 
-    .fm-toast-timer-bar {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        height: 4px;
-        background-color: rgba(255, 255, 255, 0.5);
-        animation: timer-countdown 5s linear forwards;
-    }
-
-    #filemanager .thumbnail.fm-thumb {
-        width: 110px;
-        height: 110px;
-        padding: 4px;
-        margin: 0 auto 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-    }
-
-    @keyframes timer-countdown {
-        from {
-            width: 100%;
-        }
-        to {
-            width: 0%;
-        }
-    }
-</style>
 
 <script type="text/javascript">
     // --- Локализация для JS  ---
