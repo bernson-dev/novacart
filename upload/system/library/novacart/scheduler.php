@@ -66,8 +66,11 @@ class NovaCartScheduler {
         $this->db->query("INSERT IGNORE INTO `" . DB_PREFIX . "novacart_cron` SET code='" .
             $this->db->escape($code) . "', route='" . $this->db->escape($route) .
             "', args='" . $this->db->escape($json) . "', interval_seconds=" .
-            (int)$interval . ", status=" . (int)(bool)$enabled .
-            ", date_next=NOW(), date_added=NOW(), date_modified=NOW()");
+            (int)$interval . ", cron_expression=" .
+            ($expression === '' ? "NULL" : "'" . $this->db->escape($expression) . "'") .
+            ", status=" . (int)(bool)$enabled . ", date_next=" .
+            ($next === null ? "NOW()" : "'" . $this->db->escape($next) . "'") .
+            ", date_added=NOW(), date_modified=NOW()");
     }
 
     // CodeCart-compatible administration API, backed by the existing NovaCart table.
@@ -105,9 +108,10 @@ class NovaCartScheduler {
     }
 
     public function setStatus($id, $enabled) {
-        if (!$this->getTask($id)) { throw new RuntimeException('Scheduler task not found'); }
-        $next = $enabled && !empty($this->getTask($id)['cron_expression']) ?
-            "'" . $this->db->escape($this->nextCron($this->getTask($id)['cron_expression'])) . "'" : 'NOW()';
+        $task = $this->getTask($id);
+        if (!$task) { throw new RuntimeException('Scheduler task not found'); }
+        $next = $enabled && !empty($task['cron_expression']) ?
+            "'" . $this->db->escape($this->nextCron($task['cron_expression'])) . "'" : 'NOW()';
         $this->db->query("UPDATE `" . DB_PREFIX . "novacart_cron` SET status=" . (int)(bool)$enabled .
             ($enabled ? ", date_next=" . $next : "") . ", date_modified=NOW() WHERE cron_id=" . (int)$id);
     }
