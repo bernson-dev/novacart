@@ -111,3 +111,8 @@ $_['text_cron_curl_help'] = 'curl flags: -sS shows errors; -i includes HTTP head
 $_['text_cron_key_rotate'] = 'Generate new secret key';
 $_['text_cron_key_confirm'] = 'Replace the HTTPS Web Cron secret? Previously copied URLs and commands will stop working.';
 $_['text_cron_key_rotated'] = 'HTTPS Web Cron secret replaced. Copy the updated command.';
+
+$_['text_task_history'] = 'Task history';
+$_['text_task_manual'] = 'Manual run';
+$_['text_task_scheduled'] = 'Scheduled run';
+$_['text_task_history_empty'] = 'No task runs yet';
