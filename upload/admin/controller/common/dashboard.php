@@ -58,6 +58,16 @@ class ControllerCommonDashboard extends Controller {
 
 		array_multisort($sort_order, SORT_ASC, $dashboards);
 
+		// Store Health is a full-width operations center, placed after the
+		// standard dashboard cards regardless of widget sort order.
+		$data['health_dashboard'] = '';
+		foreach ($dashboards as $key => $dashboard) {
+			if ($dashboard['code'] === 'health') {
+				$data['health_dashboard'] = $dashboard['output'];
+				unset($dashboards[$key]);
+			}
+		}
+
 		// Split the array so the columns width is not more than 12 on each row.
 		$width = 0;
 		$column = array();

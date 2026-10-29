@@ -1,0 +1,46 @@
+/* NovaCart Store Health — dashboard-only presentation */
+.nc-health .panel-body{padding:18px}
+.nc-health-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.nc-health-metric{display:flex;align-items:center;gap:9px;padding:15px;border:1px solid #dce2e8;border-radius:8px;background:#f8fafc;color:#344054;font-size:13px}
+.nc-health-metric .fa{font-size:20px}
+.nc-health-metric-number{font-size:27px;font-weight:700;line-height:1.1}
+.nc-health-metric-ok .fa{color:#268a52}
+.nc-health-metric-warning .fa{color:#b47a12}
+.nc-health-metric-error .fa{color:#bd3d3d}
+.nc-health-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.nc-health-actions .btn{white-space:normal;text-align:left}
+.nc-health-actions .fa{margin-right:5px}
+.nc-health-sections>div{margin-bottom:16px}
+.nc-health-section{border:1px solid #dce2e8;border-radius:8px;overflow:hidden;background:#fff}
+.nc-health-section-heading{display:flex;justify-content:space-between;gap:10px;padding:13px 15px;background:#f1f5f9;font-weight:600}
+.nc-health-section-heading .fa{margin-right:6px}
+.nc-health-section-summary .label{margin-left:4px}
+.nc-health-check{border-top:1px solid #e8edf2}
+.nc-health-check:first-child{border-top:0}
+.nc-health-check summary{display:flex;align-items:center;gap:10px;min-height:44px;padding:10px 14px;cursor:pointer;list-style:none}
+.nc-health-check summary::-webkit-details-marker{display:none}
+.nc-health-check summary:hover{background:#f8fafc}
+.nc-health-check-name{flex:1;min-width:0;font-weight:500}
+.nc-health-check-value{max-width:35%;overflow-wrap:anywhere;text-align:right;color:#49576a;font-size:12px}
+.nc-health-check .label{flex-shrink:0}
+.nc-health-expand{color:#8090a0}
+.nc-health-check[open] .nc-health-expand{transform:rotate(180deg)}
+.nc-health-check-details{padding:0 14px 13px 34px;color:#576574;overflow-wrap:anywhere}
+.nc-health-check-details p{margin:2px 0 10px}
+.nc-health-check-details code{white-space:normal;overflow-wrap:anywhere}
+.nc-health-dot{font-size:9px}
+.nc-health-dot-success{color:#268a52}
+.nc-health-dot-warning{color:#b47a12}
+.nc-health-dot-danger{color:#bd3d3d}
+.nc-health-dot-info{color:#4b89ac}
+@media(max-width:767px){.nc-health-overview{grid-template-columns:1fr}.nc-health-check summary{flex-wrap:wrap}.nc-health-check-value{max-width:60%}.nc-health .panel-body{padding:12px}}
+
+.nc-health-attention{margin:0 0 18px;padding:14px;border:1px solid #e1e7ed;border-radius:8px;background:#fff}
+.nc-health-attention h4{margin:0 0 12px;font-size:14px;font-weight:600}
+.nc-health-attention h4 .fa{color:#b47a12}
+.nc-health-attention-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.nc-health-attention-item{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:11px;border:1px solid #e9d6c5;border-left:3px solid #b47a12;border-radius:6px;background:#fffaf2;font-size:12px}
+.nc-health-attention-danger{border-left-color:#c94545;background:#fff6f6}
+.nc-health-attention-item .nc-health-check-name{flex:1;min-width:120px}
+.nc-health-attention-item a{margin-left:auto}
+@media(max-width:767px){.nc-health-attention-list{grid-template-columns:1fr}}
