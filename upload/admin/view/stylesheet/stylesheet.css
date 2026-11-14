@@ -553,7 +553,12 @@ a:focus-visible,
 }
 
 #header #user-profile {
+	width: 1.875rem;
+	height: 1.875rem;
+	min-width: 1.875rem;
 	max-width: 1.875rem;
+	flex: 0 0 1.875rem;
+	object-fit: cover;
 	margin-right: 0.5rem;
 	border-radius: 50%;
 	overflow: hidden;
@@ -2052,7 +2057,6 @@ FLYOUT И СКРОЛЛБАРЫ
 	}
 
 	#header #user-profile {
-		max-width: none;
 		margin-right: 0.9375rem;
 	}
 
