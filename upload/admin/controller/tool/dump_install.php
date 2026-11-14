@@ -199,47 +199,6 @@ class ControllerToolDumpInstall extends Controller {
 			$data['comment_store_id'] = (string)(int)$this->request->post['comment_store_id'];
 		}
 
-		// Основные языковые переменные
-//		$data['heading_title'] = $this->language->get('heading_title');
-//		$data['text_home'] = $this->language->get('text_home');
-//		$data['text_list'] = $this->language->get('text_list');
-//		$data['text_help'] = $this->language->get('text_help');
-//
-//		$data['entry_comment'] = $this->language->get('entry_comment');
-//		$data['entry_comment_help'] = $this->language->get('entry_comment_help');
-//		$data['entry_installer_mode'] = $this->language->get('entry_installer_mode');
-//		$data['entry_include_drop'] = $this->language->get('entry_include_drop');
-//		$data['entry_include_drop_help'] = $this->language->get('entry_include_drop_help');
-//		$data['entry_table_filter'] = $this->language->get('entry_table_filter');
-//		$data['entry_table_filter_placeholder'] = $this->language->get('entry_table_filter_placeholder');
-//		$data['entry_data_include'] = $this->language->get('entry_data_include');
-//		$data['entry_data_include_help'] = $this->language->get('entry_data_include_help');
-//
-//		$data['text_installer_mode'] = $this->language->get('text_installer_mode');
-//		$data['text_installer_mode_help'] = $this->language->get('text_installer_mode_help');
-//		$data['text_installer_mode_notice'] = $this->language->get('text_installer_mode_notice');
-//		$data['text_installer_auto_hint'] = $this->language->get('text_installer_auto_hint');
-//
-//		$data['text_hosting_limit_details_title'] = $this->language->get('text_hosting_limit_details_title');
-//
-//		$data['text_quick_help_title'] = $this->language->get('text_quick_help_title');
-//		$data['text_quick_help_structure'] = $this->language->get('text_quick_help_structure');
-//		$data['text_quick_help_data'] = $this->language->get('text_quick_help_data');
-//		$data['text_quick_help_safe'] = $this->language->get('text_quick_help_safe');
-//
-//		$data['text_table_filter_help'] = $this->language->get('text_table_filter_help');
-//		$data['text_visible_tables'] = $this->language->get('text_visible_tables');
-//		$data['text_selected_tables'] = $this->language->get('text_selected_tables');
-//		$data['text_default_excluded_tables'] = $this->language->get('text_default_excluded_tables');
-//		$data['text_data_include_notice'] = $this->language->get('text_data_include_notice');
-//		$data['text_export_processing'] = $this->language->get('text_export_processing');
-//
-//		$data['button_export'] = $this->language->get('button_export');
-//		$data['button_sel_all'] = $this->language->get('button_sel_all');
-//		$data['button_sel_none'] = $this->language->get('button_sel_none');
-//		$data['button_default'] = $this->language->get('button_default');
-//		$data['button_clear_filter'] = $this->language->get('button_clear_filter');
-
 		// Авто-определение изменения параметров для установочного дампа при слабом хостинге.
 		$hostingWarnings = $this->getWeakHostingWarnings();
 		$isWeakHosting = !empty($hostingWarnings);

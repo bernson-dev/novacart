@@ -128,23 +128,23 @@ class ControllerCommonHeader extends Controller {
 		}
 
 
-        $data['personal_language_options'] = array();
-        $data['personal_language_current'] = (string)$this->config->get('config_admin_language');
-        $data['personal_language_url'] = '';
+		$data['personal_language_options'] = array();
+		$data['personal_language_current'] = (string)$this->config->get('config_admin_language');
+		$data['personal_language_url'] = '';
 
-        if (!empty($data['logged'])) {
-            $data['personal_language_url'] = $this->url->link('common/personal_language', 'user_token=' . $this->session->data['user_token'], true);
-            $query = $this->db->query("SELECT code, name FROM `" . DB_PREFIX . "language` WHERE status = 1 ORDER BY sort_order, name");
+		if (!empty($data['logged'])) {
+			$data['personal_language_url'] = $this->url->link('common/personal_language', 'user_token=' . $this->session->data['user_token'], true);
+			$query = $this->db->query("SELECT code, name FROM `" . DB_PREFIX . "language` WHERE status = 1 ORDER BY sort_order, name");
 
-            foreach ($query->rows as $row) {
-                if (is_file(DIR_LANGUAGE . $row['code'] . '/common/header.php')) {
-                    $data['personal_language_options'][] = array(
-                        'code' => $row['code'],
-                        'name' => $row['name']
-                    );
-                }
-            }
-        }
+			foreach ($query->rows as $row) {
+				if (is_file(DIR_LANGUAGE . $row['code'] . '/common/header.php')) {
+					$data['personal_language_options'][] = array(
+					'code' => $row['code'],
+					'name' => $row['name']
+					);
+				}
+			}
+		}
 
 		$data['search'] = $this->load->controller('search/search');
 

@@ -1,6 +1,6 @@
 -- Export DB
 -- Installation dump
--- Created at: 2026-10-25 00:09:16
+-- Created at: 2026-11-14 18:55:53
 -- FOR INSTALLER (safe mode: limit=100, compatible format)
 
 SET NAMES utf8mb4;
@@ -1400,9 +1400,9 @@ CREATE TABLE `oc_currency` (
 
 INSERT INTO `oc_currency` (`title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `correction_rate`, `status`, `date_modified`) VALUES
 ('Рубль', 'RUB', '', ' р.', '2', 2.52, 1, 0, '2024-11-24 17:44:42'),
-('US Dollar', 'USD', '$', '', '2', 0.02212287, 1, 0, '2026-10-24 14:18:26'),
-('Euro', 'EUR', '', '€', '2', 0.01977199, 1, 0, '2026-10-24 14:18:26'),
-('Гривня', 'UAH', '', ' грн', '2', 1, 1, 1, '2026-10-24 14:18:26');
+('US Dollar', 'USD', '$', '', '2', 0.02212287, 1, 0, '2026-10-25 14:45:01'),
+('Euro', 'EUR', '', '€', '2', 0.01977199, 1, 0, '2026-10-25 14:45:01'),
+('Гривня', 'UAH', '', ' грн', '2', 1, 1, 1, '2026-10-25 14:45:01');
 
 ----------------------------------------------------------
 
@@ -3034,6 +3034,8 @@ CREATE TABLE `oc_novacart_cron` (
   `route` varchar(255) NOT NULL,
   `args` text NOT NULL,
   `interval_seconds` int(10) unsigned NOT NULL DEFAULT '3600',
+  `cron_expression` varchar(100) DEFAULT NULL,
+  `misfire_policy` varchar(16) NOT NULL DEFAULT 'run_once',
   `status` tinyint(1) NOT NULL DEFAULT '1',
   `date_next` datetime NOT NULL,
   `date_last` datetime DEFAULT NULL,
@@ -3051,6 +3053,33 @@ CREATE TABLE `oc_novacart_cron` (
 
 --
 -- Dumping data for table `oc_novacart_cron`
+--
+
+
+----------------------------------------------------------
+
+--
+-- Table structure for table `oc_novacart_cron_history`
+--
+
+DROP TABLE IF EXISTS `oc_novacart_cron_history`;
+CREATE TABLE `oc_novacart_cron_history` (
+  `history_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `cron_id` int(10) unsigned NOT NULL,
+  `task_code` varchar(128) NOT NULL,
+  `source` varchar(16) NOT NULL,
+  `started_at` datetime NOT NULL,
+  `status` varchar(16) NOT NULL,
+  `duration_ms` int(10) unsigned NOT NULL DEFAULT '0',
+  `message` text,
+  PRIMARY KEY (`history_id`),
+  KEY `task_recent` (`cron_id`,`history_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+----------------------------------------------------------
+
+--
+-- Dumping data for table `oc_novacart_cron_history`
 --
 
 
@@ -3740,24 +3769,24 @@ CREATE TABLE `oc_product` (
 --
 
 INSERT INTO `oc_product` (`product_id`, `model`, `sku`, `upc`, `ean`, `jan`, `isbn`, `mpn`, `location`, `quantity`, `stock_status_id`, `image`, `manufacturer_id`, `shipping`, `price`, `cost_price`, `points`, `tax_class_id`, `date_available`, `weight`, `weight_class_id`, `length`, `width`, `height`, `length_class_id`, `subtract`, `minimum`, `sort_order`, `status`, `viewed`, `date_added`, `date_modified`, `noindex`, `comment`) VALUES
-(28, 'Product 1', '', '', '', '', '', '', '', 939, 7, 'catalog/demo/htc_touch_hd_1.jpg', 5, 1, 100, 0, 200, 9, '2009-02-03', 146.4, 2, 0, 0, 0, 1, 1, 1, 0, 1, 0, '2009-02-03 16:06:50', '2011-09-30 01:05:39', 1, NULL),
+(28, 'Product 1', '', '', '', '', '', '', '', 939, 7, 'catalog/demo/htc_touch_hd_1.jpg', 5, 1, 100, 0, 200, 9, '2009-02-03', 146.4, 2, 0, 0, 0, 1, 1, 1, 0, 1, 1, '2009-02-03 16:06:50', '2011-09-30 01:05:39', 1, NULL),
 (29, 'Product 2', '', '', '', '', '', '', '', 999, 6, 'catalog/demo/palm_treo_pro_1.jpg', 6, 1, 279.99, 0, 0, 9, '2009-02-03', 133, 2, 0, 0, 0, 3, 1, 1, 0, 1, 0, '2009-02-03 16:42:17', '2011-09-30 01:06:08', 1, NULL),
-(30, 'Product 3', '', '', '', '', '', '', '', 7, 6, 'catalog/demo/canon_eos_5d_1.jpg', 9, 1, 100, 0, 0, 9, '2009-02-03', 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, '2009-02-03 16:59:00', '2011-09-30 01:05:23', 1, NULL),
+(30, 'Product 3', '', '', '', '', '', '', '', 7, 6, 'catalog/demo/canon_eos_5d_1.jpg', 9, 1, 100, 0, 0, 9, '2009-02-03', 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, '2009-02-03 16:59:00', '2011-09-30 01:05:23', 1, NULL),
 (31, 'Product 4', '', '', '', '', '', '', '', 1000, 6, 'catalog/demo/nikon_d300_1.jpg', 0, 1, 80, 0, 0, 9, '2009-02-03', 0, 1, 0, 0, 0, 3, 1, 1, 0, 1, 0, '2009-02-03 17:00:10', '2011-09-30 01:06:00', 1, NULL),
 (32, 'Product 5', '', '', '', '', '', '', '', 999, 6, 'catalog/demo/ipod_touch_1.jpg', 8, 1, 100, 0, 0, 9, '2009-02-03', 5, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, '2009-02-03 17:07:26', '2011-09-30 01:07:22', 1, NULL),
 (33, 'Product 6', '', '', '', '', '', '', '', 1000, 6, 'catalog/demo/samsung_syncmaster_941bw.jpg', 0, 1, 200, 0, 0, 9, '2009-02-03', 5, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-03 17:08:31', '2011-09-30 01:06:29', 1, NULL),
 (34, 'Product 7', '', '', '', '', '', '', '', 1000, 6, 'catalog/demo/ipod_shuffle_1.jpg', 8, 1, 100, 0, 0, 9, '2009-02-03', 5, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-03 18:07:54', '2011-09-30 01:07:17', 1, NULL),
 (35, 'Product 8', '', '', '', '', '', '', '', 1000, 5, '', 0, 0, 100, 0, 0, 9, '2009-02-03', 5, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, '2009-02-03 18:08:31', '2011-09-30 01:06:17', 1, NULL),
 (36, 'Product 9', '', '', '', '', '', '', '', 994, 6, 'catalog/demo/ipod_nano_1.jpg', 8, 0, 100, 0, 100, 9, '2009-02-03', 5, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-03 18:09:19', '2011-09-30 01:07:12', 1, NULL),
-(40, 'product 11', '', '', '', '', '', '', '', 968, 5, 'catalog/demo/iphone_1.jpg', 8, 1, 101, 0, 0, 9, '2009-02-03', 10, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, '2009-02-03 21:07:12', '2011-09-30 01:06:53', 1, NULL),
+(40, 'product 11', '', '', '', '', '', '', '', 968, 5, 'catalog/demo/iphone_1.jpg', 8, 1, 101, 0, 0, 9, '2009-02-03', 10, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, '2009-02-03 21:07:12', '2011-09-30 01:06:53', 1, NULL),
 (41, 'Product 14', '', '', '', '', '', '', '', 977, 5, 'catalog/demo/imac_1.jpg', 8, 1, 100, 0, 0, 9, '2009-02-03', 5, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, '2009-02-03 21:07:26', '2011-09-30 01:06:44', 1, NULL),
-(42, 'Product 15', '', '', '', '', '', '', '', 990, 5, 'catalog/demo/apple_cinema_30.jpg', 8, 1, 100, 0, 400, 9, '2009-02-04', 12.5, 1, 1, 2, 3, 1, 1, 2, 0, 1, 0, '2009-02-03 21:07:37', '2017-07-26 22:30:20', 0, NULL),
+(42, 'Product 15', '', '', '', '', '', '', '', 990, 5, 'catalog/demo/apple_cinema_30.jpg', 8, 1, 100, 0, 400, 9, '2009-02-04', 12.5, 1, 1, 2, 3, 1, 1, 2, 0, 1, 1, '2009-02-03 21:07:37', '2017-07-26 22:30:20', 0, NULL),
 (43, 'Product 16', '', '', '', '', '', '', '', 929, 5, 'catalog/demo/macbook_1.jpg', 8, 0, 500, 0, 0, 9, '2009-02-03', 0, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-03 21:07:49', '2011-09-30 01:05:46', 1, NULL),
 (44, 'Product 17', '', '', '', '', '', '', '', 1000, 5, 'catalog/demo/macbook_air_1.jpg', 8, 1, 1000, 0, 0, 9, '2009-02-03', 0, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-03 21:08:00', '2011-09-30 01:05:53', 1, NULL),
 (45, 'Product 18', '', '', '', '', '', '', '', 998, 5, 'catalog/demo/macbook_pro_1.jpg', 8, 1, 2000, 0, 0, 100, '2009-02-03', 0, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-03 21:08:17', '2011-09-15 22:22:01', 1, NULL),
 (46, 'Product 19', '', '', '', '', '', '', '', 1000, 5, 'catalog/demo/sony_vaio_1.jpg', 10, 1, 1000, 0, 0, 9, '2009-02-03', 0, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-03 21:08:29', '2011-09-30 01:06:39', 1, NULL),
-(47, 'Product 21', '', '', '', '', '', '', '', 1000, 5, 'catalog/demo/hp_1.jpg', 7, 1, 100, 0, 400, 9, '2009-02-03', 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 2, '2009-02-03 21:08:40', '2011-09-30 01:05:28', 1, NULL),
-(48, 'product 20', 'test 1', '', '', '', '', '', 'test 2', 995, 5, 'catalog/demo/ipod_classic_1.jpg', 8, 1, 100, 0, 0, 9, '2009-02-08', 1, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-08 17:21:51', '2011-09-30 01:07:06', 1, NULL),
+(47, 'Product 21', '', '', '', '', '', '', '', 1000, 5, 'catalog/demo/hp_1.jpg', 7, 1, 100, 0, 400, 0, '2009-02-03', 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 2, '2009-02-03 00:00:00', '2026-10-25 21:51:02', 1, ''),
+(48, 'product 20', 'test 1', '', '', '', '', '', 'test 2', 995, 5, 'catalog/demo/ipod_classic_1.jpg', 8, 1, 100, 0, 0, 0, '2009-02-08', 1, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-08 00:00:00', '2026-10-25 21:53:21', 1, ''),
 (49, 'SAM1', '', '', '', '', '', '', '', 0, 8, 'catalog/demo/samsung_tab_1.jpg', 0, 1, 199.99, 0, 0, 9, '2011-04-25', 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, '2011-04-26 08:57:34', '2011-09-30 01:06:23', 1, NULL);
 
 ----------------------------------------------------------
@@ -3789,7 +3818,9 @@ INSERT INTO `oc_product_attribute` (`product_id`, `attribute_id`, `language_id`,
 (43, 2, 1, '1'),
 (43, 4, 1, '8gb'),
 (47, 2, 1, '4'),
-(47, 4, 1, '16GB');
+(47, 2, 2, ''),
+(47, 4, 1, '16GB'),
+(47, 4, 2, '');
 
 ----------------------------------------------------------
 
@@ -3853,7 +3884,8 @@ INSERT INTO `oc_product_description` (`product_id`, `language_id`, `name`, `desc
 (45, 2, 'MacBook Pro', '&lt;p&gt;&lt;br&gt;&lt;/p&gt;&lt;div class=&quot;cpt_product_description &quot;&gt;\r\n &lt;div&gt;\r\n  &lt;p&gt;\r\n   &lt;b&gt;Latest Intel mobile architecture&lt;/b&gt;&lt;/p&gt;\r\n  &lt;p&gt;\r\n   Powered by the most advanced mobile processors from Intel, the new \r\nCore 2 Duo MacBook Pro is over 50% faster than the original Core Duo \r\nMacBook Pro and now supports up to 4GB of RAM.&lt;/p&gt;\r\n  &lt;p&gt;\r\n   &lt;b&gt;Leading-edge graphics&lt;/b&gt;&lt;/p&gt;\r\n  &lt;p&gt;\r\n   The NVIDIA GeForce 8600M GT delivers exceptional graphics processing \r\npower. For the ultimate creative canvas, you can even configure the \r\n17-inch model with a 1920-by-1200 resolution display.&lt;/p&gt;\r\n  &lt;p&gt;\r\n   &lt;b&gt;Designed for life on the road&lt;/b&gt;&lt;/p&gt;\r\n  &lt;p&gt;\r\n   Innovations such as a magnetic power connection and an illuminated \r\nkeyboard with ambient light sensor put the MacBook Pro in a class by \r\nitself.&lt;/p&gt;\r\n  &lt;p&gt;\r\n   &lt;b&gt;Connect. Create. Communicate.&lt;/b&gt;&lt;/p&gt;\r\n  &lt;p&gt;\r\n   Quickly set up a video conference with the built-in iSight camera. \r\nControl presentations and media from up to 30 feet away with the \r\nincluded Apple Remote. Connect to high-bandwidth peripherals with \r\nFireWire 800 and DVI.&lt;/p&gt;\r\n  &lt;p&gt;\r\n   &lt;b&gt;Next-generation wireless&lt;/b&gt;&lt;/p&gt;\r\n  &lt;p&gt;\r\n   Featuring 802.11n wireless technology, the MacBook Pro delivers up to\r\n five times the performance and up to twice the range of \r\nprevious-generation technologies.&lt;/p&gt;\r\n &lt;/div&gt;\r\n&lt;/div&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;', '', '', '', '', ''),
 (46, 1, 'Sony VAIO', '&lt;div&gt;\r\n Unprecedented power. The next generation of processing technology has arrived. Built into the newest VAIO notebooks lies Intel&amp;#39;s latest, most powerful innovation yet: Intel&amp;reg; Centrino&amp;reg; 2 processor technology. Boasting incredible speed, expanded wireless connectivity, enhanced multimedia support and greater energy efficiency, all the high-performance essentials are seamlessly combined into a single chip.&lt;/div&gt;\r\n', '', '', '', '', ''),
 (46, 2, 'Sony VAIO', '&lt;p&gt;Unprecedented power. The next generation of processing technology has \r\narrived. Built into the newest VAIO notebooks lies Intel\'s latest, most \r\npowerful innovation yet: Intel® Centrino® 2 processor technology. \r\nBoasting incredible speed, expanded wireless connectivity, enhanced \r\nmultimedia support and greater energy efficiency, all the \r\nhigh-performance essentials are seamlessly combined into a single chip.&lt;br&gt;&lt;/p&gt;', '', '', '', '', ''),
-(47, 1, 'HP LP3065', '&lt;p&gt;\r\n Stop your co-workers in their tracks with the stunning new 30-inch diagonal HP LP3065 Flat Panel Monitor. This flagship monitor features best-in-class performance and presentation features on a huge wide-aspect screen while letting you work as comfortably as possible - you might even forget you&amp;#39;re at the office&lt;/p&gt;\r\n', '', '', '', '', ''),
+(46, 3, 'Sony VAIO', '&lt;div&gt;\r\n Unprecedented power. The next generation of processing technology has arrived. Built into the newest VAIO notebooks lies Intel&amp;#39;s latest, most powerful innovation yet: Intel&amp;reg; Centrino&amp;reg; 2 processor technology. Boasting incredible speed, expanded wireless connectivity, enhanced multimedia support and greater energy efficiency, all the high-performance essentials are seamlessly combined into a single chip.&lt;/div&gt;\r\n', '', '', '', '', ''),
+(47, 1, 'HP LP3065', '&lt;p&gt;\r\n Stop your co-workers in their tracks with the stunning new 30-inch diagonal HP LP3065 Flat Panel Monitor. This flagship monitor features best-in-class performance and presentation features on a huge wide-aspect screen while letting you work as comfortably as possible - you might even forget you&amp;#39;re at the office&lt;/p&gt;', '', '', '', '', ''),
 (47, 2, 'HP LP3065', '&lt;p&gt;Stop your co-workers in their tracks with the stunning new 30-inch \r\ndiagonal HP LP3065 Flat Panel Monitor. This flagship monitor features \r\nbest-in-class performance and presentation features on a huge \r\nwide-aspect screen while letting you work as comfortably as possible - \r\nyou might even forget you\'re at the office&lt;br&gt;&lt;/p&gt;', '', '', '', '', ''),
 (48, 1, 'iPod Classic', '&lt;div class=&quot;cpt_product_description &quot;&gt;\r\n &lt;div&gt;\r\n  &lt;p&gt;\r\n   &lt;strong&gt;More room to move.&lt;/strong&gt;&lt;/p&gt;\r\n  &lt;p&gt;\r\n   With 80GB or 160GB of storage and up to 40 hours of battery life, the new iPod classic lets you enjoy up to 40,000 songs or up to 200 hours of video or any combination wherever you go.&lt;/p&gt;\r\n  &lt;p&gt;\r\n   &lt;strong&gt;Cover Flow.&lt;/strong&gt;&lt;/p&gt;\r\n  &lt;p&gt;\r\n   Browse through your music collection by flipping through album art. Select an album to turn it over and see the track list.&lt;/p&gt;\r\n  &lt;p&gt;\r\n   &lt;strong&gt;Enhanced interface.&lt;/strong&gt;&lt;/p&gt;\r\n  &lt;p&gt;\r\n   Experience a whole new way to browse and view your music and video.&lt;/p&gt;\r\n  &lt;p&gt;\r\n   &lt;strong&gt;Sleeker design.&lt;/strong&gt;&lt;/p&gt;\r\n  &lt;p&gt;\r\n   Beautiful, durable, and sleeker than ever, iPod classic now features an anodized aluminum and polished stainless steel enclosure with rounded edges.&lt;/p&gt;\r\n &lt;/div&gt;\r\n&lt;/div&gt;\r\n&lt;!-- cpt_container_end --&gt;', '', '', '', '', ''),
 (48, 2, 'iPod Classic', '&lt;p&gt;&lt;strong&gt;More room to move.&lt;/strong&gt;\r\n  &lt;/p&gt;&lt;div class=&quot;cpt_product_description &quot;&gt;&lt;div&gt;&lt;p&gt;\r\n   With 80GB or 160GB of storage and up to 40 hours of battery life, the\r\n new iPod classic lets you enjoy up to 40,000 songs or up to 200 hours \r\nof video or any combination wherever you go.&lt;/p&gt;\r\n  &lt;p&gt;\r\n   &lt;strong&gt;Cover Flow.&lt;/strong&gt;&lt;/p&gt;\r\n  &lt;p&gt;\r\n   Browse through your music collection by flipping through album art. Select an album to turn it over and see the track list.&lt;/p&gt;\r\n  &lt;p&gt;\r\n   &lt;strong&gt;Enhanced interface.&lt;/strong&gt;&lt;/p&gt;\r\n  &lt;p&gt;\r\n   Experience a whole new way to browse and view your music and video.&lt;/p&gt;\r\n  &lt;p&gt;\r\n   &lt;strong&gt;Sleeker design.&lt;/strong&gt;&lt;/p&gt;\r\n  &lt;p&gt;\r\n   Beautiful, durable, and sleeker than ever, iPod classic now features \r\nan anodized aluminum and polished stainless steel enclosure with rounded\r\n edges.&lt;/p&gt;\r\n &lt;/div&gt;\r\n&lt;/div&gt;&lt;p&gt;&lt;br&gt;&lt;/p&gt;', '', '', '', '', ''),
@@ -3958,9 +3990,6 @@ INSERT INTO `oc_product_image` (`product_id`, `image`, `sort_order`) VALUES
 (31, 'catalog/demo/nikon_d300_3.jpg', 0),
 (29, 'catalog/demo/palm_treo_pro_2.jpg', 0),
 (29, 'catalog/demo/palm_treo_pro_3.jpg', 0),
-(48, 'catalog/demo/ipod_classic_2.jpg', 0),
-(48, 'catalog/demo/ipod_classic_3.jpg', 0),
-(48, 'catalog/demo/ipod_classic_4.jpg', 0),
 (46, 'catalog/demo/sony_vaio_3.jpg', 0),
 (46, 'catalog/demo/sony_vaio_2.jpg', 0),
 (46, 'catalog/demo/sony_vaio_4.jpg', 0),
@@ -3986,8 +4015,6 @@ INSERT INTO `oc_product_image` (`product_id`, `image`, `sort_order`) VALUES
 (42, 'catalog/demo/compaq_presario.jpg', 0),
 (42, 'catalog/demo/hp_1.jpg', 0),
 (42, 'catalog/demo/canon_logo.jpg', 0),
-(47, 'catalog/demo/hp_2.jpg', 0),
-(47, 'catalog/demo/hp_3.jpg', 0),
 (49, 'catalog/demo/samsung_tab_2.jpg', 0),
 (49, 'catalog/demo/samsung_tab_3.jpg', 0),
 (49, 'catalog/demo/samsung_tab_4.jpg', 0),
@@ -3997,7 +4024,12 @@ INSERT INTO `oc_product_image` (`product_id`, `image`, `sort_order`) VALUES
 (30, 'catalog/demo/canon_eos_5d_3.jpg', 0),
 (30, 'catalog/demo/canon_eos_5d_2.jpg', 0),
 (41, 'catalog/demo/imac_2.jpg', 0),
-(41, 'catalog/demo/imac_3.jpg', 0);
+(41, 'catalog/demo/imac_3.jpg', 0),
+(47, 'catalog/demo/hp_2.jpg', 1),
+(47, 'catalog/demo/hp_3.jpg', 2),
+(48, 'catalog/demo/ipod_classic_2.jpg', 1),
+(48, 'catalog/demo/ipod_classic_3.jpg', 2),
+(48, 'catalog/demo/ipod_classic_4.jpg', 3);
 
 ----------------------------------------------------------
 
@@ -4248,7 +4280,6 @@ INSERT INTO `oc_product_reward` (`product_id`, `customer_group_id`, `points`) VA
 (40, 1, 0),
 (31, 1, 0),
 (29, 1, 0),
-(48, 1, 0),
 (33, 1, 0),
 (46, 1, 0),
 (36, 1, 0),
@@ -4257,10 +4288,10 @@ INSERT INTO `oc_product_reward` (`product_id`, `customer_group_id`, `points`) VA
 (28, 1, 400),
 (35, 1, 0),
 (42, 1, 100),
-(47, 1, 300),
 (49, 1, 1000),
 (30, 1, 200),
-(41, 1, 0);
+(41, 1, 0),
+(47, 1, 300);
 
 ----------------------------------------------------------
 
@@ -4849,8 +4880,6 @@ INSERT INTO `oc_seo_url` (`store_id`, `language_id`, `query`, `keyword`) VALUES
 INSERT INTO `oc_seo_url` (`store_id`, `language_id`, `query`, `keyword`) VALUES
 (0, 1, 'product_id=45', 'macbook-pro'),
 (0, 1, 'product_id=46', 'sony-vaio'),
-(0, 1, 'product_id=47', 'hp-lp3065'),
-(0, 1, 'product_id=48', 'ipod-classic'),
 (0, 1, 'product_id=49', 'samsung-galaxy-tab-10-1'),
 (0, 2, 'account/account', 'uk-my-account'),
 (0, 2, 'account/address', 'uk-address-book'),
@@ -4946,18 +4975,20 @@ INSERT INTO `oc_seo_url` (`store_id`, `language_id`, `query`, `keyword`) VALUES
 (0, 2, 'product_id=33', 'uk_samsung-syncmaster-941bw'),
 (0, 2, 'product_id=34', 'uk_ipod-shuffle'),
 (0, 2, 'product_id=35', 'uk_product-8'),
-(0, 2, 'product_id=36', 'uk_ipod-nano');
-INSERT INTO `oc_seo_url` (`store_id`, `language_id`, `query`, `keyword`) VALUES
+(0, 2, 'product_id=36', 'uk_ipod-nano'),
 (0, 2, 'product_id=40', 'uk_iphone'),
-(0, 2, 'product_id=41', 'uk_imac'),
+(0, 2, 'product_id=41', 'uk_imac');
+INSERT INTO `oc_seo_url` (`store_id`, `language_id`, `query`, `keyword`) VALUES
 (0, 2, 'product_id=42', 'uk_apple_cinema_30'),
 (0, 2, 'product_id=43', 'uk_macbook'),
 (0, 2, 'product_id=44', 'uk_macbook-air'),
 (0, 2, 'product_id=45', 'uk_macbook-pro'),
 (0, 2, 'product_id=46', 'uk_sony-vaio'),
+(0, 2, 'product_id=49', 'uk_samsung-galaxy-tab-10-1'),
+(0, 1, 'product_id=47', 'hp-lp3065'),
 (0, 2, 'product_id=47', 'uk_hp-lp3065'),
-(0, 2, 'product_id=48', 'uk_ipod-classic'),
-(0, 2, 'product_id=49', 'uk_samsung-galaxy-tab-10-1');
+(0, 1, 'product_id=48', 'ipod-classic'),
+(0, 2, 'product_id=48', 'uk_ipod-classic');
 
 ----------------------------------------------------------
 
@@ -5036,9 +5067,6 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'dashboard_chart', 'dashboard_chart_sort_order', '6', 0),
 (0, 'dashboard_chart', 'dashboard_chart_status', '1', 0),
 (0, 'dashboard_chart', 'dashboard_chart_width', '6', 0),
-(0, 'dashboard_chart_by_country_and_region', 'dashboard_chart_by_country_and_region_sort_order', '5', 0),
-(0, 'dashboard_chart_by_country_and_region', 'dashboard_chart_by_country_and_region_status', '0', 0),
-(0, 'dashboard_chart_by_country_and_region', 'dashboard_chart_by_country_and_region_width', '6', 0),
 (0, 'dashboard_customer', 'dashboard_customer_sort_order', '3', 0),
 (0, 'dashboard_customer', 'dashboard_customer_status', '1', 0),
 (0, 'dashboard_customer', 'dashboard_customer_width', '3', 0),
@@ -5107,11 +5135,11 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'theme_default', 'theme_default_image_compare_width', '90', 0),
 (0, 'theme_default', 'theme_default_image_location_height', '50', 0),
 (0, 'theme_default', 'theme_default_image_location_width', '268', 0),
-(0, 'theme_default', 'theme_default_image_manufacturer_height', '80', 0);
-INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALUES
+(0, 'theme_default', 'theme_default_image_manufacturer_height', '80', 0),
 (0, 'theme_default', 'theme_default_image_manufacturer_width', '80', 0),
 (0, 'theme_default', 'theme_default_image_popup_height', '500', 0),
-(0, 'theme_default', 'theme_default_image_popup_width', '500', 0),
+(0, 'theme_default', 'theme_default_image_popup_width', '500', 0);
+INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALUES
 (0, 'theme_default', 'theme_default_image_product_height', '228', 0),
 (0, 'theme_default', 'theme_default_image_product_width', '228', 0),
 (0, 'theme_default', 'theme_default_image_related_height', '200', 0),
@@ -5208,11 +5236,11 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'config', 'config_affiliate_auto', '0', 0),
 (0, 'config', 'config_affiliate_commission', '5', 0),
 (0, 'config', 'config_affiliate_id', '0', 0),
-(0, 'config', 'config_return_id', '0', 0);
-INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALUES
+(0, 'config', 'config_return_id', '0', 0),
 (0, 'config', 'config_return_status_id', '2', 0),
 (0, 'config', 'config_captcha', '', 0),
-(0, 'config', 'config_captcha_page', '[\"review\",\"return\",\"contact\"]', 1),
+(0, 'config', 'config_captcha_page', '[\"review\",\"return\",\"contact\"]', 1);
+INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALUES
 (0, 'config', 'config_stock_popup_status', '0', 0),
 (0, 'config', 'config_stock_popup_mode', 'checkout', 0),
 (0, 'config', 'config_stock_popup_routes', '', 0),
@@ -5272,7 +5300,11 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'dashboard_map', 'dashboard_map_map_type', 'ukraine_geo', 0),
 (0, 'dashboard_map', 'dashboard_map_width', '6', 0),
 (0, 'dashboard_map', 'dashboard_map_status', '1', 0),
-(0, 'dashboard_map', 'dashboard_map_sort_order', '5', 0);
+(0, 'dashboard_map', 'dashboard_map_sort_order', '5', 0),
+(0, 'admin_personal_language', 'admin_personal_language_1', 'ru-ru', 0),
+(0, 'dashboard_chart_by_country_and_region', 'dashboard_chart_by_country_and_region_width', '6', 0),
+(0, 'dashboard_chart_by_country_and_region', 'dashboard_chart_by_country_and_region_status', '0', 0),
+(0, 'dashboard_chart_by_country_and_region', 'dashboard_chart_by_country_and_region_sort_order', '5', 0);
 
 ----------------------------------------------------------
 
@@ -5316,14 +5348,6 @@ CREATE TABLE `oc_statistics` (
 -- Dumping data for table `oc_statistics`
 --
 
-INSERT INTO `oc_statistics` (`statistics_id`, `code`, `value`) VALUES
-(1, 'order_sale', 318),
-(2, 'order_processing', 0),
-(3, 'order_complete', 0),
-(4, 'order_other', 0),
-(5, 'returns', 0),
-(6, 'product', 0),
-(7, 'review', 0);
 
 ----------------------------------------------------------
 
@@ -5609,7 +5633,7 @@ CREATE TABLE `oc_user_group` (
 --
 
 INSERT INTO `oc_user_group` (`name`, `permission`) VALUES
-('Administrator', '{\"access\":[\"blog\\/article\",\"blog\\/category\",\"blog\\/review\",\"blog\\/setting\",\"catalog\\/attribute\",\"catalog\\/attribute_bulk\",\"catalog\\/attribute_group\",\"catalog\\/category\",\"catalog\\/download\",\"catalog\\/filter\",\"catalog\\/information\",\"catalog\\/manufacturer\",\"catalog\\/option\",\"catalog\\/product\",\"catalog\\/recurring\",\"catalog\\/review\",\"common\\/column_left\",\"common\\/developer\",\"common\\/filemanager\",\"common\\/profile\",\"common\\/security\",\"customer\\/custom_field\",\"customer\\/customer\",\"customer\\/customer_approval\",\"customer\\/customer_group\",\"design\\/banner\",\"design\\/layout\",\"design\\/seo_url\",\"design\\/theme\",\"design\\/translation\",\"event\\/currency\",\"event\\/language\",\"event\\/statistics\",\"event\\/theme\",\"extension\\/advertise\\/google\",\"extension\\/analytics\\/google\",\"extension\\/captcha\\/basic\",\"extension\\/captcha\\/google\",\"extension\\/currency\\/cbr\",\"extension\\/currency\\/ecb\",\"extension\\/currency\\/nbu\",\"extension\\/currency\\/privatbank\",\"extension\\/dashboard\\/activity\",\"extension\\/dashboard\\/chart\",\"extension\\/dashboard\\/chart_by_country_and_region\",\"extension\\/dashboard\\/customer\",\"extension\\/dashboard\\/map\",\"extension\\/dashboard\\/online\",\"extension\\/dashboard\\/order\",\"extension\\/dashboard\\/recent\",\"extension\\/dashboard\\/sale\",\"extension\\/extension\\/analytics\",\"extension\\/extension\\/captcha\",\"extension\\/extension\\/currency\",\"extension\\/extension\\/dashboard\",\"extension\\/extension\\/feed\",\"extension\\/extension\\/fraud\",\"extension\\/extension\\/menu\",\"extension\\/extension\\/module\",\"extension\\/extension\\/payment\",\"extension\\/extension\\/report\",\"extension\\/extension\\/shipping\",\"extension\\/extension\\/theme\",\"extension\\/extension\\/total\",\"extension\\/feed\\/blog_sitemap\",\"extension\\/feed\\/google_base\",\"extension\\/feed\\/google_sitemap\",\"extension\\/feed\\/unisender\",\"extension\\/feed\\/yandex_market\",\"extension\\/fraud\\/ip\",\"extension\\/module\\/account\",\"extension\\/module\\/banner\",\"extension\\/module\\/bestseller\",\"extension\\/module\\/blog_category\",\"extension\\/module\\/blog_featured\",\"extension\\/module\\/blog_latest\",\"extension\\/module\\/carousel\",\"extension\\/module\\/category\",\"extension\\/module\\/featured\",\"extension\\/module\\/featured_article\",\"extension\\/module\\/featured_product\",\"extension\\/module\\/filter\",\"extension\\/module\\/html\",\"extension\\/module\\/information\",\"extension\\/module\\/latest\",\"extension\\/module\\/paypal_smart_button\",\"extension\\/module\\/slideshow\",\"extension\\/module\\/special\",\"extension\\/module\\/store\",\"extension\\/payment\\/bank_transfer\",\"extension\\/payment\\/cheque\",\"extension\\/payment\\/cod\",\"extension\\/payment\\/free_checkout\",\"extension\\/payment\\/liqpay\",\"extension\\/payment\\/paypal\",\"extension\\/payment\\/skrill\",\"extension\\/payment\\/twocheckout_api\",\"extension\\/payment\\/twocheckout_cplus\",\"extension\\/payment\\/twocheckout_inline\",\"extension\\/report\\/customer_activity\",\"extension\\/report\\/customer_order\",\"extension\\/report\\/customer_reward\",\"extension\\/report\\/customer_search\",\"extension\\/report\\/customer_transaction\",\"extension\\/report\\/marketing\",\"extension\\/report\\/product_purchased\",\"extension\\/report\\/product_viewed\",\"extension\\/report\\/sale_coupon\",\"extension\\/report\\/sale_order\",\"extension\\/report\\/sale_return\",\"extension\\/report\\/sale_shipping\",\"extension\\/report\\/sale_tax\",\"extension\\/shipping\\/flat\",\"extension\\/shipping\\/free\",\"extension\\/shipping\\/item\",\"extension\\/shipping\\/pickup\",\"extension\\/shipping\\/weight\",\"extension\\/theme\\/default\",\"extension\\/total\\/coupon\",\"extension\\/total\\/credit\",\"extension\\/total\\/handling\",\"extension\\/total\\/low_order_fee\",\"extension\\/total\\/reward\",\"extension\\/total\\/shipping\",\"extension\\/total\\/sub_total\",\"extension\\/total\\/tax\",\"extension\\/total\\/total\",\"extension\\/total\\/voucher\",\"localisation\\/country\",\"localisation\\/currency\",\"localisation\\/geo_zone\",\"localisation\\/language\",\"localisation\\/length_class\",\"localisation\\/location\",\"localisation\\/order_status\",\"localisation\\/return_action\",\"localisation\\/return_reason\",\"localisation\\/return_status\",\"localisation\\/stock_status\",\"localisation\\/tax_class\",\"localisation\\/tax_rate\",\"localisation\\/weight_class\",\"localisation\\/zone\",\"mail\\/affiliate\",\"mail\\/customer\",\"mail\\/forgotten\",\"mail\\/return\",\"mail\\/reward\",\"mail\\/transaction\",\"marketing\\/contact\",\"marketing\\/coupon\",\"marketing\\/marketing\",\"marketplace\\/event\",\"marketplace\\/extension\",\"marketplace\\/install\",\"marketplace\\/installer\",\"marketplace\\/modification\",\"report\\/online\",\"report\\/order_profit\",\"report\\/report\",\"report\\/statistics\",\"sale\\/order\",\"sale\\/recurring\",\"sale\\/return\",\"sale\\/voucher\",\"sale\\/voucher_theme\",\"search\\/search\",\"setting\\/setting\",\"setting\\/store\",\"startup\\/error\",\"startup\\/event\",\"startup\\/login\",\"startup\\/permission\",\"startup\\/router\",\"startup\\/sass\",\"startup\\/startup\",\"tool\\/backup\",\"tool\\/cron\",\"tool\\/dump_install\",\"tool\\/log\",\"tool\\/queue\",\"tool\\/upload\",\"user\\/api\",\"user\\/user\",\"user\\/user_permission\"],\"modify\":[\"blog\\/article\",\"blog\\/category\",\"blog\\/review\",\"blog\\/setting\",\"catalog\\/attribute\",\"catalog\\/attribute_bulk\",\"catalog\\/attribute_group\",\"catalog\\/category\",\"catalog\\/download\",\"catalog\\/filter\",\"catalog\\/information\",\"catalog\\/manufacturer\",\"catalog\\/option\",\"catalog\\/product\",\"catalog\\/recurring\",\"catalog\\/review\",\"common\\/column_left\",\"common\\/developer\",\"common\\/filemanager\",\"common\\/profile\",\"common\\/security\",\"customer\\/custom_field\",\"customer\\/customer\",\"customer\\/customer_approval\",\"customer\\/customer_group\",\"design\\/banner\",\"design\\/layout\",\"design\\/seo_url\",\"design\\/theme\",\"design\\/translation\",\"event\\/currency\",\"event\\/language\",\"event\\/statistics\",\"event\\/theme\",\"extension\\/advertise\\/google\",\"extension\\/analytics\\/google\",\"extension\\/captcha\\/basic\",\"extension\\/captcha\\/google\",\"extension\\/currency\\/cbr\",\"extension\\/currency\\/ecb\",\"extension\\/currency\\/nbu\",\"extension\\/currency\\/privatbank\",\"extension\\/dashboard\\/activity\",\"extension\\/dashboard\\/chart\",\"extension\\/dashboard\\/chart_by_country_and_region\",\"extension\\/dashboard\\/customer\",\"extension\\/dashboard\\/map\",\"extension\\/dashboard\\/online\",\"extension\\/dashboard\\/order\",\"extension\\/dashboard\\/recent\",\"extension\\/dashboard\\/sale\",\"extension\\/extension\\/analytics\",\"extension\\/extension\\/captcha\",\"extension\\/extension\\/currency\",\"extension\\/extension\\/dashboard\",\"extension\\/extension\\/feed\",\"extension\\/extension\\/fraud\",\"extension\\/extension\\/menu\",\"extension\\/extension\\/module\",\"extension\\/extension\\/payment\",\"extension\\/extension\\/report\",\"extension\\/extension\\/shipping\",\"extension\\/extension\\/theme\",\"extension\\/extension\\/total\",\"extension\\/feed\\/blog_sitemap\",\"extension\\/feed\\/google_base\",\"extension\\/feed\\/google_sitemap\",\"extension\\/feed\\/unisender\",\"extension\\/feed\\/yandex_market\",\"extension\\/fraud\\/ip\",\"extension\\/module\\/account\",\"extension\\/module\\/banner\",\"extension\\/module\\/bestseller\",\"extension\\/module\\/blog_category\",\"extension\\/module\\/blog_featured\",\"extension\\/module\\/blog_latest\",\"extension\\/module\\/carousel\",\"extension\\/module\\/category\",\"extension\\/module\\/featured\",\"extension\\/module\\/featured_article\",\"extension\\/module\\/featured_product\",\"extension\\/module\\/filter\",\"extension\\/module\\/html\",\"extension\\/module\\/information\",\"extension\\/module\\/latest\",\"extension\\/module\\/paypal_smart_button\",\"extension\\/module\\/slideshow\",\"extension\\/module\\/special\",\"extension\\/module\\/store\",\"extension\\/payment\\/bank_transfer\",\"extension\\/payment\\/cheque\",\"extension\\/payment\\/cod\",\"extension\\/payment\\/free_checkout\",\"extension\\/payment\\/liqpay\",\"extension\\/payment\\/paypal\",\"extension\\/payment\\/skrill\",\"extension\\/payment\\/twocheckout_api\",\"extension\\/payment\\/twocheckout_cplus\",\"extension\\/payment\\/twocheckout_inline\",\"extension\\/report\\/customer_activity\",\"extension\\/report\\/customer_order\",\"extension\\/report\\/customer_reward\",\"extension\\/report\\/customer_search\",\"extension\\/report\\/customer_transaction\",\"extension\\/report\\/marketing\",\"extension\\/report\\/product_purchased\",\"extension\\/report\\/product_viewed\",\"extension\\/report\\/sale_coupon\",\"extension\\/report\\/sale_order\",\"extension\\/report\\/sale_return\",\"extension\\/report\\/sale_shipping\",\"extension\\/report\\/sale_tax\",\"extension\\/shipping\\/flat\",\"extension\\/shipping\\/free\",\"extension\\/shipping\\/item\",\"extension\\/shipping\\/pickup\",\"extension\\/shipping\\/weight\",\"extension\\/theme\\/default\",\"extension\\/total\\/coupon\",\"extension\\/total\\/credit\",\"extension\\/total\\/handling\",\"extension\\/total\\/low_order_fee\",\"extension\\/total\\/reward\",\"extension\\/total\\/shipping\",\"extension\\/total\\/sub_total\",\"extension\\/total\\/tax\",\"extension\\/total\\/total\",\"extension\\/total\\/voucher\",\"localisation\\/country\",\"localisation\\/currency\",\"localisation\\/geo_zone\",\"localisation\\/language\",\"localisation\\/length_class\",\"localisation\\/location\",\"localisation\\/order_status\",\"localisation\\/return_action\",\"localisation\\/return_reason\",\"localisation\\/return_status\",\"localisation\\/stock_status\",\"localisation\\/tax_class\",\"localisation\\/tax_rate\",\"localisation\\/weight_class\",\"localisation\\/zone\",\"mail\\/affiliate\",\"mail\\/customer\",\"mail\\/forgotten\",\"mail\\/return\",\"mail\\/reward\",\"mail\\/transaction\",\"marketing\\/contact\",\"marketing\\/coupon\",\"marketing\\/marketing\",\"marketplace\\/event\",\"marketplace\\/extension\",\"marketplace\\/install\",\"marketplace\\/installer\",\"marketplace\\/modification\",\"report\\/online\",\"report\\/order_profit\",\"report\\/report\",\"report\\/statistics\",\"sale\\/order\",\"sale\\/recurring\",\"sale\\/return\",\"sale\\/voucher\",\"sale\\/voucher_theme\",\"search\\/search\",\"setting\\/setting\",\"setting\\/store\",\"startup\\/error\",\"startup\\/event\",\"startup\\/login\",\"startup\\/permission\",\"startup\\/router\",\"startup\\/sass\",\"startup\\/startup\",\"tool\\/backup\",\"tool\\/cron\",\"tool\\/dump_install\",\"tool\\/log\",\"tool\\/queue\",\"tool\\/upload\",\"user\\/api\",\"user\\/user\",\"user\\/user_permission\"]}'),
+('Administrator', '{\"access\":[\"blog\\/article\",\"blog\\/category\",\"blog\\/review\",\"blog\\/setting\",\"catalog\\/attribute\",\"catalog\\/attribute_bulk\",\"catalog\\/attribute_group\",\"catalog\\/category\",\"catalog\\/download\",\"catalog\\/filter\",\"catalog\\/information\",\"catalog\\/manufacturer\",\"catalog\\/option\",\"catalog\\/product\",\"catalog\\/recurring\",\"catalog\\/review\",\"common\\/column_left\",\"common\\/developer\",\"common\\/filemanager\",\"common\\/personal_language\",\"common\\/profile\",\"common\\/security\",\"customer\\/custom_field\",\"customer\\/customer\",\"customer\\/customer_approval\",\"customer\\/customer_group\",\"design\\/banner\",\"design\\/layout\",\"design\\/seo_url\",\"design\\/theme\",\"design\\/translation\",\"event\\/currency\",\"event\\/language\",\"event\\/statistics\",\"event\\/theme\",\"extension\\/advertise\\/google\",\"extension\\/analytics\\/google\",\"extension\\/captcha\\/basic\",\"extension\\/captcha\\/google\",\"extension\\/currency\\/cbr\",\"extension\\/currency\\/ecb\",\"extension\\/currency\\/nbu\",\"extension\\/currency\\/privatbank\",\"extension\\/dashboard\\/activity\",\"extension\\/dashboard\\/chart\",\"extension\\/dashboard\\/chart_by_country_and_region\",\"extension\\/dashboard\\/customer\",\"extension\\/dashboard\\/map\",\"extension\\/dashboard\\/online\",\"extension\\/dashboard\\/order\",\"extension\\/dashboard\\/recent\",\"extension\\/dashboard\\/sale\",\"extension\\/extension\\/analytics\",\"extension\\/extension\\/captcha\",\"extension\\/extension\\/currency\",\"extension\\/extension\\/dashboard\",\"extension\\/extension\\/feed\",\"extension\\/extension\\/fraud\",\"extension\\/extension\\/menu\",\"extension\\/extension\\/module\",\"extension\\/extension\\/payment\",\"extension\\/extension\\/report\",\"extension\\/extension\\/shipping\",\"extension\\/extension\\/theme\",\"extension\\/extension\\/total\",\"extension\\/feed\\/blog_sitemap\",\"extension\\/feed\\/google_base\",\"extension\\/feed\\/google_sitemap\",\"extension\\/feed\\/unisender\",\"extension\\/feed\\/yandex_market\",\"extension\\/fraud\\/ip\",\"extension\\/module\\/account\",\"extension\\/module\\/banner\",\"extension\\/module\\/bestseller\",\"extension\\/module\\/blog_category\",\"extension\\/module\\/blog_featured\",\"extension\\/module\\/blog_latest\",\"extension\\/module\\/carousel\",\"extension\\/module\\/category\",\"extension\\/module\\/featured\",\"extension\\/module\\/featured_article\",\"extension\\/module\\/featured_product\",\"extension\\/module\\/filter\",\"extension\\/module\\/html\",\"extension\\/module\\/information\",\"extension\\/module\\/latest\",\"extension\\/module\\/paypal_smart_button\",\"extension\\/module\\/slideshow\",\"extension\\/module\\/special\",\"extension\\/module\\/store\",\"extension\\/payment\\/bank_transfer\",\"extension\\/payment\\/cheque\",\"extension\\/payment\\/cod\",\"extension\\/payment\\/free_checkout\",\"extension\\/payment\\/liqpay\",\"extension\\/payment\\/paypal\",\"extension\\/payment\\/skrill\",\"extension\\/payment\\/twocheckout_api\",\"extension\\/payment\\/twocheckout_cplus\",\"extension\\/payment\\/twocheckout_inline\",\"extension\\/report\\/customer_activity\",\"extension\\/report\\/customer_order\",\"extension\\/report\\/customer_reward\",\"extension\\/report\\/customer_search\",\"extension\\/report\\/customer_transaction\",\"extension\\/report\\/marketing\",\"extension\\/report\\/product_purchased\",\"extension\\/report\\/product_viewed\",\"extension\\/report\\/sale_coupon\",\"extension\\/report\\/sale_order\",\"extension\\/report\\/sale_return\",\"extension\\/report\\/sale_shipping\",\"extension\\/report\\/sale_tax\",\"extension\\/shipping\\/flat\",\"extension\\/shipping\\/free\",\"extension\\/shipping\\/item\",\"extension\\/shipping\\/pickup\",\"extension\\/shipping\\/weight\",\"extension\\/theme\\/default\",\"extension\\/total\\/coupon\",\"extension\\/total\\/credit\",\"extension\\/total\\/handling\",\"extension\\/total\\/low_order_fee\",\"extension\\/total\\/reward\",\"extension\\/total\\/shipping\",\"extension\\/total\\/sub_total\",\"extension\\/total\\/tax\",\"extension\\/total\\/total\",\"extension\\/total\\/voucher\",\"localisation\\/country\",\"localisation\\/currency\",\"localisation\\/geo_zone\",\"localisation\\/language\",\"localisation\\/length_class\",\"localisation\\/location\",\"localisation\\/order_status\",\"localisation\\/return_action\",\"localisation\\/return_reason\",\"localisation\\/return_status\",\"localisation\\/stock_status\",\"localisation\\/tax_class\",\"localisation\\/tax_rate\",\"localisation\\/weight_class\",\"localisation\\/zone\",\"mail\\/affiliate\",\"mail\\/customer\",\"mail\\/forgotten\",\"mail\\/return\",\"mail\\/reward\",\"mail\\/transaction\",\"marketing\\/contact\",\"marketing\\/coupon\",\"marketing\\/marketing\",\"marketplace\\/event\",\"marketplace\\/extension\",\"marketplace\\/install\",\"marketplace\\/installer\",\"marketplace\\/modification\",\"report\\/online\",\"report\\/order_profit\",\"report\\/report\",\"report\\/statistics\",\"sale\\/order\",\"sale\\/recurring\",\"sale\\/return\",\"sale\\/voucher\",\"sale\\/voucher_theme\",\"search\\/search\",\"setting\\/setting\",\"setting\\/store\",\"startup\\/error\",\"startup\\/event\",\"startup\\/login\",\"startup\\/permission\",\"startup\\/router\",\"startup\\/sass\",\"startup\\/startup\",\"tool\\/backup\",\"tool\\/cron\",\"tool\\/dump_install\",\"tool\\/log\",\"tool\\/queue\",\"tool\\/upload\",\"user\\/api\",\"user\\/user\",\"user\\/user_permission\"],\"modify\":[\"blog\\/article\",\"blog\\/category\",\"blog\\/review\",\"blog\\/setting\",\"catalog\\/attribute\",\"catalog\\/attribute_bulk\",\"catalog\\/attribute_group\",\"catalog\\/category\",\"catalog\\/download\",\"catalog\\/filter\",\"catalog\\/information\",\"catalog\\/manufacturer\",\"catalog\\/option\",\"catalog\\/product\",\"catalog\\/recurring\",\"catalog\\/review\",\"common\\/column_left\",\"common\\/developer\",\"common\\/filemanager\",\"common\\/personal_language\",\"common\\/profile\",\"common\\/security\",\"customer\\/custom_field\",\"customer\\/customer\",\"customer\\/customer_approval\",\"customer\\/customer_group\",\"design\\/banner\",\"design\\/layout\",\"design\\/seo_url\",\"design\\/theme\",\"design\\/translation\",\"event\\/currency\",\"event\\/language\",\"event\\/statistics\",\"event\\/theme\",\"extension\\/advertise\\/google\",\"extension\\/analytics\\/google\",\"extension\\/captcha\\/basic\",\"extension\\/captcha\\/google\",\"extension\\/currency\\/cbr\",\"extension\\/currency\\/ecb\",\"extension\\/currency\\/nbu\",\"extension\\/currency\\/privatbank\",\"extension\\/dashboard\\/activity\",\"extension\\/dashboard\\/chart\",\"extension\\/dashboard\\/chart_by_country_and_region\",\"extension\\/dashboard\\/customer\",\"extension\\/dashboard\\/map\",\"extension\\/dashboard\\/online\",\"extension\\/dashboard\\/order\",\"extension\\/dashboard\\/recent\",\"extension\\/dashboard\\/sale\",\"extension\\/extension\\/analytics\",\"extension\\/extension\\/captcha\",\"extension\\/extension\\/currency\",\"extension\\/extension\\/dashboard\",\"extension\\/extension\\/feed\",\"extension\\/extension\\/fraud\",\"extension\\/extension\\/menu\",\"extension\\/extension\\/module\",\"extension\\/extension\\/payment\",\"extension\\/extension\\/report\",\"extension\\/extension\\/shipping\",\"extension\\/extension\\/theme\",\"extension\\/extension\\/total\",\"extension\\/feed\\/blog_sitemap\",\"extension\\/feed\\/google_base\",\"extension\\/feed\\/google_sitemap\",\"extension\\/feed\\/unisender\",\"extension\\/feed\\/yandex_market\",\"extension\\/fraud\\/ip\",\"extension\\/module\\/account\",\"extension\\/module\\/banner\",\"extension\\/module\\/bestseller\",\"extension\\/module\\/blog_category\",\"extension\\/module\\/blog_featured\",\"extension\\/module\\/blog_latest\",\"extension\\/module\\/carousel\",\"extension\\/module\\/category\",\"extension\\/module\\/featured\",\"extension\\/module\\/featured_article\",\"extension\\/module\\/featured_product\",\"extension\\/module\\/filter\",\"extension\\/module\\/html\",\"extension\\/module\\/information\",\"extension\\/module\\/latest\",\"extension\\/module\\/paypal_smart_button\",\"extension\\/module\\/slideshow\",\"extension\\/module\\/special\",\"extension\\/module\\/store\",\"extension\\/payment\\/bank_transfer\",\"extension\\/payment\\/cheque\",\"extension\\/payment\\/cod\",\"extension\\/payment\\/free_checkout\",\"extension\\/payment\\/liqpay\",\"extension\\/payment\\/paypal\",\"extension\\/payment\\/skrill\",\"extension\\/payment\\/twocheckout_api\",\"extension\\/payment\\/twocheckout_cplus\",\"extension\\/payment\\/twocheckout_inline\",\"extension\\/report\\/customer_activity\",\"extension\\/report\\/customer_order\",\"extension\\/report\\/customer_reward\",\"extension\\/report\\/customer_search\",\"extension\\/report\\/customer_transaction\",\"extension\\/report\\/marketing\",\"extension\\/report\\/product_purchased\",\"extension\\/report\\/product_viewed\",\"extension\\/report\\/sale_coupon\",\"extension\\/report\\/sale_order\",\"extension\\/report\\/sale_return\",\"extension\\/report\\/sale_shipping\",\"extension\\/report\\/sale_tax\",\"extension\\/shipping\\/flat\",\"extension\\/shipping\\/free\",\"extension\\/shipping\\/item\",\"extension\\/shipping\\/pickup\",\"extension\\/shipping\\/weight\",\"extension\\/theme\\/default\",\"extension\\/total\\/coupon\",\"extension\\/total\\/credit\",\"extension\\/total\\/handling\",\"extension\\/total\\/low_order_fee\",\"extension\\/total\\/reward\",\"extension\\/total\\/shipping\",\"extension\\/total\\/sub_total\",\"extension\\/total\\/tax\",\"extension\\/total\\/total\",\"extension\\/total\\/voucher\",\"localisation\\/country\",\"localisation\\/currency\",\"localisation\\/geo_zone\",\"localisation\\/language\",\"localisation\\/length_class\",\"localisation\\/location\",\"localisation\\/order_status\",\"localisation\\/return_action\",\"localisation\\/return_reason\",\"localisation\\/return_status\",\"localisation\\/stock_status\",\"localisation\\/tax_class\",\"localisation\\/tax_rate\",\"localisation\\/weight_class\",\"localisation\\/zone\",\"mail\\/affiliate\",\"mail\\/customer\",\"mail\\/forgotten\",\"mail\\/return\",\"mail\\/reward\",\"mail\\/transaction\",\"marketing\\/contact\",\"marketing\\/coupon\",\"marketing\\/marketing\",\"marketplace\\/event\",\"marketplace\\/extension\",\"marketplace\\/install\",\"marketplace\\/installer\",\"marketplace\\/modification\",\"report\\/online\",\"report\\/order_profit\",\"report\\/report\",\"report\\/statistics\",\"sale\\/order\",\"sale\\/recurring\",\"sale\\/return\",\"sale\\/voucher\",\"sale\\/voucher_theme\",\"search\\/search\",\"setting\\/setting\",\"setting\\/store\",\"startup\\/error\",\"startup\\/event\",\"startup\\/login\",\"startup\\/permission\",\"startup\\/router\",\"startup\\/sass\",\"startup\\/startup\",\"tool\\/backup\",\"tool\\/cron\",\"tool\\/dump_install\",\"tool\\/log\",\"tool\\/queue\",\"tool\\/upload\",\"user\\/api\",\"user\\/user\",\"user\\/user_permission\"]}'),
 ('Demonstration', '');
 
 ----------------------------------------------------------
@@ -6607,4 +6631,4 @@ CREATE TABLE `oc_zone_to_geo_zone` (
 
 ----------------------------------------------------------
 
--- Dump finished at: 2026-10-25 00:09:17
+-- Dump finished at: 2026-11-14 18:55:54
