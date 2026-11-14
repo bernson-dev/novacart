@@ -129,9 +129,9 @@
         </div>
         <ul class="nav navbar-nav navbar-right">
             {% if personal_language_options|length > 1 %}
-            <li class="dropdown" id="personal-language-menu">
+            <li class="dropdown" id="personal-language-menu" data-switch-url="{{ personal_language_url }}">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="Interface language" aria-label="Interface language">
-                    <i class="fa fa-language"></i> <span class="hidden-xs">{{ personal_language_current|upper }}</span> <i class="fa fa-caret-down"></i>
+                    <i class="fa fa-language"></i> <span class="hidden-xs">{% for option in personal_language_options %}{% if option.code == personal_language_current %}{{ option.name }}{% endif %}{% endfor %}</span> <i class="fa fa-caret-down"></i>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-right">
                     {% for option in personal_language_options %}
@@ -246,7 +246,7 @@
         menu.data('busy', true);
 
         $.ajax({
-            url: '{{ personal_language_url|escape('js') }}',
+            url: menu.attr('data-switch-url'),
             type: 'POST',
             dataType: 'json',
             data: {code: code},
