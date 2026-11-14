@@ -128,6 +128,23 @@
             {{ search }}
         </div>
         <ul class="nav navbar-nav navbar-right">
+            {% if personal_language_options|length > 1 %}
+            <li class="dropdown" id="personal-language-menu" data-switch-url="{{ personal_language_url }}">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="Interface language" aria-label="Interface language">
+                    <i class="fa fa-language"></i> <span class="hidden-xs">{% for option in personal_language_options %}{% if option.code == personal_language_current %}{{ option.name }}{% endif %}{% endfor %}</span> <i class="fa fa-caret-down"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-right">
+                    {% for option in personal_language_options %}
+                    <li>
+                        <a href="#" data-personal-language="{{ option.code }}" {% if option.code == personal_language_current %}aria-current="true"{% endif %}>
+                            {% if option.code == personal_language_current %}<i class="fa fa-check fa-fw"></i>{% else %}<i class="fa fa-fw"></i>{% endif %}
+                            {{ option.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            {% endif %}
             <li class="dropdown" id="novacart-theme-menu">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="{{ text_admin_theme }}" aria-label="{{ text_admin_theme }}"><i class="fa fa-moon-o"></i></a>
                 <ul class="dropdown-menu dropdown-menu-right">
@@ -215,6 +232,42 @@
     }
 })(jQuery);
 </script>
+
+{% if personal_language_options|length > 1 %}
+<script type="text/javascript">
+(function ($) {
+    $('#personal-language-menu').on('click', '[data-personal-language]', function (event) {
+        event.preventDefault();
+        var code = $(this).attr('data-personal-language');
+        if (code === '{{ personal_language_current|escape('js') }}') return;
+
+        var menu = $('#personal-language-menu');
+        if (menu.data('busy')) return;
+        menu.data('busy', true);
+
+        $.ajax({
+            url: menu.attr('data-switch-url'),
+            type: 'POST',
+            dataType: 'json',
+            data: {code: code},
+            success: function (result) {
+                if (result.success) {
+                    window.location.reload();
+                } else {
+                    alert(result.error || 'Language could not be changed');
+                }
+            },
+            error: function () {
+                alert('Language could not be changed');
+            },
+            complete: function () {
+                menu.data('busy', false);
+            }
+        });
+    });
+})(jQuery);
+</script>
+{% endif %}
 
 {% if maintenance_modify %}
 <script type="text/javascript">
