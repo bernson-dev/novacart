@@ -46,6 +46,7 @@ class ControllerStartupPermission extends Controller {
 				'common/dashboard',
 				'common/login',
 				'common/logout',
+				'common/personal_language',
 				'common/forgotten',
 				'common/reset',
 				'error/not_found',
