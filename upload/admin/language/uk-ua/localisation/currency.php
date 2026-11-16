@@ -8,7 +8,7 @@ $_['text_success']                    = 'Налаштування збереже
 $_['text_list']                       = 'Список валют';
 $_['text_add']                        = 'Додати';
 $_['text_edit']                       = 'Редагування';
-$_['text_iso']                        = 'Повний список кодів валют та налаштувань ISO можна <a href="http://www.xe.com/iso4217.php" target="_blank" class="alert-link">знайти за посиланням</a>.';
+$_['text_iso']                        = 'Повний список кодів валют та налаштувань ISO можна <a href="https://www.xe.com/currency/" target="_blank" class="alert-link">знайти за посиланням</a>.';
 $_['text_currency_engine']            = 'Джерело оновлення валют:';
 $_['text_unknown_engine']             = 'Джерело курсу валют не визначено <b><a href="%1">Система &gt; Налаштування</b></a>';
 $_['text_provider_rates']             = 'Поточні курси';

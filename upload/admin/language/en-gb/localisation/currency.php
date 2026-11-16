@@ -7,7 +7,7 @@ $_['text_success']                    = 'Success: You have modified currencies!'
 $_['text_list']                       = 'Currency List';
 $_['text_add']                        = 'Add Currency';
 $_['text_edit']                       = 'Edit Currency';
-$_['text_iso']                        = 'You can find a full list of ISO currency codes and settings <a href="http://www.xe.com/iso4217.php" target="_blank" class="alert-link">here</a>.';
+$_['text_iso']                        = 'You can find a full list of ISO currency codes and settings <a href="https://www.xe.com/currency/" target="_blank" class="alert-link">here</a>.';
 $_['text_currency_engine']            = 'Source of currency updates:';
 $_['text_unknown_engine']             = 'The exchange rate source is not defined <b><a href="%1">System &gt; Settings</b></a>';
 $_['text_provider_rates']             = 'Current rates';
