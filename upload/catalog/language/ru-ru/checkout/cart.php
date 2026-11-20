@@ -28,6 +28,11 @@ $_['text_payment_recurring']                  = 'Платежный профил
 $_['text_trial_description']                  = 'Стоимость: %s; Периодичность: %d %s; Кол-во платежей: %d;  Далее,  ';
 $_['text_payment_description']                = 'Стоимость: %s; Периодичность: %d %s; Кол-во платежей: %d';
 $_['text_payment_until_canceled_description'] = 'Стоимость: %s; Периодичность: %d %s; Кол-во платежей: до отмены';
+$_['text_payment_cancel']                     = "%s каждые %d %s(s) до отмены";
+$_['text_stock_preorder_allowed']             = 'Товар доступен для заказа по правилу предзаказа, несмотря на текущий остаток.';
+$_['text_stock_preorder_badge']               = 'Предзаказ';
+$_['text_stock_preorder_cart']                = 'Товара сейчас нет в наличии, но заказ разрешён.';
+
 
 // Column
 $_['column_image']                            = 'Изображение';
@@ -39,28 +44,17 @@ $_['column_total']                            = 'Всего';
 
 // Error
 $_['error_quantity']                          = 'Количество товара должно быть не меньше 1. Для удаления товара используйте кнопку удаления.';
-$_['text_stock_popup_title']    = 'Недостаточно товара на складе';
-$_['text_stock_popup_message']  = 'Следующих товаров нет в необходимом количестве:';
-$_['text_stock_popup_model']    = 'Модель';
-$_['text_stock_popup_quantity'] = 'В корзине';
-$_['text_stock_popup_available'] = 'Доступно';
-$_['button_stock_popup_close']  = 'Понятно';
+$_['text_stock_popup_title']                  = 'Недостаточно товара на складе';
+$_['text_stock_popup_message']                = 'Следующих товаров нет в необходимом количестве:';
+$_['text_stock_popup_model']                  = 'Модель';
+$_['text_stock_popup_quantity']               = 'В корзине';
+$_['text_stock_popup_available']              = 'Доступно';
+$_['button_stock_popup_close']                = 'Понятно';
 
-$_['error_stock_available']   = 'Недостаточно товара на складе. Доступно для заказа: %s шт.';
-$_['error_stock_unavailable'] = 'Товар сейчас недоступен для покупки.';
+$_['error_stock_available']                   = 'Недостаточно товара на складе. Доступно для заказа: %s шт.';
+$_['error_stock_unavailable']                 = 'Товар сейчас недоступен для покупки.';
 $_['error_stock']                             = 'Товары, отмеченные ***, недоступны в нужном количестве или отсутствуют на складе!';
 $_['error_minimum']                           = 'Минимальное количество для заказа товара %s составляет %s!';
 $_['error_required']                          = '%s необходим!';
 $_['error_product']                           = 'Ваша корзина пуста!';
 $_['error_recurring_required']                = 'Необходимо выбрать периодичность платежа!';
-/*
-Translated with
-Массовый автоматический перевод текстов, товаров, категорий, статей и тд с Google translate API
-https://translator.codeguild.com.ua/
-*/
-$_['text_payment_cancel']                     = "%s каждые %d %s(s) до отмены";
-
-$_['text_stock_preorder_allowed'] = 'Товар доступен для заказа по правилу предзаказа, несмотря на текущий остаток.';
-
-$_['text_stock_preorder_badge'] = 'Предзаказ';
-$_['text_stock_preorder_cart'] = 'Товара сейчас нет в наличии, но заказ разрешён.';

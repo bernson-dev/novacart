@@ -26,6 +26,10 @@ $_['text_payment_recurring']                  = 'Платіжний профіл
 $_['text_trial_description']                  = 'Вартість: %s; Періодичність: %d %s; Кількість платежів: %d;  Далі,  ';
 $_['text_payment_description']                = 'Вартість: %s; Періодичність: %d %s; Кількість платежів: %d';
 $_['text_payment_until_canceled_description'] = 'Вартість: %s; Періодичність: %d %s; Кількість платежів: до скасування';
+$_['text_payment_cancel']                     = "%s кожні %d %s до скасування";
+$_['text_stock_preorder_allowed']             = 'Товар доступний для замовлення за правилом передзамовлення, незважаючи на поточний залишок.';
+$_['text_stock_preorder_badge']               = 'Передзамовлення';
+$_['text_stock_preorder_cart']                = 'Товару зараз немає в наявності, але замовлення дозволено.';
 
 // Column
 $_['column_image']                            = 'Зображення';
@@ -37,28 +41,17 @@ $_['column_total']                            = 'Сума';
 
 // Error
 $_['error_quantity']                          = 'Кількість товару має бути не менше 1. Для видалення товару скористайтеся кнопкою видалення.';
-$_['text_stock_popup_title']    = 'Недостатньо товару на складі';
-$_['text_stock_popup_message']  = 'Наступних товарів немає у необхідній кількості:';
-$_['text_stock_popup_model']    = 'Модель';
-$_['text_stock_popup_quantity'] = 'У кошику';
-$_['text_stock_popup_available'] = 'Доступно';
-$_['button_stock_popup_close']  = 'Зрозуміло';
+$_['text_stock_popup_title']                  = 'Недостатньо товару на складі';
+$_['text_stock_popup_message']                = 'Наступних товарів немає у необхідній кількості:';
+$_['text_stock_popup_model']                  = 'Модель';
+$_['text_stock_popup_quantity']               = 'У кошику';
+$_['text_stock_popup_available']              = 'Доступно';
+$_['button_stock_popup_close']                = 'Зрозуміло';
 
-$_['error_stock_available']   = 'Недостатньо товару на складі. Доступно для замовлення: %s шт.';
-$_['error_stock_unavailable'] = 'Товар зараз недоступний для покупки.';
+$_['error_stock_available']                   = 'Недостатньо товару на складі. Доступно для замовлення: %s шт.';
+$_['error_stock_unavailable']                 = 'Товар зараз недоступний для покупки.';
 $_['error_stock']                             = 'Товари, що відмічені *** відсутні в достатній кількості або їх немає в наявності';
 $_['error_minimum']                           = 'Мінімальна кількість для замовлення товару %s складає %s';
 $_['error_required']                          = 'Оберіть %s';
 $_['error_product']                           = 'Ваш кошик порожній :(';
 $_['error_recurring_required']                = 'Необхідно обрати періодичність платежів';
-/*
-Translated with
-Массовый автоматический перевод текстов, товаров, категорий, статей и тд с Google translate API
-https://translator.codeguild.com.ua/
-*/
-$_['text_payment_cancel']                     = "%s кожні %d %s до скасування";
-
-$_['text_stock_preorder_allowed'] = 'Товар доступний для замовлення за правилом передзамовлення, незважаючи на поточний залишок.';
-
-$_['text_stock_preorder_badge'] = 'Передзамовлення';
-$_['text_stock_preorder_cart'] = 'Товару зараз немає в наявності, але замовлення дозволено.';
