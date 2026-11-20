@@ -1326,15 +1326,15 @@ class ControllerSettingSetting extends Controller {
 		}
 
 		if (isset($this->request->post['config_seopro_addslash'])) {
-			$data['config_seopro_addslash'] = $this->request->post['config_seopro_addslash'];
-		} elseif ($this->config->has('config_seopro_addslash')) {
-			$data['config_seopro_addslash'] = $this->config->get('config_seopro_addslash');
+			$data['config_seopro_addslash'] = (int)$this->request->post['config_seopro_addslash'];
+		} else {
+			$data['config_seopro_addslash'] = (int)$this->config->get('config_seopro_addslash');
 		}
 
 		if (isset($this->request->post['config_seopro_lowercase'])) {
-			$data['config_seopro_lowercase'] = $this->request->post['config_seopro_lowercase'];
-		} elseif ($this->config->has('config_seopro_lowercase')) {
-			$data['config_seopro_lowercase'] = $this->config->get('config_seopro_lowercase');
+			$data['config_seopro_lowercase'] = (int)$this->request->post['config_seopro_lowercase'];
+		} else {
+			$data['config_seopro_lowercase'] = (int)$this->config->get('config_seopro_lowercase');
 		}
 
 		if (isset($this->request->post['config_valide_params'])) {

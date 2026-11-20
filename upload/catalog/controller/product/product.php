@@ -603,6 +603,12 @@ class ControllerProductProduct extends Controller {
 	public function review() {
 		$this->load->language('product/product');
 
+		if (!isset($this->request->get['product_id'])) {
+			$this->request->get['product_id'] = isset($this->request->post['product_id']) ? (int)$this->request->post['product_id'] : 0;
+		}
+
+		$product_id = (int)$this->request->get['product_id'];
+
 		if (!$this->config->get('config_review_status')) {
 			$this->response->setOutput('');
 			return;
@@ -610,17 +616,13 @@ class ControllerProductProduct extends Controller {
 
 		$this->load->model('catalog/review');
 
-		if (isset($this->request->get['page'])) {
-			$page = (int)$this->request->get['page'];
-		} else {
-			$page = 1;
-		}
+		$page = isset($this->request->get['page']) ? max(1, (int)$this->request->get['page']) : 1;
 
 		$data['reviews'] = array();
 
-		$review_total = $this->model_catalog_review->getTotalReviewsByProductId($this->request->get['product_id']);
+		$review_total = $this->model_catalog_review->getTotalReviewsByProductId($product_id);
 
-		$results = $this->model_catalog_review->getReviewsByProductId($this->request->get['product_id'], ($page - 1) * 5, 5);
+		$results = $this->model_catalog_review->getReviewsByProductId($product_id, ($page - 1) * 5, 5);
 
 		foreach ($results as $result) {
 			$data['reviews'][] = array(
@@ -635,7 +637,7 @@ class ControllerProductProduct extends Controller {
 		$pagination->total = $review_total;
 		$pagination->page = $page;
 		$pagination->limit = 5;
-		$pagination->url = $this->url->link('product/product/review', 'product_id=' . $this->request->get['product_id'] . '&page={page}');
+		$pagination->url = $this->url->link('product/product/review', 'product_id=' . $product_id . '&page={page}');
 
 		$data['pagination'] = $pagination->render();
 

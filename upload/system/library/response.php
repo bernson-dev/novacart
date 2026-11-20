@@ -113,7 +113,16 @@ class Response {
 		if ($this->output !== '') {
 			$output = $this->output;
 
-			if (class_exists('ImageAttributes')) {
+			$is_html = true;
+
+			foreach ($this->headers as $header) {
+				if (stripos($header, 'Content-Type:') === 0 && stripos($header, 'html') === false) {
+					$is_html = false;
+					break;
+				}
+			}
+
+			if ($is_html && class_exists('ImageAttributes')) {
 				$output = ImageAttributes::enhance($output);
 			}
 
