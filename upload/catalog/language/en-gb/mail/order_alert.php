@@ -22,3 +22,4 @@ $_['text_price']            = 'Price';
 $_['text_order_total']      = 'Order Totals';
 $_['text_total']            = 'Total';
 $_['text_comment']          = 'The comments for your order are:';
+$_['text_history_comment']  = 'Order history comment:';
