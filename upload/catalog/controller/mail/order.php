@@ -38,7 +38,7 @@ class ControllerMailOrder extends Controller {
 
 			// If order status is not 0 then send update text email
 			if ($order_info['order_status_id'] && $order_status_id && $notify) {
-				$this->edit($order_info, $order_status_id, $comment, $notify);
+				$this->edit($order_info, $order_status_id, $comment);
 			}
 		}
 	}
@@ -94,6 +94,7 @@ class ControllerMailOrder extends Controller {
 		$this->load->model('setting/setting');
 
 		$config_info = $this->model_setting_setting->getSettingValue('config_logo', $order_info['store_id']);
+		$data['logo'] = '';
 
 		if ($config_info && is_file(DIR_IMAGE . html_entity_decode($config_info, ENT_QUOTES, 'UTF-8'))) {
 			$data['logo'] = $this->model_tool_image->resize(html_entity_decode($config_info, ENT_QUOTES, 'UTF-8'), $this->config->get('theme_default_image_location_width'), $this->config->get('theme_default_image_cart_height'));
@@ -129,7 +130,7 @@ class ControllerMailOrder extends Controller {
 		}
 
 		if ($comment && $notify) {
-			$data['comment'] = nl2br($comment);
+			$data['comment'] = nl2br(htmlspecialchars($comment, ENT_QUOTES, 'UTF-8'));
 		} else {
 			$data['comment'] = '';
 		}
@@ -234,7 +235,7 @@ class ControllerMailOrder extends Controller {
 
 			$product_info = $this->model_catalog_product->getProduct($order_product['product_id']);
 
-			if ($product_info['image']) {
+			if ($product_info && !empty($product_info['image'])) {
 				$image = $this->model_tool_image->resize($product_info['image'], 60, 60);
 			} else {
 				$image = $this->model_tool_image->resize('placeholder.png', 60, 60);
@@ -321,8 +322,8 @@ class ControllerMailOrder extends Controller {
 		$data['order_id'] = $order_info['order_id'];
 		$data['date_added'] = date($language->get('datetime_format'), strtotime($order_info['date_added']));
 
-		$data['store_url'] = $this->config->get('config_url');
-		$data['store'] = html_entity_decode($this->config->get('config_name'), ENT_QUOTES, 'UTF-8');
+		$data['store_url'] = $order_info['store_url'];
+		$data['store'] = html_entity_decode($order_info['store_name'], ENT_QUOTES, 'UTF-8');
 		$order_status_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_status WHERE order_status_id = '" . (int)$order_status_id . "' AND language_id = '" . (int)$order_info['language_id'] . "'");
 
 		if ($order_status_query->num_rows) {
@@ -337,7 +338,7 @@ class ControllerMailOrder extends Controller {
 			$data['link'] = '';
 		}
 
-		$data['comment'] = strip_tags($comment);
+		$data['comment'] = nl2br(htmlspecialchars($comment, ENT_QUOTES, 'UTF-8'));
 
 		$this->load->model('setting/setting');
 
@@ -428,9 +429,10 @@ class ControllerMailOrder extends Controller {
 			$data['text_total'] = $language->get('text_total');
 			$data['text_footer'] = $language->get('text_footer');
 			$data['text_comment'] = $language->get('text_comment');
+			$data['text_history_comment'] = $language->get('text_history_comment');
 
-			$data['store_url'] = $this->config->get('config_url');
-			$data['store'] = html_entity_decode($this->config->get('config_name'), ENT_QUOTES, 'UTF-8');
+			$data['store_url'] = $order_info['store_url'];
+			$data['store'] = html_entity_decode($order_info['store_name'], ENT_QUOTES, 'UTF-8');
 
 			$this->load->model('tool/image');
 
@@ -441,6 +443,9 @@ class ControllerMailOrder extends Controller {
 			}
 
 			$data['customer_id'] = $order_info['customer_id'];
+			$data['store_name'] = $order_info['store_name'];
+			$data['link'] = $order_info['store_url'] . 'index.php?route=account/order/info&order_id=' . $order_info['order_id'];
+			$data['download'] = '';
 
 			$data['order_id'] = $order_info['order_id'];
 			$data['date_added'] = date($language->get('datetime_format'), strtotime($order_info['date_added']));
@@ -458,11 +463,9 @@ class ControllerMailOrder extends Controller {
 				$data['order_status'] = '';
 			}
 
-			if ($comment && $notify) {
-				$data['comment'] = nl2br($comment);
-			} else {
-				$data['comment'] = '';
-			}
+			// Preserve the checkout and order-history comments separately.
+			$data['comment'] = (string)$order_info['comment'];
+			$data['history_comment'] = (string)$comment;
 
 			if ($order_info['payment_address_format']) {
 				$format = $order_info['payment_address_format'];
@@ -564,7 +567,7 @@ class ControllerMailOrder extends Controller {
 
 				$product_info = $this->model_catalog_product->getProduct($order_product['product_id']);
 
-				if ($product_info['image']) {
+				if ($product_info && !empty($product_info['image'])) {
 					$image = $this->model_tool_image->resize($product_info['image'], 60, 60);
 				} else {
 					$image = $this->model_tool_image->resize('placeholder.png', 60, 60);
@@ -606,7 +609,6 @@ class ControllerMailOrder extends Controller {
 				);
 			}
 
-			$data['comment'] = strip_tags($order_info['comment']);
 
 			$mail = new \Mail($this->config->get('config_mail_engine'));
 			$mail->parameter = $this->config->get('config_mail_parameter');
