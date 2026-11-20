@@ -1,0 +1,59 @@
+# NovaCart localization audit baseline
+# Generated intentionally from an audited repository state.
+# Format: SHA1<TAB>file<TAB>message
+09f42abee35e633b4b8d9fa4b9cd7ce61d8cffe7	upload/admin/language/en-gb/extension/report/marketing.php	Duplicate language key "entry_status" on lines 22, 23.
+0a2e47463398fc381d786239ba283f8c651741b0	admin/language/ru-ru/extension/dashboard/activity.php	Format placeholder mismatch for "text_activity_return_account": en-gb [%d, %d, %s] vs ru-ru [%d, %s].
+1476cf310c08bf8f7131e1cfb46e1149aae94f69	catalog/language/ru-ru/checkout/checkout.php	Format placeholder mismatch for "text_checkout_option": en-gb [%s] vs ru-ru [].
+1782950e1be7cea8d9550c4352bb2de515015bd1	upload/admin/language/en-gb/catalog/product.php	Duplicate language key "entry_main_category" on lines 115, 126.
+1f113a1db7ce16aecad20c9275a24e78742062e2	upload/admin/language/en-gb/extension/report/sale_tax.php	Duplicate language key "entry_status" on lines 27, 28.
+2320362bc6f1a685c28b8cb8379fe1efebd11c5e	admin/language/ru-ru/extension/report/customer_activity.php	Format placeholder mismatch for "text_edit": en-gb [] vs ru-ru [%d, %s].
+2449e4fe89fa5e760139bbfb031fb3e325e21fa6	upload/admin/language/ru-ru/extension/payment/paypal.php	Duplicate language key "text_checkout" on lines 43, 118.
+281b03bc5923f6e331dfe9fd3456388ddc936646	upload/admin/language/en-gb/extension/report/sale_return.php	Duplicate language key "entry_status" on lines 25, 26.
+28410936376eb3b49d85a1791f4f3300fc312b4f	upload/admin/language/ru-ru/customer/customer.php	Duplicate language key "text_unlock" on lines 30, 47.
+28820f77ec2074f292639cf80673df89d9790e32	upload/admin/language/uk-ua/extension/dashboard/activity.php	Duplicate language key "text_affiliate_edit" on lines 24, 40.
+2b0fce8a2b5925b450790fb7b26f52c0a3e9c407	admin/language/uk-ua/extension/report/customer_activity.php	Format placeholder mismatch for "text_edit": en-gb [] vs uk-ua [%d, %s].
+2be6de28465bb00ac0580e477b52374ffc40119d	upload/admin/language/ru-ru/customer/customer.php	Duplicate language key "text_option" on lines 28, 45.
+2c769200361f5c5d015897cebaed793226f94b6e	upload/admin/language/uk-ua/customer/customer.php	Duplicate language key "text_login" on lines 30, 47.
+2da7567e2506ac33f8f8de81c75f27033e0e5b7a	upload/admin/language/en-gb/extension/report/customer_order.php	Duplicate language key "entry_status" on lines 26, 27.
+330e54adddfa704e1f85acf8654a1ff851915392	upload/admin/language/uk-ua/customer/customer.php	Duplicate language key "text_option" on lines 29, 46.
+33ec83483c317908199ecc40aa61c46e7fbb3e9c	catalog/language/uk-ua/checkout/checkout.php	Format placeholder mismatch for "text_checkout_shipping_address": en-gb [%s] vs uk-ua [].
+35ed1be2fc979875a7b04aad947e89c5fb8d4faf	upload/admin/language/ru-ru/ru-ru.php	Duplicate language key "tab_module" on lines 134, 149.
+3a2c8037b3cb34b62335b4c336bfb03a7aa8bede	catalog/language/uk-ua/checkout/checkout.php	Format placeholder mismatch for "text_checkout_payment_method": en-gb [%s] vs uk-ua [].
+3ba99fc8ba0f0577366eff295dc32178bc98de72	upload/catalog/language/uk-ua/mail/affiliate.php	Duplicate language key "text_service" on lines 8, 23.
+42a30655d49a21e614da8e61ecf9dd6ad26de76d	admin/language/uk-ua/tool/backup.php	Format placeholder mismatch for "text_success": en-gb [] vs uk-ua [%s, %s].
+470af81a036f05cba9ff111fa031e23567f96548	upload/admin/language/ru-ru/setting/setting.php	Duplicate language key "text_return" on lines 19, 21.
+4a9bfb560c22b89928501e7e276bedb493684bff	catalog/language/ru-ru/checkout/checkout.php	Format placeholder mismatch for "text_checkout_payment_address": en-gb [%s] vs ru-ru [].
+4d5c49444ccde57a090a6859c44e6d260a11bd8b	upload/admin/language/en-gb/common/security.php	Duplicate language key "text_admin" on lines 7, 15.
+4f23dbe3b71ad2568792cbff251a47694d2accdf	catalog/language/uk-ua/checkout/checkout.php	Format placeholder mismatch for "text_checkout_confirm": en-gb [%s] vs uk-ua [].
+538da3fc184a075bf6195fee18501a62626b4fa3	upload/admin/language/uk-ua/uk-ua.php	Duplicate language key "button_enable" on lines 43, 103.
+574ba6f9a6ae401aecf410c0af0e90950b5e0a7a	catalog/language/uk-ua/checkout/checkout.php	Format placeholder mismatch for "text_checkout_account": en-gb [%s] vs uk-ua [].
+59d13da04eb6e4ff6e17b134617d9701171ed7ee	upload/admin/language/en-gb/extension/payment/twocheckout_inline.php	Duplicate language key "entry_total" on lines 21, 22.
+5a962c3183931224fc9468deec34abbfcaeb4b81	upload/admin/language/en-gb/extension/payment/paypal.php	Duplicate language key "text_checkout" on lines 43, 118.
+5db6086a086ac93f3c0f0e00c0d326b1abac493d	catalog/language/ru-ru/checkout/checkout.php	Format placeholder mismatch for "text_checkout_confirm": en-gb [%s] vs ru-ru [].
+6756d98c132a1c3e4d9e9c74e1462db7d9c8df84	upload/admin/language/uk-ua/extension/payment/twocheckout_inline.php	Duplicate language key "entry_total" on lines 21, 22.
+72a10e1fd5ca0f0418127ce8daa69acb0134c06b	catalog/language/uk-ua/checkout/checkout.php	Format placeholder mismatch for "text_checkout_shipping_method": en-gb [%s] vs uk-ua [].
+74a3fe9930e8378dec7f2155e4dce36177b35912	upload/admin/language/uk-ua/uk-ua.php	Duplicate language key "tab_module" on lines 137, 152.
+7e067ce300e45231fa4adb682231a91881a6ae1c	upload/admin/language/en-gb/customer/customer.php	Duplicate language key "text_unlock" on lines 29, 46.
+8489996ca767f281886a8e983dc7c49a0b29980c	catalog/language/uk-ua/checkout/success.php	Format placeholder mismatch for "heading_title": en-gb [%s] vs uk-ua [].
+8535d869c963fc6f11a4ba4f15ce24f49a56107e	upload/admin/language/en-gb/customer/customer.php	Duplicate language key "text_login" on lines 28, 45.
+86bb58404346b9b87bfad18d9e13be93a60b8f67	upload/admin/language/en-gb/extension/report/sale_order.php	Duplicate language key "entry_status" on lines 28, 29.
+8d1cb380dce5f29e59472c29daabbb2c906f9808	upload/admin/language/uk-ua/setting/setting.php	Duplicate language key "text_review" on lines 10, 22.
+8ed5a7155428c46077e26f5fbf00ab7c5a43e8b4	catalog/language/uk-ua/checkout/checkout.php	Format placeholder mismatch for "text_checkout_option": en-gb [%s] vs uk-ua [].
+8ee3b17ffbb940d0adbac9ccf65fbe2f96536166	upload/admin/language/en-gb/customer/customer.php	Duplicate language key "text_option" on lines 27, 44.
+966e14d90bfc2be0959cad45653532a09b62922c	upload/admin/language/uk-ua/tool/backup.php	Duplicate language key "text_success" on lines 7, 10.
+96c7af82f72b7309ddc1a821f9278ce5dff9c53b	upload/admin/language/ru-ru/extension/payment/twocheckout_inline.php	Duplicate language key "entry_total" on lines 21, 22.
+99f8d1be08c371ff7c93bca33ee4c01a3ff9c08a	admin/language/ru-ru/extension/dashboard/activity.php	Format placeholder mismatch for "text_activity_return_guest": en-gb [%d, %s] vs ru-ru [%s].
+9aace9b900c0e4a38e320e7888397b3956e483bb	upload/admin/language/ru-ru/customer/customer.php	Duplicate language key "text_login" on lines 29, 46.
+a0e99e60e4183237b6c49d6e4105348b2d26866b	upload/admin/language/uk-ua/uk-ua.php	Duplicate language key "button_disable" on lines 44, 104.
+abe8047ecee28f91ee1ac03786d37c32dd6e92c6	admin/language/uk-ua/extension/dashboard/activity.php	Format placeholder mismatch for "text_activity_return_account": en-gb [%d, %d, %s] vs uk-ua [%d, %s].
+af254c29fa400b7b482dfe3360ec82beb7b6d61e	catalog/language/ru-ru/checkout/checkout.php	Format placeholder mismatch for "text_checkout_shipping_method": en-gb [%s] vs ru-ru [].
+b16bcac2e6cedaf9dc257608c0ae5abae2d7e475	admin/language/uk-ua/extension/dashboard/activity.php	Format placeholder mismatch for "text_activity_return_guest": en-gb [%d, %s] vs uk-ua [%s].
+b373a59b4e908a10519dd5d1f7659e631a4d89cb	catalog/language/ru-ru/checkout/checkout.php	Format placeholder mismatch for "text_checkout_payment_method": en-gb [%s] vs ru-ru [].
+ca477492258958fbebee0824289dd5c4aff54a88	catalog/language/ru-ru/checkout/checkout.php	Format placeholder mismatch for "text_checkout_account": en-gb [%s] vs ru-ru [].
+d00f6b2c3356b54efde88cf197bd50ffaebbfd5f	upload/admin/language/uk-ua/customer/customer.php	Duplicate language key "text_unlock" on lines 31, 48.
+d989c741d8046210dbc78455506d8194751c505f	upload/admin/language/uk-ua/extension/payment/paypal.php	Duplicate language key "text_checkout" on lines 43, 118.
+eceebb9b31af39aa11011486e7e1d62a5a2bc656	catalog/language/uk-ua/checkout/checkout.php	Format placeholder mismatch for "text_checkout_payment_address": en-gb [%s] vs uk-ua [].
+edace26c790176b516dd7d9231baa2fa33ece58e	admin/language/uk-ua/tool/backup.php	Format placeholder mismatch for "text_backup": ru-ru [] vs uk-ua [%s, %s, %s].
+eee4f9b8c3ab4b604b8f2dc8b87099edfb7a8460	upload/admin/language/ru-ru/setting/setting.php	Duplicate language key "text_review" on lines 10, 20.
+f54cabb0b47a998f7bde7693a1a92cc399423da1	catalog/language/ru-ru/checkout/checkout.php	Format placeholder mismatch for "text_checkout_shipping_address": en-gb [%s] vs ru-ru [].
+f9f442dad9e00eca7009ff39ffdde6ed2eebb87d	upload/admin/language/en-gb/extension/report/sale_shipping.php	Duplicate language key "entry_status" on lines 27, 28.

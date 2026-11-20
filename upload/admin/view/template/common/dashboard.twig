@@ -59,6 +59,9 @@
             {% endfor %}
         </div>
         {% endfor %}
+        {% if health_dashboard %}
+        <div class="row"><div class="col-sm-12">{{ health_dashboard }}</div></div>
+        {% endif %}
     </div>
     {{ security }}
     <script type="text/javascript">

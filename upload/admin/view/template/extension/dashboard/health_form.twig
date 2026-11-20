@@ -1,0 +1,80 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+        <button type="submit" form="form-dashboard-health" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
+        <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    {% if error_warning %}
+    <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><i class="fa fa-heartbeat"></i> {{ text_edit }}</h3>
+      </div>
+
+      <div class="panel-body">
+        <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-dashboard-health" class="form-horizontal">
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-status">{{ entry_status }}</label>
+            <div class="col-sm-10">
+              <select name="dashboard_health_status" id="input-status" class="form-control">
+                <option value="1" {{ dashboard_health_status ? 'selected="selected"' : '' }}>{{ text_enabled }}</option>
+                <option value="0" {{ not dashboard_health_status ? 'selected="selected"' : '' }}>{{ text_disabled }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-width">{{ entry_width }}</label>
+            <div class="col-sm-10">
+              <select name="dashboard_health_width" id="input-width" class="form-control">
+                {% for column in columns %}
+                <option value="{{ column }}" {{ column == dashboard_health_width ? 'selected="selected"' : '' }}>{{ column }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-sort-order">{{ entry_sort_order }}</label>
+            <div class="col-sm-10">
+              <input type="number" name="dashboard_health_sort_order" value="{{ dashboard_health_sort_order }}" id="input-sort-order" class="form-control" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-low-stock"><span data-toggle="tooltip" title="{{ help_low_stock_limit }}">{{ entry_low_stock_limit }}</span></label>
+            <div class="col-sm-10">
+              <input type="number" min="0" max="1000000" name="dashboard_health_low_stock_limit" value="{{ dashboard_health_low_stock_limit }}" id="input-low-stock" class="form-control" />
+              <p class="help-block">{{ help_low_stock_limit }}</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-log-warning"><span data-toggle="tooltip" title="{{ help_log_warning_mb }}">{{ entry_log_warning_mb }}</span></label>
+            <div class="col-sm-10">
+              <input type="number" min="1" max="1024" name="dashboard_health_log_warning_mb" value="{{ dashboard_health_log_warning_mb }}" id="input-log-warning" class="form-control" />
+              <p class="help-block">{{ help_log_warning_mb }}</p>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}

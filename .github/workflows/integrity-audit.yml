@@ -1,0 +1,61 @@
+name: Core Integrity Manifest
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'upload/system/engine/**'
+      - 'upload/system/library/*.php'
+      - 'upload/system/library/cart/cart.php'
+      - 'upload/catalog/controller/startup/**'
+      - 'upload/catalog/controller/checkout/cart.php'
+      - 'upload/catalog/controller/checkout/checkout.php'
+      - 'upload/catalog/controller/checkout/confirm.php'
+      - 'upload/catalog/model/checkout/order.php'
+      - 'upload/admin/controller/common/**'
+      - 'upload/system/config/novacart_integrity.json'
+      - 'tools/integrity_manifest.php'
+      - '.github/workflows/integrity-audit.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'upload/system/engine/**'
+      - 'upload/system/library/*.php'
+      - 'upload/system/library/cart/cart.php'
+      - 'upload/catalog/controller/startup/**'
+      - 'upload/catalog/controller/checkout/cart.php'
+      - 'upload/catalog/controller/checkout/checkout.php'
+      - 'upload/catalog/controller/checkout/confirm.php'
+      - 'upload/catalog/model/checkout/order.php'
+      - 'upload/admin/controller/common/**'
+      - 'upload/system/config/novacart_integrity.json'
+      - 'tools/integrity_manifest.php'
+      - '.github/workflows/integrity-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: integrity-audit-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  manifest:
+    name: Verify curated core SHA-256 manifest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup PHP 7.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.3'
+          coverage: none
+
+      - name: Verify committed manifest
+        run: php tools/integrity_manifest.php --check=upload/system/config/novacart_integrity.json
