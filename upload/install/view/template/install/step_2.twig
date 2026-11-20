@@ -2,350 +2,69 @@
 <div class="container">
   {{ step_header }}
   {% if error_warning %}
-  <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
-    <button type="button" class="close" data-dismiss="alert">&times;</button>
-  </div>
+    <div class="alert alert-danger"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}</div>
   {% endif %}
+
   <div class="row">
-    <div class="col-sm-9">
-      <form action="{{ action }}" method="post" enctype="multipart/form-data">
-        <p>{{ text_install_php }}</p>
-        <fieldset>
-          <table class="table">
-            <thead>
-              <tr>
-                <td width="35%"><b>{{ text_setting }}</b></td>
-                <td width="25%"><b>{{ text_current }}</b></td>
-                <td width="25%"><b>{{ text_required }}</b></td>
-                <td width="15%" class="text-center"><b>{{ text_status }}</b></td>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{{ text_version }}</td>
-                <td>{{ php_version }}</td>
-                <td>7.3+</td>
-                <td class="text-center">
-                  {% if php_version >= '7.3.0' %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ text_file_upload }}</td>
-                <td>{% if file_uploads %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_on }}</td>
-                <td class="text-center">{% if file_uploads %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ text_session }}</td>
-                <td>{% if session_auto_start %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_off }}</td>
-                <td class="text-center">{% if not session_auto_start %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-            </tbody>
-          </table>
-        </fieldset>
-        <p>{{ text_install_extension }}</p>
-        <fieldset>
-          <table class="table">
-            <thead>
-              <tr>
-                <td width="35%"><b>{{ text_extension }}</b></td>
-                <td width="25%"><b>{{ text_current }}</b></td>
-                <td width="25%"><b>{{ text_required }}</b></td>
-                <td width="15%" class="text-center"><b>{{ text_status }}</b></td>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{{ text_db }}</td>
-                <td>{% if db %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_on }}</td>
-                <td class="text-center">{% if db %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ text_gd }}</td>
-                <td>{% if gd %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_on }}</td>
-                <td class="text-center">{% if gd %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ text_curl }}</td>
-                <td>{% if curl %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_on }}</td>
-                <td class="text-center">{% if curl %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ text_openssl }}</td>
-                <td>{% if openssl %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_on }}</td>
-                <td class="text-center">{% if openssl %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ text_zlib }}</td>
-                <td>{% if zlib %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_on }}</td>
-                <td class="text-center">{% if zlib %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ text_zip }}</td>
-                <td>{% if zip %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_on }}</td>
-                <td class="text-center">{% if zip %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-              {% if not iconv %}
-              <tr>
-                <td>{{ text_mbstring }}</td>
-                <td>{% if mbstring %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_on }}</td>
-                <td class="text-center">{% if mbstring %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-              {% endif %}
-              <tr>
-                <td>{{ text_dom }}</td>
-                <td>{% if dom %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_on }}</td>
-                <td class="text-center">{% if dom %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ text_hash }}</td>
-                <td>{% if hash %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_on }}</td>
-                <td class="text-center">{% if hash %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ text_xmlwriter }}</td>
-                <td>{% if xmlwriter %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_on }}</td>
-                <td class="text-center">{% if xmlwriter %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ text_json }}</td>
-                <td>{% if json %}
-                  {{ text_on }}
-                  {% else %}
-                  {{ text_off }}
-                  {% endif %}</td>
-                <td>{{ text_on }}</td>
-                <td class="text-center">{% if json %}
-                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                  {% else %}
-                  <span class="text-danger"><i class="fa fa-minus-circle"></i></span>
-                  {% endif %}</td>
-              </tr>
-            </tbody>
-          </table>
-        </fieldset>
-        <p>{{ text_install_file }}</p>
-        <fieldset>
-          <table class="table">
-            <thead>
-              <tr>
-                <td><b>{{ text_file }}</b></td>
-                <td><b>{{ text_status }}</b></td>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{{ catalog_config }}</td>
-                <td>{% if not error_catalog_config %}
-                  <span class="text-success">{{ text_writable }}</span>
-                  {% else %}
-                  <span class="text-danger">{{ error_catalog_config }}</span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ admin_config }}</td>
-                <td>{% if not error_admin_config %}
-                  <span class="text-success">{{ text_writable }}</span>
-                  {% else %}
-                  <span class="text-danger">{{ error_admin_config }}</span>
-                  {% endif %}</td>
-              </tr>
-            </tbody>
-          </table>
-        </fieldset>
-        <p>{{ text_install_directory }}</p>
-        <fieldset>
-          <table class="table">
-            <thead>
-              <tr>
-                <td align="left"><b>{{ text_directory }}</b></td>
-                <td align="left"><b>{{ text_status }}</b></td>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{{ image }}/</td>
-                <td>{% if not error_image %}
-                  <span class="text-success">{{ text_writable }}</span>
-                  {% else %}
-                  <span class="text-danger">{{ error_image }}</span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ image_cache }}/</td>
-                <td>{% if not error_image_cache %}
-                  <span class="text-success">{{ text_writable }}</span>
-                  {% else %}
-                  <span class="text-danger">{{ error_image_cache }}</span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ image_catalog }}/</td>
-                <td>{% if not error_image_catalog %}
-                  <span class="text-success">{{ text_writable }}</span>
-                  {% else %}
-                  <span class="text-danger">{{ error_image_catalog }}</span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ cache }}/</td>
-                <td>{% if not error_cache %}
-                  <span class="text-success">{{ text_writable }}</span>
-                  {% else %}
-                  <span class="text-danger">{{ error_cache }}</span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ logs }}/</td>
-                <td>{% if not error_logs %}
-                  <span class="text-success">{{ text_writable }}</span>
-                  {% else %}
-                  <span class="text-danger">{{ error_logs }}</span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ download }}/</td>
-                <td>{% if not error_download %}
-                  <span class="text-success">{{ text_writable }}</span>
-                  {% else %}
-                  <span class="text-danger">{{ error_download }}</span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ upload }}/</td>
-                <td>{% if not error_upload %}
-                  <span class="text-success">{{ text_writable }}</span>
-                  {% else %}
-                  <span class="text-danger">{{ error_upload }}</span>
-                  {% endif %}</td>
-              </tr>
-              <tr>
-                <td>{{ modification }}/</td>
-                <td>{% if not error_modification %}
-                  <span class="text-success">{{ text_writable }}</span>
-                  {% else %}
-                  <span class="text-danger">{{ error_modification }}</span>
-                  {% endif %}</td>
-              </tr>
-            </tbody>
-          </table>
-        </fieldset>
-        <div class="buttons">
-          <div class="pull-left"><a href="{{ back }}" class="btn btn-default">{{ button_back }}</a></div>
-          <div class="pull-right">
-            <input type="submit" value="{{ button_continue }}" class="btn btn-primary" />
+    <div class="col-sm-9 cc-check-main">
+      <form action="{{ action }}" method="post">
+          {% set groups = [
+            {'title': text_install_php, 'rows': php_checks, 'paths': false},
+            {'title': text_install_extension, 'rows': extension_checks, 'paths': false},
+            {'title': text_install_file, 'rows': file_checks, 'paths': true},
+            {'title': text_install_directory, 'rows': directory_checks, 'paths': true}
+          ] %}
+
+          {% for group in groups %}
+            <section class="cc-check-card">
+              <p class="cc-check-card__title">{{ group.title }}</p>
+              <div class="table-responsive">
+              <table class="table table-striped table-bordered table-condensed cc-check-table {% if group.paths %}cc-check-table--paths{% else %}cc-check-table--requirements{% endif %}">
+                <thead>
+                  <tr>
+                    <th>{% if group.paths %}{{ text_file }} / {{ text_directory }}{% else %}{{ text_setting }}{% endif %}</th>
+                    <th>{% if group.paths %}{{ text_status }}{% else %}{{ text_current }}{% endif %}</th>
+                    {% if group.paths %}
+                      <th class="text-center">CHMOD</th>
+                    {% else %}
+                      <th>{{ text_required }}</th>
+                    {% endif %}
+                    <th class="text-center" title="{{ text_status }}"><i class="fa fa-check-circle-o" aria-hidden="true"></i></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in group.rows %}
+                    <tr{% if not item.ok %} class="danger"{% endif %}>
+                      <td class="cc-check-table__label">{{ item.label }}</td>
+                      <td class="cc-check-table__value">
+                        <span class="{% if item.ok %}text-success{% else %}text-danger{% endif %}">{{ item.current }}</span>
+                      </td>
+                      {% if group.paths %}
+                        <td class="text-center">
+                          <code class="{% if not item.permission_ok %}text-warning{% endif %}">{{ item.permissions }}</code>
+                        </td>
+                      {% else %}
+                        <td>{{ item.required }}</td>
+                      {% endif %}
+                      <td class="text-center">
+                        {% if item.ok %}
+                          <i class="fa fa-check-circle text-success" aria-label="OK" title="OK"></i>
+                        {% else %}
+                          <i class="fa fa-times-circle text-danger" aria-label="Error" title="Error"></i>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              </div>
+            </section>
+          {% endfor %}
+
+          <div class="buttons clearfix">
+            <a href="{{ back }}" class="btn btn-default">{{ button_back }}</a>
+            <button type="submit" class="btn btn-primary">{{ button_continue }}</button>
           </div>
-        </div>
       </form>
     </div>
     <div class="col-sm-3">{{ column_left }}</div>

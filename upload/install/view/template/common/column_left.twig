@@ -14,14 +14,28 @@
     {% endfor %}
   </div>
   <form action="{{ action }}" method="post" id="language" class="cc-language">
-    <div class="cc-language__label">{{ text_language }}</div>
-    <div class="cc-language__options" role="group" aria-label="{{ text_language }}">
-      {% for language in languages %}
-        <button type="submit" name="code" value="{{ language.code }}" class="cc-language__option{% if language.code == code %} active{% endif %}"{% if language.code == code %} aria-current="true"{% endif %}>
-          <img src="language/{{ language.code }}/{{ language.code }}.png" alt="" width="20" height="14" onerror="this.style.display='none'"><span>{{ language.name }}</span>
-        </button>
-      {% endfor %}
-    </div>
-    <input type="hidden" name="redirect" value="{{ redirect }}">
+      <div class="cc-language__label">{{ text_language }}</div>
+      {% if languages|length > 3 %}
+      <div class="cc-language__select">
+          <img src="language/{{ code }}/{{ code }}.png" alt="" width="20" height="14" onerror="this.style.display='none'">
+          <select name="code" class="cc-language__input" aria-label="{{ text_language }}" onchange="this.form.submit()">
+              {% for language in languages %}
+              <option value="{{ language.code }}"{% if language.code == code %} selected{% endif %}>{{ language.name }}</option>
+              {% endfor %}
+          </select>
+          <noscript>
+              <button type="submit" class="cc-language__apply" title="{{ text_language }}">
+                  <i class="fa fa-check" aria-hidden="true"></i></button></noscript>
+      </div>
+      {% else %}
+      <div class="cc-language__options" role="group" aria-label="{{ text_language }}">
+          {% for language in languages %}
+          <button type="submit" name="code" value="{{ language.code }}" class="cc-language__option{% if language.code == code %} active{% endif %}"{% if language.code == code %} aria-current="true"{% endif %}>
+              <img src="language/{{ language.code }}/{{ language.code }}.png" alt="" width="20" height="14" onerror="this.style.display='none'"><span>{{ language.name }}</span>
+          </button>
+          {% endfor %}
+      </div>
+      {% endif %}
+      <input type="hidden" name="redirect" value="{{ redirect }}">
   </form>
 </aside>

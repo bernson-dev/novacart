@@ -172,7 +172,6 @@ footer {
 .btn {
     font-weight: 500;
     border-radius: var(--radius-sm);
-    padding: 8px 16px;
     cursor: pointer;
     border: 1px solid transparent;
     transition: all 0.2s ease;
@@ -356,13 +355,38 @@ footer {
     object-fit: contain;
 }
 
+.cc-language__select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cc-language__select > img {
+    flex: 0 0 auto;
+}
+.cc-language__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 6px 8px;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 14px;
+}
+.cc-language__apply {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+    background: #f5f5f5;
+    cursor: pointer;
+}
+
 .cc-installer-finish {
     width: 100%;
     max-width: 1100px;
     margin: 0 auto;
 }
 
-/* Красивое оформление шапки (теперь в едином стиле с карточкой) */
 .cc-installer-finish .cc-finish-header {
     display: flex;
     justify-content: space-between;
@@ -721,4 +745,73 @@ footer {
     .cc-step-header__number { font-size: 17px; padding: 5px 9px; }
     .cc-step-header__heading h1 { font-size: 17px; }
     .cc-step-header__heading p { font-size: 12px; }
+}
+
+/* ==========================================================================
+   INSTALL STEP 2
+   ========================================================================== */
+.cc-check-card {
+    padding: 20px;
+    margin-bottom: 20px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.cc-check-card__title {
+    margin: 0 0 14px;
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+.cc-check-card .table-responsive {
+    margin-bottom: 0;
+}
+
+.cc-check-table {
+    width: 100%;
+    min-width: 650px;
+    margin-bottom: 0;
+    table-layout: fixed;
+    background: var(--bg-surface);
+}
+
+.cc-check-table--paths th:nth-child(1),
+.cc-check-table--paths td:nth-child(1) { width: 62%; }
+.cc-check-table--paths th:nth-child(2),
+.cc-check-table--paths td:nth-child(2) { width: 20%; }
+.cc-check-table--paths th:nth-child(3),
+.cc-check-table--paths td:nth-child(3) { width: 10%; }
+.cc-check-table--paths th:nth-child(4),
+.cc-check-table--paths td:nth-child(4) { width: 8%; }
+
+.cc-check-table--requirements th:nth-child(1),
+.cc-check-table--requirements td:nth-child(1) { width: 44%; }
+.cc-check-table--requirements th:nth-child(2),
+.cc-check-table--requirements td:nth-child(2) { width: 23%; }
+.cc-check-table--requirements th:nth-child(3),
+.cc-check-table--requirements td:nth-child(3) { width: 25%; }
+.cc-check-table--requirements th:nth-child(4),
+.cc-check-table--requirements td:nth-child(4) { width: 8%; }
+
+.cc-check-table__label {
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.cc-check-table__value {
+    overflow-wrap: break-word;
+}
+
+.cc-check-table code {
+    white-space: nowrap;
+    background: var(--bg-body);
+}
+
+@media screen and (max-width: 767px) {
+    .cc-check-card {
+        padding: 15px;
+    }
+
 }
