@@ -617,17 +617,16 @@ class SeoLanguage {
 
 	private function getLanguageHomeAlias($code) {
 		$code = strtolower(str_replace('_', '-', (string)$code));
-		$parts = explode('-', $code);
-		$alias = !empty($parts[0]) ? $parts[0] : '';
 
-		// Octemplates Deals traditionally exposes Ukrainian as "ua".
-		$theme = strtolower((string)$this->config->get('config_theme'));
+		$configured = $this->config->get('config_seo_language_prefix');
 
-		if (($theme === 'oct_deals' || strpos($theme, 'oct_deals') !== false) && $alias === 'uk') {
-			$alias = 'ua';
+		if (is_array($configured) && !empty($configured[$code])) {
+			return strtolower(trim((string)$configured[$code], '/ '));
 		}
 
-		return $alias;
+		$parts = explode('-', $code);
+
+		return !empty($parts[0]) ? $parts[0] : '';
 	}
 
 	private function getLanguages() {

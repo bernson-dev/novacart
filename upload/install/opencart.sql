@@ -1,6 +1,6 @@
 -- Export DB
 -- Installation dump
--- Created at: 2026-11-14 18:55:53
+-- Created at: 2026-11-20 10:17:41
 -- FOR INSTALLER (safe mode: limit=100, compatible format)
 
 SET NAMES utf8mb4;
@@ -3771,14 +3771,14 @@ CREATE TABLE `oc_product` (
 INSERT INTO `oc_product` (`product_id`, `model`, `sku`, `upc`, `ean`, `jan`, `isbn`, `mpn`, `location`, `quantity`, `stock_status_id`, `image`, `manufacturer_id`, `shipping`, `price`, `cost_price`, `points`, `tax_class_id`, `date_available`, `weight`, `weight_class_id`, `length`, `width`, `height`, `length_class_id`, `subtract`, `minimum`, `sort_order`, `status`, `viewed`, `date_added`, `date_modified`, `noindex`, `comment`) VALUES
 (28, 'Product 1', '', '', '', '', '', '', '', 939, 7, 'catalog/demo/htc_touch_hd_1.jpg', 5, 1, 100, 0, 200, 9, '2009-02-03', 146.4, 2, 0, 0, 0, 1, 1, 1, 0, 1, 1, '2009-02-03 16:06:50', '2011-09-30 01:05:39', 1, NULL),
 (29, 'Product 2', '', '', '', '', '', '', '', 999, 6, 'catalog/demo/palm_treo_pro_1.jpg', 6, 1, 279.99, 0, 0, 9, '2009-02-03', 133, 2, 0, 0, 0, 3, 1, 1, 0, 1, 0, '2009-02-03 16:42:17', '2011-09-30 01:06:08', 1, NULL),
-(30, 'Product 3', '', '', '', '', '', '', '', 7, 6, 'catalog/demo/canon_eos_5d_1.jpg', 9, 1, 100, 0, 0, 9, '2009-02-03', 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, '2009-02-03 16:59:00', '2011-09-30 01:05:23', 1, NULL),
+(30, 'Product 3', '', '', '', '', '', '', '', 7, 6, 'catalog/demo/canon_eos_5d_1.jpg', 9, 1, 100, 0, 0, 9, '2009-02-03', 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 2, '2009-02-03 16:59:00', '2011-09-30 01:05:23', 1, NULL),
 (31, 'Product 4', '', '', '', '', '', '', '', 1000, 6, 'catalog/demo/nikon_d300_1.jpg', 0, 1, 80, 0, 0, 9, '2009-02-03', 0, 1, 0, 0, 0, 3, 1, 1, 0, 1, 0, '2009-02-03 17:00:10', '2011-09-30 01:06:00', 1, NULL),
 (32, 'Product 5', '', '', '', '', '', '', '', 999, 6, 'catalog/demo/ipod_touch_1.jpg', 8, 1, 100, 0, 0, 9, '2009-02-03', 5, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, '2009-02-03 17:07:26', '2011-09-30 01:07:22', 1, NULL),
 (33, 'Product 6', '', '', '', '', '', '', '', 1000, 6, 'catalog/demo/samsung_syncmaster_941bw.jpg', 0, 1, 200, 0, 0, 9, '2009-02-03', 5, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-03 17:08:31', '2011-09-30 01:06:29', 1, NULL),
 (34, 'Product 7', '', '', '', '', '', '', '', 1000, 6, 'catalog/demo/ipod_shuffle_1.jpg', 8, 1, 100, 0, 0, 9, '2009-02-03', 5, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-03 18:07:54', '2011-09-30 01:07:17', 1, NULL),
 (35, 'Product 8', '', '', '', '', '', '', '', 1000, 5, '', 0, 0, 100, 0, 0, 9, '2009-02-03', 5, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, '2009-02-03 18:08:31', '2011-09-30 01:06:17', 1, NULL),
 (36, 'Product 9', '', '', '', '', '', '', '', 994, 6, 'catalog/demo/ipod_nano_1.jpg', 8, 0, 100, 0, 100, 9, '2009-02-03', 5, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-03 18:09:19', '2011-09-30 01:07:12', 1, NULL),
-(40, 'product 11', '', '', '', '', '', '', '', 968, 5, 'catalog/demo/iphone_1.jpg', 8, 1, 101, 0, 0, 9, '2009-02-03', 10, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, '2009-02-03 21:07:12', '2011-09-30 01:06:53', 1, NULL),
+(40, 'product 11', '', '', '', '', '', '', '', 967, 5, 'catalog/demo/iphone_1.jpg', 8, 1, 101, 0, 0, 9, '2009-02-03', 10, 1, 0, 0, 0, 1, 1, 1, 0, 1, 3, '2009-02-03 21:07:12', '2011-09-30 01:06:53', 1, NULL),
 (41, 'Product 14', '', '', '', '', '', '', '', 977, 5, 'catalog/demo/imac_1.jpg', 8, 1, 100, 0, 0, 9, '2009-02-03', 5, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, '2009-02-03 21:07:26', '2011-09-30 01:06:44', 1, NULL),
 (42, 'Product 15', '', '', '', '', '', '', '', 990, 5, 'catalog/demo/apple_cinema_30.jpg', 8, 1, 100, 0, 400, 9, '2009-02-04', 12.5, 1, 1, 2, 3, 1, 1, 2, 0, 1, 1, '2009-02-03 21:07:37', '2017-07-26 22:30:20', 0, NULL),
 (43, 'Product 16', '', '', '', '', '', '', '', 929, 5, 'catalog/demo/macbook_1.jpg', 8, 0, 500, 0, 0, 9, '2009-02-03', 0, 1, 0, 0, 0, 2, 1, 1, 0, 1, 0, '2009-02-03 21:07:49', '2011-09-30 01:05:46', 1, NULL),
@@ -4950,7 +4950,7 @@ INSERT INTO `oc_seo_url` (`store_id`, `language_id`, `query`, `keyword`) VALUES
 (0, 2, 'checkout/cart', 'uk-cart'),
 (0, 2, 'checkout/checkout', 'uk-checkout'),
 (0, 2, 'checkout/voucher', 'uk-gift-vouchers'),
-(0, 2, 'common/home', 'uk'),
+(0, 2, 'common/home', ''),
 (0, 2, 'information/contact', 'uk-contact-us'),
 (0, 2, 'information/sitemap', 'uk-sitemap'),
 (0, 2, 'information_id=3', 'uk_privacy'),
@@ -5170,6 +5170,14 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'total_voucher', 'total_voucher_status', '0', 0),
 (0, 'developer', 'developer_theme', '1', 0),
 (0, 'developer', 'developer_sass', '0', 0),
+(0, 'dashboard_map', 'dashboard_map_map_type', 'ukraine_geo', 0),
+(0, 'dashboard_map', 'dashboard_map_width', '6', 0),
+(0, 'dashboard_map', 'dashboard_map_status', '1', 0),
+(0, 'dashboard_map', 'dashboard_map_sort_order', '5', 0),
+(0, 'admin_personal_language', 'admin_personal_language_1', 'ru-ru', 0),
+(0, 'dashboard_chart_by_country_and_region', 'dashboard_chart_by_country_and_region_width', '6', 0),
+(0, 'dashboard_chart_by_country_and_region', 'dashboard_chart_by_country_and_region_status', '0', 0),
+(0, 'dashboard_chart_by_country_and_region', 'dashboard_chart_by_country_and_region_sort_order', '5', 0),
 (0, 'config', 'config_meta_title', 'Мой магазин', 0),
 (0, 'config', 'config_meta_description', 'Мой магазин', 0),
 (0, 'config', 'config_meta_keyword', '', 0),
@@ -5231,7 +5239,8 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'config', 'config_stock_display', '0', 0),
 (0, 'config', 'config_stock_warning', '0', 0),
 (0, 'config', 'config_stock_checkout', '0', 0),
-(0, 'config', 'config_affiliate_group_id', '1', 0),
+(0, 'config', 'config_affiliate_group_id', '1', 0);
+INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALUES
 (0, 'config', 'config_affiliate_approval', '0', 0),
 (0, 'config', 'config_affiliate_auto', '0', 0),
 (0, 'config', 'config_affiliate_commission', '5', 0),
@@ -5239,8 +5248,7 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'config', 'config_return_id', '0', 0),
 (0, 'config', 'config_return_status_id', '2', 0),
 (0, 'config', 'config_captcha', '', 0),
-(0, 'config', 'config_captcha_page', '[\"review\",\"return\",\"contact\"]', 1);
-INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALUES
+(0, 'config', 'config_captcha_page', '[\"review\",\"return\",\"contact\"]', 1),
 (0, 'config', 'config_stock_popup_status', '0', 0),
 (0, 'config', 'config_stock_popup_mode', 'checkout', 0),
 (0, 'config', 'config_stock_popup_routes', '', 0),
@@ -5284,7 +5292,7 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'config', 'config_error_log', '1', 0),
 (0, 'config', 'config_error_filename', 'error.log', 0),
 (0, 'config', 'config_seo_language', '0', 0),
-(0, 'config', 'config_seo_language_prefix', '{\"ru-ru\":\"ru\",\"uk-ua\":\"uk\"}', 1),
+(0, 'config', 'config_seo_language_prefix', '{\"ru-ru\":\"ru\",\"uk-ua\":\"ua\"}', 1),
 (0, 'config', 'config_seo_pro', '0', 0),
 (0, 'config', 'config_seo_url_include_path', '0', 0),
 (0, 'config', 'config_seo_url_cache', '0', 0),
@@ -5296,15 +5304,7 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'config', 'config_canonical_self', '1', 0),
 (0, 'config', 'config_add_prevnext', '1', 0),
 (0, 'config', 'config_noindex_status', '1', 0),
-(0, 'config', 'config_noindex_disallow_params', 'page', 0),
-(0, 'dashboard_map', 'dashboard_map_map_type', 'ukraine_geo', 0),
-(0, 'dashboard_map', 'dashboard_map_width', '6', 0),
-(0, 'dashboard_map', 'dashboard_map_status', '1', 0),
-(0, 'dashboard_map', 'dashboard_map_sort_order', '5', 0),
-(0, 'admin_personal_language', 'admin_personal_language_1', 'ru-ru', 0),
-(0, 'dashboard_chart_by_country_and_region', 'dashboard_chart_by_country_and_region_width', '6', 0),
-(0, 'dashboard_chart_by_country_and_region', 'dashboard_chart_by_country_and_region_status', '0', 0),
-(0, 'dashboard_chart_by_country_and_region', 'dashboard_chart_by_country_and_region_sort_order', '5', 0);
+(0, 'config', 'config_noindex_disallow_params', 'page', 0);
 
 ----------------------------------------------------------
 
@@ -6631,4 +6631,4 @@ CREATE TABLE `oc_zone_to_geo_zone` (
 
 ----------------------------------------------------------
 
--- Dump finished at: 2026-11-14 18:55:54
+-- Dump finished at: 2026-11-20 10:17:42
