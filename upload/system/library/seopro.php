@@ -321,6 +321,10 @@ class SeoPro {
 					unset($data[$key]);
 					break;
 				case 'category_id':
+					$queries[] = 'category_id=' . (int)$value;
+					$postfix = true;
+					unset($data[$key]);
+					break;
 				case 'information_id':
 					$information_id = (int)$value;
 					$queries[] = 'information_id=' . $information_id;
@@ -810,7 +814,7 @@ class SeoPro {
 		}
 
 		if ($this->config->get('config_seo_url_cache')) {
-			if (!is_array($this->product_categories)) {
+			if (!$this->product_categories) {
 				$this->product_categories = $this->cache->get('seopro.product_categories');
 
 				if (!is_array($this->product_categories)) {
@@ -880,7 +884,7 @@ class SeoPro {
 		static $blog_path = [];
 		$cache = 'seopro.blog_category.seopath';
 
-		if (!is_array($blog_path)) {
+		if (!$blog_path) {
 			if ($this->config->get('config_seo_url_cache')) {
 				$cached = $this->cache->get($cache);
 				$blog_path = is_array($cached) ? $cached : [];

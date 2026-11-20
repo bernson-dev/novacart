@@ -613,7 +613,7 @@ class ModelCatalogProduct extends Model {
 			$sql .= " AND p.manufacturer_id = '" . (int)$data['filter_manufacturer_id'] . "'";
 		}
 
-		if ($data['filter_price'] ?? '' !== '') {
+		if (($data['filter_price'] ?? '') !== '') {
 			$sql .= " AND p.price LIKE '" . $this->db->escape($data['filter_price']) . "%'";
 		}
 
