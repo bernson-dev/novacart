@@ -1,6 +1,19 @@
+-- NovaCart Dump Metadata v1
+-- Title: Installation dump
+-- Created: 2026-11-21T23:53:50+02:00
+-- Mode: installer
+-- Tables: 166
+-- Data-Tables: 93
+-- Batch-Size: 100
+-- DB-Prefix: oc_
+-- Charset: utf8mb4
+-- Collation: utf8mb4_unicode_ci
+-- Include-Drop: yes
+-- End NovaCart Dump Metadata
+
 -- Export DB
 -- Installation dump
--- Created at: 2026-11-21 22:21:21
+-- Created at: 2026-11-21 23:53:50
 -- FOR INSTALLER (safe mode: limit=100, compatible format)
 
 SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -139,7 +152,7 @@ CREATE TABLE `oc_article` (
 
 INSERT INTO `oc_article` (`article_id`, `image`, `date_available`, `sort_order`, `article_review`, `status`, `noindex`, `date_added`, `date_modified`, `viewed`, `gstatus`) VALUES
 (120, 'catalog/cart.png', '0000-00-00', 1, 1, 1, 1, '2014-04-08 04:26:00', '2015-06-29 09:35:55', 8, 0),
-(123, 'catalog/demo/canon_eos_5d_2.jpg', '0000-00-00', 1, 1, 1, 1, '2014-03-31 06:55:15', '2015-06-29 09:03:48', 136, 1),
+(123, 'catalog/demo/canon_eos_5d_2.jpg', '0000-00-00', 1, 1, 1, 1, '2014-03-31 06:55:15', '2015-06-29 09:03:48', 138, 1),
 (124, 'catalog/demo/canon_eos_5d_3.jpg', '0000-00-00', 1, 0, 1, 1, '2015-06-29 09:05:38', '2015-06-29 10:11:50', 2, 0),
 (125, 'catalog/demo/canon_eos_5d_2.jpg', '0000-00-00', 1, 0, 1, 1, '2015-06-29 09:09:03', '0000-00-00 00:00:00', 2, 0);
 
@@ -3776,7 +3789,7 @@ INSERT INTO `oc_product` (`product_id`, `model`, `sku`, `upc`, `ean`, `jan`, `is
 (34, 'Product 7', '', '', '', '', '', '', '', 1000, 6, 'catalog/demo/ipod_shuffle_1.jpg', 8, 1, '100.0000', '0.0000', 0, 9, '2009-02-03', '5.00000000', 1, '0.00000000', '0.00000000', '0.00000000', 2, 1, 1, 0, 1, 0, '2009-02-03 18:07:54', '2011-09-30 01:07:17', 1, NULL),
 (35, 'Product 8', '', '', '', '', '', '', '', 1000, 5, '', 0, 0, '100.0000', '0.0000', 0, 9, '2009-02-03', '5.00000000', 1, '0.00000000', '0.00000000', '0.00000000', 1, 1, 1, 0, 1, 0, '2009-02-03 18:08:31', '2011-09-30 01:06:17', 1, NULL),
 (36, 'Product 9', '', '', '', '', '', '', '', 994, 6, 'catalog/demo/ipod_nano_1.jpg', 8, 0, '100.0000', '0.0000', 100, 9, '2009-02-03', '5.00000000', 1, '0.00000000', '0.00000000', '0.00000000', 2, 1, 1, 0, 1, 0, '2009-02-03 18:09:19', '2011-09-30 01:07:12', 1, NULL),
-(40, 'product 11', '', '', '', '', '', '', '', 967, 5, 'catalog/demo/iphone_1.jpg', 8, 1, '101.0000', '0.0000', 0, 9, '2009-02-03', '10.00000000', 1, '0.00000000', '0.00000000', '0.00000000', 1, 1, 1, 0, 1, 1, '2009-02-03 21:07:12', '2011-09-30 01:06:53', 1, NULL),
+(40, 'product 11', '', '', '', '', '', '', '', 967, 5, 'catalog/demo/iphone_1.jpg', 8, 1, '101.0000', '0.0000', 0, 9, '2009-02-03', '10.00000000', 1, '0.00000000', '0.00000000', '0.00000000', 1, 1, 1, 0, 1, 0, '2009-02-03 21:07:12', '2011-09-30 01:06:53', 1, NULL),
 (41, 'Product 14', '', '', '', '', '', '', '', 977, 5, 'catalog/demo/imac_1.jpg', 8, 1, '100.0000', '0.0000', 0, 9, '2009-02-03', '5.00000000', 1, '0.00000000', '0.00000000', '0.00000000', 1, 1, 1, 0, 1, 0, '2009-02-03 21:07:26', '2011-09-30 01:06:44', 1, NULL),
 (42, 'Product 15', '', '', '', '', '', '', '', 990, 5, 'catalog/demo/apple_cinema_30.jpg', 8, 1, '100.0000', '0.0000', 400, 9, '2009-02-04', '12.50000000', 1, '1.00000000', '2.00000000', '3.00000000', 1, 1, 2, 0, 1, 0, '2009-02-03 21:07:37', '2017-07-26 22:30:20', 0, NULL),
 (43, 'Product 16', '', '', '', '', '', '', '', 929, 5, 'catalog/demo/macbook_1.jpg', 8, 0, '500.0000', '0.0000', 0, 9, '2009-02-03', '0.00000000', 1, '0.00000000', '0.00000000', '0.00000000', 2, 1, 1, 0, 1, 0, '2009-02-03 21:07:49', '2011-09-30 01:05:46', 1, NULL),
@@ -5185,7 +5198,6 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'config', 'config_owner', 'Владелец', 0),
 (0, 'config', 'config_address', 'Адрес', 0),
 (0, 'config', 'config_geocode', '', 0),
-(0, 'config', 'config_email', '', 0),
 (0, 'config', 'config_telephone', '123456789', 0),
 (0, 'config', 'config_fax', '', 0),
 (0, 'config', 'config_image', '', 0),
@@ -5233,14 +5245,13 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'config', 'config_processing_status', '[\"1\",\"3\"]', 1),
 (0, 'config', 'config_complete_status', '[\"8\",\"6\"]', 1),
 (0, 'config', 'config_fraud_status_id', '10', 0),
-(0, 'config', 'config_api_id', '1', 0),
 (0, 'config', 'config_stock_display', '0', 0),
 (0, 'config', 'config_stock_warning', '0', 0),
 (0, 'config', 'config_stock_checkout', '0', 0),
-(0, 'config', 'config_affiliate_group_id', '1', 0);
-INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALUES
+(0, 'config', 'config_affiliate_group_id', '1', 0),
 (0, 'config', 'config_affiliate_approval', '0', 0),
-(0, 'config', 'config_affiliate_auto', '0', 0),
+(0, 'config', 'config_affiliate_auto', '0', 0);
+INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALUES
 (0, 'config', 'config_affiliate_commission', '5', 0),
 (0, 'config', 'config_affiliate_id', '0', 0),
 (0, 'config', 'config_return_id', '0', 0),
@@ -5282,7 +5293,6 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'config', 'config_secure', '1', 0),
 (0, 'config', 'config_password', '1', 0),
 (0, 'config', 'config_shared', '0', 0),
-(0, 'config', 'config_encryption', '', 0),
 (0, 'config', 'config_file_max_size', '20', 0),
 (0, 'config', 'config_file_ext_allowed', 'txt\r\npng\r\njpe\r\njpeg\r\njpg\r\ngif\r\nbmp\r\nico\r\ntiff\r\ntif\r\nsvg\r\nsvgz\r\nzip\r\nrar\r\nmsi\r\ncab\r\nmp3\r\nqt\r\nmov\r\npdf\r\npsd\r\nai\r\neps\r\nps\r\ndoc', 0),
 (0, 'config', 'config_file_mime_allowed', 'text/plain\r\nimage/png\r\nimage/jpeg\r\nimage/gif\r\nimage/bmp\r\nimage/tiff\r\nimage/svg+xml\r\napplication/zip\r\napplication/x-zip\r\napplication/x-zip-compressed\r\napplication/rar\r\napplication/x-rar\r\napplication/x-rar-compressed\r\napplication/octet-stream\r\naudio/mpeg\r\nvideo/quicktime\r\napplication/pdf', 0),
@@ -5302,7 +5312,10 @@ INSERT INTO `oc_setting` (`store_id`, `code`, `key`, `value`, `serialized`) VALU
 (0, 'config', 'config_canonical_self', '0', 0),
 (0, 'config', 'config_add_prevnext', '0', 0),
 (0, 'config', 'config_noindex_status', '1', 0),
-(0, 'config', 'config_noindex_disallow_params', 'page', 0);
+(0, 'config', 'config_noindex_disallow_params', 'page', 0),
+(0, 'config', 'config_email', '', 0),
+(0, 'config', 'config_encryption', '', 0),
+(0, 'config', 'config_api_id', '1', 0);
 
 -- ----------------------------------------------------------
 
@@ -6629,4 +6642,4 @@ CREATE TABLE `oc_zone_to_geo_zone` (
 
 -- ----------------------------------------------------------
 
--- Dump finished at: 2026-11-21 22:21:21
+-- Dump finished at: 2026-11-21 23:53:50
