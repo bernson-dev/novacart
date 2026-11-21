@@ -108,8 +108,7 @@ $languages = array(
 $seo = (new ReflectionClass('SeoPro'))->newInstanceWithoutConstructor();
 $config = new SeoLanguageTestConfig(array(
 	'config_language' => 'ru-ru',
-	'config_theme' => 'oct_deals',
-	'config_seo_language_prefix' => array('ru-ru' => 'ru', 'uk-ua' => 'ua')
+	'config_seo_language_prefix' => array()
 ));
 $db = new SeoLanguageTestDb($languages);
 
@@ -117,14 +116,18 @@ setPrivateProperty($seo, 'config', $config);
 setPrivateProperty($seo, 'db', $db);
 
 assertSameValue(1, callPrivate($seo, 'getDefaultLanguageId'), 'RU default language id');
-assertSameValue('ru', callPrivate($seo, 'getLanguageHomeAlias', array('ru-ru')), 'RU Deals alias');
-assertSameValue('ua', callPrivate($seo, 'getLanguageHomeAlias', array('uk-ua')), 'UA Deals alias');
+assertSameValue('ru', callPrivate($seo, 'getLanguageHomeAlias', array('ru-ru')), 'Default RU alias');
+assertSameValue('uk', callPrivate($seo, 'getLanguageHomeAlias', array('uk-ua')), 'Default UK alias');
+
+// Language aliases are configured independently of the active theme.
+$config->set('config_seo_language_prefix', array('uk-ua' => 'ua'));
+assertSameValue('ua', callPrivate($seo, 'getLanguageHomeAlias', array('uk-ua')), 'Configured UA alias');
+assertSameValue('ru', callPrivate($seo, 'getLanguageHomeAlias', array('ru-ru')), 'Unconfigured RU fallback');
 
 $config->set('config_language', 'uk-ua');
 assertSameValue(2, callPrivate($seo, 'getDefaultLanguageId'), 'UA default language id');
 
-$config->set('config_theme', 'default');
 $config->set('config_seo_language_prefix', array());
-assertSameValue('uk', callPrivate($seo, 'getLanguageHomeAlias', array('uk-ua')), 'Standard UK alias');
+assertSameValue('uk', callPrivate($seo, 'getLanguageHomeAlias', array('uk-ua')), 'Restored default UK alias');
 
 echo "SeoPro language regression checks passed\n";
