@@ -140,6 +140,18 @@
                     </div>
 
                     <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <div id="dump-info" class="panel panel-default dump-info-panel">
+                                <div class="panel-heading"><strong id="dump-info-title"></strong></div>
+                                <div class="panel-body">
+                                    <p id="dump-info-description" class="help-block dump-info-description"></p>
+                                    <dl class="dl-horizontal dump-info-fields" id="dump-info-fields"></dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
                         <label class="col-sm-3 control-label" for="input-repair-schema">{{ entry_repair_schema }}</label>
                         <div class="col-sm-9">
                             <div class="checkbox">
@@ -224,6 +236,44 @@
 
         $dump.on('change', checkSchema);
         checkSchema();
+    })();
+
+    (function() {
+        var metadata = {{ dump_metadata|json_encode(constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP') b-or constant('JSON_HEX_APOS') b-or constant('JSON_HEX_QUOT'))|raw }};
+        var labels = {
+            created: '{{ text_dump_created|escape('js') }}',
+            mode: '{{ text_dump_mode|escape('js') }}',
+            tables: '{{ text_dump_tables|escape('js') }}',
+            data_tables: '{{ text_dump_data_tables|escape('js') }}',
+            batch_size: '{{ text_dump_batch_size|escape('js') }}',
+            db_prefix: '{{ text_dump_prefix|escape('js') }}',
+            charset: '{{ text_dump_charset|escape('js') }}',
+            collation: '{{ text_dump_collation|escape('js') }}',
+            include_drop: '{{ text_dump_include_drop|escape('js') }}',
+            store: '{{ text_dump_store|escape('js') }}'
+        };
+        function updateDumpInfo() {
+            var name = $('#input-sql-dump').val() || '';
+            var info = metadata[name] || {};
+            $('#dump-info-title').text(info.title || name || '{{ text_dump_no_metadata|escape('js') }}');
+            $('#dump-info-description').text(info.description || (info.format === 'unknown' ? '{{ text_dump_no_metadata|escape('js') }}' : ''));
+            var $fields = $('#dump-info-fields').empty();
+            $.each(labels, function(key, label) {
+                if (info[key] === undefined || info[key] === null || info[key] === '') return;
+                var value = String(info[key]);
+                if (key === 'mode') {
+                    value = value === 'installer' ? '{{ text_dump_installer_mode|escape('js') }}' : (value === 'standard' ? '{{ text_dump_standard_mode|escape('js') }}' : value);
+                }
+                $('<dt>').text(label).appendTo($fields);
+                $('<dd>').text(value).appendTo($fields);
+            });
+            if (info.size) {
+                $('<dt>').text('{{ text_dump_size|escape('js') }}').appendTo($fields);
+                $('<dd>').text((info.size / 1024).toFixed(1) + ' KB').appendTo($fields);
+            }
+        }
+        $('#input-sql-dump').on('change', updateDumpInfo);
+        updateDumpInfo();
     })();
 
     function generatePassword()

@@ -354,6 +354,19 @@ class ControllerToolDumpInstall extends Controller {
 
 		$write = static function($line) { echo $line, "\n"; };
 
+		$write('-- NovaCart Dump Metadata v1');
+		$write('-- Title: ' . $comment);
+		$write('-- Created: ' . date('c'));
+		$write('-- Mode: ' . ($installerMode ? 'installer' : 'standard'));
+		$write('-- Tables: ' . count($allTables));
+		$write('-- Data-Tables: ' . count($dataInclude));
+		$write('-- Batch-Size: ' . ($installerMode ? 100 : 1000));
+		$write('-- DB-Prefix: ' . DB_PREFIX);
+		$write('-- Charset: ' . $dbCharset);
+		$write('-- Collation: ' . $dbCollation);
+		$write('-- Include-Drop: ' . ($includeDrop ? 'yes' : 'no'));
+		$write('-- End NovaCart Dump Metadata');
+		$write('');
 		$write('-- Export DB');
 		$write('-- ' . $comment);
 		$write('-- Created at: ' . date('Y-m-d H:i:s'));

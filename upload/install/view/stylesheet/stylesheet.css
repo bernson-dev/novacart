@@ -815,3 +815,52 @@ footer {
     }
 
 }
+
+/* SQL dump information on installation step 3. */
+.dump-info-panel {
+    margin-bottom: 12px;
+}
+
+.dump-info-panel .panel-heading {
+    overflow-wrap: anywhere;
+}
+
+.dump-info-description {
+    margin-top: 0;
+    white-space: pre-line;
+}
+
+.dump-info-description:empty {
+    display: none;
+}
+
+.dump-info-fields {
+    margin-bottom: 0;
+}
+
+.dump-info-fields dt,
+.dump-info-fields dd {
+    line-height: 1.35;
+}
+
+.dump-info-fields dt {
+    width: 220px;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+.dump-info-fields dd {
+    margin-left: 240px;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+    .dump-info-fields dt {
+        width: auto;
+    }
+
+    .dump-info-fields dd {
+        margin-left: 0;
+    }
+}

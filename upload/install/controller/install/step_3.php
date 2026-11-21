@@ -183,6 +183,19 @@ class ControllerInstallStep3 extends Controller {
 		$data['repair_schema_disabled'] = ($data['sql_dump'] === 'opencart.sql');
 		$data['schema_check_url'] = $this->url->link('install/step_3/schemaCheck');
 
+		require_once(DIR_APPLICATION . 'model/install/dump_metadata_reader.php');
+		$metadataReader = new DumpMetadataReader();
+		$data['dump_metadata'] = array();
+		foreach ($data['sql_dumps'] as $dumpName) {
+			if (basename($dumpName) === $dumpName && is_file($sql_dump_dir . $dumpName)) {
+				$data['dump_metadata'][$dumpName] = $metadataReader->read($sql_dump_dir . $dumpName);
+			}
+		}
+
+		foreach (array('created', 'mode', 'tables', 'data_tables', 'batch_size', 'prefix', 'charset', 'collation', 'include_drop', 'store', 'no_metadata', 'installer_mode', 'standard_mode', 'size') as $key) {
+			$data['text_dump_' . $key] = $this->language->get('text_dump_' . $key);
+		}
+
 		// End Select SQL Dump
 
 		$data['button_continue'] = $this->language->get('button_continue');
