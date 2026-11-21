@@ -1,37 +1,53 @@
-# NovaCart cron scheduler (first-stage implementation)
+# NovaCart Scheduler, Queue and Jobs Runner
 
-PHP 7.3+, MySQL/MariaDB. No changes to the storefront bootstrap.
+PHP 7.3+, MySQL/MariaDB. Task handlers run in the catalog context.
 
-## Installation
+## Initial setup
 
-After deploying files, install the idempotent schema:
-
-```sh
-php /absolute/path/to/upload/cli.php cron:install
-```
-
-Register periodic tasks through `NovaCartScheduler::register($code, $route, $intervalSeconds, $args)` after including `system/library/novacart/scheduler.php`. Routes must start with `cron/`. Only trusted server-side code should register tasks. The installer does not add sample tasks automatically.
-
-Configure a server cron (example: every five minutes):
+After installing or upgrading the store, run from its installed root directory:
 
 ```sh
-*/5 * * * * /usr/bin/php /absolute/path/to/upload/cli.php cron:run
+php cli.php cron:install
 ```
 
-View configured jobs:
+This installs or updates Scheduler, Queue, and monitoring tables. It also generates a cryptographically random HTTP Cron secret in `DIR_STORAGE/novacart_cron.key` if one does not exist. Existing nonempty keys are preserved. The storage directory must be writable and must not be publicly accessible.
+
+## Running jobs
+
+Recommended unified runner (runs due Scheduler tasks and pending Queue jobs, and records a monitoring heartbeat):
 
 ```sh
-php /absolute/path/to/upload/cli.php cron:list
+php cli.php jobs:run
 ```
 
-HTTP execution is optional. Create a cryptographically random secret in `DIR_STORAGE/novacart_cron.key` with permissions restricted to the PHP account, then call `https://store.example/cron.php?key=SECRET`. Do not expose the secret in logs or screenshots. CLI is recommended.
+For OS scheduled launches, use `php cli.php jobs:run --source=scheduled`. Schedule the command in your operating-system scheduler (Windows Task Scheduler or system cron). The administration page shows the command and execution history.
 
-## Scope / limitations
+Individual commands:
 
-This first PR contains only the scheduler engine, protected entry points, and schema setup. No queue, heartbeat, administrative UI, or registered maintenance tasks are included. An HTTP secret is not provisioned automatically. A missing cron table causes a visible error: run `cron:install` after deployment. The scheduler uses a global MySQL advisory lock to avoid parallel execution.
+```sh
+php cli.php cron:run
+php cli.php cron:list
+php cli.php queue:run
+php cli.php queue:stats
+```
 
-For a production release, run integration tests for CLI startup, schema installation, route execution, concurrency, and compatibility with installed extensions.
+## Administration
 
-## Validation
+Open **System > Maintenance > Task Scheduler** (requires `tool/cron` access permission; changes require `modify` permission).
 
-The scheduler was functionally verified with OSPanel on Windows: schema install, task registration/execution, success/failure reporting, scheduling intervals and MySQL advisory lock contention. Temporary test routes and CLI commands were removed from the release candidate. Run `cron:install` before `cron:run` on each new installation.
+- Add and edit tasks with a `cron/...` catalog-controller route, an interval or five-field Cron expression, and JSON arguments.
+- Cron expressions have a five-run preview and follow the configured store timezone, including DST transitions.
+- Choose a missed-run policy: `run_once` (default) or `skip` (ignore runs more than 120 seconds overdue).
+- Review Scheduler/Queue status, run history, results, and monitoring heartbeat.
+- HTTP Web Cron key management is displayed to administrators with modify permission even before the key exists. Creating or rotating the secret refreshes the generated HTTP command. Rotating an existing key invalidates previously copied HTTP URLs.
+
+## Optional HTTP entry point
+
+Use HTTPS and the generated command from the administration page to call `cron.php?key=SECRET`. The endpoint validates the key before executing jobs. Do not expose the secret in screenshots, URLs shared with third parties, logs, or documentation. The CLI runner is preferred because URLs containing secrets may be logged by web servers.
+
+## Implementation and tests
+
+- Scheduler uses a MySQL advisory lock to serialize due task processing.
+- Queue uses atomic claims, retries with backoff, and recovery of abandoned jobs. Side-effecting handlers must be idempotent.
+- `php tests/cron_dst_regression.php` checks DST-sensitive Cron schedules (from the source repository).
+- Run CLI/HTTP integration tests on a disposable installation before deployment; adding new or external-effecting handlers requires application-specific testing.
