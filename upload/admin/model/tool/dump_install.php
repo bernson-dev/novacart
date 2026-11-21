@@ -83,12 +83,35 @@ class ModelToolDumpInstall extends Model {
 		// Убираем висящую запятую
 		$sql = preg_replace('/,\s*\)/', "\n)", $sql);
 
-		$collation = $this->tableCollations[$table] ?? null;
-		if ($collation && preg_match('/^[a-zA-Z0-9_]+$/D', $collation)) {
-			$closing = strrpos($sql, ')');
-			if ($closing !== false && !preg_match('/\\bCOLLATE\\s*=/i', substr($sql, $closing + 1))) {
-				$sql .= ' COLLATE=' . $collation;
+		// SHOW CREATE TABLE can omit the default collation. Obtain it from the
+		// actual table metadata, not from the database default.
+		$collation = $this->tableCollations[$table] ?? '';
+
+		if (!$collation) {
+			$metadata = $this->db->query(
+				"SELECT TABLE_COLLATION FROM information_schema.TABLES " .
+				"WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '" . $this->db->escape($table) . "' " .
+				"AND TABLE_TYPE = 'BASE TABLE' LIMIT 1"
+			);
+			$collation = $metadata->row['TABLE_COLLATION'] ?? '';
+			if ($collation) {
+				$this->tableCollations[$table] = $collation;
 			}
+		}
+
+		// Never silently generate a dump that loses the source collation.
+		if (!$collation || !preg_match('/^[a-zA-Z0-9_]+$/D', $collation)) {
+			throw new \\RuntimeException('Cannot determine collation for table: ' . $table);
+		}
+
+		// Table-level options follow the last column-definition closing bracket.
+		$closing = strrpos($sql, ')');
+		if ($closing === false) {
+			throw new \\RuntimeException('Unexpected CREATE TABLE syntax: ' . $table);
+		}
+
+		if (!preg_match('/\\bCOLLATE\\s*=/i', substr($sql, $closing + 1))) {
+			$sql .= ' COLLATE=' . $collation;
 		}
 
 		return $sql . ';';
