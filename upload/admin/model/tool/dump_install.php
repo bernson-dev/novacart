@@ -32,6 +32,7 @@ class ModelToolDumpInstall extends Model {
 
 	private $numericTypes = ['tinyint', 'smallint', 'mediumint', 'int', 'bigint'];
 	private $floatTypes = ['float', 'double', 'real', 'decimal'];
+	private $tableCollations = [];
 	// Лимиты: обычный / для установщика / для очень слабого хостинга
 	private const LIMIT_DEFAULT = 1000;
 	private const LIMIT_INSTALLER = 100;
@@ -39,10 +40,10 @@ class ModelToolDumpInstall extends Model {
 
 	public function getTablesByPrefix() {
 		$sql = "
-			SELECT TABLE_NAME
+			SELECT TABLE_NAME, TABLE_COLLATION
 			FROM information_schema.TABLES
 			WHERE TABLE_SCHEMA = DATABASE()
-			  AND TABLE_NAME LIKE '" . $this->db->escape(DB_PREFIX) . "%'
+			  AND TABLE_NAME LIKE '" . $this->db->escape(DB_PREFIX) . "%' AND TABLE_TYPE = 'BASE TABLE'
 			ORDER BY TABLE_NAME
 		";
 
@@ -52,6 +53,7 @@ class ModelToolDumpInstall extends Model {
 		if ($query->rows) {
 			foreach ($query->rows as $row) {
 				$tables[] = $row['TABLE_NAME'];
+				$this->tableCollations[$row['TABLE_NAME']] = $row['TABLE_COLLATION'];
 			}
 		}
 
@@ -61,6 +63,11 @@ class ModelToolDumpInstall extends Model {
 	public function getDatabaseCharset() {
 		$row = $this->db->query("SELECT @@character_set_database AS cs")->row;
 		return !empty($row['cs']) ? $row['cs'] : 'utf8mb4';
+	}
+
+	public function getDatabaseCollation() {
+		$row = $this->db->query("SELECT @@collation_database AS collation")->row;
+		return !empty($row['collation']) && preg_match('/^[a-zA-Z0-9_]+$/D', $row['collation']) ? $row['collation'] : '';
 	}
 
 	public function getCreateTableSql($table) {
@@ -75,6 +82,14 @@ class ModelToolDumpInstall extends Model {
 		$sql = preg_replace('/\s+AUTO_INCREMENT\s*=\s*\d+\s*/i', ' ', $sql);
 		// Убираем висящую запятую
 		$sql = preg_replace('/,\s*\)/', "\n)", $sql);
+
+		$collation = $this->tableCollations[$table] ?? null;
+		if ($collation && preg_match('/^[a-zA-Z0-9_]+$/D', $collation)) {
+			$closing = strrpos($sql, ')');
+			if ($closing !== false && stripos(substr($sql, $closing + 1), 'COLLATE=') === false) {
+				$sql .= ' COLLATE=' . $collation;
+			}
+		}
 
 		return $sql . ';';
 	}
@@ -144,9 +159,9 @@ class ModelToolDumpInstall extends Model {
 * @param int|null $limit Лимит строк (null = авто-выбор)
 * @param bool $installerMode Режим установщика: безопасный лимит + формат
 */
-	public function getInsertSql($table, $limit = null, $installerMode = false) {
+	public function getInsertSql($table, $limit = null, $installerMode = false, $write = null) {
 		// Авто-выбор лимита
-		$limit = $limit !== null ? (int)$limit : ($installerMode ? self::LIMIT_INSTALLER : self::LIMIT_DEFAULT);
+		$limit = $limit !== null ? max(1, (int)$limit) : ($installerMode ? self::LIMIT_INSTALLER : self::LIMIT_DEFAULT);
 		$result = [];
 
 		$colsQuery = $this->db->query("SHOW COLUMNS FROM `" . $this->db->escape($table) . "`");
@@ -200,7 +215,7 @@ class ModelToolDumpInstall extends Model {
 		if ($pk) {
 			$orderBySql = " ORDER BY `" . $pk . "`";
 		} else {
-			$orderBySql = $sortableColumns ? (' ORDER BY ' . implode(', ', $sortableColumns)) : '';
+			$orderBySql = '';
 		}
 
 		$offset = 0;
@@ -214,7 +229,7 @@ class ModelToolDumpInstall extends Model {
 				$isPkNumeric = $pkInfo && in_array($pkInfo['type'], $this->numericTypes, true);
 
 				if ($isPkNumeric) {
-					$where = "WHERE `$pk` > " . (int)$lastId;
+					$where = "WHERE `$pk` > " . '" . $this->db->escape((string)$lastId) . "'";
 				} else {
 					$where = "WHERE `$pk` > '" . $this->db->escape($lastId) . "'";
 				}
@@ -269,14 +284,13 @@ class ModelToolDumpInstall extends Model {
 
 					// 4. FLOAT/DECIMAL
 					if (in_array($type, $this->floatTypes, true)) {
-						$floatVal = (float)$value;
-						$values[] = is_nan($floatVal) || is_infinite($floatVal) ? '0' : (string)$floatVal;
+						$values[] = "'" . $this->db->escape((string)$value) . "'";
 						continue;
 					}
 
 					// 5. Числовые типы
 					if (in_array($type, $this->numericTypes, true)) {
-						$values[] = (string)(int)$value;
+						$values[] = preg_match('/^-?[0-9]+$/D', (string)$value) ? (string)$value : "'" . $this->db->escape((string)$value) . "'";
 						continue;
 					}
 
@@ -295,7 +309,12 @@ class ModelToolDumpInstall extends Model {
 			if ($rowsSql) {
 				$insertHead = "INSERT INTO `" . $table . "` (" . $columnSql . ") VALUES";
 				$insertBody = implode(",\n", $rowsSql);
-				$result[] = $insertHead . "\n" . $insertBody . ";";
+				$statement = $insertHead . "\n" . $insertBody . ";";
+				if ($write !== null) {
+					$write($statement);
+				} else {
+					$result[] = $statement;
+				}
 			}
 
 			if ($pk) {
