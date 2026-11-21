@@ -352,7 +352,6 @@ class ControllerToolDumpInstall extends Controller {
 		header('Pragma: public');
 		header('X-Accel-Buffering: no');
 
-		// Export batches directly to the HTTP response instead of retaining the whole dump.
 		$write = static function($line) { echo $line, "\n"; };
 
 		$write('-- Export DB');
@@ -364,12 +363,10 @@ class ControllerToolDumpInstall extends Controller {
 		}
 
 		$write('');
-		$write('SET NAMES ' . $dbCharset . ');';
-		$write('SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO");';
-		$write('SET time_zone = "+00:00");';
-		$write('/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */);';
-		$write('/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */);';
-		$write('/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */);';
+		$write('SET NAMES ' . $dbCharset . ($dbCollation !== '' ? ' COLLATE ' . $dbCollation : '') . ';');
+		$write('SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";');
+		$write('SET time_zone = "+00:00";');
+		$write('-- Database collation: ' . $dbCollation);
 		$write('');
 
 		$separator = str_repeat('-', 58);
@@ -381,7 +378,7 @@ class ControllerToolDumpInstall extends Controller {
 			$write('');
 
 			if ($includeDrop) {
-				$write('DROP TABLE IF EXISTS `' . $table . '`);';
+				$write('DROP TABLE IF EXISTS `' . $table . '`;');
 			}
 
 			$createSql = $this->model_tool_dump_install->getCreateTableSql($table);
@@ -400,13 +397,13 @@ class ControllerToolDumpInstall extends Controller {
 			}
 
 			$write('');
-			$write($separator);
+			$write('-- ' . $separator);
 			$write('');
 		}
 
 		$write('-- Dump finished at: ' . date('Y-m-d H:i:s'));
 
-		// Stream completed.
+		// Streaming completed.
 		exit;
 	}
 }
