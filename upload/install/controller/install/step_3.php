@@ -192,6 +192,10 @@ class ControllerInstallStep3 extends Controller {
 			}
 		}
 
+		foreach (array('created', 'mode', 'tables', 'data_tables', 'batch_size', 'prefix', 'charset', 'collation', 'include_drop', 'store', 'no_metadata', 'installer_mode', 'standard_mode', 'size') as $key) {
+			$data['text_dump_' . $key] = $this->language->get('text_dump_' . $key);
+		}
+
 		// End Select SQL Dump
 
 		$data['button_continue'] = $this->language->get('button_continue');
