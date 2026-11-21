@@ -335,6 +335,7 @@ class ControllerToolDumpInstall extends Controller {
 		$installerMode = !empty($this->request->post['installer_mode']);
 
 		$dbCharset = $this->model_tool_dump_install->getDatabaseCharset();
+		$dbCollation = $this->model_tool_dump_install->getDatabaseCollation();
 
 		$filename = 'install_dump_' . date('Y-m-d_H-i-s') . ($installerMode ? '_installer' : '') . '.sql';
 
@@ -351,66 +352,58 @@ class ControllerToolDumpInstall extends Controller {
 		header('Pragma: public');
 		header('X-Accel-Buffering: no');
 
-		$out = [];
+		$write = static function($line) { echo $line, "\n"; };
 
-		$out[] = '-- Export DB';
-		$out[] = '-- ' . $comment;
-		$out[] = '-- Created at: ' . date('Y-m-d H:i:s');
+		$write('-- Export DB');
+		$write('-- ' . $comment);
+		$write('-- Created at: ' . date('Y-m-d H:i:s'));
 
 		if ($installerMode) {
-			$out[] = '-- FOR INSTALLER (safe mode: limit=100, compatible format)';
+			$write('-- FOR INSTALLER (safe mode: limit=100, compatible format)');
 		}
 
-		$out[] = '';
-		$out[] = 'SET NAMES ' . $dbCharset . ';';
-		$out[] = 'SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";';
-		$out[] = 'SET time_zone = "+00:00";';
-		$out[] = '/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;';
-		$out[] = '/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;';
-		$out[] = '/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;';
-		$out[] = '';
+		$write('');
+		$write('SET NAMES ' . $dbCharset . ($dbCollation !== '' ? ' COLLATE ' . $dbCollation : '') . ';');
+		$write('SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";');
+		$write('SET time_zone = "+00:00";');
+		$write('-- Database collation: ' . $dbCollation);
+		$write('');
 
 		$separator = str_repeat('-', 58);
 
 		foreach ($allTables as $table) {
-			$out[] = '--';
-			$out[] = '-- Table structure for table `' . $table . '`';
-			$out[] = '--';
-			$out[] = '';
+			$write('--');
+			$write('-- Table structure for table `' . $table . '`');
+			$write('--');
+			$write('');
 
 			if ($includeDrop) {
-				$out[] = 'DROP TABLE IF EXISTS `' . $table . '`;';
+				$write('DROP TABLE IF EXISTS `' . $table . '`;');
 			}
 
 			$createSql = $this->model_tool_dump_install->getCreateTableSql($table);
-			$out[] = $createSql ? $createSql : '-- WARNING: cannot read CREATE TABLE for `' . $table . '`';
+			$write($createSql ? $createSql : '-- WARNING: cannot read CREATE TABLE for `' . $table . '`');
 
-			$out[] = '';
-			$out[] = $separator;
-			$out[] = '';
-			$out[] = '--';
-			$out[] = '-- Dumping data for table `' . $table . '`';
-			$out[] = '--';
-			$out[] = '';
+			$write('');
+			$write('-- ' . $separator);
+			$write('');
+			$write('--');
+			$write('-- Dumping data for table `' . $table . '`');
+			$write('--');
+			$write('');
 
 			if (in_array($table, $dataInclude, true)) {
-				$insertBlocks = $this->model_tool_dump_install->getInsertSql($table, null, $installerMode);
-
-				if (!empty($insertBlocks)) {
-					foreach ($insertBlocks as $sql) {
-						$out[] = $sql;
-					}
-				}
+				$this->model_tool_dump_install->getInsertSql($table, null, $installerMode, $write);
 			}
 
-			$out[] = '';
-			$out[] = $separator;
-			$out[] = '';
+			$write('');
+			$write('-- ' . $separator);
+			$write('');
 		}
 
-		$out[] = '-- Dump finished at: ' . date('Y-m-d H:i:s');
+		$write('-- Dump finished at: ' . date('Y-m-d H:i:s'));
 
-		echo implode("\n", $out);
+		// Streaming completed.
 		exit;
 	}
 }
