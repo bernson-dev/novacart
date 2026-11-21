@@ -43,7 +43,7 @@ class ModelToolDumpInstall extends Model {
 			SELECT TABLE_NAME, TABLE_COLLATION
 			FROM information_schema.TABLES
 			WHERE TABLE_SCHEMA = DATABASE()
-			  AND TABLE_NAME LIKE '" . $this->db->escape(DB_PREFIX) . "%' AND TABLE_TYPE = 'BASE TABLE'
+			  AND LEFT(TABLE_NAME, " . strlen(DB_PREFIX) . ") = '" . $this->db->escape(DB_PREFIX) . "' AND TABLE_TYPE = 'BASE TABLE'
 			ORDER BY TABLE_NAME
 		";
 
@@ -229,7 +229,7 @@ class ModelToolDumpInstall extends Model {
 				$isPkNumeric = $pkInfo && in_array($pkInfo['type'], $this->numericTypes, true);
 
 				if ($isPkNumeric) {
-					$where = "WHERE `$pk` > " . '" . $this->db->escape((string)$lastId) . "'";
+					$where = "WHERE `$pk` > '" . $this->db->escape((string)$lastId) . "'";
 				} else {
 					$where = "WHERE `$pk` > '" . $this->db->escape($lastId) . "'";
 				}
