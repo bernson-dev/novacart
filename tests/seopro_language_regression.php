@@ -108,7 +108,8 @@ $languages = array(
 $seo = (new ReflectionClass('SeoPro'))->newInstanceWithoutConstructor();
 $config = new SeoLanguageTestConfig(array(
 	'config_language' => 'ru-ru',
-	'config_theme' => 'oct_deals'
+	'config_theme' => 'oct_deals',
+	'config_seo_language_prefix' => array('ru-ru' => 'ru', 'uk-ua' => 'ua')
 ));
 $db = new SeoLanguageTestDb($languages);
 
@@ -123,6 +124,7 @@ $config->set('config_language', 'uk-ua');
 assertSameValue(2, callPrivate($seo, 'getDefaultLanguageId'), 'UA default language id');
 
 $config->set('config_theme', 'default');
+$config->set('config_seo_language_prefix', array());
 assertSameValue('uk', callPrivate($seo, 'getLanguageHomeAlias', array('uk-ua')), 'Standard UK alias');
 
 echo "SeoPro language regression checks passed\n";
