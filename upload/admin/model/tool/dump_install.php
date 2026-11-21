@@ -101,13 +101,13 @@ class ModelToolDumpInstall extends Model {
 
 		// Never silently generate a dump that loses the source collation.
 		if (!$collation || !preg_match('/^[a-zA-Z0-9_]+$/D', $collation)) {
-			throw new \\RuntimeException('Cannot determine collation for table: ' . $table);
+			throw new \RuntimeException('Cannot determine collation for table: ' . $table);
 		}
 
 		// Table-level options follow the last column-definition closing bracket.
 		$closing = strrpos($sql, ')');
 		if ($closing === false) {
-			throw new \\RuntimeException('Unexpected CREATE TABLE syntax: ' . $table);
+			throw new \RuntimeException('Unexpected CREATE TABLE syntax: ' . $table);
 		}
 
 		if (!preg_match('/\\bCOLLATE\\s*=/i', substr($sql, $closing + 1))) {
