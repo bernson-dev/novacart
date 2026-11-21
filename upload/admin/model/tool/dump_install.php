@@ -86,7 +86,7 @@ class ModelToolDumpInstall extends Model {
 		$collation = $this->tableCollations[$table] ?? null;
 		if ($collation && preg_match('/^[a-zA-Z0-9_]+$/D', $collation)) {
 			$closing = strrpos($sql, ')');
-			if ($closing !== false && stripos(substr($sql, $closing + 1), 'COLLATE=') === false) {
+			if ($closing !== false && !preg_match('/\\bCOLLATE\\s*=/i', substr($sql, $closing + 1))) {
 				$sql .= ' COLLATE=' . $collation;
 			}
 		}
@@ -215,7 +215,7 @@ class ModelToolDumpInstall extends Model {
 		if ($pk) {
 			$orderBySql = " ORDER BY `" . $pk . "`";
 		} else {
-			$orderBySql = '';
+			$orderBySql = $sortableColumns ? (' ORDER BY ' . implode(', ', $sortableColumns)) : '';
 		}
 
 		$offset = 0;
