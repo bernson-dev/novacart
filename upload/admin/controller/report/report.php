@@ -17,6 +17,20 @@ class ControllerReportReport extends Controller {
 			'href' => $this->url->link('report/report', 'user_token=' . $this->session->data['user_token'], true)
 		);
 
+		if (isset($this->session->data['success'])) {
+			$data['success'] = $this->session->data['success'];
+			unset($this->session->data['success']);
+		} else {
+			$data['success'] = '';
+		}
+
+		if (isset($this->session->data['error'])) {
+			$data['error_warning'] = $this->session->data['error'];
+			unset($this->session->data['error']);
+		} else {
+			$data['error_warning'] = '';
+		}
+
 		$data['user_token'] = $this->session->data['user_token'];
 
 		if (isset($this->request->get['code'])) {
