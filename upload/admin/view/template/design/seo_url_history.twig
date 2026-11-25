@@ -5,7 +5,7 @@
         <div class="container-fluid">
             <div class="pull-right">
                 {% if available and can_modify %}
-                <button type="submit" form="form-seo-history" class="btn btn-danger" data-toggle="tooltip" title="{{ button_delete }}"><i class="fa fa-trash-o"></i></button>
+                <button type="button" id="button-history-delete" class="btn btn-danger" data-toggle="tooltip" title="{{ button_delete }}"><i class="fa fa-trash-o"></i></button>
                 {% endif %}
                 <a href="{{ back }}" class="btn btn-default" data-toggle="tooltip" title="{{ button_cancel }}"><i class="fa fa-reply"></i></a>
             </div>
@@ -25,7 +25,7 @@
             <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-history"></i> {{ text_history }}</h3></div>
             <div class="panel-body">
                 <p>{{ text_history_help }}</p>
-                <form method="get" action="index.php" class="well">
+                <form method="get" action="index.php" class="well" id="seo-history-filter">
                     <input type="hidden" name="route" value="design/seo_url/history">
                     <input type="hidden" name="user_token" value="{{ user_token }}">
                     <div class="row">
@@ -50,7 +50,7 @@
                         </div>
                         <div class="col-md-2 form-group">
                             <label>&nbsp;</label>
-                            <div><button type="submit" class="btn btn-primary" title="{{ button_filter }}"><i class="fa fa-filter"></i></button> <a href="{{ reset }}" class="btn btn-default" title="{{ button_clear }}"><i class="fa fa-times"></i></a></div>
+                            <div><button type="button" id="button-history-filter" class="btn btn-primary" title="{{ button_filter }}"><i class="fa fa-filter"></i></button> <a href="{{ reset }}" class="btn btn-default" title="{{ button_clear }}"><i class="fa fa-times"></i></a></div>
                         </div>
                     </div>
                 </form>
@@ -83,12 +83,16 @@
     </div>
 </div>
 <script>
+$('#button-history-filter').on('click', function () {
+    HTMLFormElement.prototype.submit.call(document.getElementById('seo-history-filter'));
+});
 $('#history-select-all').on('change', function () {
     $('#form-seo-history input[name="selected[]"]').prop('checked', this.checked);
 });
-$('#form-seo-history').on('submit', function (event) {
-    if (!$(this).find('input[name="selected[]"]:checked').length || !confirm($(this).attr('data-confirm'))) {
-        event.preventDefault();
+$('#button-history-delete').on('click', function () {
+    var form = document.getElementById('form-seo-history');
+    if (form && $(form).find('input[name="selected[]"]:checked').length && confirm($(form).attr('data-confirm'))) {
+        HTMLFormElement.prototype.submit.call(form);
     }
 });
 </script>

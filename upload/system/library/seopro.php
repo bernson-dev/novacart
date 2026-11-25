@@ -957,7 +957,25 @@ class SeoPro {
 			$exclude = [];
 		}
 
-		return urldecode(http_build_query(array_diff_key($this->request->get, array_flip($exclude))));
+		$params = array_diff_key($this->request->get, array_flip($exclude));
+		// Preserve the original campaign values even when a previous routing
+		// layer has removed them from GET. Do not decode encoded separators.
+		$uri = html_entity_decode((string)($this->request->server['REQUEST_URI'] ?? ''), ENT_QUOTES, 'UTF-8');
+		$query = parse_url($uri, PHP_URL_QUERY);
+		$original = array();
+		if (is_string($query)) {
+			parse_str($query, $original);
+		}
+		$campaign = array();
+		foreach ($original as $key => $value) {
+			if (is_string($key) && (strpos($key, 'utm_') === 0 || in_array($key, array('gclid', 'fbclid', 'msclkid'), true))) {
+				$campaign[$key] = $value;
+			}
+		}
+		// Keep existing serialization for non-campaign parameters.
+		$args = urldecode(http_build_query(array_diff_key($params, $campaign)));
+		$tracking = http_build_query($campaign, '', '&', PHP_QUERY_RFC3986);
+		return $args . ($args !== '' && $tracking !== '' ? '&' : '') . $tracking;
 	}
 
 	public function __destruct() {

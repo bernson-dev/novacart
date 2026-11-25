@@ -262,6 +262,9 @@ class ControllerStartupSeoUrl extends Controller {
 			unset($original_get[$key]);
 		}
 		$params = array_merge($original_get, $params);
+		// Recover campaign parameters from the actual request URI if an upstream
+		// routing layer has removed them from the parsed GET array.
+		$params = array_replace($params, $this->getCampaignParams());
 		$secure = !empty($this->request->server['HTTPS']) && strtolower((string)$this->request->server['HTTPS']) !== 'off';
 		$target = str_replace('&amp;', '&', $this->url->link($route, http_build_query($params, '', '&', PHP_QUERY_RFC3986), $secure));
 		$parsed = parse_url($target);
@@ -277,7 +280,26 @@ class ControllerStartupSeoUrl extends Controller {
 		if (isset($target_params['route'])) {
 			return '';
 		}
+		// A rewrite extension may discard parameters. Restore only campaign
+		// parameters, keeping the canonical path and its existing query intact.
+		$campaign = $this->getCampaignParams();
+		$missing = array_diff_key($campaign, $target_params);
+		if ($missing) {
+			$target .= (strpos($target, '?') === false ? '?' : '&') . http_build_query($missing, '', '&', PHP_QUERY_RFC3986);
+		}
 		return $target;
+	}
+
+	private function getCampaignParams() {
+		$uri = html_entity_decode((string)($this->request->server['REQUEST_URI'] ?? ''), ENT_QUOTES, 'UTF-8');
+		$query = parse_url($uri, PHP_URL_QUERY);
+		$params = array();
+		if (is_string($query)) {
+			parse_str($query, $params);
+		}
+		return array_filter($params, function ($key) {
+			return is_string($key) && (strpos($key, 'utm_') === 0 || in_array($key, array('gclid', 'fbclid', 'msclkid'), true));
+		}, ARRAY_FILTER_USE_KEY);
 	}
 
 	private function getDirectRouteCanonicalUrl() {
