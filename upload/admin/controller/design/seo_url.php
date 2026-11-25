@@ -66,7 +66,7 @@ class ControllerDesignSeoUrl extends Controller {
 		$data['user_token'] = $this->session->data['user_token'];
 		$data['back'] = $this->url->link('design/seo_url', $token, true);
 		$data['reset'] = $this->url->link('design/seo_url/history', $token, true);
-		$data['action'] = $this->url->link('design/seo_url/history', $token . $filter_url . '&page=' . $page, true);
+		$data['action'] = $this->url->link('design/seo_url/history', $token . $filter_url, true);
 		$data['heading_title'] = $this->language->get('text_history');
 		$this->document->setTitle($data['heading_title']);
 		$data['breadcrumbs'] = array(
