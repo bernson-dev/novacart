@@ -26,4 +26,17 @@ expectHistory(array(), array(historyRow('')), array($new));
 expectHistory(array($old), array($old, historyRow('old', 2)), array($new, historyRow('old', 2)));
 expectHistory(array(), array($old), array($old, $new));
 expectHistory(array($old), array($old), array(historyRow('0')));
+function expectRoute($expected, $queries) {
+	if (SeoUrlHistory::routeFromQueries($queries) !== $expected) {
+		throw new RuntimeException('Unexpected historical route: ' . json_encode($queries));
+	}
+}
+
+expectRoute(array('route' => 'product/product', 'params' => array('product_id' => 42)), array('product_id=42'));
+expectRoute(array('route' => 'product/product', 'params' => array('path' => '2_5', 'product_id' => 42)), array('category_id=2', 'category_id=5', 'product_id=42'));
+expectRoute(array('route' => 'blog/article', 'params' => array('blog_category_id' => '3', 'article_id' => 7)), array('blog_category_id=3', 'article_id=7'));
+expectRoute(array(), array('product_id=42', 'product_id=43'));
+expectRoute(array(), array('category_id=2', 'article_id=7'));
+expectRoute(array(), array('account/login'));
+expectRoute(array(), array('product_id=0'));
 echo "SEO URL history regression: OK\n";

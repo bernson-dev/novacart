@@ -60,6 +60,95 @@ class SeoUrlHistory {
 		return $changed;
 	}
 
+	/**
+	 * Resolve a complete path only after normal routing misses a segment.
+	 * Current aliases win; every historical alias must still have a current
+	 * replacement in the same store and keyword language.
+	 */
+	public function resolvePath(array $parts, $store_id, $language_id, $unscoped = false) {
+		if (!$parts || !$this->isAvailable()) {
+			return array();
+		}
+
+		$store = (int)$store_id;
+		$language = (int)$language_id;
+		$scope = "store_id = '" . $store . "'";
+		$lang = " AND language_id = '" . $language . "'";
+		$queries = array();
+		$historical = false;
+
+		foreach ($parts as $part) {
+			if (!is_string($part) || $part === '') {
+				return array();
+			}
+			$keyword = $this->db->escape($part);
+			$active = $this->db->query("SELECT DISTINCT `query` FROM `" . DB_PREFIX . "seo_url` WHERE " . $scope . ($unscoped ? '' : $lang) . " AND keyword = '" . $keyword . "' LIMIT 2");
+			if ($active->num_rows > 1) {
+				return array();
+			}
+			if ($active->num_rows) {
+				$queries[] = $active->row['query'];
+				continue;
+			}
+
+			$old = $this->db->query("SELECT `query` FROM `" . DB_PREFIX . "seo_url_history` WHERE " . $scope . $lang . " AND keyword_hash = '" . hash('sha256', $part) . "' AND BINARY keyword = '" . $keyword . "' LIMIT 1");
+			if (!$old->num_rows) {
+				return array();
+			}
+			$query = $this->db->escape($old->row['query']);
+			$current = $this->db->query("SELECT seo_url_id FROM `" . DB_PREFIX . "seo_url` WHERE " . $scope . $lang . " AND `query` = '" . $query . "' AND keyword <> '' LIMIT 1");
+			if (!$current->num_rows) {
+				return array();
+			}
+			$historical = true;
+			$queries[] = $old->row['query'];
+		}
+
+		return $historical ? self::routeFromQueries($queries) : array();
+	}
+
+	/**
+	 * Accept only known entity paths, with a single terminal item.
+	 */
+	public static function routeFromQueries(array $queries) {
+		$routes = array(
+			'product_id' => 'product/product',
+			'category_id' => 'product/category',
+			'manufacturer_id' => 'product/manufacturer/info',
+			'information_id' => 'information/information',
+			'article_id' => 'blog/article',
+			'blog_category_id' => 'blog/category'
+		);
+		$params = array();
+		$last = '';
+		$tree = '';
+		foreach ($queries as $query) {
+			if (!preg_match('/^([a-z_]+)=([1-9][0-9]*)$/D', $query, $match) || !isset($routes[$match[1]])) {
+				return array();
+			}
+			$key = $match[1];
+			$id = (int)$match[2];
+			if ($id < 1 || ($last !== '' && $last !== 'category_id' && $last !== 'blog_category_id')) {
+				return array();
+			}
+			if ($key === 'category_id' || $key === 'blog_category_id') {
+				if ($tree !== '' && $tree !== $key) {
+					return array();
+				}
+				$tree = $key;
+				$param = $key === 'category_id' ? 'path' : 'blog_category_id';
+				$params[$param] = isset($params[$param]) ? $params[$param] . '_' . $id : (string)$id;
+			} else {
+				if ($tree !== '' && !(($tree === 'category_id' && $key === 'product_id') || ($tree === 'blog_category_id' && $key === 'article_id'))) {
+					return array();
+				}
+				$params[$key] = $id;
+			}
+			$last = $key;
+		}
+		return $last !== '' ? array('route' => $routes[$last], 'params' => $params) : array();
+	}
+
 	public function record(array $before, array $after) {
 		if (!$before || !$this->isAvailable()) {
 			return;

@@ -35,10 +35,14 @@ class ControllerStartupSeoUrl extends Controller {
 		// Decode URL
 		if (isset($this->request->get['_route_'])) {
 			$parts = explode('/', $this->request->get['_route_']);
+			$original_parts = $parts;
+			$original_get = $this->request->get;
+			$missing_keyword = false;
 
 			//seopro prepare route
 			if ($this->config->get('config_seo_pro')) {
 				$parts = $this->seo_pro->prepareRoute($parts);
+				$missing_keyword = $this->seo_pro->hasMissingRouteKeyword();
 			}
 			//seopro prepare route end
 
@@ -133,11 +137,26 @@ class ControllerStartupSeoUrl extends Controller {
 					}
 
 					if (!$resolved_home && !$this->config->get('config_seo_pro')) {
+						$missing_keyword = true;
 						$this->request->get['route'] = 'error/not_found';
 					}
 
 					break;
 				}
+			}
+
+			if ($missing_keyword) {
+				$canonical = $this->getHistoricalCanonicalUrl($original_parts, $original_get);
+				if ($canonical !== '') {
+					$this->response->redirect($canonical, 301);
+					return;
+				}
+
+				// A partially decoded path must not accidentally resolve to its
+				// last active entity when an earlier segment is unknown.
+				$this->request->get = $original_get;
+				$this->request->get['route'] = 'error/not_found';
+				return;
 			}
 
 			if (!isset($this->request->get['route'])) {
@@ -198,6 +217,67 @@ class ControllerStartupSeoUrl extends Controller {
 		}
 
 		return (int)$this->config->get('config_language_id');
+	}
+
+	/**
+	 * History is consulted only on a normal routing miss. Use the existing
+	 * URL builder and language availability check to avoid parallel routing.
+	 */
+	private function getHistoricalCanonicalUrl(array $parts, array $original_get) {
+		if (!$this->config->get('config_seo_url') || empty($this->request->server['REQUEST_URI'])) {
+			return '';
+		}
+		$method = strtoupper((string)($this->request->server['REQUEST_METHOD'] ?? 'GET'));
+		if (!in_array($method, array('GET', 'HEAD'), true) || !empty($this->request->post)
+			|| strtolower((string)($this->request->server['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest') {
+			return '';
+		}
+
+		if (end($parts) === '') {
+			array_pop($parts);
+		}
+
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_language = $this->seo_language;
+		$prefix_mode = $seo_language instanceof SeoLanguage && $seo_language->isEnabled();
+		$resolved = $history->resolvePath($parts, (int)$this->config->get('config_store_id'), $this->getSeoKeywordLanguageId(), !$prefix_mode && !$this->config->get('config_seo_pro'));
+
+		if (!$resolved) {
+			return '';
+		}
+
+		$route = $resolved['route'];
+		$params = $resolved['params'];
+		if (!$seo_language instanceof SeoLanguage) {
+			$seo_language = new SeoLanguage($this->registry);
+		}
+		if (!$seo_language->isRouteAvailableForLanguage($route, $params, (int)$this->config->get('config_language_id'))) {
+			return '';
+		}
+
+		// Path identifiers are derived only from the URL, never from query
+		// parameters supplied by the client.
+		foreach (array('route', '_route_', 'product_id', 'path', 'category_id', 'manufacturer_id', 'information_id', 'article_id', 'blog_category_id') as $key) {
+			unset($original_get[$key]);
+		}
+		$params = array_merge($original_get, $params);
+		$secure = !empty($this->request->server['HTTPS']) && strtolower((string)$this->request->server['HTTPS']) !== 'off';
+		$target = str_replace('&amp;', '&', $this->url->link($route, http_build_query($params, '', '&', PHP_QUERY_RFC3986), $secure));
+		$parsed = parse_url($target);
+		$source = parse_url((string)$this->request->server['REQUEST_URI']);
+		if (!is_array($parsed) || !is_array($source) || empty($parsed['path']) || empty($source['path'])
+			|| basename($parsed['path']) === 'index.php' || rawurldecode($parsed['path']) === rawurldecode($source['path'])) {
+			return '';
+		}
+		$target_params = array();
+		if (isset($parsed['query'])) {
+			parse_str($parsed['query'], $target_params);
+		}
+		if (isset($target_params['route'])) {
+			return '';
+		}
+		return $target;
 	}
 
 	private function getDirectRouteCanonicalUrl() {
