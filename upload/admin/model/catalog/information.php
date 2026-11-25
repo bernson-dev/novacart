@@ -55,6 +55,10 @@ class ModelCatalogInformation extends Model {
 			}
 		}
 
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_before = $seo_history->snapshot('information_id=' . (int)$information_id);
+
 		$this->db->query("DELETE FROM " . DB_PREFIX . "seo_url WHERE query = 'information_id=" . (int)$information_id . "'");
 
 		if (isset($data['information_seo_url'])) {
@@ -66,6 +70,8 @@ class ModelCatalogInformation extends Model {
 				}
 			}
 		}
+
+		$seo_history->record($seo_before, $seo_history->snapshot('information_id=' . (int)$information_id));
 
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "information_to_layout` WHERE information_id = '" . (int)$information_id . "'");
 

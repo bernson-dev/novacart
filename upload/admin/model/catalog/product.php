@@ -441,6 +441,10 @@ class ModelCatalogProduct extends Model {
 		}
 
 		// SEO URL
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_before = $seo_history->snapshot('product_id=' . (int)$product_id);
+
 		$this->db->query("DELETE FROM " . DB_PREFIX . "seo_url WHERE query = 'product_id=" . (int)$product_id . "'");
 
 		if (isset($data['product_seo_url'])) {
@@ -452,6 +456,8 @@ class ModelCatalogProduct extends Model {
 				}
 			}
 		}
+
+		$seo_history->record($seo_before, $seo_history->snapshot('product_id=' . (int)$product_id));
 
 		$this->db->query("DELETE FROM " . DB_PREFIX . "product_to_layout WHERE product_id = '" . (int)$product_id . "'");
 

@@ -11,12 +11,20 @@ class ModelDesignSeoUrl extends Model {
 	}
 
 	public function editSeoUrl($seo_url_id, $data) {
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_before = $seo_history->snapshotById($seo_url_id);
 		$this->db->query("UPDATE `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$data['store_id'] . "', `language_id` = '" . (int)$data['language_id'] . "', `query` = '" . $this->db->escape(html_entity_decode($data['query'], ENT_QUOTES, 'UTF-8')) . "', `keyword` = '" . $this->db->escape($data['keyword']) . "' WHERE `seo_url_id` = '" . (int)$seo_url_id . "'");
+		$seo_history->record($seo_before, $seo_history->snapshotById($seo_url_id));
 		$this->clearSeoCache();
 	}
 
 	public function editSeoUrlKeyword($seo_url_id, $keyword) {
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_before = $seo_history->snapshotById($seo_url_id);
 		$this->db->query("UPDATE `" . DB_PREFIX . "seo_url` SET `keyword` = '" . $this->db->escape((string)$keyword) . "' WHERE `seo_url_id` = '" . (int)$seo_url_id . "'");
+		$seo_history->record($seo_before, $seo_history->snapshotById($seo_url_id));
 		$this->clearSeoCache();
 	}
 

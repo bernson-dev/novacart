@@ -173,6 +173,10 @@ class ModelBlogArticle extends Model {
 		}
 
 		// SEO URL
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_before = $seo_history->snapshot('article_id=' . (int)$article_id);
+
 		$this->db->query("DELETE FROM " . DB_PREFIX . "seo_url WHERE query = 'article_id=" . (int)$article_id . "'");
 
 		if (isset($data['article_seo_url']) && is_array($data['article_seo_url'])) {
@@ -190,6 +194,8 @@ class ModelBlogArticle extends Model {
 				}
 			}
 		}
+
+		$seo_history->record($seo_before, $seo_history->snapshot('article_id=' . (int)$article_id));
 
 		$this->db->query("DELETE FROM " . DB_PREFIX . "article_to_layout WHERE article_id = '" . (int)$article_id . "'");
 
