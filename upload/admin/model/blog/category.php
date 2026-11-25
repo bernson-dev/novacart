@@ -34,6 +34,10 @@ class ModelBlogCategory extends Model {
 				}
 			}
 		}
+
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_history->record(array(), $seo_history->snapshot('blog_category_id=' . (int)$blog_category_id));
 		// Set which layout to use with this category
 		if (isset($data['category_layout'])) {
 			foreach ($data['category_layout'] as $store_id => $layout_id) {
@@ -102,6 +106,10 @@ class ModelBlogCategory extends Model {
 		}
 
 		// SEO URL
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_before = $seo_history->snapshot('blog_category_id=' . (int)$blog_category_id);
+
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url` WHERE query = 'blog_category_id=" . (int)$blog_category_id . "'");
 		if (isset($data['category_seo_url'])) {
 			foreach ($data['category_seo_url'] as $store_id => $language) {
@@ -112,6 +120,8 @@ class ModelBlogCategory extends Model {
 				}
 			}
 		}
+
+		$seo_history->record($seo_before, $seo_history->snapshot('blog_category_id=' . (int)$blog_category_id));
 		$this->db->query("DELETE FROM " . DB_PREFIX . "blog_category_to_layout WHERE blog_category_id = '" . (int)$blog_category_id . "'");
 		if (isset($data['category_layout'])) {
 			foreach ($data['category_layout'] as $store_id => $layout_id) {

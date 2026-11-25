@@ -247,4 +247,11 @@ assertSameValue(
 );
 
 
+$request->server['REQUEST_URI'] = '/old-product?utm_source=test&amp;gclid=123&amp;utm_content=a%26b%3Dc&amp;product_id=999';
+assertSameValue(
+	array('utm_source' => 'test', 'gclid' => '123', 'utm_content' => 'a&b=c'),
+	callPrivate($controller, 'getCampaignParams'),
+	'Historical redirect must recover original campaign values without trusting entity identifiers'
+);
+
 echo "SEO direct-route canonical regression checks passed\n";

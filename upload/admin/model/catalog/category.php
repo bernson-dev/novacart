@@ -52,6 +52,10 @@ class ModelCatalogCategory extends Model {
 				}
 			}
 		}
+
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_history->record(array(), $seo_history->snapshot('category_id=' . (int)$category_id));
 		
 		if (isset($data['product_related'])) {
 			foreach ($data['product_related'] as $related_id) {
@@ -164,6 +168,10 @@ class ModelCatalogCategory extends Model {
 		}
 
 		// SEO URL
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_before = $seo_history->snapshot('category_id=' . (int)$category_id);
+
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url` WHERE query = 'category_id=" . (int)$category_id . "'");
 
 		if (isset($data['category_seo_url'])) {
@@ -175,6 +183,8 @@ class ModelCatalogCategory extends Model {
 				}
 			}
 		}
+
+		$seo_history->record($seo_before, $seo_history->snapshot('category_id=' . (int)$category_id));
 		
 		$this->db->query("DELETE FROM " . DB_PREFIX . "product_related_wb WHERE category_id = '" . (int)$category_id . "'");
 	

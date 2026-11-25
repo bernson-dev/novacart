@@ -12,6 +12,81 @@ class ControllerDesignSeoUrl extends Controller {
 		$this->getList();
 	}
 
+	public function history() {
+		$this->load->language('design/seo_url');
+		$this->load->model('design/seo_url');
+		$this->load->model('setting/store');
+		$this->load->model('localisation/language');
+
+		$token = 'user_token=' . $this->session->data['user_token'];
+		$data['available'] = $this->model_design_seo_url->isHistoryAvailable();
+		$data['can_modify'] = $this->user->hasPermission('modify', 'design/seo_url');
+		$data['error_warning'] = '';
+		$data['success'] = '';
+		$data['filter_search'] = isset($this->request->get['filter_search']) && is_string($this->request->get['filter_search']) ? trim($this->request->get['filter_search']) : '';
+		foreach (array('store_id', 'language_id') as $key) {
+			$value = $this->request->get['filter_' . $key] ?? '';
+			$data['filter_' . $key] = is_scalar($value) && ctype_digit((string)$value) ? (string)(int)$value : '';
+		}
+
+		$filter_url = '';
+		foreach (array('filter_search', 'filter_store_id', 'filter_language_id') as $key) {
+			if ($data[$key] !== '') {
+				$filter_url .= '&' . $key . '=' . rawurlencode($data[$key]);
+			}
+		}
+		$page = max(1, (int)($this->request->get['page'] ?? 1));
+		if ($this->request->server['REQUEST_METHOD'] === 'POST') {
+			if (!$data['can_modify']) {
+				$data['error_warning'] = $this->language->get('error_permission');
+			} elseif ($data['available'] && isset($this->request->post['selected']) && is_array($this->request->post['selected'])) {
+				foreach ($this->request->post['selected'] as $id) {
+					if (is_scalar($id) && ctype_digit((string)$id) && (int)$id > 0) {
+						$this->model_design_seo_url->deleteHistory((int)$id);
+					}
+				}
+				$this->session->data['seo_history_success'] = $this->language->get('text_success');
+				$this->response->redirect($this->url->link('design/seo_url/history', $token . $filter_url, true));
+				return;
+			}
+		}
+		if (isset($this->session->data['seo_history_success'])) {
+			$data['success'] = $this->session->data['seo_history_success'];
+			unset($this->session->data['seo_history_success']);
+		}
+
+		$limit = max(1, (int)$this->config->get('config_limit_admin'));
+		$total = $data['available'] ? $this->model_design_seo_url->getTotalHistory($data) : 0;
+		$page = min($page, max(1, (int)ceil($total / $limit)));
+		$data['start'] = ($page - 1) * $limit;
+		$data['limit'] = $limit;
+		$data['rows'] = $data['available'] ? $this->model_design_seo_url->getHistory($data) : array();
+		$data['stores'] = $this->model_setting_store->getStores();
+		$data['languages'] = $this->model_localisation_language->getLanguages();
+		$data['user_token'] = $this->session->data['user_token'];
+		$data['back'] = $this->url->link('design/seo_url', $token, true);
+		$data['reset'] = $this->url->link('design/seo_url/history', $token, true);
+		$data['action'] = $this->url->link('design/seo_url/history', $token . $filter_url, true);
+		$data['heading_title'] = $this->language->get('text_history');
+		$this->document->setTitle($data['heading_title']);
+		$data['breadcrumbs'] = array(
+			array('text' => $this->language->get('text_home'), 'href' => $this->url->link('common/dashboard', $token, true)),
+			array('text' => $this->language->get('heading_title'), 'href' => $data['back']),
+			array('text' => $data['heading_title'], 'href' => $data['reset'])
+		);
+		$pagination = new Pagination();
+		$pagination->total = $total;
+		$pagination->page = $page;
+		$pagination->limit = $limit;
+		$pagination->url = $this->url->link('design/seo_url/history', $token . $filter_url . '&page={page}', true);
+		$data['pagination'] = $pagination->render();
+		$data['results'] = sprintf($this->language->get('text_pagination'), $total ? $data['start'] + 1 : 0, min($total, $data['start'] + $limit), $total, ceil($total / $limit));
+		$data['header'] = $this->load->controller('common/header');
+		$data['column_left'] = $this->load->controller('common/column_left');
+		$data['footer'] = $this->load->controller('common/footer');
+		$this->response->setOutput($this->load->view('design/seo_url_history', $data));
+	}
+
 	public function add() {
 		$this->load->language('design/seo_url');
 
@@ -327,6 +402,7 @@ class ControllerDesignSeoUrl extends Controller {
 			'href' => $this->url->link('design/seo_url', 'user_token=' . $this->session->data['user_token'] . $url, true)
 		);
 
+		$data['history'] = $this->url->link('design/seo_url/history', 'user_token=' . $this->session->data['user_token'], true);
 		$data['add'] = $this->url->link('design/seo_url/add', 'user_token=' . $this->session->data['user_token'] . $url, true);
 		$data['delete'] = $this->url->link('design/seo_url/delete', 'user_token=' . $this->session->data['user_token'] . $url, true);
 

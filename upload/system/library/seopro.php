@@ -25,6 +25,11 @@ class SeoPro {
 	private $product_categories = [];
 	private $valide_get_param = [];
 	private $language_home_alias = false;
+	private $missing_route_keyword = false;
+
+	public function hasMissingRouteKeyword() {
+		return $this->missing_route_keyword;
+	}
 
 	public function __construct($registry) {
 		$this->registry = $registry;
@@ -68,6 +73,7 @@ class SeoPro {
 		}
 
 		$query = null;
+		$this->missing_route_keyword = false;
 
 		if (!empty($parts) && is_array($parts)) {
 			foreach ($parts as $id => $part) {
@@ -79,6 +85,9 @@ class SeoPro {
 
 				if ($keyword !== '') {
 					$query = $this->getQueryByKeyword($keyword);
+					if (!$query) {
+						$this->missing_route_keyword = true;
+					}
 					$url = explode('=', (string)$query, 2);
 
 					if (!empty($url[0])) {
@@ -218,6 +227,11 @@ class SeoPro {
 					$path = '';
 					$product_id = $data['product_id'];
 					$valide_get_param_data = array();
+					foreach ($data as $param => $value) {
+						if (is_string($param) && (strpos($param, 'utm_') === 0 || in_array($param, array('gclid', 'fbclid', 'msclkid'), true))) {
+							$valide_get_param_data[$param] = $value;
+						}
+					}
 
 					if (isset($data['path']) || $this->config->get('config_seo_url_include_path')) {
 						$path = $this->getCategoryByProduct($product_id);
@@ -241,7 +255,7 @@ class SeoPro {
 
 					$data['product_id'] = $product_id;
 
-					if ($this->valide_get_param && $valide_get_param_data) {
+					if ($valide_get_param_data) {
 						$data = array_merge($data, $valide_get_param_data);
 					}
 				}
@@ -253,6 +267,11 @@ class SeoPro {
 					$blog_path = '';
 					$article_id = $data['article_id'];
 					$valide_get_param_data = array();
+					foreach ($data as $param => $value) {
+						if (is_string($param) && (strpos($param, 'utm_') === 0 || in_array($param, array('gclid', 'fbclid', 'msclkid'), true))) {
+							$valide_get_param_data[$param] = $value;
+						}
+					}
 
 					if (isset($data['blog_category_id'])) {
 						$blog_path = $this->getBlogPathByArticle($article_id);
@@ -276,7 +295,7 @@ class SeoPro {
 
 					$data['article_id'] = $article_id;
 
-					if ($this->valide_get_param && $valide_get_param_data) {
+					if ($valide_get_param_data) {
 						$data = array_merge($data, $valide_get_param_data);
 					}
 				}
@@ -938,7 +957,25 @@ class SeoPro {
 			$exclude = [];
 		}
 
-		return urldecode(http_build_query(array_diff_key($this->request->get, array_flip($exclude))));
+		$params = array_diff_key($this->request->get, array_flip($exclude));
+		// Preserve the original campaign values even when a previous routing
+		// layer has removed them from GET. Do not decode encoded separators.
+		$uri = html_entity_decode((string)($this->request->server['REQUEST_URI'] ?? ''), ENT_QUOTES, 'UTF-8');
+		$query = parse_url($uri, PHP_URL_QUERY);
+		$original = array();
+		if (is_string($query)) {
+			parse_str($query, $original);
+		}
+		$campaign = array();
+		foreach ($original as $key => $value) {
+			if (is_string($key) && (strpos($key, 'utm_') === 0 || in_array($key, array('gclid', 'fbclid', 'msclkid'), true))) {
+				$campaign[$key] = $value;
+			}
+		}
+		// Keep existing serialization for non-campaign parameters.
+		$args = urldecode(http_build_query(array_diff_key($params, $campaign)));
+		$tracking = http_build_query($campaign, '', '&', PHP_QUERY_RFC3986);
+		return $args . ($args !== '' && $tracking !== '' ? '&' : '') . $tracking;
 	}
 
 	public function __destruct() {

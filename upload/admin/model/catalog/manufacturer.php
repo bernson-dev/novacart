@@ -51,6 +51,10 @@ class ModelCatalogManufacturer extends Model {
 			}
 		}
 
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_history->record(array(), $seo_history->snapshot('manufacturer_id=' . (int)$manufacturer_id));
+
 		$this->cache->delete('manufacturer');
 
 		return $manufacturer_id;
@@ -108,6 +112,10 @@ class ModelCatalogManufacturer extends Model {
 			}
 		}
 
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_before = $seo_history->snapshot('manufacturer_id=' . (int)$manufacturer_id);
+
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url` WHERE query = 'manufacturer_id=" . (int)$manufacturer_id . "'");
 
 		if (isset($data['manufacturer_seo_url'])) {
@@ -119,6 +127,8 @@ class ModelCatalogManufacturer extends Model {
 				}
 			}
 		}
+
+		$seo_history->record($seo_before, $seo_history->snapshot('manufacturer_id=' . (int)$manufacturer_id));
 
 		$this->cache->delete('manufacturer');
 	}

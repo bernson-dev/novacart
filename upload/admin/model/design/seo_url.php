@@ -5,18 +5,71 @@ class ModelDesignSeoUrl extends Model {
 	private $language_prefix_map = array();
 	private $audit_cache = null;
 	private $search_condition_cache = array();
+	public function isHistoryAvailable() {
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$history = new \Novacart\SeoUrlHistory($this->db);
+		return $history->isAvailable();
+	}
+
+	private function getHistoryWhere($data) {
+		$where = array();
+		if ($data['filter_search'] !== '') {
+			$search = $this->db->escape($data['filter_search']);
+			$where[] = "(h.keyword LIKE '%" . $search . "%' OR h.`query` LIKE '%" . $search . "%')";
+		}
+		foreach (array('store_id', 'language_id') as $key) {
+			if ($data['filter_' . $key] !== '') {
+				$where[] = "h.`" . $key . "` = '" . (int)$data['filter_' . $key] . "'";
+			}
+		}
+		return $where ? ' WHERE ' . implode(' AND ', $where) : '';
+	}
+
+	public function getHistory($data) {
+		$sql = "SELECT h.*, s.name AS store, l.name AS language,
+			(SELECT u.keyword FROM `" . DB_PREFIX . "seo_url` u WHERE u.store_id = h.store_id AND u.language_id = h.language_id AND u.`query` = h.`query` AND u.keyword <> '' ORDER BY u.seo_url_id LIMIT 1) AS current_keyword,
+			EXISTS(SELECT 1 FROM `" . DB_PREFIX . "seo_url` a WHERE a.store_id = h.store_id AND a.language_id = h.language_id AND a.keyword = h.keyword) AS active_alias
+			FROM `" . DB_PREFIX . "seo_url_history` h
+			LEFT JOIN `" . DB_PREFIX . "store` s ON s.store_id = h.store_id
+			LEFT JOIN `" . DB_PREFIX . "language` l ON l.language_id = h.language_id"
+			. $this->getHistoryWhere($data)
+			. " ORDER BY h.date_modified DESC, h.seo_url_history_id DESC LIMIT " . max(0, (int)$data['start']) . "," . max(1, (int)$data['limit']);
+		return $this->db->query($sql)->rows;
+	}
+
+	public function getTotalHistory($data) {
+		$result = $this->db->query("SELECT COUNT(*) AS total FROM `" . DB_PREFIX . "seo_url_history` h" . $this->getHistoryWhere($data));
+		return (int)$result->row['total'];
+	}
+
+	public function deleteHistory($id) {
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url_history` WHERE seo_url_history_id = '" . (int)$id . "'");
+	}
+
 	public function addSeoUrl($data) {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$data['store_id'] . "', `language_id` = '" . (int)$data['language_id'] . "', `query` = '" . $this->db->escape(html_entity_decode($data['query'], ENT_QUOTES, 'UTF-8')) . "', `keyword` = '" . $this->db->escape($data['keyword']) . "'");
+		$seo_url_id = $this->db->getLastId();
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_history->record(array(), $seo_history->snapshotById($seo_url_id));
 		$this->clearSeoCache();
 	}
 
 	public function editSeoUrl($seo_url_id, $data) {
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_before = $seo_history->snapshotById($seo_url_id);
 		$this->db->query("UPDATE `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$data['store_id'] . "', `language_id` = '" . (int)$data['language_id'] . "', `query` = '" . $this->db->escape(html_entity_decode($data['query'], ENT_QUOTES, 'UTF-8')) . "', `keyword` = '" . $this->db->escape($data['keyword']) . "' WHERE `seo_url_id` = '" . (int)$seo_url_id . "'");
+		$seo_history->record($seo_before, $seo_history->snapshotById($seo_url_id));
 		$this->clearSeoCache();
 	}
 
 	public function editSeoUrlKeyword($seo_url_id, $keyword) {
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_before = $seo_history->snapshotById($seo_url_id);
 		$this->db->query("UPDATE `" . DB_PREFIX . "seo_url` SET `keyword` = '" . $this->db->escape((string)$keyword) . "' WHERE `seo_url_id` = '" . (int)$seo_url_id . "'");
+		$seo_history->record($seo_before, $seo_history->snapshotById($seo_url_id));
 		$this->clearSeoCache();
 	}
 

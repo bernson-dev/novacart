@@ -1,0 +1,99 @@
+{{ header }}
+{{ column_left }}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <div class="pull-right">
+                {% if available and can_modify %}
+                <button type="button" id="button-history-delete" class="btn btn-danger" data-toggle="tooltip" title="{{ button_delete }}"><i class="fa fa-trash-o"></i></button>
+                {% endif %}
+                <a href="{{ back }}" class="btn btn-default" data-toggle="tooltip" title="{{ button_cancel }}"><i class="fa fa-reply"></i></a>
+            </div>
+            <h1>{{ heading_title }}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>{% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="container-fluid">
+        {% if error_warning %}<div class="alert alert-danger">{{ error_warning }}</div>{% endif %}
+        {% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+        {% if not available %}
+        <div class="alert alert-warning"><i class="fa fa-exclamation-triangle"></i> {{ text_history_migration }}</div>
+        {% else %}
+        <div class="panel panel-default">
+            <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-history"></i> {{ text_history }}</h3></div>
+            <div class="panel-body">
+                <p>{{ text_history_help }}</p>
+                <form method="get" action="index.php" class="well" id="seo-history-filter">
+                    <input type="hidden" name="route" value="design/seo_url/history">
+                    <input type="hidden" name="user_token" value="{{ user_token }}">
+                    <div class="row">
+                        <div class="col-md-4 form-group">
+                            <label for="history-search">{{ text_history_search }}</label>
+                            <input class="form-control" id="history-search" name="filter_search" value="{{ filter_search|e('html_attr') }}">
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label for="history-store">{{ column_store }}</label>
+                            <select class="form-control" id="history-store" name="filter_store_id">
+                                <option value="">{{ text_all }}</option>
+                                <option value="0"{% if filter_store_id is same as('0') %} selected{% endif %}>{{ text_default }}</option>
+                                {% for store in stores %}<option value="{{ store.store_id }}"{% if filter_store_id is not same as('') and filter_store_id == store.store_id %} selected{% endif %}>{{ store.name|e }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label for="history-language">{{ column_language }}</label>
+                            <select class="form-control" id="history-language" name="filter_language_id">
+                                <option value="">{{ text_all }}</option>
+                                {% for language in languages %}<option value="{{ language.language_id }}"{% if filter_language_id is not same as('') and filter_language_id == language.language_id %} selected{% endif %}>{{ language.name|e }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 form-group">
+                            <label>&nbsp;</label>
+                            <div><button type="button" id="button-history-filter" class="btn btn-primary" title="{{ button_filter }}"><i class="fa fa-filter"></i></button> <a href="{{ reset }}" class="btn btn-default" title="{{ button_clear }}"><i class="fa fa-times"></i></a></div>
+                        </div>
+                    </div>
+                </form>
+                <form action="{{ action }}" method="post" id="form-seo-history" data-confirm="{{ text_confirm|e('html_attr') }}">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead><tr>
+                                {% if can_modify %}<td class="text-center"><input type="checkbox" id="history-select-all"></td>{% endif %}
+                                <td>{{ column_history_old }}</td><td>{{ column_history_current }}</td><td>{{ column_query }}</td><td>{{ column_store }}</td><td>{{ column_language }}</td><td>{{ column_history_date }}</td>
+                            </tr></thead>
+                            <tbody>
+                                {% for row in rows %}
+                                <tr>
+                                    {% if can_modify %}<td class="text-center"><input type="checkbox" name="selected[]" value="{{ row.seo_url_history_id }}"></td>{% endif %}
+                                    <td>{{ row.keyword|e }}{% if row.active_alias %} <span class="label label-warning">{{ text_history_shadowed }}</span>{% endif %}</td>
+                                    <td>{% if row.current_keyword %}{{ row.current_keyword|e }}{% else %}<span class="text-danger">{{ text_history_missing }}</span>{% endif %}</td>
+                                    <td>{{ row.query|e }}</td><td>{% if row.store_id == 0 %}{{ text_default }}{% else %}{{ row.store|default(row.store_id)|e }}{% endif %}</td><td>{{ row.language|default(row.language_id)|e }}</td><td>{{ row.date_modified|e }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="{% if can_modify %}7{% else %}6{% endif %}" class="text-center">{{ text_no_results }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+                <div class="row"><div class="col-sm-6 text-left">{{ pagination }}</div><div class="col-sm-6 text-right">{{ results }}</div></div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<script>
+$('#button-history-filter').on('click', function () {
+    HTMLFormElement.prototype.submit.call(document.getElementById('seo-history-filter'));
+});
+$('#history-select-all').on('change', function () {
+    $('#form-seo-history input[name="selected[]"]').prop('checked', this.checked);
+});
+$('#button-history-delete').on('click', function () {
+    var form = document.getElementById('form-seo-history');
+    if (form && $(form).find('input[name="selected[]"]:checked').length && confirm($(form).attr('data-confirm'))) {
+        HTMLFormElement.prototype.submit.call(form);
+    }
+});
+</script>
+{{ footer }}

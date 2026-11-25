@@ -260,3 +260,6 @@ jobs:
 
       - name: SEO direct-route canonical regression
         run: php tests/seo_direct_route_canonical_regression.php
+
+      - name: SEO URL history regression
+        run: php tests/seo_url_history_regression.php
