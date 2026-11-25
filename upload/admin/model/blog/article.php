@@ -82,6 +82,10 @@ class ModelBlogArticle extends Model {
 			}
 		}
 
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_history->record(array(), $seo_history->snapshot('article_id=' . (int)$article_id));
+
 		if (isset($data['article_layout']) && is_array($data['article_layout'])) {
 			foreach ($data['article_layout'] as $store_id => $layout_id) {
 				$this->db->query("INSERT INTO " . DB_PREFIX . "article_to_layout SET article_id = '" . (int)$article_id . "', store_id = '" . (int)$store_id . "', layout_id = '" . (int)$layout_id . "'");

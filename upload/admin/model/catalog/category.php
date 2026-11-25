@@ -52,6 +52,10 @@ class ModelCatalogCategory extends Model {
 				}
 			}
 		}
+
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_history->record(array(), $seo_history->snapshot('category_id=' . (int)$category_id));
 		
 		if (isset($data['product_related'])) {
 			foreach ($data['product_related'] as $related_id) {

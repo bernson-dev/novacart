@@ -51,6 +51,10 @@ class ModelCatalogManufacturer extends Model {
 			}
 		}
 
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_history->record(array(), $seo_history->snapshot('manufacturer_id=' . (int)$manufacturer_id));
+
 		$this->cache->delete('manufacturer');
 
 		return $manufacturer_id;

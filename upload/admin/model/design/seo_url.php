@@ -48,6 +48,10 @@ class ModelDesignSeoUrl extends Model {
 
 	public function addSeoUrl($data) {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET `store_id` = '" . (int)$data['store_id'] . "', `language_id` = '" . (int)$data['language_id'] . "', `query` = '" . $this->db->escape(html_entity_decode($data['query'], ENT_QUOTES, 'UTF-8')) . "', `keyword` = '" . $this->db->escape($data['keyword']) . "'");
+		$seo_url_id = $this->db->getLastId();
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_history->record(array(), $seo_history->snapshotById($seo_url_id));
 		$this->clearSeoCache();
 	}
 

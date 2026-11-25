@@ -34,6 +34,10 @@ class ModelBlogCategory extends Model {
 				}
 			}
 		}
+
+		require_once DIR_SYSTEM . 'library/novacart/seo_url_history.php';
+		$seo_history = new \Novacart\SeoUrlHistory($this->db);
+		$seo_history->record(array(), $seo_history->snapshot('blog_category_id=' . (int)$blog_category_id));
 		// Set which layout to use with this category
 		if (isset($data['category_layout'])) {
 			foreach ($data['category_layout'] as $store_id => $layout_id) {
