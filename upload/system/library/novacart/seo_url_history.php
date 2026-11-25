@@ -13,7 +13,7 @@ class SeoUrlHistory {
 		$this->db = $db;
 	}
 
-	private function isAvailable() {
+	public function isAvailable() {
 		if ($this->available === null) {
 			$result = $this->db->query("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '" . $this->db->escape(DB_PREFIX . 'seo_url_history') . "' LIMIT 1");
 			$this->available = (bool)$result->num_rows;
@@ -91,8 +91,8 @@ class SeoUrlHistory {
 				continue;
 			}
 
-			$old = $this->db->query("SELECT `query` FROM `" . DB_PREFIX . "seo_url_history` WHERE " . $scope . $lang . " AND keyword_hash = '" . hash('sha256', $part) . "' AND BINARY keyword = '" . $keyword . "' LIMIT 1");
-			if (!$old->num_rows) {
+			$old = $this->db->query("SELECT DISTINCT `query` FROM `" . DB_PREFIX . "seo_url_history` WHERE " . $scope . $lang . " AND keyword = '" . $keyword . "' LIMIT 2");
+			if ($old->num_rows !== 1) {
 				return array();
 			}
 			$query = $this->db->escape($old->row['query']);
@@ -150,8 +150,14 @@ class SeoUrlHistory {
 	}
 
 	public function record(array $before, array $after) {
-		if (!$before || !$this->isAvailable()) {
+		if ((!$before && !$after) || !$this->isAvailable()) {
 			return;
+		}
+
+		foreach ($after as $row) {
+			if ((string)$row['keyword'] !== '') {
+				$this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url_history` WHERE store_id = '" . (int)$row['store_id'] . "' AND language_id = '" . (int)$row['language_id'] . "' AND keyword = '" . $this->db->escape($row['keyword']) . "'");
+			}
 		}
 
 		foreach (self::replacements($before, $after) as $row) {

@@ -6655,7 +6655,8 @@ CREATE TABLE `oc_seo_url_history` (
   `date_modified` datetime NOT NULL,
   PRIMARY KEY (`seo_url_history_id`),
   UNIQUE KEY `scope_keyword` (`store_id`,`language_id`,`keyword_hash`),
-  KEY `query_scope` (`query`(191),`store_id`,`language_id`)
+  KEY `query_scope` (`query`(191),`store_id`,`language_id`),
+  KEY `lookup_keyword` (`store_id`,`language_id`,`keyword`(191))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------------------------------------

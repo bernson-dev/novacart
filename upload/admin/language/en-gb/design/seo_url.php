@@ -76,3 +76,13 @@ $_['error_ajax']              = 'Could not save the SEO URL. Check the error log
 $_['entry_search']            = 'Quick search';
 $_['help_search']             = 'Search by any fragment of an SEO URL, query, or related product, category, manufacturer, page, or article name.';
 $_['text_group_records']       = 'records in group';
+
+$_['text_history'] = 'SEO URL history';
+$_['text_history_migration'] = 'History table is missing. Apply docs/migrations/seo-url-history.sql with your database prefix.';
+$_['text_history_help'] = 'History stores previous keywords, not complete URLs. Active keywords take precedence. A current keyword does not guarantee page availability.';
+$_['text_history_search'] = 'Old keyword or entity identifier';
+$_['column_history_old'] = 'Old keyword';
+$_['column_history_current'] = 'Current keyword';
+$_['column_history_date'] = 'Date changed';
+$_['text_history_shadowed'] = 'In use';
+$_['text_history_missing'] = 'No current keyword';
