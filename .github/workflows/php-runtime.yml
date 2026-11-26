@@ -17,6 +17,8 @@ on:
       - 'upload/admin/controller/design/seo_url.php'
       - 'upload/admin/model/design/seo_url.php'
       - 'upload/admin/model/design/seo_missing.php'
+      - 'upload/admin/model/design/seo_diagnostics.php'
+      - 'upload/admin/view/template/design/seo_diagnostics.twig'
       - 'upload/admin/view/template/design/seo_missing_list.twig'
       - 'upload/admin/controller/common/header.php'
       - 'upload/admin/view/template/common/header.twig'
@@ -45,6 +47,8 @@ on:
       - 'upload/admin/controller/design/seo_url.php'
       - 'upload/admin/model/design/seo_url.php'
       - 'upload/admin/model/design/seo_missing.php'
+      - 'upload/admin/model/design/seo_diagnostics.php'
+      - 'upload/admin/view/template/design/seo_diagnostics.twig'
       - 'upload/admin/view/template/design/seo_missing_list.twig'
       - 'upload/admin/controller/common/header.php'
       - 'upload/admin/view/template/common/header.twig'
@@ -70,6 +74,21 @@ jobs:
   runtime:
     name: PHP ${{ matrix.php }} runtime smoke
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root_test
+          MARIADB_DATABASE: seo_diagnostics
+          MARIADB_USER: seo_test
+          MARIADB_PASSWORD: seo_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
 
     strategy:
       fail-fast: false
@@ -87,6 +106,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
+          extensions: pdo_mysql
 
       - name: Core runtime smoke test
         shell: bash
@@ -279,3 +299,9 @@ jobs:
 
       - name: Sitemap PRO regression
         run: php tests/seo_sitemap_regression.php
+
+      - name: SEO diagnostics regression
+        run: php tests/seo_diagnostics_regression.php
+
+      - name: SEO diagnostics MariaDB integration
+        run: php tests/seo_diagnostics_mariadb.php
