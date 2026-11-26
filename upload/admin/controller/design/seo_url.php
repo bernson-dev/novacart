@@ -50,6 +50,45 @@ class ControllerDesignSeoUrl extends Controller {
 		$ids = array_map('intval', array_column($data['languages'], 'language_id'));
 		$language_id = (int)($this->request->get['language_id'] ?? 0);
 		$data['language_id'] = in_array($language_id, $ids, true) ? $language_id : ($ids[0] ?? 0);
+		$data['can_modify'] = $this->user->hasPermission('modify', 'design/seo_url');
+		$data['action'] = $this->url->link('design/seo_url/missingKeywords', $token . '&store_id=' . $data['store_id'] . '&type=' . $data['type'] . '&language_id=' . $data['language_id'], true);
+		$data['report'] = $this->session->data['seo_missing_report'] ?? array();
+		unset($this->session->data['seo_missing_report']);
+		$data['error_warning'] = '';
+		if ($this->request->server['REQUEST_METHOD'] === 'POST') {
+			$selected = $this->request->post['selected'] ?? array();
+			$keywords = $this->request->post['keywords'] ?? array();
+			if (!$data['can_modify']) {
+				$data['error_warning'] = $this->language->get('error_permission');
+			} elseif (!$data['language_id'] || !is_array($selected) || !is_array($keywords) || count($selected) > 50 || !$selected || $store !== $data['store_id'] || $language_id !== $data['language_id']) {
+				$data['error_warning'] = $this->language->get('error_missing_selection');
+			} else {
+				$report = array('created' => 0, 'skipped' => 0, 'errors' => 0);
+				foreach (array_unique(array_filter($selected, 'is_scalar')) as $id) {
+					if (!ctype_digit((string)$id) || (int)$id < 1) {
+						$report['skipped']++;
+						continue;
+					}
+					try {
+						$saved = $model->saveMissing($data['type'], $data['store_id'], $data['language_id'], (int)$id, $keywords[$id] ?? '', $this->model_design_seo_url);
+						$report[$saved ? 'created' : 'skipped']++;
+					} catch (Throwable $e) {
+						$report['errors']++;
+						$this->log->write('SEO missing keyword generation failed: ' . $e->getMessage());
+					}
+				}
+				$this->session->data['seo_missing_report'] = $report;
+				$this->response->redirect($data['action']);
+				return;
+			}
+		}
+		$data['summary_links'] = array();
+		foreach ($data['types'] as $type) {
+			foreach ($data['languages'] as $language) {
+				$id = (int)$language['language_id'];
+				$data['summary_links'][$type][$id] = $this->url->link('design/seo_url/missingKeywords', $token . '&store_id=' . $data['store_id'] . '&type=' . $type . '&language_id=' . $id, true);
+			}
+		}
 		$data['rows'] = array();
 		$data['pagination'] = '';
 		$data['results'] = '';
@@ -61,19 +100,8 @@ class ControllerDesignSeoUrl extends Controller {
 			$data['rows'] = $model->getMissing($data['type'], $data['store_id'], $data['language_id'], $start, $limit);
 			$used = array();
 			foreach ($data['rows'] as &$row) {
-				$row['keyword'] = $this->model_design_seo_url->getSeoUrlGeneratorValue($row, html_entity_decode($row['name'], ENT_QUOTES, 'UTF-8'));
-				$base = substr($row['keyword'], 0, 240);
-				$row['keyword'] = '';
-				if ($base !== '') {
-					for ($i = 0; $i < 100; $i++) {
-						$candidate = $base . ($i ? '-' . ($i + 1) : '');
-						if (!isset($used[$candidate]) && !$this->model_design_seo_url->isReservedLanguagePrefix($candidate, $data['store_id']) && !$this->model_design_seo_url->getSeoUrlsByKeyword($candidate, $data['store_id'], null)) {
-							$row['keyword'] = $candidate;
-							$used[$candidate] = true;
-							break;
-						}
-					}
-				}
+				$row['keyword'] = $model->suggest($row, $this->model_design_seo_url, $used);
+				if ($row['keyword'] !== '') { $used[$row['keyword']] = true; }
 			}
 			unset($row);
 			$pagination = new Pagination();

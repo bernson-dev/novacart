@@ -38,4 +38,58 @@ class ModelDesignSeoMissing extends Model {
 		list($sql, $name, $id) = $this->buildQuery($type, $store, $language);
 		return $this->db->query("SELECT DISTINCT e.`" . $id . "` AS entity_id, " . $name . " AS name, CONCAT('" . $id . "=', e.`" . $id . "`) AS `query`, " . (int)$store . " AS store_id, " . (int)$language . " AS language_id" . $sql . " ORDER BY entity_id LIMIT " . max(0, (int)$start) . "," . max(1, min(100, (int)$limit)))->rows;
 	}
+
+	public function getMissingById($type, $store, $language, $entity_id) {
+		list($sql, $name, $id) = $this->buildQuery($type, $store, $language);
+		return $this->db->query("SELECT e.`" . $id . "` AS entity_id, " . $name . " AS name, CONCAT('" . $id . "=', e.`" . $id . "`) AS `query`, " . (int)$store . " AS store_id, " . (int)$language . " AS language_id" . $sql . " AND e.`" . $id . "` = " . (int)$entity_id . " LIMIT 1")->row;
+	}
+
+	public function suggest($row, $seo, $used) {
+		$base = substr($seo->getSeoUrlGeneratorValue($row, html_entity_decode($row['name'], ENT_QUOTES, 'UTF-8')), 0, 240);
+		if ($base === '') {
+			return '';
+		}
+		for ($i = 0; $i < 100; $i++) {
+			$candidate = $base . ($i ? '-' . ($i + 1) : '');
+			if (!isset($used[$candidate]) && !$seo->isReservedLanguagePrefix($candidate, (int)$row['store_id']) && !$seo->getSeoUrlsByKeyword($candidate, (int)$row['store_id'], null)) {
+				$used[$candidate] = true;
+				return $candidate;
+			}
+		}
+		return '';
+	}
+
+	public function saveMissing($type, $store, $language, $entity_id, $keyword, $seo) {
+		if (!is_string($keyword) || !preg_match('/^[a-z0-9_-]{1,255}$/D', $keyword)) {
+			return false;
+		}
+		$row = $this->getMissingById($type, $store, $language, $entity_id);
+		if (!$row || $seo->isReservedLanguagePrefix($keyword, $store) || $seo->getSeoUrlsByKeyword($keyword, $store, null)) {
+			return false;
+		}
+		$existing = array();
+		foreach ($seo->getSeoUrlsByQuery($row['query']) as $item) {
+			if ((int)$item['store_id'] === (int)$store && (int)$item['language_id'] === (int)$language) {
+				$existing[] = $item;
+			}
+		}
+		// Ambiguous duplicate rows must be resolved in the normal SEO audit.
+		if (count($existing) > 1 || ($existing && trim($existing[0]['keyword']) !== '')) {
+			return false;
+		}
+		if ($existing) {
+			// Atomic predicate prevents overwriting a keyword entered since preview.
+			$this->db->query("UPDATE `" . DB_PREFIX . "seo_url` SET keyword = '" . $this->db->escape($keyword) . "' WHERE seo_url_id = " . (int)$existing[0]['seo_url_id'] . " AND TRIM(keyword) = ''");
+			$saved = $this->db->countAffected() === 1;
+		} else {
+			// One statement rechecks both the query scope and store-wide keyword.
+			$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` (store_id, language_id, `query`, keyword) SELECT " . (int)$store . ", " . (int)$language . ", '" . $this->db->escape($row['query']) . "', '" . $this->db->escape($keyword) . "' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `" . DB_PREFIX . "seo_url` WHERE store_id = " . (int)$store . " AND (keyword = '" . $this->db->escape($keyword) . "' OR (language_id = " . (int)$language . " AND `query` = '" . $this->db->escape($row['query']) . "')))");
+			$saved = $this->db->countAffected() === 1;
+		}
+		if ($saved) {
+			$this->cache->delete('seo_url');
+			$this->cache->delete('seopro');
+		}
+		return $saved;
+	}
 }
