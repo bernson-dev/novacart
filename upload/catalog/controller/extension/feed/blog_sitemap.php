@@ -1,5 +1,11 @@
 <?php
 class ControllerExtensionFeedBlogSitemap extends Controller {
+	private function excluded($route, array $params) {
+		if (!$this->config->get('seo_noindex_rules')) return false;
+		require_once DIR_SYSTEM . 'library/novacart/seo_noindex.php';
+		return \Novacart\SeoNoindex::matches($this->config, (int)$this->config->get('config_store_id'), $route, $params);
+	}
+
 	public function index() {
 		if ($this->config->get('feed_blog_sitemap_status')) {
 			$this->load->model('blog/article');
@@ -30,25 +36,28 @@ class ControllerExtensionFeedBlogSitemap extends Controller {
 				$blog_category_id = $current_path.'_'.$result;
 			}
 
-			$output .= '<url>';
-			$output .= '<loc>'.$this->url->link('blog/category', 'blog_category_id='.$blog_category_id).'</loc>';
+			if (!$this->excluded('blog/category', array('blog_category_id' => $blog_category_id))) {
+				$output .= '<url>';
+				$output .= '<loc>'.$this->url->link('blog/category', 'blog_category_id='.$blog_category_id).'</loc>';
 			
-			if (count($languages) > 1) {
-				foreach ($languages as $lang) {
-					$this->config->set('config_language_id', $lang['language_id']);
-					$output .= '<xhtml:link rel="alternate" hreflang="'.$lang['code'].'" href="'.$this->url->link('blog/category', 'blog_category_id='.$blog_category_id).'" />';
+				if (count($languages) > 1) {
+					foreach ($languages as $lang) {
+						$this->config->set('config_language_id', $lang['language_id']);
+						$output .= '<xhtml:link rel="alternate" hreflang="'.$lang['code'].'" href="'.$this->url->link('blog/category', 'blog_category_id='.$blog_category_id).'" />';
+					}
+			
+					$this->config->set('config_language_id', $lang_id);
 				}
 			
-				$this->config->set('config_language_id', $lang_id);
-			}
-			
-			$output .= '<changefreq>weekly</changefreq>';
-			$output .= '<priority>0.7</priority>';
-			$output .= '</url>';
+				$output .= '<changefreq>weekly</changefreq>';
+				$output .= '<priority>0.7</priority>';
+				$output .= '</url>';
 
+			}
 			$articles = $this->model_blog_article->getArticles(['filter_blog_category_id' => $result]);
 			
 			foreach ($articles as $article) {
+				if ($this->excluded('blog/article', array('article_id' => $article['article_id']))) continue;
 				$output .= '<url>';
 				$output .= '<loc>'.$this->url->link('blog/article', 'blog_category_id='.$blog_category_id.'&article_id='.$article['article_id']).'</loc>';
 				

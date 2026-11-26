@@ -54,6 +54,18 @@ try {
     $stale=SeoRedirectCsv::preview(SeoRedirectCsv::parse(implode(';',SeoRedirectCsv::columns())."\n/race;/one;0;0;301;1"),$validate);
     check('',$validate($stale[0]['data'],false),'Concurrent insert simulation');
     check(1,SeoRedirectCsv::apply($stale,$validate,$fail)['report']['skipped'],'Stale preview revalidated');
+    // More than the import limit, across three export batches.
+    $values=array();
+    for ($i=0;$i<1001;$i++) {
+        $path='/bulk-'.$i;
+        $values[]="(0,0,'".$path."','".hash('sha256',$path)."','',410,1,NOW())";
+    }
+    $db->pdo->exec("INSERT INTO csvtest_seo_redirect (store_id,language_id,source_path,source_hash,target_path,http_code,status,date_modified) VALUES ".implode(',',$values));
+    $export=iterator_to_array($model->exportRules(),false);
+    check(1005,count($export),'Export above import limit');
+    check(1005,count(array_unique(array_column($export,'seo_redirect_id'))),'Export no duplicates');
+    $csv=SeoRedirectCsv::encode($model->exportRules());
+    check(1006,substr_count($csv,"\n"),'All rows written to CSV');
 } finally {
     foreach(array('seo_redirect','seo_url','store','language') as $table)$db->pdo->exec('DROP TABLE csvtest_'.$table);
 }

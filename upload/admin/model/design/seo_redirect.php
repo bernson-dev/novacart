@@ -21,6 +21,19 @@ class ModelDesignSeoRedirect extends Model {
 		return $this->db->query("SELECT r.*, s.name AS store, l.name AS language FROM " . DB_PREFIX . "seo_redirect r LEFT JOIN " . DB_PREFIX . "store s ON s.store_id = r.store_id LEFT JOIN " . DB_PREFIX . "language l ON l.language_id = r.language_id" . $this->where($search) . " ORDER BY r.seo_redirect_id DESC LIMIT " . max(0, (int)$start) . "," . max(1, (int)$limit))->rows;
 	}
 
+	// Keyset pagination avoids loading the entire redirect table at once.
+	public function exportRules() {
+		$last = 0;
+		$max = (int)$this->db->query("SELECT COALESCE(MAX(seo_redirect_id),0) AS max_id FROM " . DB_PREFIX . "seo_redirect")->row['max_id'];
+		do {
+			$rows = $this->db->query("SELECT seo_redirect_id, source_path, target_path, store_id, language_id, http_code, status FROM " . DB_PREFIX . "seo_redirect WHERE seo_redirect_id > " . $last . " AND seo_redirect_id <= " . $max . " ORDER BY seo_redirect_id ASC LIMIT 500")->rows;
+			foreach ($rows as $row) {
+				$last = (int)$row['seo_redirect_id'];
+				yield $row;
+			}
+		} while (count($rows) === 500);
+	}
+
 	public function getTotalRules($search) {
 		return (int)$this->db->query("SELECT COUNT(*) AS total FROM " . DB_PREFIX . "seo_redirect r" . $this->where($search))->row['total'];
 	}

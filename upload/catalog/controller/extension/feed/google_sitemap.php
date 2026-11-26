@@ -1,5 +1,11 @@
 <?php
 class ControllerExtensionFeedGoogleSitemap extends Controller {
+	private function excluded($route, array $params) {
+		if (!$this->config->get('seo_noindex_rules')) return false;
+		require_once DIR_SYSTEM . 'library/novacart/seo_noindex.php';
+		return \Novacart\SeoNoindex::matches($this->config, (int)$this->config->get('config_store_id'), $route, $params);
+	}
+
 	public function index() {
 		if ((isset($this->request->get['sitemap_type']) || isset($this->request->get['sitemap_part'])) && (!$this->config->get('feed_google_sitemap_status') || !$this->config->get('feed_google_sitemap_pro'))) {
 			$this->response->addHeader('HTTP/1.1 404 Not Found');
@@ -36,6 +42,7 @@ class ControllerExtensionFeedGoogleSitemap extends Controller {
 			$products = $this->model_catalog_product->getProducts();
 
 			foreach ($products as $product) {
+				if ($this->excluded('product/product', array('product_id' => $product['product_id']))) continue;
 				$output .= '<url>' . PHP_EOL;
 				$output .= '  <loc>' . $this->url->link('product/product', 'product_id=' . $product['product_id']) . '</loc>' . PHP_EOL;
 				$output .= '  <changefreq>weekly</changefreq>';
@@ -63,15 +70,18 @@ class ControllerExtensionFeedGoogleSitemap extends Controller {
 			$manufacturers = $this->model_catalog_manufacturer->getManufacturers();
 
 			foreach ($manufacturers as $manufacturer) {
-				$output .= '<url>' . PHP_EOL;
-				$output .= '  <loc>' . $this->url->link('product/manufacturer/info', 'manufacturer_id=' . $manufacturer['manufacturer_id']) . '</loc>' . PHP_EOL;
-				$output .= '  <changefreq>weekly</changefreq>' . PHP_EOL;
-				$output .= '  <priority>0.7</priority>' . PHP_EOL;
-				$output .= '</url>' . PHP_EOL;
+				if (!$this->excluded('product/manufacturer/info', array('manufacturer_id' => $manufacturer['manufacturer_id']))) {
+					$output .= '<url>' . PHP_EOL;
+					$output .= '  <loc>' . $this->url->link('product/manufacturer/info', 'manufacturer_id=' . $manufacturer['manufacturer_id']) . '</loc>' . PHP_EOL;
+					$output .= '  <changefreq>weekly</changefreq>' . PHP_EOL;
+					$output .= '  <priority>0.7</priority>' . PHP_EOL;
+					$output .= '</url>' . PHP_EOL;
 
+				}
 				$products = $this->model_catalog_product->getProducts(array('filter_manufacturer_id' => $manufacturer['manufacturer_id']));
 
 				foreach ($products as $product) {
+					if ($this->excluded('product/product', array('product_id' => $product['product_id']))) continue;
 					$output .= '<url>' . PHP_EOL;
 					$output .= '  <loc>' . $this->url->link('product/product', 'manufacturer_id=' . $manufacturer['manufacturer_id'] . '&product_id=' . $product['product_id']) . '</loc>' . PHP_EOL;
 					$output .= '  <changefreq>weekly</changefreq>' . PHP_EOL;
@@ -85,6 +95,7 @@ class ControllerExtensionFeedGoogleSitemap extends Controller {
 			$informations = $this->model_catalog_information->getInformations();
 
 			foreach ($informations as $information) {
+				if ($this->excluded('information/information', array('information_id' => $information['information_id']))) continue;
 				$output .= '<url>' . PHP_EOL;
 				$output .= '  <loc>' . $this->url->link('information/information', 'information_id=' . $information['information_id']) . '</loc>' . PHP_EOL;
 				$output .= '  <changefreq>weekly</changefreq>' . PHP_EOL;
@@ -111,15 +122,18 @@ class ControllerExtensionFeedGoogleSitemap extends Controller {
 				$new_path = $current_path . '_' . $result['category_id'];
 			}
 
-			$output .= '<url>' . PHP_EOL;
-			$output .= '  <loc>' . $this->url->link('product/category', 'path=' . $new_path) . '</loc>' . PHP_EOL;
-			$output .= '  <changefreq>weekly</changefreq>' . PHP_EOL;
-			$output .= '  <priority>0.7</priority>' . PHP_EOL;
-			$output .= '</url>' . PHP_EOL;
+			if (!$this->excluded('product/category', array('path' => $new_path))) {
+				$output .= '<url>' . PHP_EOL;
+				$output .= '  <loc>' . $this->url->link('product/category', 'path=' . $new_path) . '</loc>' . PHP_EOL;
+				$output .= '  <changefreq>weekly</changefreq>' . PHP_EOL;
+				$output .= '  <priority>0.7</priority>' . PHP_EOL;
+				$output .= '</url>' . PHP_EOL;
 
+			}
 			$products = $this->model_catalog_product->getProducts(array('filter_category_id' => $result['category_id']));
 
 			foreach ($products as $product) {
+				if ($this->excluded('product/product', array('product_id' => $product['product_id']))) continue;
 				$output .= '<url>' . PHP_EOL;
 				$output .= '  <loc>' . $this->url->link('product/product', 'path=' . $new_path . '&product_id=' . $product['product_id']) . '</loc>' . PHP_EOL;
 				$output .= '  <changefreq>weekly</changefreq>' . PHP_EOL;
@@ -282,6 +296,7 @@ class ControllerExtensionFeedGoogleSitemap extends Controller {
 	}
 
 	private function renderMultilingualUrl($route, $params, $changefreq, $priority, $lastmod = '', $image = '') {
+		if ($this->excluded($route, $params)) return '';
 		$links = $this->seo_language->getAvailableAlternateLinks($route, $params, false);
 
 		if (!$links) {
