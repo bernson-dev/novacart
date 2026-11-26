@@ -266,3 +266,6 @@ jobs:
 
       - name: SEO manual redirect regression
         run: php tests/seo_redirect_regression.php
+
+      - name: SEO 404 journal regression
+        run: php tests/seo_not_found_regression.php

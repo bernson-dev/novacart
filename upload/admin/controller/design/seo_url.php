@@ -12,6 +12,77 @@ class ControllerDesignSeoUrl extends Controller {
 		$this->getList();
 	}
 
+	public function notFoundLog() {
+		$this->load->language('design/seo_url');
+		$this->load->model('design/seo_not_found');
+		$this->load->model('design/seo_redirect');
+		$model = $this->model_design_seo_not_found;
+		$data['available'] = $model->isAvailable();
+		$data['can_modify'] = $this->user->hasPermission('modify', 'design/seo_url');
+		$data['can_redirect'] = $data['can_modify'] && $this->model_design_seo_redirect->isAvailable();
+		$token = 'user_token=' . $this->session->data['user_token'];
+		$data['error_warning'] = '';
+		$data['success'] = $this->session->data['seo_not_found_success'] ?? '';
+		unset($this->session->data['seo_not_found_success']);
+		$data['filter_search'] = is_string($this->request->get['filter_search'] ?? null) ? trim(html_entity_decode($this->request->get['filter_search'], ENT_QUOTES, 'UTF-8')) : '';
+		$filter_url = $data['filter_search'] !== '' ? '&filter_search=' . rawurlencode($data['filter_search']) : '';
+		$data['action'] = $this->url->link('design/seo_url/notFoundLog', $token . $filter_url, true);
+		if ($this->request->server['REQUEST_METHOD'] === 'POST') {
+			if (!$data['can_modify']) {
+				$data['error_warning'] = $this->language->get('error_permission');
+			} elseif ($data['available']) {
+				$operation = $this->request->post['operation'] ?? '';
+				if ($operation === 'delete') {
+					foreach (is_array($this->request->post['selected'] ?? null) ? $this->request->post['selected'] : array() as $id) {
+						if (is_scalar($id) && ctype_digit((string)$id) && (int)$id > 0) {
+							$model->deleteEntry((int)$id);
+						}
+					}
+				} elseif ($operation === 'prune') {
+					$model->prune();
+				} else {
+					$data['error_warning'] = $this->language->get('error_request_method');
+				}
+				if ($data['error_warning'] === '') {
+					$this->session->data['seo_not_found_success'] = $this->language->get('text_success');
+					$this->response->redirect($data['action']);
+					return;
+				}
+			}
+		}
+		$limit = max(1, (int)$this->config->get('config_limit_admin'));
+		$total = $data['available'] ? $model->getTotalEntries($data['filter_search']) : 0;
+		$page = min(max(1, (int)($this->request->get['page'] ?? 1)), max(1, (int)ceil($total / $limit)));
+		$start = ($page - 1) * $limit;
+		$data['rows'] = $data['available'] ? $model->getEntries($data['filter_search'], $start, $limit) : array();
+		foreach ($data['rows'] as &$row) {
+			$row['create'] = $this->url->link('design/seo_url/redirects', $token . '&not_found_id=' . (int)$row['seo_not_found_id'], true);
+		}
+		unset($row);
+		$data['reset'] = $this->url->link('design/seo_url/notFoundLog', $token, true);
+		$data['back'] = $this->url->link('design/seo_url', $token, true);
+		$data['redirects'] = $this->url->link('design/seo_url/redirects', $token, true);
+		$data['user_token'] = $this->session->data['user_token'];
+		$data['heading_title'] = $this->language->get('text_not_found_log');
+		$this->document->setTitle($data['heading_title']);
+		$data['breadcrumbs'] = array(
+			array('text' => $this->language->get('text_home'), 'href' => $this->url->link('common/dashboard', $token, true)),
+			array('text' => $this->language->get('heading_title'), 'href' => $data['back']),
+			array('text' => $data['heading_title'], 'href' => $data['reset'])
+		);
+		$pagination = new Pagination();
+		$pagination->total = $total;
+		$pagination->page = $page;
+		$pagination->limit = $limit;
+		$pagination->url = $this->url->link('design/seo_url/notFoundLog', $token . $filter_url . '&page={page}', true);
+		$data['pagination'] = $pagination->render();
+		$data['results'] = sprintf($this->language->get('text_pagination'), $total ? $start + 1 : 0, min($total, $start + $limit), $total, ceil($total / $limit));
+		$data['header'] = $this->load->controller('common/header');
+		$data['column_left'] = $this->load->controller('common/column_left');
+		$data['footer'] = $this->load->controller('common/footer');
+		$this->response->setOutput($this->load->view('design/seo_not_found_list', $data));
+	}
+
 	public function redirects() {
 		$this->load->language('design/seo_url');
 		$this->load->model('design/seo_redirect');
@@ -39,6 +110,17 @@ class ControllerDesignSeoUrl extends Controller {
 		$data['filter_search'] = is_string($this->request->get['filter_search'] ?? null) ? trim(html_entity_decode($this->request->get['filter_search'], ENT_QUOTES, 'UTF-8')) : '';
 		$filter_url = $data['filter_search'] !== '' ? '&filter_search=' . rawurlencode($data['filter_search']) : '';
 		$data['form'] = array('seo_redirect_id' => 0, 'source_path' => '', 'target_path' => '', 'store_id' => 0, 'language_id' => 0, 'http_code' => 301, 'status' => 1);
+		if ($data['available'] && $data['can_modify'] && $this->request->server['REQUEST_METHOD'] === 'GET' && isset($this->request->get['not_found_id'])) {
+			$this->load->model('design/seo_not_found');
+			if ($this->model_design_seo_not_found->isAvailable()) {
+				$entry = $this->model_design_seo_not_found->getEntry((int)$this->request->get['not_found_id']);
+				if ($entry) {
+					$data['form']['source_path'] = $entry['path'];
+					$data['form']['store_id'] = $entry['store_id'];
+					$data['form']['language_id'] = $entry['language_id'];
+				}
+			}
+		}
 		if ($data['available'] && isset($this->request->get['edit_id'])) {
 			$row = $model->getRule((int)$this->request->get['edit_id']);
 			if ($row) {
@@ -102,6 +184,7 @@ class ControllerDesignSeoUrl extends Controller {
 		}
 		unset($row);
 		$data['user_token'] = $this->session->data['user_token'];
+		$data['not_found_log'] = $this->url->link('design/seo_url/notFoundLog', $token, true);
 		$data['heading_title'] = $this->language->get('text_redirects');
 		$this->document->setTitle($data['heading_title']);
 		$data['breadcrumbs'] = array(
@@ -512,6 +595,7 @@ class ControllerDesignSeoUrl extends Controller {
 			'href' => $this->url->link('design/seo_url', 'user_token=' . $this->session->data['user_token'] . $url, true)
 		);
 
+		$data['not_found_log'] = $this->url->link('design/seo_url/notFoundLog', 'user_token=' . $this->session->data['user_token'], true);
 		$data['redirects'] = $this->url->link('design/seo_url/redirects', 'user_token=' . $this->session->data['user_token'], true);
 		$data['history'] = $this->url->link('design/seo_url/history', 'user_token=' . $this->session->data['user_token'], true);
 		$data['add'] = $this->url->link('design/seo_url/add', 'user_token=' . $this->session->data['user_token'] . $url, true);

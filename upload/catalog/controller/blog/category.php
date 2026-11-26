@@ -414,6 +414,8 @@ class ControllerBlogCategory extends Controller {
 			$data['button_continue'] = $this->language->get('button_continue');
 			$data['continue'] = $this->url->link('common/home');
 
+			require_once DIR_SYSTEM . 'library/novacart/seo_not_found.php';
+			\Novacart\SeoNotFound::recordRequest($this->registry);
 			$this->response->addHeader($this->request->server['SERVER_PROTOCOL'] . ' 404 Not Found');
 
 			$data['column_left'] = $this->load->controller('common/column_left');

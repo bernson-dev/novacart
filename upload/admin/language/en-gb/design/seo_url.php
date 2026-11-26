@@ -99,3 +99,13 @@ $_['error_redirect_path'] = 'Invalid path. Only internal store paths are allowed
 $_['error_redirect_conflict'] = 'Source is an active SEO URL or matches the target.';
 $_['error_redirect_duplicate'] = 'This rule already exists.';
 $_['error_redirect_chain'] = 'This rule creates a redirect chain or loop.';
+
+$_['text_not_found_log'] = '404 log';
+$_['text_not_found_migration'] = 'Log table missing. Apply docs/migrations/seo-not-found.sql.';
+$_['text_not_found_help'] = 'The log aggregates missing SEO paths by store, language and path. Query parameters are not stored. Create a redirect from a log entry to fix the error.';
+$_['column_not_found_hits'] = 'Hits';
+$_['column_not_found_first'] = 'First seen';
+$_['column_not_found_last'] = 'Last seen';
+$_['button_not_found_redirect'] = 'Create redirect';
+$_['button_not_found_prune'] = 'Delete older than 90 days';
+$_['text_not_found_prune_confirm'] = 'Delete entries not seen for over 90 days?';

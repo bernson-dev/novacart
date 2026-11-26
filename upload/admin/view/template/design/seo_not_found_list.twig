@@ -1,0 +1,60 @@
+{{ header }}
+{{ column_left }}
+<div id="content">
+    <div class="page-header"><div class="container-fluid">
+        <div class="pull-right">
+            <a href="{{ redirects }}" class="btn btn-default"><i class="fa fa-exchange"></i> {{ text_redirects }}</a>
+            <a href="{{ back }}" class="btn btn-default" title="{{ button_cancel }}"><i class="fa fa-reply"></i></a>
+        </div>
+        <h1>{{ heading_title }}</h1>
+        <ul class="breadcrumb">{% for breadcrumb in breadcrumbs %}<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>{% endfor %}</ul>
+    </div></div>
+    <div class="container-fluid">
+        {% if error_warning %}<div class="alert alert-danger">{{ error_warning }}</div>{% endif %}
+        {% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+        {% if not available %}
+        <div class="alert alert-warning">{{ text_not_found_migration }}</div>
+        {% else %}
+        <div class="panel panel-default">
+            <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-exclamation-triangle"></i> {{ heading_title }}</h3></div>
+            <div class="panel-body">
+                <p>{{ text_not_found_help }}</p>
+                <form method="get" action="index.php" id="seo-not-found-filter" class="well">
+                    <input type="hidden" name="route" value="design/seo_url/notFoundLog"><input type="hidden" name="user_token" value="{{ user_token }}">
+                    <div class="input-group"><input name="filter_search" class="form-control" value="{{ filter_search|e('html_attr') }}" placeholder="{{ entry_search }}"><span class="input-group-btn"><button type="button" id="button-not-found-filter" class="btn btn-primary"><i class="fa fa-filter"></i></button><a href="{{ reset }}" class="btn btn-default"><i class="fa fa-times"></i></a></span></div>
+                </form>
+                <form method="post" action="{{ action }}" id="seo-not-found-form" data-confirm="{{ text_confirm|e('html_attr') }}" data-prune-confirm="{{ text_not_found_prune_confirm|e('html_attr') }}">
+                    <input type="hidden" name="operation" value="delete">
+                    {% if can_modify %}<div class="form-group"><button type="button" id="button-not-found-delete" class="btn btn-danger"><i class="fa fa-trash-o"></i> {{ button_delete }}</button> <button type="button" id="button-not-found-prune" class="btn btn-default"><i class="fa fa-clock-o"></i> {{ button_not_found_prune }}</button></div>{% endif %}
+                    <div class="table-responsive"><table class="table table-bordered table-hover">
+                        <thead><tr>{% if can_modify %}<td><input type="checkbox" id="not-found-select-all"></td>{% endif %}<td>{{ entry_redirect_source }}</td><td>{{ column_store }}</td><td>{{ column_language }}</td><td class="text-right">{{ column_not_found_hits }}</td><td>{{ column_not_found_first }}</td><td>{{ column_not_found_last }}</td>{% if can_redirect %}<td class="text-right">{{ column_action }}</td>{% endif %}</tr></thead>
+                        <tbody>{% for row in rows %}<tr>
+                            {% if can_modify %}<td><input type="checkbox" name="selected[]" value="{{ row.seo_not_found_id }}"></td>{% endif %}
+                            <td>{{ row.path|e }}</td><td>{% if row.store_id == 0 %}{{ text_default }}{% else %}{{ row.store|default(row.store_id)|e }}{% endif %}</td><td>{{ row.language|default(row.language_id)|e }}</td><td class="text-right">{{ row.hits }}</td><td>{{ row.date_first|e }}</td><td>{{ row.date_last|e }}</td>
+                            {% if can_redirect %}<td class="text-right"><a href="{{ row.create }}" class="btn btn-primary btn-sm" title="{{ button_not_found_redirect }}"><i class="fa fa-exchange"></i></a></td>{% endif %}
+                        </tr>{% else %}<tr><td colspan="{{ 6 + (can_modify ? 1 : 0) + (can_redirect ? 1 : 0) }}" class="text-center">{{ text_no_results }}</td></tr>{% endfor %}</tbody>
+                    </table></div>
+                </form>
+                <div class="row"><div class="col-sm-6">{{ pagination }}</div><div class="col-sm-6 text-right">{{ results }}</div></div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<script>
+$('#button-not-found-filter').on('click', function () {
+    document.getElementById('seo-not-found-filter').requestSubmit();
+});
+$('#not-found-select-all').on('change', function () {
+    $('#seo-not-found-form input[name="selected[]"]').prop('checked', this.checked);
+});
+$('#button-not-found-delete, #button-not-found-prune').on('click', function () {
+    var form = document.getElementById('seo-not-found-form');
+    var prune = this.id === 'button-not-found-prune';
+    if ((prune || $(form).find('input[name="selected[]"]:checked').length) && confirm($(form).attr(prune ? 'data-prune-confirm' : 'data-confirm'))) {
+        $(form).find('input[name="operation"]').val(prune ? 'prune' : 'delete');
+        HTMLFormElement.prototype.submit.call(form);
+    }
+});
+</script>
+{{ footer }}
