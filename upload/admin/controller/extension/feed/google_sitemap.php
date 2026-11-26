@@ -11,6 +11,8 @@ class ControllerExtensionFeedGoogleSitemap extends Controller {
 
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
 			$this->model_setting_setting->editSetting('feed_google_sitemap', $this->request->post);
+			require_once DIR_SYSTEM . 'library/novacart/sitemap.php';
+			\Novacart\Sitemap::clearCache();
 
 			$this->session->data['success'] = $this->language->get('text_success');
 
@@ -50,7 +52,12 @@ class ControllerExtensionFeedGoogleSitemap extends Controller {
 			$data['feed_google_sitemap_status'] = $this->config->get('feed_google_sitemap_status');
 		}
 
+		require_once DIR_SYSTEM . 'library/novacart/sitemap.php';
+		$data['feed_google_sitemap_pro'] = $this->request->post['feed_google_sitemap_pro'] ?? $this->config->get('feed_google_sitemap_pro');
+		$data['feed_google_sitemap_limit'] = \Novacart\Sitemap::pageSize($this->request->post['feed_google_sitemap_limit'] ?? $this->config->get('feed_google_sitemap_limit'));
+		$data['feed_google_sitemap_cache'] = \Novacart\Sitemap::cacheMinutes($this->request->post['feed_google_sitemap_cache'] ?? $this->config->get('feed_google_sitemap_cache'));
 		$data['data_feed'] = HTTP_CATALOG . 'index.php?route=extension/feed/google_sitemap';
+		$data['sitemap_pretty'] = HTTP_CATALOG . 'sitemap.xml';
 
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
@@ -64,6 +71,14 @@ class ControllerExtensionFeedGoogleSitemap extends Controller {
 			$this->error['warning'] = $this->language->get('error_permission');
 		}
 
+		foreach (array('feed_google_sitemap_limit' => array(1, 1000), 'feed_google_sitemap_cache' => array(0, 1440)) as $key => $range) {
+			if (isset($this->request->post[$key])) {
+				$value = $this->request->post[$key];
+				if (!is_scalar($value) || !ctype_digit((string)$value) || (int)$value < $range[0] || (int)$value > $range[1]) {
+					$this->error['warning'] = $this->language->get('error_sitemap_settings');
+				}
+			}
+		}
 		return !$this->error;
 	}
 }

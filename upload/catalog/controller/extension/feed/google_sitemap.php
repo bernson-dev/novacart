@@ -1,7 +1,23 @@
 <?php
 class ControllerExtensionFeedGoogleSitemap extends Controller {
 	public function index() {
+		if ((isset($this->request->get['sitemap_type']) || isset($this->request->get['sitemap_part'])) && (!$this->config->get('feed_google_sitemap_status') || !$this->config->get('feed_google_sitemap_pro'))) {
+			$this->response->addHeader('HTTP/1.1 404 Not Found');
+			return;
+		}
 		if ($this->config->get('feed_google_sitemap_status')) {
+			if ($this->config->get('feed_google_sitemap_pro')) {
+				require_once DIR_SYSTEM . 'library/novacart/sitemap.php';
+				$service = new \Novacart\Sitemap($this->registry);
+				$result = $service->serve($this->request->get);
+				if ($result === null) {
+					$this->response->addHeader('HTTP/1.1 404 Not Found');
+					return;
+				}
+				$this->response->addHeader('Content-Type: application/xml; charset=UTF-8');
+				$this->response->setOutput($result);
+				return;
+			}
 			if (
 				$this->registry->has('seo_language')
 				&& $this->seo_language instanceof SeoLanguage

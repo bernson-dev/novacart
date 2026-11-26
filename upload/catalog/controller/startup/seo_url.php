@@ -38,6 +38,28 @@ class ControllerStartupSeoUrl extends Controller {
 			return;
 		}
 
+		// Sitemap files are service endpoints, not entity keywords.
+		if ($this->config->get('feed_google_sitemap_status') && $this->config->get('feed_google_sitemap_pro')) {
+			if (isset($this->request->get['_route_']) && is_string($this->request->get['_route_'])) {
+				$path = $this->request->get['_route_'];
+				if ($path === 'sitemap.xml' || strpos($path, 'sitemap-') === 0) {
+					require_once DIR_SYSTEM . 'library/novacart/sitemap.php';
+					$params = \Novacart\Sitemap::routeParams($path);
+					if ($path === 'sitemap.xml' || $params !== null) {
+						unset($this->request->get['_route_'], $this->request->get['sitemap_type'], $this->request->get['sitemap_part']);
+						$this->request->get['route'] = 'extension/feed/google_sitemap';
+						if ($params !== null) {
+							$this->request->get = array_merge($this->request->get, $params);
+						}
+						return;
+					}
+				}
+			}
+			if (empty($this->request->get['_route_']) && isset($this->request->get['route']) && $this->request->get['route'] === 'extension/feed/google_sitemap') {
+				return;
+			}
+		}
+
 		// Decode URL
 		if (isset($this->request->get['_route_'])) {
 			$parts = explode('/', $this->request->get['_route_']);
