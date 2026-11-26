@@ -6,6 +6,8 @@
             <div class="pull-right">
                 <button type="button" data-toggle="tooltip" title="{{ button_filter }}" onclick="$('#filter-seo').toggleClass('hidden-sm hidden-xs');" class="btn btn-default hidden-md hidden-lg">
                     <i class="fa fa-filter"></i></button>
+                <a href="{{ not_found_log }}" class="btn btn-default" data-toggle="tooltip" title="{{ text_not_found_log }}"><i class="fa fa-exclamation-triangle"></i> <span class="hidden-xs">{{ text_not_found_log }}</span></a>
+                <a href="{{ redirects }}" class="btn btn-default" data-toggle="tooltip" title="{{ text_redirects }}"><i class="fa fa-exchange"></i> <span class="hidden-xs">{{ text_redirects }}</span></a>
                 <a href="{{ history }}" class="btn btn-default" data-toggle="tooltip" title="{{ text_history }}"><i class="fa fa-history"></i> <span class="hidden-xs">{{ text_history }}</span></a>
                 <a href="{{ add }}" data-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary">
                     <i class="fa fa-plus"></i></a>

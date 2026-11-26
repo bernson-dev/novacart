@@ -1,0 +1,87 @@
+{{ header }}
+{{ column_left }}
+<div id="content">
+    <div class="page-header"><div class="container-fluid">
+        <div class="pull-right"><a href="{{ not_found_log }}" class="btn btn-default"><i class="fa fa-exclamation-triangle"></i> {{ text_not_found_log }}</a> <a href="{{ back }}" class="btn btn-default" title="{{ button_cancel }}"><i class="fa fa-reply"></i></a></div>
+        <h1>{{ heading_title }}</h1>
+        <ul class="breadcrumb">{% for breadcrumb in breadcrumbs %}<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>{% endfor %}</ul>
+    </div></div>
+    <div class="container-fluid">
+        {% if error_warning %}<div class="alert alert-danger">{{ error_warning }}</div>{% endif %}
+        {% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+        {% if not available %}
+        <div class="alert alert-warning">{{ text_redirect_migration }}</div>
+        {% else %}
+        {% if can_modify %}
+        <div class="panel panel-default">
+            <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-exchange"></i> {% if form.seo_redirect_id %}{{ text_edit }}{% else %}{{ text_add }}{% endif %}</h3></div>
+            <div class="panel-body">
+                <p>{{ text_redirect_help }}</p>
+                <form method="post" action="{{ action }}" id="seo-redirect-save">
+                    <input type="hidden" name="operation" value="save">
+                    <input type="hidden" name="seo_redirect_id" value="{{ form.seo_redirect_id }}">
+                    <div class="row">
+                        <div class="col-sm-6 form-group"><label for="redirect-source">{{ entry_redirect_source }}</label><input id="redirect-source" name="source_path" class="form-control" maxlength="2048" value="{{ form.source_path|e('html_attr') }}" placeholder="/old-page" required></div>
+                        <div class="col-sm-6 form-group"><label for="redirect-target">{{ entry_redirect_target }}</label><input id="redirect-target" name="target_path" class="form-control" maxlength="2048" value="{{ form.target_path|e('html_attr') }}" placeholder="/new-page"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-3 form-group"><label for="redirect-store">{{ column_store }}</label><select id="redirect-store" name="store_id" class="form-control"><option value="0">{{ text_default }}</option>{% for store in stores %}<option value="{{ store.store_id }}"{% if form.store_id == store.store_id %} selected{% endif %}>{{ store.name|e }}</option>{% endfor %}</select></div>
+                        <div class="col-sm-3 form-group"><label for="redirect-language">{{ column_language }}</label><select id="redirect-language" name="language_id" class="form-control"><option value="0">{{ text_all }}</option>{% for language in languages %}<option value="{{ language.language_id }}"{% if form.language_id == language.language_id %} selected{% endif %}>{{ language.name|e }}</option>{% endfor %}</select></div>
+                        <div class="col-sm-3 form-group"><label for="redirect-code">HTTP</label><select id="redirect-code" name="http_code" class="form-control">{% for code in [301,302,410] %}<option value="{{ code }}"{% if form.http_code == code %} selected{% endif %}>{{ code }}</option>{% endfor %}</select></div>
+                        <div class="col-sm-3 form-group"><label for="redirect-status">{{ entry_redirect_status }}</label><select id="redirect-status" name="status" class="form-control"><option value="1"{% if form.status == 1 %} selected{% endif %}>{{ text_enabled }}</option><option value="0"{% if form.status == 0 %} selected{% endif %}>{{ text_disabled }}</option></select></div>
+                    </div>
+                    <button type="button" id="button-redirect-save" class="btn btn-primary"><i class="fa fa-save"></i> {{ button_save }}</button>
+                    <a href="{{ action }}" class="btn btn-default">{{ button_cancel }}</a>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+        <div class="panel panel-default">
+            <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-list"></i> {{ text_list }}</h3></div>
+            <div class="panel-body">
+                <form method="get" action="index.php" id="seo-redirect-filter" class="well">
+                    <input type="hidden" name="route" value="design/seo_url/redirects"><input type="hidden" name="user_token" value="{{ user_token }}">
+                    <div class="input-group"><input name="filter_search" class="form-control" value="{{ filter_search|e('html_attr') }}" placeholder="{{ entry_search }}"><span class="input-group-btn"><button type="button" id="button-redirect-filter" class="btn btn-primary"><i class="fa fa-filter"></i></button><a href="{{ reset }}" class="btn btn-default"><i class="fa fa-times"></i></a></span></div>
+                </form>
+                <form method="post" action="{{ action }}" id="seo-redirect-delete" data-confirm="{{ text_confirm|e('html_attr') }}">
+                    <input type="hidden" name="operation" value="delete">
+                    {% if can_modify %}<div class="form-group"><button type="button" id="button-redirect-delete" class="btn btn-danger"><i class="fa fa-trash-o"></i> {{ button_delete }}</button></div>{% endif %}
+                    <div class="table-responsive"><table class="table table-bordered table-hover">
+                        <thead><tr>{% if can_modify %}<td><input type="checkbox" id="redirect-select-all"></td>{% endif %}<td>{{ entry_redirect_source }}</td><td>{{ entry_redirect_target }}</td><td>HTTP</td><td>{{ column_store }}</td><td>{{ column_language }}</td><td>{{ entry_redirect_status }}</td>{% if can_modify %}<td class="text-right">{{ column_action }}</td>{% endif %}</tr></thead>
+                        <tbody>{% for row in rows %}<tr>
+                            {% if can_modify %}<td><input type="checkbox" name="selected[]" value="{{ row.seo_redirect_id }}"></td>{% endif %}
+                            <td>{{ row.source_path|e }}</td><td>{{ row.target_path|e }}</td><td>{{ row.http_code }}</td><td>{% if row.store_id == 0 %}{{ text_default }}{% else %}{{ row.store|default(row.store_id)|e }}{% endif %}</td><td>{% if row.language_id == 0 %}{{ text_all }}{% else %}{{ row.language|default(row.language_id)|e }}{% endif %}</td><td>{% if row.status %}<span class="label label-success">{{ text_enabled }}</span>{% else %}<span class="label label-default">{{ text_disabled }}</span>{% endif %}</td>
+                            {% if can_modify %}<td class="text-right"><a href="{{ row.edit }}" class="btn btn-primary btn-sm" title="{{ button_edit }}"><i class="fa fa-pencil"></i></a></td>{% endif %}
+                        </tr>{% else %}<tr><td colspan="{% if can_modify %}8{% else %}6{% endif %}" class="text-center">{{ text_no_results }}</td></tr>{% endfor %}</tbody>
+                    </table></div>
+                </form>
+                <div class="row"><div class="col-sm-6">{{ pagination }}</div><div class="col-sm-6 text-right">{{ results }}</div></div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<script>
+function updateRedirectTarget() {
+    var gone = $('#redirect-code').val() === '410';
+    $('#redirect-target').prop('disabled', gone).prop('required', !gone);
+}
+$('#redirect-code').on('change', updateRedirectTarget);
+updateRedirectTarget();
+$('#button-redirect-save').on('click', function () {
+    document.getElementById('seo-redirect-save').requestSubmit();
+});
+$('#button-redirect-filter').on('click', function () {
+    document.getElementById('seo-redirect-filter').requestSubmit();
+});
+$('#redirect-select-all').on('change', function () {
+    $('#seo-redirect-delete input[name="selected[]"]').prop('checked', this.checked);
+});
+$('#button-redirect-delete').on('click', function () {
+    var form = document.getElementById('seo-redirect-delete');
+    if ($(form).find('input[name="selected[]"]:checked').length && confirm($(form).attr('data-confirm'))) {
+        HTMLFormElement.prototype.submit.call(form);
+    }
+});
+</script>
+{{ footer }}

@@ -254,4 +254,15 @@ assertSameValue(
 	'Historical redirect must recover original campaign values without trusting entity identifiers'
 );
 
+// The service entry point must bypass SEO decoding and redirects.
+define('NOVACART_CRON_ENTRY', true);
+$config->set('config_seo_language', 0);
+$request->get = array('route' => 'cron/run', '_route_' => 'cron.php');
+$request->server['REQUEST_URI'] = '/cron.php';
+$response->redirect_url = '';
+$response->redirect_status = 0;
+$controller->index();
+assertSameValue('cron/run', $request->get['route'], 'Cron entry route must remain intact');
+assertSameValue(0, $response->redirect_status, 'Cron entry must not redirect');
+
 echo "SEO direct-route canonical regression checks passed\n";

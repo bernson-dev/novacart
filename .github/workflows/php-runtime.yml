@@ -263,3 +263,9 @@ jobs:
 
       - name: SEO URL history regression
         run: php tests/seo_url_history_regression.php
+
+      - name: SEO manual redirect regression
+        run: php tests/seo_redirect_regression.php
+
+      - name: SEO 404 journal regression
+        run: php tests/seo_not_found_regression.php

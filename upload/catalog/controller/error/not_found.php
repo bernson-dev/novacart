@@ -42,7 +42,12 @@ class ControllerErrorNotFound extends Controller {
 		$data['footer'] = $this->load->controller('common/footer');
 		$data['header'] = $this->load->controller('common/header');
 
-		$this->response->addHeader($this->request->server['SERVER_PROTOCOL'] . ' 404 Not Found');
+		$status = $this->registry->has('seo_redirect_gone') && $this->registry->get('seo_redirect_gone') ? '410 Gone' : '404 Not Found';
+		if ($status === '404 Not Found') {
+			require_once DIR_SYSTEM . 'library/novacart/seo_not_found.php';
+			\Novacart\SeoNotFound::recordRequest($this->registry);
+		}
+		$this->response->addHeader($this->request->server['SERVER_PROTOCOL'] . ' ' . $status);
 
 		$this->response->setOutput($this->load->view('error/not_found', $data));
 	}

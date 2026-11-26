@@ -32,6 +32,12 @@ class ControllerStartupSeoUrl extends Controller {
 			}
 		}
 
+		// The authenticated cron entry point is a service endpoint, not a public SEO URL.
+		// Keep rewrite layers available for job handlers, but never canonicalize the request.
+		if (defined('NOVACART_CRON_ENTRY') && NOVACART_CRON_ENTRY) {
+			return;
+		}
+
 		// Decode URL
 		if (isset($this->request->get['_route_'])) {
 			$parts = explode('/', $this->request->get['_route_']);
@@ -146,6 +152,17 @@ class ControllerStartupSeoUrl extends Controller {
 			}
 
 			if ($missing_keyword) {
+				$manual = $this->getManualRedirect();
+				if ($manual) {
+					if ($manual['code'] === 410) {
+						$this->request->get = $original_get;
+						$this->request->get['route'] = 'error/not_found';
+						$this->registry->set('seo_redirect_gone', true);
+					} else {
+						$this->response->redirect($manual['target'], $manual['code']);
+					}
+					return;
+				}
 				$canonical = $this->getHistoricalCanonicalUrl($original_parts, $original_get);
 				if ($canonical !== '') {
 					$this->response->redirect($canonical, 301);
@@ -217,6 +234,27 @@ class ControllerStartupSeoUrl extends Controller {
 		}
 
 		return (int)$this->config->get('config_language_id');
+	}
+
+	private function getManualRedirect() {
+		$method = strtoupper((string)($this->request->server['REQUEST_METHOD'] ?? 'GET'));
+		if (!$this->config->get('config_seo_url') || !in_array($method, array('GET', 'HEAD'), true) || !empty($this->request->post)
+			|| strtolower((string)($this->request->server['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest') {
+			return array();
+		}
+		$uri = html_entity_decode((string)($this->request->server['REQUEST_URI'] ?? ''), ENT_QUOTES, 'UTF-8');
+		$path = parse_url($uri, PHP_URL_PATH);
+		$base = parse_url((string)$this->config->get('config_url'), PHP_URL_PATH) ?: '/';
+		require_once DIR_SYSTEM . 'library/novacart/seo_redirect.php';
+		$service = new \Novacart\SeoRedirect($this->db);
+		$rule = $service->resolve($path, (int)$this->config->get('config_store_id'), (int)$this->config->get('config_language_id'), $base);
+		if ($rule && $rule['code'] !== 410) {
+			$campaign = $this->getCampaignParams();
+			if ($campaign) {
+				$rule['target'] .= '?' . http_build_query($campaign, '', '&', PHP_QUERY_RFC3986);
+			}
+		}
+		return $rule;
 	}
 
 	/**
