@@ -7,7 +7,6 @@
   </div></div>
   <div class="container-fluid">
     <div class="alert alert-info">{{ text_diag_readonly }}</div>
-    {% if fix_report %}<div class="alert alert-info">{{ text_diag_updated }}: {{ fix_report.updated }} · {{ text_diag_skipped }}: {{ fix_report.skipped }} · {{ text_diag_errors }}: {{ fix_report.errors }}</div>{% endif %}
     <div class="panel panel-default">
       <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-link"></i> {{ text_diag_urls }}</h3></div>
       <div class="panel-body">
@@ -35,10 +34,20 @@
         </table></div>
       </div>
     </div>
+    {% if not detail_kind and fix_report %}
+      {% if fix_report %}<div class="alert {% if fix_report.errors or fix_report.skipped %}alert-warning{% elseif fix_report.updated %}alert-success{% else %}alert-info{% endif %} alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="{{ button_close|e('html_attr') }}">&times;</button>
+        {{ text_diag_updated }}: <strong>{{ fix_report.updated }}</strong> · {{ text_diag_skipped }}: <strong>{{ fix_report.skipped }}</strong> · {{ text_diag_errors }}: <strong>{{ fix_report.errors }}</strong>
+      </div>{% endif %}
+    {% endif %}
     {% if detail_kind %}
     <div class="panel panel-default" id="diag-details">
       <div class="panel-heading"><h3 class="panel-title">{{ detail_title }}</h3></div>
       <div class="panel-body">
+      {% if fix_report %}<div class="alert {% if fix_report.errors or fix_report.skipped %}alert-warning{% elseif fix_report.updated %}alert-success{% else %}alert-info{% endif %} alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="{{ button_close|e('html_attr') }}">&times;</button>
+        {{ text_diag_updated }}: <strong>{{ fix_report.updated }}</strong> · {{ text_diag_skipped }}: <strong>{{ fix_report.skipped }}</strong> · {{ text_diag_errors }}: <strong>{{ fix_report.errors }}</strong>
+      </div>{% endif %}
       {% if can_fix %}
       <form id="diag-fix" action="{{ fix_action|e('html_attr') }}" method="post">
       <p class="help-block">{% if detail_kind == 'meta' %}{{ text_diag_shared_meta }}{% else %}{{ text_diag_orphan_help }}{% endif %}</p>
