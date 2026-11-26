@@ -12,6 +12,161 @@ class ControllerDesignSeoUrl extends Controller {
 		$this->getList();
 	}
 
+	public function missingBatch() {
+		$this->load->language('design/seo_url');
+		$this->load->model('design/seo_url');
+		$this->load->model('design/seo_missing');
+		$this->load->model('setting/store');
+		$this->load->model('localisation/language');
+		$json = array();
+		$store = $this->request->post['store_id'] ?? '';
+		$language = $this->request->post['language_id'] ?? '';
+		$type = $this->request->post['type'] ?? '';
+		$after = $this->request->post['cursor'] ?? '';
+		$stores = array_merge(array(0), array_map('intval', array_column($this->model_setting_store->getStores(), 'store_id')));
+		$eligible = array();
+		if (is_scalar($store) && ctype_digit((string)$store) && in_array((int)$store, $stores, true)) {
+			$shared = $this->model_design_seo_url->usesLanguageScopedKeywords((int)$store);
+			$default = $this->model_design_seo_url->getStoreDefaultLanguageId((int)$store);
+			foreach ($this->model_localisation_language->getLanguages() as $item) {
+				if (!empty($item['status']) && (!$shared || (int)$item['language_id'] === $default)) {
+					$eligible[] = (int)$item['language_id'];
+				}
+			}
+		}
+		if (!$this->user->hasPermission('modify', 'design/seo_url')) {
+			$json['error'] = $this->language->get('error_permission');
+		} elseif ($this->request->server['REQUEST_METHOD'] !== 'POST' || !is_scalar($language) || !ctype_digit((string)$language) || !in_array((int)$language, $eligible, true) || !is_string($type) || !in_array($type, $this->model_design_seo_missing->getTypes(), true) || !is_scalar($after) || !ctype_digit((string)$after)) {
+			$json['error'] = $this->language->get('error_missing_selection');
+		} else {
+			try {
+				$json = $this->model_design_seo_missing->generateBatch($type, (int)$store, (int)$language, (int)$after, $this->model_design_seo_url);
+			} catch (Throwable $e) {
+				$this->log->write('SEO missing batch failed: ' . $e->getMessage());
+				$json['error'] = $this->language->get('error_missing_batch');
+			}
+		}
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
+	public function missingKeywords() {
+		$this->load->language('design/seo_url');
+		$this->load->model('design/seo_url');
+		$this->load->model('design/seo_missing');
+		$this->load->model('setting/store');
+		$this->load->model('localisation/language');
+		$token = 'user_token=' . $this->session->data['user_token'];
+		$data['back'] = $this->url->link('design/seo_url', $token, true);
+		$data['user_token'] = $this->session->data['user_token'];
+		$data['stores'] = array_merge(array(array('store_id' => 0, 'name' => $this->language->get('text_default'))), $this->model_setting_store->getStores());
+		$store_ids = array_map('intval', array_column($data['stores'], 'store_id'));
+		$store = (int)($this->request->get['store_id'] ?? 0);
+		$data['store_id'] = in_array($store, $store_ids, true) ? $store : 0;
+		$data['shared'] = $this->model_design_seo_url->usesLanguageScopedKeywords($data['store_id']);
+		$default = $this->model_design_seo_url->getStoreDefaultLanguageId($data['store_id']);
+		$data['languages'] = array();
+		foreach ($this->model_localisation_language->getLanguages() as $language) {
+			if (!empty($language['status']) && (!$data['shared'] || (int)$language['language_id'] === $default)) {
+				$data['languages'][] = $language;
+			}
+		}
+		$model = $this->model_design_seo_missing;
+		$data['types'] = $model->getTypes();
+		$data['summary'] = array();
+		$data['total_missing'] = 0;
+		foreach ($data['types'] as $type) {
+			$data['summary'][$type] = array();
+			foreach ($data['languages'] as $language) {
+				$id = (int)$language['language_id'];
+				$count = $model->countMissing($type, $data['store_id'], $id);
+				$data['summary'][$type][$id] = $count;
+				$data['total_missing'] += $count;
+			}
+		}
+		$data['type'] = is_string($this->request->get['type'] ?? null) && in_array($this->request->get['type'], $data['types'], true) ? $this->request->get['type'] : 'product';
+		$ids = array_map('intval', array_column($data['languages'], 'language_id'));
+		$language_id = (int)($this->request->get['language_id'] ?? 0);
+		$data['language_id'] = in_array($language_id, $ids, true) ? $language_id : ($ids[0] ?? 0);
+		$data['can_modify'] = $this->user->hasPermission('modify', 'design/seo_url');
+		$data['action'] = $this->url->link('design/seo_url/missingKeywords', $token . '&store_id=' . $data['store_id'] . '&type=' . $data['type'] . '&language_id=' . $data['language_id'], true);
+		$data['report'] = $this->session->data['seo_missing_report'] ?? array();
+		unset($this->session->data['seo_missing_report']);
+		$data['error_warning'] = '';
+		if ($this->request->server['REQUEST_METHOD'] === 'POST') {
+			$selected = $this->request->post['selected'] ?? array();
+			$keywords = $this->request->post['keywords'] ?? array();
+			if (!$data['can_modify']) {
+				$data['error_warning'] = $this->language->get('error_permission');
+			} elseif (!$data['language_id'] || !is_array($selected) || !is_array($keywords) || count($selected) > 50 || !$selected || $store !== $data['store_id'] || $language_id !== $data['language_id'] || ($this->request->get['type'] ?? '') !== $data['type']) {
+				$data['error_warning'] = $this->language->get('error_missing_selection');
+			} else {
+				$report = array('created' => 0, 'skipped' => 0, 'errors' => 0);
+				foreach (array_unique(array_filter($selected, 'is_scalar')) as $id) {
+					if (!ctype_digit((string)$id) || (int)$id < 1) {
+						$report['skipped']++;
+						continue;
+					}
+					try {
+						$saved = $model->saveMissing($data['type'], $data['store_id'], $data['language_id'], (int)$id, $keywords[$id] ?? '', $this->model_design_seo_url);
+						$report[$saved ? 'created' : 'skipped']++;
+					} catch (Throwable $e) {
+						$report['errors']++;
+						$this->log->write('SEO missing keyword generation failed: ' . $e->getMessage());
+					}
+				}
+				$this->session->data['seo_missing_report'] = $report;
+				$this->response->redirect($data['action']);
+				return;
+			}
+		}
+		$data['batch_url'] = html_entity_decode($this->url->link('design/seo_url/missingBatch', $token, true), ENT_QUOTES, 'UTF-8');
+		$data['summary_links'] = array();
+		foreach ($data['types'] as $type) {
+			foreach ($data['languages'] as $language) {
+				$id = (int)$language['language_id'];
+				$data['summary_links'][$type][$id] = $this->url->link('design/seo_url/missingKeywords', $token . '&store_id=' . $data['store_id'] . '&type=' . $type . '&language_id=' . $id, true);
+			}
+		}
+		$data['rows'] = array();
+		$data['pagination'] = '';
+		$data['results'] = '';
+		if ($data['language_id']) {
+			$total = $data['summary'][$data['type']][$data['language_id']];
+			$limit = 50;
+			$page = min(max(1, (int)($this->request->get['page'] ?? 1)), max(1, (int)ceil($total / $limit)));
+			$start = ($page - 1) * $limit;
+			$data['rows'] = $model->getMissing($data['type'], $data['store_id'], $data['language_id'], $start, $limit);
+			$used = array();
+			foreach ($data['rows'] as &$row) {
+				$row['keyword'] = $model->suggest($row, $this->model_design_seo_url, $used);
+				if ($row['keyword'] !== '') { $used[$row['keyword']] = true; }
+			}
+			unset($row);
+			$pagination = new Pagination();
+			$pagination->total = $total;
+			$pagination->page = $page;
+			$pagination->limit = $limit;
+			$pagination->url = $this->url->link('design/seo_url/missingKeywords', $token . '&store_id=' . $data['store_id'] . '&type=' . $data['type'] . '&language_id=' . $data['language_id'] . '&page={page}', true);
+			$data['pagination'] = $pagination->render();
+			$data['results'] = sprintf($this->language->get('text_pagination'), $total ? $start + 1 : 0, min($total, $start + $limit), $total, ceil($total / $limit));
+		}
+		$data['heading_title'] = $this->language->get('text_missing_keywords');
+		$this->document->setTitle($data['heading_title']);
+		$data['breadcrumbs'] = array(
+			array('text' => $this->language->get('text_home'), 'href' => $this->url->link('common/dashboard', $token, true)),
+			array('text' => $this->language->get('heading_title'), 'href' => $data['back']),
+			array('text' => $data['heading_title'], 'href' => $this->url->link('design/seo_url/missingKeywords', $token, true))
+		);
+		foreach ($data['types'] as $type) {
+			$data['type_labels'][$type] = $this->language->get('text_missing_' . $type);
+		}
+		$data['header'] = $this->load->controller('common/header');
+		$data['column_left'] = $this->load->controller('common/column_left');
+		$data['footer'] = $this->load->controller('common/footer');
+		$this->response->setOutput($this->load->view('design/seo_missing_list', $data));
+	}
+
 	public function notFoundLog() {
 		$this->load->language('design/seo_url');
 		$this->load->model('design/seo_not_found');
@@ -613,6 +768,7 @@ class ControllerDesignSeoUrl extends Controller {
 			'href' => $this->url->link('design/seo_url', 'user_token=' . $this->session->data['user_token'] . $url, true)
 		);
 
+		$data['missing_keywords'] = $this->url->link('design/seo_url/missingKeywords', 'user_token=' . $this->session->data['user_token'], true);
 		$data['not_found_log'] = $this->url->link('design/seo_url/notFoundLog', 'user_token=' . $this->session->data['user_token'], true);
 		$data['redirects'] = $this->url->link('design/seo_url/redirects', 'user_token=' . $this->session->data['user_token'], true);
 		$data['history'] = $this->url->link('design/seo_url/history', 'user_token=' . $this->session->data['user_token'], true);
