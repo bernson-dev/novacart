@@ -4,6 +4,9 @@ namespace Novacart;
 class SeoRedirectCsv {
     const MAX_BYTES = 2097152;
     const MAX_ROWS = 1000;
+    private static function escapeCharacter() {
+        return PHP_VERSION_ID >= 70400 ? '' : chr(92);
+    }
     public static function columns() {
         return array('source_path','target_path','store_id','language_id','http_code','status');
     }
@@ -13,15 +16,15 @@ class SeoRedirectCsv {
         $stream=fopen('php://temp','w+');
         try {
             fwrite($stream,$content); rewind($stream);
-            $header=fgetcsv($stream,0,',','"','');
+            $header=fgetcsv($stream,0,',','"',self::escapeCharacter());
             if ($header!==self::columns()) {
                 rewind($stream);
-                $header=fgetcsv($stream,0,';','"','');
+                $header=fgetcsv($stream,0,';','"',self::escapeCharacter());
                 if ($header!==self::columns()) throw new \InvalidArgumentException('error_csv_header');
                 $separator=';';
             } else $separator=',';
             $rows=array(); $number=1;
-            while (($values=fgetcsv($stream,0,$separator,'"',''))!==false) {
+            while (($values=fgetcsv($stream,0,$separator,'"',self::escapeCharacter()))!==false) {
                 $number++;
                 if ($values===array(null)) continue;
                 if (count($rows)>=self::MAX_ROWS) throw new \InvalidArgumentException('error_csv_limit');
@@ -83,7 +86,7 @@ class SeoRedirectCsv {
         $stream=fopen('php://temp','w+');
         try {
             fwrite($stream,"\xEF\xBB\xBF");
-            fputcsv($stream,self::columns(),';','"','');
+            fputcsv($stream,self::columns(),';','"',self::escapeCharacter());
             foreach ($rows as $row) {
                 $values=array();
                 foreach (self::columns() as $field) {
@@ -92,7 +95,7 @@ class SeoRedirectCsv {
                     if (preg_match('/^[\s\x00-\x1f]*[=+\-@]/',$value)) throw new \InvalidArgumentException('error_csv_format');
                     $values[]=$value;
                 }
-                fputcsv($stream,$values,';','"','');
+                fputcsv($stream,$values,';','"',self::escapeCharacter());
             }
             rewind($stream);
             return stream_get_contents($stream);

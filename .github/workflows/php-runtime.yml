@@ -314,3 +314,6 @@ jobs:
 
       - name: SEO redirect CSV MariaDB integration
         run: php tests/seo_redirect_csv_mariadb.php
+
+      - name: Legacy sitemap noindex regression
+        run: php tests/seo_legacy_sitemap_noindex_regression.php
