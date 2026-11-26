@@ -86,3 +86,16 @@ $_['column_history_current'] = 'Current keyword';
 $_['column_history_date'] = 'Date changed';
 $_['text_history_shadowed'] = 'In use';
 $_['text_history_missing'] = 'No current keyword';
+
+$_['text_redirects'] = 'Redirects';
+$_['text_redirect_migration'] = 'Table missing. Apply docs/migrations/seo-redirect.sql.';
+$_['text_redirect_help'] = 'Enter internal paths starting with /, including the language prefix and store subdirectory. No domain or query string. A 410 needs no target. Active SEO URLs take priority.';
+$_['entry_redirect_source'] = 'Source path';
+$_['entry_redirect_target'] = 'Target path';
+$_['entry_redirect_status'] = 'Status';
+$_['error_redirect_scope'] = 'Invalid store or language.';
+$_['error_redirect_rule'] = 'Invalid rule.';
+$_['error_redirect_path'] = 'Invalid path. Only internal store paths are allowed.';
+$_['error_redirect_conflict'] = 'Source is an active SEO URL or matches the target.';
+$_['error_redirect_duplicate'] = 'This rule already exists.';
+$_['error_redirect_chain'] = 'This rule creates a redirect chain or loop.';

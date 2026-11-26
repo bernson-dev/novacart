@@ -87,3 +87,16 @@ $_['column_history_current'] = 'Поточне ЧПУ';
 $_['column_history_date'] = 'Дата зміни';
 $_['text_history_shadowed'] = 'Зайнято';
 $_['text_history_missing'] = 'Немає поточного ЧПУ';
+
+$_['text_redirects'] = 'Перенаправлення';
+$_['text_redirect_migration'] = 'Таблиця відсутня. Виконайте міграцію docs/migrations/seo-redirect.sql.';
+$_['text_redirect_help'] = 'Вкажіть внутрішні шляхи з початковим /, включно з мовним префіксом і підкаталогом магазину. Без домену та параметрів. Для 410 ціль не потрібна. Чинні ЧПУ мають пріоритет.';
+$_['entry_redirect_source'] = 'Початковий шлях';
+$_['entry_redirect_target'] = 'Цільовий шлях';
+$_['entry_redirect_status'] = 'Статус';
+$_['error_redirect_scope'] = 'Некоректний магазин або мова.';
+$_['error_redirect_rule'] = 'Некоректне правило.';
+$_['error_redirect_path'] = 'Неприпустимий шлях. Дозволені лише внутрішні шляхи магазину.';
+$_['error_redirect_conflict'] = 'Початковий шлях зайнятий чинним ЧПУ або збігається з ціллю.';
+$_['error_redirect_duplicate'] = 'Таке правило вже існує.';
+$_['error_redirect_chain'] = 'Правило створює ланцюжок або цикл перенаправлень.';

@@ -89,3 +89,16 @@ $_['column_history_current'] = 'Текущее ЧПУ';
 $_['column_history_date'] = 'Дата изменения';
 $_['text_history_shadowed'] = 'Занято';
 $_['text_history_missing'] = 'Нет текущего ЧПУ';
+
+$_['text_redirects'] = 'Перенаправления';
+$_['text_redirect_migration'] = 'Таблица отсутствует. Выполните миграцию docs/migrations/seo-redirect.sql.';
+$_['text_redirect_help'] = 'Укажите внутренние пути с начальным /, включая языковой префикс и подкаталог магазина. Без домена и параметров. Для 410 цель не нужна. Действующие ЧПУ имеют приоритет.';
+$_['entry_redirect_source'] = 'Исходный путь';
+$_['entry_redirect_target'] = 'Целевой путь';
+$_['entry_redirect_status'] = 'Статус';
+$_['error_redirect_scope'] = 'Некорректный магазин или язык.';
+$_['error_redirect_rule'] = 'Некорректное правило.';
+$_['error_redirect_path'] = 'Недопустимый путь. Разрешены только внутренние пути магазина.';
+$_['error_redirect_conflict'] = 'Исходный путь занят действующим ЧПУ или совпадает с целью.';
+$_['error_redirect_duplicate'] = 'Такое правило уже существует.';
+$_['error_redirect_chain'] = 'Правило создаёт цепочку или цикл перенаправлений.';
