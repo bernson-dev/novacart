@@ -66,7 +66,7 @@ class ModelDesignSeoRedirect extends Model {
 		return true;
 	}
 
-	public function saveRule(array $data, $base, array $settings, array $languages) {
+	public function saveRule(array $data, $base, array $settings, array $languages, $preview = false) {
 		$this->service();
 		$id = (int)$data['seo_redirect_id'];
 		$store = (int)$data['store_id'];
@@ -106,6 +106,7 @@ class ModelDesignSeoRedirect extends Model {
 				return 'error_redirect_chain';
 			}
 		}
+		if ($preview) { return ''; }
 		$fields = "store_id = '" . $store . "', language_id = '" . $language . "', source_path = '" . $this->db->escape($source) . "', source_hash = '" . $hash . "', target_path = '" . $this->db->escape($target) . "', http_code = '" . $code . "', status = '" . $status . "', date_modified = NOW()";
 		if ($id) {
 			$this->db->query("UPDATE " . DB_PREFIX . "seo_redirect SET " . $fields . " WHERE seo_redirect_id = '" . $id . "'");

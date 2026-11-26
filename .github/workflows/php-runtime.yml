@@ -305,3 +305,6 @@ jobs:
 
       - name: SEO diagnostics MariaDB integration
         run: php tests/seo_diagnostics_mariadb.php
+
+      - name: SEO redirect CSV regression
+        run: php tests/seo_redirect_csv_regression.php

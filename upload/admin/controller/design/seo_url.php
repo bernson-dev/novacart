@@ -427,6 +427,101 @@ class ControllerDesignSeoUrl extends Controller {
 		$this->response->setOutput($this->load->view('design/seo_not_found_list', $data));
 	}
 
+	public function redirectCsv() {
+		$this->load->language('design/seo_url');
+		$this->load->model('design/seo_redirect');
+		$this->load->model('setting/store');
+		$this->load->model('setting/setting');
+		$this->load->model('localisation/language');
+		require_once DIR_SYSTEM . 'library/novacart/seo_redirect_csv.php';
+		$model=$this->model_design_seo_redirect;
+		$token='user_token='.$this->session->data['user_token'];
+		$data['back']=$this->url->link('design/seo_url/redirects',$token,true);
+		$data['action']=$this->url->link('design/seo_url/redirectCsv',$token,true);
+		$data['available']=$model->isAvailable();
+		$data['can_modify']=$this->user->hasPermission('modify','design/seo_url');
+		$data['error_warning']='';
+		$data['rows']=array();
+		$data['report']=array();
+		$method=$this->request->server['REQUEST_METHOD'] ?? 'GET';
+		$operation=$this->request->post['operation'] ?? '';
+		if ($method==='GET' && $data['available'] && ($this->request->get['download'] ?? '')==='1') {
+			try {
+				$total=$model->getTotalRules('');
+				if ($total>\Novacart\SeoRedirectCsv::MAX_ROWS) throw new InvalidArgumentException('error_csv_limit');
+				$csv=\Novacart\SeoRedirectCsv::encode($total?$model->getRules('',0,$total):array());
+				$this->response->addHeader('Content-Type: text/csv; charset=UTF-8');
+				$this->response->addHeader('Content-Disposition: attachment; filename="seo-redirects.csv"');
+				$this->response->setOutput($csv);
+				return;
+			} catch (InvalidArgumentException $e) { $data['error_warning']=$this->language->get($e->getMessage()); }
+		}
+		$stores=array(0=>HTTP_CATALOG);
+		foreach ($this->model_setting_store->getStores() as $store) $stores[(int)$store['store_id']]=$store['url'];
+		$languages=$this->model_localisation_language->getLanguages();
+		$language_ids=array_merge(array(0),array_map('intval',array_column($languages,'language_id')));
+		$settings=array();
+		$validate=function($row,$preview) use ($model,$stores,$languages,$language_ids,&$settings) {
+			$store=(int)$row['store_id'];
+			if (!isset($stores[$store]) || !in_array((int)$row['language_id'],$language_ids,true)) return 'error_redirect_scope';
+			if (!isset($settings[$store])) {
+				$settings[$store]=$this->model_setting_setting->getSetting('config',0);
+				if ($store) $settings[$store]=array_replace($settings[$store],$this->model_setting_setting->getSetting('config',$store));
+			}
+			return $model->saveRule($row,parse_url($stores[$store],PHP_URL_PATH)?:'/',$settings[$store],$languages,$preview);
+		};
+		if ($method==='POST' && $data['available']) {
+			if (!$data['can_modify']) $data['error_warning']=$this->language->get('error_permission');
+			elseif ($operation==='preview') {
+				unset($this->session->data['seo_csv_preview']);
+				$file=$_FILES['csv'] ?? array();
+				try {
+					if (!is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK || !is_string($file['tmp_name'] ?? null) || !is_uploaded_file($file['tmp_name']) || filesize($file['tmp_name'])>\Novacart\SeoRedirectCsv::MAX_BYTES) throw new InvalidArgumentException('error_csv_format');
+					$rows=\Novacart\SeoRedirectCsv::parse(file_get_contents($file['tmp_name']));
+					foreach ($rows as &$row) {
+						if (!$row['error']) $row['error']=$validate($row['data'],true);
+					}
+					unset($row);
+					$this->session->data['seo_csv_preview']=array('rows'=>$rows,'expires'=>time()+900,'nonce'=>bin2hex(random_bytes(16)));
+				} catch (InvalidArgumentException $e) { $data['error_warning']=$this->language->get($e->getMessage()); }
+				catch (Throwable $e) { $this->log->write('SEO CSV preview: '.$e->getMessage()); $data['error_warning']=$this->language->get('error_csv_format'); }
+			} elseif ($operation==='apply') {
+				$preview=$this->session->data['seo_csv_preview'] ?? array();
+				unset($this->session->data['seo_csv_preview']);
+				if (!$preview || $preview['expires']<time() || !is_string($this->request->post['nonce'] ?? null) || !hash_equals($preview['nonce'],$this->request->post['nonce'])) $data['error_warning']=$this->language->get('error_csv_expired');
+				else {
+					$data['report']=array('created'=>0,'skipped'=>0,'errors'=>0);
+					foreach ($preview['rows'] as $row) {
+						if ($row['error']) { $data['report']['skipped']++; }
+						else {
+							try {
+								$row['error']=$validate($row['data'],false);
+								$data['report'][$row['error']?'skipped':'created']++;
+							} catch (Throwable $e) { $row['error']='error_csv_format'; $data['report']['errors']++; $this->log->write('SEO CSV apply: '.$e->getMessage()); }
+						}
+						$data['rows'][]=$row;
+					}
+				}
+			} elseif ($operation==='cancel') unset($this->session->data['seo_csv_preview']);
+			else $data['error_warning']=$this->language->get('error_request_method');
+		}
+		$preview=$this->session->data['seo_csv_preview'] ?? array();
+		if ($data['can_modify'] && $preview && $preview['expires']>=time() && !$data['report']) {
+			$data['rows']=$preview['rows'];
+			$data['nonce']=$preview['nonce'];
+		}
+		foreach ($data['rows'] as &$row) $row['message']=$row['error']?$this->language->get($row['error']):$this->language->get($data['report']?'text_csv_created':'text_csv_ready');
+		unset($row);
+		$data['export']=$this->url->link('design/seo_url/redirectCsv',$token.'&download=1',true);
+		$data['heading_title']=$this->language->get('text_csv_title');
+		$this->document->setTitle($data['heading_title']);
+		$data['breadcrumbs']=array(array('text'=>$this->language->get('text_home'),'href'=>$this->url->link('common/dashboard',$token,true)),array('text'=>$this->language->get('text_redirects'),'href'=>$data['back']),array('text'=>$data['heading_title'],'href'=>$data['action']));
+		$data['header']=$this->load->controller('common/header');
+		$data['column_left']=$this->load->controller('common/column_left');
+		$data['footer']=$this->load->controller('common/footer');
+		$this->response->setOutput($this->load->view('design/seo_redirect_csv',$data));
+	}
+
 	public function redirects() {
 		$this->load->language('design/seo_url');
 		$this->load->model('design/seo_redirect');
@@ -528,6 +623,7 @@ class ControllerDesignSeoUrl extends Controller {
 		}
 		unset($row);
 		$data['user_token'] = $this->session->data['user_token'];
+		$data['csv_tools'] = $this->url->link('design/seo_url/redirectCsv', $token, true);
 		$data['not_found_log'] = $this->url->link('design/seo_url/notFoundLog', $token, true);
 		$data['heading_title'] = $this->language->get('text_redirects');
 		$this->document->setTitle($data['heading_title']);
