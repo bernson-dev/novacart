@@ -39,7 +39,15 @@ class ModelDesignSeoDiagnostics extends Model {
     }
 
     public function previewMeta($type, $store, $language, $issue, $row) {
-        if ($issue === 'duplicate_title') return (string)$row['meta_title'];
+        if ($issue === 'duplicate_title') {
+            $current = (string)$row['meta_title'];
+            $candidate = self::cleanMeta($row['name'], 255);
+            if ($candidate === '' || $candidate === self::cleanMeta($current, 255)) return $current;
+            list($source,$id) = $this->metaSource($type,$store,$language);
+            $conflict = $this->db->query("SELECT e." . $id . $source . " AND e." . $id . "<>" . (int)$row['entity_id'] . " AND TRIM(d.meta_title)='" . $this->db->escape($candidate) . "' LIMIT 1");
+            // Do not invent arbitrary suffixes. Keep the current value for manual review.
+            return $conflict->num_rows ? $current : $candidate;
+        }
         if ($issue === 'missing_title') return self::cleanMeta($row['name'], 255);
         if ($issue !== 'missing_description') return '';
         list($source,$id) = $this->metaSource($type,$store,$language);

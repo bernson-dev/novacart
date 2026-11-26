@@ -43,6 +43,12 @@ foreach ($model->getTypes() as $type) {
         check($missingDescription,$model->countMeta($type,0,1,'missing_description'),$type.' missing description');
         check(2,$model->countMeta($type,0,1,'duplicate_title'),$type.' case-insensitive duplicate title');
         check(array(3),array_map('intval',array_column($model->getMeta($type,0,1,'duplicate_title',1,1),'entity_id')),$type.' pagination');
+        $duplicates=$model->getMeta($type,0,1,'duplicate_title',0,50);
+        check('Two',$model->previewMeta($type,0,1,'duplicate_title',$duplicates[0]),$type.' suggest entity name for duplicate');
+        check('Three',$model->previewMeta($type,0,1,'duplicate_title',$duplicates[1]),$type.' suggest different entity name');
+        $db->pdo->exec("UPDATE ".$table."_description SET meta_title='Two' WHERE ".$id."=1 AND language_id=1");
+        check('Same',$model->previewMeta($type,0,1,'duplicate_title',$duplicates[0]),$type.' do not suggest existing title');
+        $db->pdo->exec("UPDATE ".$table."_description SET meta_title='  ' WHERE ".$id."=1 AND language_id=1");
         check(0,$model->countMeta($type,1,1,'duplicate_title'),$type.' store isolation');
         check(0,$model->countMeta($type,0,2,'duplicate_title'),$type.' language isolation');
         check(1,$model->countMeta($type,0,2,'missing_description'),$type.' second language');
