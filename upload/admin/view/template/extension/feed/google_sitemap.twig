@@ -40,9 +40,22 @@
             </div>
           </div>
           <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-pro">{{ entry_sitemap_pro }}</label>
+            <div class="col-sm-10"><select name="feed_google_sitemap_pro" id="input-pro" class="form-control"><option value="1"{% if feed_google_sitemap_pro %} selected{% endif %}>{{ text_enabled }}</option><option value="0"{% if not feed_google_sitemap_pro %} selected{% endif %}>{{ text_disabled }}</option></select><p class="help-block">{{ help_sitemap_pro }}</p></div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-limit">{{ entry_sitemap_limit }}</label>
+            <div class="col-sm-10"><input type="number" min="1" max="1000" name="feed_google_sitemap_limit" id="input-limit" value="{{ feed_google_sitemap_limit }}" class="form-control"></div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-cache">{{ entry_sitemap_cache }}</label>
+            <div class="col-sm-10"><input type="number" min="0" max="1440" name="feed_google_sitemap_cache" id="input-cache" value="{{ feed_google_sitemap_cache }}" class="form-control"><p class="help-block">{{ help_sitemap_cache }}</p></div>
+          </div>
+          <div class="form-group">
             <label class="col-sm-2 control-label" for="input-data-feed">{{ entry_data_feed }}</label>
             <div class="col-sm-10">
-              <textarea rows="5" readonly id="input-data-feed" class="form-control">{{ data_feed }}</textarea>
+              <textarea rows="5" readonly id="input-data-feed" class="form-control">{{ data_feed }}
+{{ sitemap_pretty }}</textarea>
             </div>
           </div>
         </form>

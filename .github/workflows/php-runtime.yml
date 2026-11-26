@@ -276,3 +276,6 @@ jobs:
 
       - name: SEO missing keyword regression
         run: php tests/seo_missing_regression.php
+
+      - name: Sitemap PRO regression
+        run: php tests/seo_sitemap_regression.php

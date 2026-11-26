@@ -26,6 +26,7 @@ class ControllerCronRun extends Controller {
             if ($command === 'install' && $isCli) {
                 $scheduler->install();
                 $scheduler->register('seo.404.cleanup', 'cron/seo_not_found', 86400);
+                $scheduler->register('seo.sitemap.cleanup', 'cron/seo_sitemap', 86400);
                 require_once(DIR_SYSTEM . 'library/novacart/queue.php');
                 (new NovaCartQueue($this->registry))->install();
                 require_once(DIR_SYSTEM . 'library/novacart/jobs_monitor.php');
