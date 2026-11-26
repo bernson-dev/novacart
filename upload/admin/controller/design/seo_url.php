@@ -12,6 +12,44 @@ class ControllerDesignSeoUrl extends Controller {
 		$this->getList();
 	}
 
+	public function missingBatch() {
+		$this->load->language('design/seo_url');
+		$this->load->model('design/seo_url');
+		$this->load->model('design/seo_missing');
+		$this->load->model('setting/store');
+		$this->load->model('localisation/language');
+		$json = array();
+		$store = $this->request->post['store_id'] ?? '';
+		$language = $this->request->post['language_id'] ?? '';
+		$type = $this->request->post['type'] ?? '';
+		$after = $this->request->post['cursor'] ?? '';
+		$stores = array_merge(array(0), array_map('intval', array_column($this->model_setting_store->getStores(), 'store_id')));
+		$eligible = array();
+		if (is_scalar($store) && ctype_digit((string)$store) && in_array((int)$store, $stores, true)) {
+			$shared = $this->model_design_seo_url->usesLanguageScopedKeywords((int)$store);
+			$default = $this->model_design_seo_url->getStoreDefaultLanguageId((int)$store);
+			foreach ($this->model_localisation_language->getLanguages() as $item) {
+				if (!empty($item['status']) && (!$shared || (int)$item['language_id'] === $default)) {
+					$eligible[] = (int)$item['language_id'];
+				}
+			}
+		}
+		if (!$this->user->hasPermission('modify', 'design/seo_url')) {
+			$json['error'] = $this->language->get('error_permission');
+		} elseif ($this->request->server['REQUEST_METHOD'] !== 'POST' || !is_scalar($language) || !ctype_digit((string)$language) || !in_array((int)$language, $eligible, true) || !is_string($type) || !in_array($type, $this->model_design_seo_missing->getTypes(), true) || !is_scalar($after) || !ctype_digit((string)$after)) {
+			$json['error'] = $this->language->get('error_missing_selection');
+		} else {
+			try {
+				$json = $this->model_design_seo_missing->generateBatch($type, (int)$store, (int)$language, (int)$after, $this->model_design_seo_url);
+			} catch (Throwable $e) {
+				$this->log->write('SEO missing batch failed: ' . $e->getMessage());
+				$json['error'] = $this->language->get('error_missing_batch');
+			}
+		}
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
 	public function missingKeywords() {
 		$this->load->language('design/seo_url');
 		$this->load->model('design/seo_url');
@@ -60,7 +98,7 @@ class ControllerDesignSeoUrl extends Controller {
 			$keywords = $this->request->post['keywords'] ?? array();
 			if (!$data['can_modify']) {
 				$data['error_warning'] = $this->language->get('error_permission');
-			} elseif (!$data['language_id'] || !is_array($selected) || !is_array($keywords) || count($selected) > 50 || !$selected || $store !== $data['store_id'] || $language_id !== $data['language_id']) {
+			} elseif (!$data['language_id'] || !is_array($selected) || !is_array($keywords) || count($selected) > 50 || !$selected || $store !== $data['store_id'] || $language_id !== $data['language_id'] || ($this->request->get['type'] ?? '') !== $data['type']) {
 				$data['error_warning'] = $this->language->get('error_missing_selection');
 			} else {
 				$report = array('created' => 0, 'skipped' => 0, 'errors' => 0);
@@ -82,6 +120,7 @@ class ControllerDesignSeoUrl extends Controller {
 				return;
 			}
 		}
+		$data['batch_url'] = $this->url->link('design/seo_url/missingBatch', $token, true);
 		$data['summary_links'] = array();
 		foreach ($data['types'] as $type) {
 			foreach ($data['languages'] as $language) {

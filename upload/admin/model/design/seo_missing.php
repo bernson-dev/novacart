@@ -34,9 +34,9 @@ class ModelDesignSeoMissing extends Model {
 		return (int)$this->db->query("SELECT COUNT(DISTINCT e.`" . $id . "`) AS total" . $sql)->row['total'];
 	}
 
-	public function getMissing($type, $store, $language, $start, $limit) {
+	public function getMissing($type, $store, $language, $start, $limit, $after = 0) {
 		list($sql, $name, $id) = $this->buildQuery($type, $store, $language);
-		return $this->db->query("SELECT DISTINCT e.`" . $id . "` AS entity_id, " . $name . " AS name, CONCAT('" . $id . "=', e.`" . $id . "`) AS `query`, " . (int)$store . " AS store_id, " . (int)$language . " AS language_id" . $sql . " ORDER BY entity_id LIMIT " . max(0, (int)$start) . "," . max(1, min(100, (int)$limit)))->rows;
+		return $this->db->query("SELECT DISTINCT e.`" . $id . "` AS entity_id, " . $name . " AS name, CONCAT('" . $id . "=', e.`" . $id . "`) AS `query`, " . (int)$store . " AS store_id, " . (int)$language . " AS language_id" . $sql . " AND e.`" . $id . "` > " . max(0, (int)$after) . " ORDER BY entity_id LIMIT " . max(0, (int)$start) . "," . max(1, min(100, (int)$limit)))->rows;
 	}
 
 	public function getMissingById($type, $store, $language, $entity_id) {
@@ -52,11 +52,31 @@ class ModelDesignSeoMissing extends Model {
 		for ($i = 0; $i < 100; $i++) {
 			$candidate = $base . ($i ? '-' . ($i + 1) : '');
 			if (!isset($used[$candidate]) && !$seo->isReservedLanguagePrefix($candidate, (int)$row['store_id']) && !$seo->getSeoUrlsByKeyword($candidate, (int)$row['store_id'], null)) {
-				$used[$candidate] = true;
 				return $candidate;
 			}
 		}
 		return '';
+	}
+
+	public function generateBatch($type, $store, $language, $after, $seo) {
+		$rows = $this->getMissing($type, $store, $language, 0, 50, $after);
+		$result = array('created' => 0, 'skipped' => 0, 'errors' => 0, 'cursor' => (int)$after, 'done' => count($rows) < 50);
+		$used = array();
+		foreach ($rows as $row) {
+			$result['cursor'] = (int)$row['entity_id'];
+			try {
+				$keyword = $this->suggest($row, $seo, $used);
+				if ($keyword !== '') {
+					$used[$keyword] = true;
+				}
+				$saved = $keyword !== '' && $this->saveMissing($type, $store, $language, $result['cursor'], $keyword, $seo);
+				$result[$saved ? 'created' : 'skipped']++;
+			} catch (Throwable $e) {
+				$result['errors']++;
+				$this->log->write('SEO missing keyword generation failed: ' . $e->getMessage());
+			}
+		}
+		return $result;
 	}
 
 	public function saveMissing($type, $store, $language, $entity_id, $keyword, $seo) {
@@ -79,12 +99,12 @@ class ModelDesignSeoMissing extends Model {
 		}
 		if ($existing) {
 			// Atomic predicate prevents overwriting a keyword entered since preview.
-			$this->db->query("UPDATE `" . DB_PREFIX . "seo_url` SET keyword = '" . $this->db->escape($keyword) . "' WHERE seo_url_id = " . (int)$existing[0]['seo_url_id'] . " AND TRIM(keyword) = ''");
-			$saved = $this->db->countAffected() === 1;
+			$this->db->query("UPDATE `" . DB_PREFIX . "seo_url` u LEFT JOIN `" . DB_PREFIX . "seo_url` conflict ON conflict.store_id = u.store_id AND conflict.keyword = '" . $this->db->escape($keyword) . "' SET u.keyword = '" . $this->db->escape($keyword) . "' WHERE u.seo_url_id = " . (int)$existing[0]['seo_url_id'] . " AND TRIM(u.keyword) = '' AND conflict.seo_url_id IS NULL");
+			$saved = (int)$this->db->countAffected() === 1;
 		} else {
 			// One statement rechecks both the query scope and store-wide keyword.
 			$this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` (store_id, language_id, `query`, keyword) SELECT " . (int)$store . ", " . (int)$language . ", '" . $this->db->escape($row['query']) . "', '" . $this->db->escape($keyword) . "' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `" . DB_PREFIX . "seo_url` WHERE store_id = " . (int)$store . " AND (keyword = '" . $this->db->escape($keyword) . "' OR (language_id = " . (int)$language . " AND `query` = '" . $this->db->escape($row['query']) . "')))");
-			$saved = $this->db->countAffected() === 1;
+			$saved = (int)$this->db->countAffected() === 1;
 		}
 		if ($saved) {
 			$this->cache->delete('seo_url');

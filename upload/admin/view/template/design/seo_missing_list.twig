@@ -30,6 +30,12 @@
                     <tbody>{% for item in types %}<tr><td>{{ type_labels[item] }}</td>{% for language in languages %}<td class="text-right">{% if summary[item][language.language_id] %}<a href="{{ summary_links[item][language.language_id] }}"><strong>{{ summary[item][language.language_id] }}</strong></a>{% else %}0{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody>
                 </table></div>
                 <p><strong>{{ text_missing_total }}: {{ total_missing }}</strong></p>
+                {% if can_modify and total_missing %}
+                <button type="button" id="button-missing-all" class="btn btn-primary" data-url="{{ batch_url|e('html_attr') }}" data-store="{{ store_id }}" data-confirm="{{ text_missing_all_confirm|e('html_attr') }}" data-error="{{ error_missing_batch|e('html_attr') }}"><i class="fa fa-magic"></i> {{ button_missing_all }}</button>
+                <button type="button" id="button-missing-stop" class="btn btn-default hidden">{{ button_missing_stop }}</button>
+                <div id="missing-batch-report" class="alert alert-info hidden" aria-live="polite">{{ text_missing_created }}: <strong data-count="created">0</strong> | {{ text_missing_skipped }}: <strong data-count="skipped">0</strong> | {{ text_missing_errors }}: <strong data-count="errors">0</strong> <span id="missing-batch-message"></span> <a href="{{ action }}" id="missing-batch-refresh" class="hidden">{{ button_missing_refresh }}</a></div>
+                <div id="missing-batch-scopes" class="hidden">{% for item in types %}{% for language in languages %}{% if summary[item][language.language_id] %}<span data-type="{{ item }}" data-language="{{ language.language_id }}"></span>{% endif %}{% endfor %}{% endfor %}</div>
+                {% endif %}
             </div>
         </div>
         <div class="panel panel-default">
@@ -48,6 +54,48 @@
     </div>
 </div>
 <script>
+(function () {
+    var button = $('#button-missing-all'), stop = $('#button-missing-stop'), report = $('#missing-batch-report');
+    var running = false, stopped = false;
+    button.on('click', function () {
+        if (running || !confirm(button.attr('data-confirm'))) return;
+        running = true; stopped = false;
+        var scopes = $('#missing-batch-scopes span').toArray(), index = 0, cursor = 0;
+        var totals = {created:0, skipped:0, errors:0};
+        var controls = $('#seo-missing-filter :input, #seo-missing-save :input, #button-missing-all').filter(':enabled');
+        controls.prop('disabled', true);
+        report.removeClass('hidden');
+        stop.removeClass('hidden').prop('disabled', false);
+        function render() {
+            Object.keys(totals).forEach(function (key) { report.find('[data-count="' + key + '"]').text(totals[key]); });
+        }
+        function finish(error) {
+            running = false;
+            stop.addClass('hidden');
+            $('#missing-batch-refresh').removeClass('hidden');
+            if (error) $('#missing-batch-message').text(error);
+            render();
+        }
+        function next() {
+            if (stopped || index >= scopes.length) { finish(''); return; }
+            var scope = $(scopes[index]);
+            $.ajax({
+                url: button.attr('data-url'), type: 'POST', dataType: 'json',
+                data: {store_id:button.attr('data-store'), language_id:scope.attr('data-language'), type:scope.attr('data-type'), cursor:cursor}
+            }).done(function (result) {
+                if (!result || result.error || typeof result.done !== 'boolean' || (!result.done && Number(result.cursor) <= cursor)) {
+                    finish(result && result.error ? result.error : button.attr('data-error')); return;
+                }
+                Object.keys(totals).forEach(function (key) { totals[key] += Number(result[key]) || 0; });
+                render();
+                if (result.done) { index++; cursor = 0; } else { cursor = Number(result.cursor); }
+                next();
+            }).fail(function () { finish(button.attr('data-error')); });
+        }
+        render(); next();
+    });
+    stop.on('click', function () { stopped = true; stop.prop('disabled', true); });
+})();
 $('#missing-select-all').on('change', function () {
     $('#seo-missing-save input[name="selected[]"]:enabled').prop('checked', this.checked);
 });
