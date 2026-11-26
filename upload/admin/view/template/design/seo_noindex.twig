@@ -1,0 +1,15 @@
+{{ header }}{{ column_left }}
+<div id="content"><div class="page-header"><div class="container-fluid"><div class="pull-right"><a href="{{ back }}" class="btn btn-default"><i class="fa fa-reply"></i></a></div><h1>{{ heading_title }}</h1><ul class="breadcrumb">{% for breadcrumb in breadcrumbs %}<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>{% endfor %}</ul></div></div>
+<div class="container-fluid">
+{% if error_warning %}<div class="alert alert-danger alert-dismissible"><button type="button" class="close" data-dismiss="alert">&times;</button>{{ error_warning }}</div>{% endif %}
+{% if success %}<div class="alert alert-success alert-dismissible"><button type="button" class="close" data-dismiss="alert">&times;</button>{{ success }}</div>{% endif %}
+<div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title">{{ heading_title }}</h3></div><div class="panel-body">
+<p>{{ text_noindex_help }}</p>
+<form action="index.php" method="get" id="noindex-filter" class="form-inline"><input type="hidden" name="route" value="design/seo_url/noindex"><input type="hidden" name="user_token" value="{{ user_token|e('html_attr') }}"><label for="noindex-store">{{ column_store }}</label> <select name="store_id" id="noindex-store" class="form-control">{% for store in stores %}<option value="{{ store.store_id }}"{% if store.store_id == store_id %} selected{% endif %}>{{ store.name|e }}</option>{% endfor %}</select> <button type="button" id="noindex-select" class="btn btn-default">{{ button_filter }}</button></form>
+<hr><form action="{{ action }}" method="post" id="noindex-save"><div class="form-group"><label for="noindex-rules">{{ text_noindex_rules }}</label><textarea id="noindex-rules" name="rules" class="form-control" rows="12"{% if not can_modify %} readonly{% endif %}>{{ rules|e }}</textarea><p class="help-block">product=123, category=45, manufacturer=12, information=4, article=8, blog_category=3 ({{ text_noindex_example }})</p></div>{% if can_modify %}<button type="button" id="noindex-apply" class="btn btn-primary" data-confirm="{{ text_noindex_confirm|e('html_attr') }}"><i class="fa fa-save"></i> {{ button_save }}</button>{% endif %}</form>
+</div></div></div></div>
+<script>
+$('#noindex-select').on('click',function(){HTMLFormElement.prototype.submit.call(this.form);});
+$('#noindex-apply').on('click',function(){if(confirm($(this).attr('data-confirm'))) HTMLFormElement.prototype.submit.call(this.form);});
+</script>
+{{ footer }}

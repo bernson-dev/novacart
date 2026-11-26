@@ -1,5 +1,6 @@
 <?php
 namespace Novacart;
+require_once __DIR__ . '/seo_noindex.php';
 
 /**
  * Partitioned sitemap, generated on demand. Uses the existing URL rewrite
@@ -82,7 +83,7 @@ class Sitemap {
 	private function cached($key, $build) {
 		if (!$this->ttl) return $build();
 		// Include URL/settings that affect the XML, and never vary by cookie.
-		$hash = hash('sha256', serialize(array('presentation-v2', $key, $this->store, $this->base, $this->size, $this->ttl, $this->languages, $this->default,
+		$hash = hash('sha256', serialize(array('presentation-v3', $this->config->get('seo_noindex_rules'), $key, $this->store, $this->base, $this->size, $this->ttl, $this->languages, $this->default,
 			$this->shared, $this->config->get('config_seo_url'), $this->config->get('config_seo_pro'),
 			$this->config->get('config_seo_language_prefix'), $this->config->get('config_page_postfix'),
 			$this->config->get('config_seopro_addslash'), $this->config->get('config_seopro_lowercase'))));
@@ -129,12 +130,14 @@ class Sitemap {
 			. '<?xml-stylesheet type="text/xsl" href="sitemap.xsl"?>' . "\n";
 	}
 
-	private function where($type) {
+	private function where($type, $excludeNoindex = true) {
 		$table = $this->types[$type][0];
 		$id = $table . '_id';
 		$sql = " FROM " . DB_PREFIX . $table . " e WHERE EXISTS (SELECT 1 FROM " . DB_PREFIX . $table . "_to_store s WHERE s." . $id . " = e." . $id . " AND s.store_id = " . $this->store . ")";
 		if ($table !== 'manufacturer') $sql .= " AND e.status = 1";
 		if ($table === 'product' || $table === 'article') $sql .= " AND e.date_available <= NOW()";
+		$excluded = $excludeNoindex ? SeoNoindex::ids($this->config,$this->store,$table) : array();
+		if ($excluded) $sql .= ' AND e.' . $id . ' NOT IN (' . implode(',', $excluded) . ')';
 		return $sql;
 	}
 
@@ -181,7 +184,7 @@ class Sitemap {
 		while ($id > 0) {
 			if (isset($seen[$id]) || count($seen) >= 100) return '';
 			$seen[$id] = true;
-			$row = $this->db->query("SELECT e.parent_id" . $this->where($table === 'category' ? 'categories' : 'blog-categories') . " AND e." . $key . " = " . $id . " LIMIT 1");
+			$row = $this->db->query("SELECT e.parent_id" . $this->where($table === 'category' ? 'categories' : 'blog-categories', false) . " AND e." . $key . " = " . $id . " LIMIT 1");
 			if (!$row->num_rows) return '';
 			array_unshift($path, $id);
 			$id = (int)$row->row['parent_id'];

@@ -427,6 +427,61 @@ class ControllerDesignSeoUrl extends Controller {
 		$this->response->setOutput($this->load->view('design/seo_not_found_list', $data));
 	}
 
+	public function noindex() {
+		$this->load->language('design/seo_url');
+		$this->load->model('setting/store');
+		$this->load->model('setting/setting');
+		require_once DIR_SYSTEM . 'library/novacart/seo_noindex.php';
+		$token='user_token='.$this->session->data['user_token'];
+		$data['back']=$this->url->link('design/seo_url',$token,true);
+		$data['stores']=array_merge(array(array('store_id'=>0,'name'=>$this->language->get('text_default'))),$this->model_setting_store->getStores());
+		$ids=array_map('intval',array_column($data['stores'],'store_id'));
+		$store=(int)($this->request->get['store_id'] ?? 0);
+		$data['store_id']=in_array($store,$ids,true)?$store:0;
+		$data['can_modify']=$this->user->hasPermission('modify','design/seo_url');
+		$settings=$this->model_setting_setting->getSetting('seo_noindex',0);
+		$all=is_array($settings['seo_noindex_rules'] ?? null)?$settings['seo_noindex_rules']:array();
+		$data['rules']='';
+		foreach ($all[$data['store_id']] ?? array() as $type=>$entries) {
+			foreach ($entries as $id) $data['rules'].=$type.'='.(int)$id."\n";
+		}
+		$data['error_warning']='';
+		$data['success']=$this->session->data['seo_noindex_success'] ?? '';
+		unset($this->session->data['seo_noindex_success']);
+		$data['action']=$this->url->link('design/seo_url/noindex',$token.'&store_id='.$data['store_id'],true);
+		if (($this->request->server['REQUEST_METHOD'] ?? '')==='POST') {
+			if (!$data['can_modify']) $data['error_warning']=$this->language->get('error_permission');
+			elseif (!in_array($store,$ids,true) || !is_string($this->request->post['rules'] ?? null)) $data['error_warning']=$this->language->get('error_noindex_format');
+			else {
+				$data['rules']=html_entity_decode($this->request->post['rules'],ENT_QUOTES,'UTF-8');
+				try {
+					$parsed=\Novacart\SeoNoindex::parse($data['rules']);
+					// Do not save rules for non-existent or unassigned entities.
+					foreach ($parsed as $type=>$entries) {
+						$id=$type.'_id';
+						$found=$this->db->query("SELECT DISTINCT e.".$id." FROM ".DB_PREFIX.$type." e INNER JOIN ".DB_PREFIX.$type."_to_store s ON s.".$id."=e.".$id." WHERE s.store_id=".$store." AND e.".$id." IN (".implode(',',$entries).")");
+						if (count($found->rows)!==count($entries)) throw new InvalidArgumentException('error_noindex_entity');
+					}
+					$all[$store]=$parsed;
+					$this->model_setting_setting->editSetting('seo_noindex',array('seo_noindex_rules'=>$all),0);
+					require_once DIR_SYSTEM . 'library/novacart/sitemap.php';
+					\Novacart\Sitemap::clearCache();
+					$this->session->data['seo_noindex_success']=$this->language->get('text_success');
+					$this->response->redirect($data['action']);
+					return;
+				} catch (InvalidArgumentException $e) { $data['error_warning']=$this->language->get($e->getMessage()); }
+			}
+		}
+		$data['user_token']=$this->session->data['user_token'];
+		$data['heading_title']=$this->language->get('text_noindex');
+		$this->document->setTitle($data['heading_title']);
+		$data['breadcrumbs']=array(array('text'=>$this->language->get('text_home'),'href'=>$this->url->link('common/dashboard',$token,true)),array('text'=>$this->language->get('heading_title'),'href'=>$data['back']),array('text'=>$data['heading_title'],'href'=>$data['action']));
+		$data['header']=$this->load->controller('common/header');
+		$data['column_left']=$this->load->controller('common/column_left');
+		$data['footer']=$this->load->controller('common/footer');
+		$this->response->setOutput($this->load->view('design/seo_noindex',$data));
+	}
+
 	public function redirectCsv() {
 		$this->load->language('design/seo_url');
 		$this->load->model('design/seo_redirect');
@@ -1035,6 +1090,7 @@ class ControllerDesignSeoUrl extends Controller {
 			'href' => $this->url->link('design/seo_url', 'user_token=' . $this->session->data['user_token'] . $url, true)
 		);
 
+		$data['noindex'] = $this->url->link('design/seo_url/noindex', 'user_token=' . $this->session->data['user_token'], true);
 		$data['diagnostics'] = $this->url->link('design/seo_url/diagnostics', 'user_token=' . $this->session->data['user_token'], true);
 		$data['missing_keywords'] = $this->url->link('design/seo_url/missingKeywords', 'user_token=' . $this->session->data['user_token'], true);
 		$data['not_found_log'] = $this->url->link('design/seo_url/notFoundLog', 'user_token=' . $this->session->data['user_token'], true);

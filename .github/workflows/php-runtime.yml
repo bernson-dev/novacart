@@ -308,3 +308,6 @@ jobs:
 
       - name: SEO redirect CSV regression
         run: php tests/seo_redirect_csv_regression.php
+
+      - name: SEO noindex regression
+        run: php tests/seo_noindex_regression.php
