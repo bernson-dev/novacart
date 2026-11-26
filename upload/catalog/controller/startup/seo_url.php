@@ -32,6 +32,12 @@ class ControllerStartupSeoUrl extends Controller {
 			}
 		}
 
+		// The authenticated cron entry point is a service endpoint, not a public SEO URL.
+		// Keep rewrite layers available for job handlers, but never canonicalize the request.
+		if (defined('NOVACART_CRON_ENTRY') && NOVACART_CRON_ENTRY) {
+			return;
+		}
+
 		// Decode URL
 		if (isset($this->request->get['_route_'])) {
 			$parts = explode('/', $this->request->get['_route_']);
