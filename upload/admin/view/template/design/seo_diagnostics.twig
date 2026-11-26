@@ -13,7 +13,7 @@
         <p>{{ text_diag_global }}</p>
         <div class="table-responsive"><table class="table table-bordered table-hover"><tbody>
         {% for row in url_checks %}<tr><td>{{ row.label }}</td><td class="text-right"><a href="{{ row.href }}">{{ row.count }}</a></td></tr>{% endfor %}
-        <tr><td>{{ text_diag_redirect }}</td><td class="text-right">{% if redirect_count is null %}{{ text_diag_unavailable }}{% else %}<a href="{{ redirect_link }}">{{ redirect_count }}</a>{% endif %}</td></tr>
+        <tr><td>{{ text_diag_redirect }}</td><td class="text-right">{% if redirect_count is null %}{{ text_diag_unavailable }}{% else %}<a href="{{ redirect_link }}#diag-details">{{ redirect_count }}</a>{% endif %}</td></tr>
         </tbody></table></div>
         <a href="{{ missing_link }}" class="btn btn-default"><i class="fa fa-magic"></i> {{ text_missing_keywords }}</a>
       </div>
@@ -25,12 +25,12 @@
           <input type="hidden" name="route" value="design/seo_url/diagnostics"><input type="hidden" name="user_token" value="{{ user_token|e('html_attr') }}">
           <div class="form-group"><label for="diag-store">{{ entry_store }}</label> <select id="diag-store" name="store_id" class="form-control">{% for store in stores %}<option value="{{ store.store_id }}"{% if store.store_id == store_id %} selected{% endif %}>{{ store.name|e }}</option>{% endfor %}</select></div>
           <div class="form-group"><label for="diag-language">{{ entry_language }}</label> <select id="diag-language" name="language_id" class="form-control">{% for language in languages %}<option value="{{ language.language_id }}"{% if language.language_id == language_id %} selected{% endif %}>{{ language.name|e }}</option>{% endfor %}</select></div>
-          <button type="submit" class="btn btn-primary">{{ button_filter }}</button>
+          <button type="button" class="btn btn-primary" id="diag-filter">{{ button_filter }}</button>
         </form>
         <p class="help-block">{{ text_diag_meta_help }}</p>
         <div class="table-responsive"><table class="table table-bordered table-hover">
           <thead><tr><td>{{ text_missing_name }}</td>{% for issue in meta_issues %}<td class="text-right">{{ meta_labels[issue] }}</td>{% endfor %}</tr></thead>
-          <tbody>{% for row in meta_summary %}<tr><td>{{ row.label }}</td>{% for check in row.checks %}<td class="text-right"><a href="{{ check.href }}">{{ check.count }}</a></td>{% endfor %}</tr>{% else %}<tr><td colspan="4">{{ text_no_results }}</td></tr>{% endfor %}</tbody>
+          <tbody>{% for row in meta_summary %}<tr><td>{{ row.label }}</td>{% for check in row.checks %}<td class="text-right"><a href="{{ check.href }}#diag-details">{{ check.count }}</a></td>{% endfor %}</tr>{% else %}<tr><td colspan="4">{{ text_no_results }}</td></tr>{% endfor %}</tbody>
         </table></div>
       </div>
     </div>
@@ -50,4 +50,9 @@
     {% endif %}
   </div>
 </div>
+<script>
+$('#diag-filter').on('click', function () {
+    HTMLFormElement.prototype.submit.call(this.form);
+});
+</script>
 {{ footer }}
