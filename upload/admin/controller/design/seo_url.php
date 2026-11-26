@@ -533,10 +533,7 @@ class ControllerDesignSeoUrl extends Controller {
 				try {
 					if (!is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK || !is_string($file['tmp_name'] ?? null) || !is_uploaded_file($file['tmp_name']) || filesize($file['tmp_name'])>\Novacart\SeoRedirectCsv::MAX_BYTES) throw new InvalidArgumentException('error_csv_format');
 					$rows=\Novacart\SeoRedirectCsv::parse(file_get_contents($file['tmp_name']));
-					foreach ($rows as &$row) {
-						if (!$row['error']) $row['error']=$validate($row['data'],true);
-					}
-					unset($row);
+					$rows=\Novacart\SeoRedirectCsv::preview($rows,$validate);
 					$this->session->data['seo_csv_preview']=array('rows'=>$rows,'expires'=>time()+900,'nonce'=>bin2hex(random_bytes(16)));
 				} catch (InvalidArgumentException $e) { $data['error_warning']=$this->language->get($e->getMessage()); }
 				catch (Throwable $e) { $this->log->write('SEO CSV preview: '.$e->getMessage()); $data['error_warning']=$this->language->get('error_csv_format'); }
@@ -545,17 +542,9 @@ class ControllerDesignSeoUrl extends Controller {
 				unset($this->session->data['seo_csv_preview']);
 				if (!$preview || $preview['expires']<time() || !is_string($this->request->post['nonce'] ?? null) || !hash_equals($preview['nonce'],$this->request->post['nonce'])) $data['error_warning']=$this->language->get('error_csv_expired');
 				else {
-					$data['report']=array('created'=>0,'skipped'=>0,'errors'=>0);
-					foreach ($preview['rows'] as $row) {
-						if ($row['error']) { $data['report']['skipped']++; }
-						else {
-							try {
-								$row['error']=$validate($row['data'],false);
-								$data['report'][$row['error']?'skipped':'created']++;
-							} catch (Throwable $e) { $row['error']='error_csv_format'; $data['report']['errors']++; $this->log->write('SEO CSV apply: '.$e->getMessage()); }
-						}
-						$data['rows'][]=$row;
-					}
+					$result=\Novacart\SeoRedirectCsv::apply($preview['rows'],$validate,function($e){$this->log->write('SEO CSV apply: '.$e->getMessage());});
+					$data['report']=$result['report'];
+					$data['rows']=$result['rows'];
 				}
 			} elseif ($operation==='cancel') unset($this->session->data['seo_csv_preview']);
 			else $data['error_warning']=$this->language->get('error_request_method');

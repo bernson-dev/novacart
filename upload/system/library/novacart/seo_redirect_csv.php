@@ -38,6 +38,47 @@ class SeoRedirectCsv {
             return $rows;
         } finally { fclose($stream); }
     }
+    // Preview in input order, using the same conservative conflict policy as saveRule.
+    public static function preview(array $rows, callable $validate) {
+        require_once __DIR__.'/seo_redirect.php';
+        $accepted=array();
+        foreach ($rows as &$row) {
+            if ($row['error']) continue;
+            $data=$row['data'];
+            $row['error']=$validate($data,true);
+            if ($row['error']) continue;
+            $store=(int)$data['store_id'];
+            $language=(int)$data['language_id'];
+            $source=SeoRedirect::normalizePath($data['source_path']);
+            $target=(int)$data['http_code']===410?'':SeoRedirect::normalizePath($data['target_path']);
+            $status=(int)$data['status'];
+            foreach ($accepted[$store] ?? array() as $previous) {
+                if ($previous['language']===$language && $previous['source']===$source) {
+                    $row['error']='error_redirect_duplicate'; break;
+                }
+                if ($status && $previous['status'] && ($source===$previous['target'] || ($target!=='' && $target===$previous['source']))) {
+                    $row['error']='error_redirect_chain'; break;
+                }
+            }
+            if (!$row['error']) $accepted[$store][]=array('language'=>$language,'source'=>$source,'target'=>$target,'status'=>$status);
+        }
+        unset($row);
+        return $rows;
+    }
+    public static function apply(array $rows, callable $validate, callable $onError) {
+        $report=array('created'=>0,'skipped'=>0,'errors'=>0);
+        foreach ($rows as &$row) {
+            if ($row['error']) { $report['skipped']++; continue; }
+            try {
+                $row['error']=$validate($row['data'],false);
+                $report[$row['error']?'skipped':'created']++;
+            } catch (\Throwable $e) {
+                $row['error']='error_csv_format'; $report['errors']++; $onError($e);
+            }
+        }
+        unset($row);
+        return array('rows'=>$rows,'report'=>$report);
+    }
     public static function encode(array $rows) {
         $stream=fopen('php://temp','w+');
         try {
