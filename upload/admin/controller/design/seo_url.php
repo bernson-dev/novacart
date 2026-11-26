@@ -41,7 +41,7 @@ class ControllerDesignSeoUrl extends Controller {
 		$audit = $this->model_design_seo_url->getSeoUrlAudit();
 		$data['url_checks'] = array();
 		foreach (array('keyword'=>'keyword_rows','query'=>'query_rows','prefix'=>'prefix_rows','orphan'=>'orphan_rows','shared_language'=>'shared_language_rows') as $key=>$field) {
-			$data['url_checks'][] = array('label'=>$this->language->get('text_issue_'.$key),'count'=>$audit['summary'][$field],'href'=>$this->url->link('design/seo_url',$token.'&filter_issue='.$key,true));
+			$data['url_checks'][] = array('label'=>$this->language->get('text_issue_'.$key),'count'=>$audit['summary'][$field],'href'=>$key==='orphan'?$this->url->link('design/seo_url/diagnostics',$base.'&issue=orphan',true).'#diag-details':$this->url->link('design/seo_url',$token.'&filter_issue='.$key,true));
 		}
 		foreach (array('empty','invalid') as $key) {
 			$data['url_checks'][] = array('label'=>$this->language->get('text_diag_'.$key),'count'=>$model->countKeywords($key),'href'=>$this->url->link('design/seo_url/diagnostics',$base.'&issue='.$key,true));
@@ -63,6 +63,9 @@ class ControllerDesignSeoUrl extends Controller {
 		$data['redirect_count'] = $redirects === null ? null : count($redirects);
 		$data['redirect_link'] = $this->url->link('design/seo_url/diagnostics',$base.'&issue=redirect',true);
 		$data['rows']=array();
+		$data['can_fix']=false;
+		$data['fix_report']=$this->session->data['seo_diag_report'] ?? array();
+		unset($this->session->data['seo_diag_report']);
 		$data['detail_kind']='';
 		$data['detail_title']='';
 		$total=0;
@@ -74,6 +77,9 @@ class ControllerDesignSeoUrl extends Controller {
 		} elseif (in_array($data['issue'],array('empty','invalid'),true)) {
 			$data['detail_kind']='keyword';
 			$total=$model->countKeywords($data['issue']);
+		} elseif ($data['issue']==='orphan') {
+			$data['detail_kind']='orphan';
+			$total=$audit['summary']['orphan_rows'];
 		} elseif ($data['issue']==='redirect' && $redirects !== null) {
 			$data['detail_kind']='redirect';
 			$total=count($redirects);
@@ -85,6 +91,21 @@ class ControllerDesignSeoUrl extends Controller {
 			$route = in_array($data['type'],array('article','blog_category'),true) ? 'blog/'.($data['type']==='blog_category'?'category':'article') : 'catalog/'.$data['type'];
 			foreach ($data['rows'] as &$row) $row['edit']=$this->user->hasPermission('access',$route)?$this->url->link($route.'/edit',$token.'&'.$data['type'].'_id='.(int)$row['entity_id'],true):'';
 			unset($row);
+			$data['can_fix']=$this->user->hasPermission('modify','design/seo_url') && $this->user->hasPermission('modify',$route);
+			foreach ($data['rows'] as &$row) {
+				$row['old']=$data['issue']==='missing_description'?$row['meta_description']:$row['meta_title'];
+				$row['proposal']=$data['can_fix']?$model->previewMeta($data['type'],$data['store_id'],$data['language_id'],$data['issue'],$row):'';
+			}
+			unset($row);
+		} elseif ($data['detail_kind']==='orphan') {
+			$data['can_fix']=$this->user->hasPermission('modify','design/seo_url');
+			foreach (array_slice($this->model_design_seo_url->getSeoUrlIssueIds('orphan'),$start,$limit) as $id) {
+				$row=$this->model_design_seo_url->getSeoUrl($id);
+				if ($row) {
+					$row['edit']=$this->url->link('design/seo_url/edit',$token.'&seo_url_id='.(int)$id,true);
+					$data['rows'][]=$row;
+				}
+			}
 		} elseif ($data['detail_kind']==='keyword') {
 			$data['rows']=$model->getKeywords($data['issue'],$start,$limit);
 			foreach ($data['rows'] as &$row) $row['edit']=$this->url->link('design/seo_url/edit',$token.'&seo_url_id='.(int)$row['seo_url_id'],true);
@@ -94,8 +115,52 @@ class ControllerDesignSeoUrl extends Controller {
 			foreach ($data['rows'] as &$row) $row['edit']=$this->url->link('design/seo_url/redirects',$token.'&edit_id='.(int)$row['seo_redirect_id'],true);
 			unset($row);
 		}
+		if ($data['can_fix']) {
+			$data['fix_action']=$this->url->link('design/seo_url/diagnostics',$base.'&type='.$data['type'].'&issue='.$data['issue'].'&page='.$page,true);
+		}
+		if (($this->request->server['REQUEST_METHOD'] ?? '')==='POST') {
+			$report=array('updated'=>0,'skipped'=>0,'errors'=>0);
+			$selected=$this->request->post['selected'] ?? array();
+			$proposals=$this->request->post['proposal'] ?? array();
+			$old_values=$this->request->post['old'] ?? array();
+			// OpenCart Request HTML-escapes input; decode once before comparison.
+			if (!$data['can_fix'] || !is_array($selected) || count($selected)>50 || !is_array($proposals) || !is_array($old_values) || $store!==$data['store_id'] || $language!==$data['language_id']) {
+				$report['errors']++;
+			} else {
+				$visible=array();
+				foreach ($data['rows'] as $row) $visible[(int)($row['entity_id'] ?? $row['seo_url_id'])]=$row;
+				foreach (array_unique(array_filter($selected,'is_scalar')) as $id) {
+					if (!ctype_digit((string)$id) || !isset($visible[(int)$id])) { $report['skipped']++; continue; }
+					$row=$visible[(int)$id];
+					try {
+						$saved=false;
+						if ($data['detail_kind']==='orphan') {
+							// Verify exact preview fingerprint, then recheck existence in DELETE.
+							$fingerprint=hash('sha256',serialize(array($row['query'],$row['keyword'],$row['store_id'],$row['language_id'])));
+							if (is_string($old_values[$id] ?? null) && hash_equals($fingerprint,$old_values[$id])) $saved=$model->deleteOrphan($id,$row['query'],$row['keyword']);
+						} elseif (is_string($proposals[$id] ?? null) && is_string($old_values[$id] ?? null)) {
+							$saved=$model->applyMeta($data['type'],$data['store_id'],$data['language_id'],$data['issue'],$id,html_entity_decode($old_values[$id],ENT_QUOTES,'UTF-8'),html_entity_decode($proposals[$id],ENT_QUOTES,'UTF-8'));
+						}
+						$report[$saved?'updated':'skipped']++;
+					} catch (Throwable $e) {
+						$report['errors']++;
+						$this->log->write('SEO diagnostics fix: '.$e->getMessage());
+					}
+				}
+				if ($report['updated']) {
+					foreach (array('seo_url','seopro','product','category','manufacturer','information','article','blog_category') as $cache) $this->cache->delete($cache);
+				}
+			}
+			$this->session->data['seo_diag_report']=$report;
+			$this->response->redirect($this->url->link('design/seo_url/diagnostics',$base.'&type='.$data['type'].'&issue='.$data['issue'],true).'#diag-details');
+			return;
+		}
+		if ($data['detail_kind']==='orphan') {
+			foreach ($data['rows'] as &$row) $row['old']=hash('sha256',serialize(array($row['query'],$row['keyword'],$row['store_id'],$row['language_id'])));
+			unset($row);
+		}
 		if ($data['detail_kind']) {
-			$data['detail_title']=$this->language->get('text_diag_'.$data['issue']);
+			$data['detail_title']=$this->language->get($data['issue']==='orphan'?'text_issue_orphan':'text_diag_'.$data['issue']);
 			$pagination=new Pagination();
 			$pagination->total=$total; $pagination->page=$page; $pagination->limit=$limit;
 			$pagination->url=$this->url->link('design/seo_url/diagnostics',$base.'&type='.$data['type'].'&issue='.$data['issue'].'&page={page}',true);

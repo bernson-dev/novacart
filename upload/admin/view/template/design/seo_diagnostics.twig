@@ -7,6 +7,7 @@
   </div></div>
   <div class="container-fluid">
     <div class="alert alert-info">{{ text_diag_readonly }}</div>
+    {% if fix_report %}<div class="alert alert-info">{{ text_diag_updated }}: {{ fix_report.updated }} · {{ text_diag_skipped }}: {{ fix_report.skipped }} · {{ text_diag_errors }}: {{ fix_report.errors }}</div>{% endif %}
     <div class="panel panel-default">
       <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-link"></i> {{ text_diag_urls }}</h3></div>
       <div class="panel-body">
@@ -37,20 +38,35 @@
     {% if detail_kind %}
     <div class="panel panel-default" id="diag-details">
       <div class="panel-heading"><h3 class="panel-title">{{ detail_title }}</h3></div>
-      <div class="panel-body"><div class="table-responsive"><table class="table table-bordered table-hover">
-        <thead><tr><td>ID</td>{% if detail_kind == 'meta' %}<td>{{ text_missing_name }}</td><td>Meta Title</td><td>Meta Description</td>{% elseif detail_kind == 'keyword' %}<td>{{ column_query }}</td><td>{{ column_keyword }}</td><td>{{ entry_store }}</td><td>{{ entry_language }}</td>{% else %}<td>{{ text_diag_source }}</td><td>{{ text_diag_target }}</td><td>{{ entry_store }}</td><td>{{ entry_language }}</td>{% endif %}<td class="text-right">{{ column_action }}</td></tr></thead>
+      <div class="panel-body">
+      {% if can_fix %}
+      <form id="diag-fix" action="{{ fix_action }}" method="post">
+      <p class="help-block">{% if detail_kind == 'meta' %}{{ text_diag_shared_meta }}{% else %}{{ text_diag_orphan_help }}{% endif %}</p>
+      {% endif %}
+      <div class="table-responsive"><table class="table table-bordered table-hover">
+        <thead><tr>{% if can_fix %}<td class="text-center"><input type="checkbox" id="diag-select-all" aria-label="{{ text_diag_select_page }}"></td>{% endif %}<td>ID</td>{% if detail_kind == 'meta' %}<td>{{ text_missing_name }}</td><td>Meta Title</td><td>Meta Description</td>{% elseif detail_kind == 'keyword' or detail_kind == 'orphan' %}<td>{{ column_query }}</td><td>{{ column_keyword }}</td><td>{{ entry_store }}</td><td>{{ entry_language }}</td>{% else %}<td>{{ text_diag_source }}</td><td>{{ text_diag_target }}</td><td>{{ entry_store }}</td><td>{{ entry_language }}</td>{% endif %}{% if can_fix and detail_kind == 'meta' or detail_kind == 'redirect' %}<td>{{ text_diag_proposal }}</td>{% endif %}<td class="text-right">{{ column_action }}</td></tr></thead>
         <tbody>{% for row in rows %}<tr>
+        {% if can_fix %}{% set fix_id = detail_kind == 'meta' ? row.entity_id : row.seo_url_id %}<td class="text-center"><input type="checkbox" name="selected[]" value="{{ fix_id }}" aria-label="{{ fix_id }}"><input type="hidden" name="old[{{ fix_id }}]" value="{{ row.old|e('html_attr') }}"></td>{% endif %}
         {% if detail_kind == 'meta' %}<td>{{ row.entity_id }}</td><td>{{ row.name|e }}</td><td>{{ row.meta_title|e }}</td><td>{{ row.meta_description|e }}</td>
-        {% elseif detail_kind == 'keyword' %}<td>{{ row.seo_url_id }}</td><td>{{ row.query|e }}</td><td>{{ row.keyword|e }}</td><td>{{ row.store_id }}</td><td>{{ row.language_id }}</td>
+        {% elseif detail_kind == 'keyword' or detail_kind == 'orphan' %}<td>{{ row.seo_url_id }}</td><td>{{ row.query|e }}</td><td>{{ row.keyword|e }}</td><td>{{ row.store_id }}</td><td>{{ row.language_id }}</td>
         {% else %}<td>{{ row.seo_redirect_id }}</td><td>{{ row.source_path|e }}</td><td>{{ row.target_path|e }}</td><td>{{ row.store_id }}</td><td>{{ row.language_id }}</td>{% endif %}
+        {% if can_fix and detail_kind == 'meta' %}<td><input type="text" class="form-control" name="proposal[{{ row.entity_id }}]" maxlength="255" value="{{ row.proposal|e('html_attr') }}"></td>{% elseif detail_kind == 'redirect' %}<td>{{ row.proposal ? row.proposal|e : text_diag_manual }}</td>{% endif %}
         <td class="text-right">{% if row.edit %}<a href="{{ row.edit }}" class="btn btn-primary" title="{{ button_edit }}"><i class="fa fa-pencil"></i></a>{% endif %}</td>
-        </tr>{% else %}<tr><td colspan="{{ detail_kind == 'meta' ? 5 : 6 }}" class="text-center">{{ text_no_results }}</td></tr>{% endfor %}</tbody>
-      </table></div><div class="row"><div class="col-sm-6">{{ pagination }}</div><div class="col-sm-6 text-right">{{ results }}</div></div></div>
+        </tr>{% else %}<tr><td colspan="{{ (detail_kind == 'meta' ? 5 : 6) + (can_fix ? 1 : 0) + ((can_fix and detail_kind == 'meta') or detail_kind == 'redirect' ? 1 : 0) }}" class="text-center">{{ text_no_results }}</td></tr>{% endfor %}</tbody>
+      </table></div>{% if can_fix %}<button type="button" id="diag-apply" class="btn btn-primary" data-confirm="{{ text_diag_confirm|e('html_attr') }}">{{ text_diag_apply }}</button></form>{% endif %}<div class="row"><div class="col-sm-6">{{ pagination }}</div><div class="col-sm-6 text-right">{{ results }}</div></div></div>
     </div>
     {% endif %}
   </div>
 </div>
 <script>
+$('#diag-select-all').on('change', function () {
+    $('#diag-fix input[name="selected[]"]').prop('checked', this.checked);
+});
+$('#diag-apply').on('click', function () {
+    if ($('#diag-fix input[name="selected[]"]:checked').length && confirm($(this).attr('data-confirm'))) {
+        HTMLFormElement.prototype.submit.call(this.form);
+    }
+});
 $('#diag-filter').on('click', function () {
     HTMLFormElement.prototype.submit.call(this.form);
 });

@@ -9,11 +9,16 @@ function check($expected,$actual,$message) {
 }
 class DiagnosticTestDb {
     public $pdo;
+    private $affected=0;
+    public function escape($value) { return substr($this->pdo->quote($value),1,-1); }
+    public function countAffected() { return $this->affected; }
     public function __construct() {
         $this->pdo=new PDO('mysql:host=127.0.0.1;port=3306;dbname=seo_diagnostics;charset=utf8mb4','seo_test','seo_test',array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION));
     }
     public function query($sql) {
-        $rows=$this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $statement=$this->pdo->query($sql);
+        $this->affected=$statement->rowCount();
+        $rows=$statement->columnCount()?$statement->fetchAll(PDO::FETCH_ASSOC):array();
         return (object)array('rows'=>$rows,'row'=>$rows[0]??array(),'num_rows'=>count($rows));
     }
 }
@@ -41,6 +46,18 @@ foreach ($model->getTypes() as $type) {
         check(0,$model->countMeta($type,1,1,'duplicate_title'),$type.' store isolation');
         check(0,$model->countMeta($type,0,2,'duplicate_title'),$type.' language isolation');
         check(1,$model->countMeta($type,0,2,'missing_description'),$type.' second language');
+        $db->pdo->exec("ALTER TABLE ".$table."_description ADD description TEXT");
+        $db->pdo->exec("UPDATE ".$table."_description SET description='&lt;p&gt;Useful text&lt;/p&gt;' WHERE ".$id."=2 AND language_id=1");
+        $row=$model->getMeta($type,0,1,'missing_description',0,1)[0];
+        check('Useful text',$model->previewMeta($type,0,1,'missing_description',$row),'Description preview');
+        check(true,$model->applyMeta($type,0,1,'missing_description',2,'','Useful text'),'Fill description');
+        check(false,$model->applyMeta($type,0,1,'missing_description',2,'','Overwrite'),'Existing description protected');
+        check(false,$model->applyMeta($type,1,1,'missing_title',1,'  ','Wrong store'),'Wrong store blocked');
+        check(true,$model->applyMeta($type,0,1,'missing_title',1,'  ','New title'),'Fill title');
+        check(false,$model->applyMeta($type,0,1,'missing_title',1,'  ','Stale'),'Stale value blocked');
+        check(false,$model->applyMeta($type,0,1,'duplicate_title',2,'Same','same'),'Conflicting title blocked');
+        check(true,$model->applyMeta($type,0,1,'duplicate_title',2,'Same','Unique title'),'Edit duplicate');
+        check(0,$model->countMeta($type,0,1,'duplicate_title'),'Duplicate resolved');
     } finally {
         foreach (array($table.'_description',$table.'_to_store',$table) as $fixture) $db->pdo->exec("DROP TABLE ".$fixture);
     }
@@ -48,6 +65,13 @@ foreach ($model->getTypes() as $type) {
 $db->pdo->exec("CREATE TABLE diag_seo_url (seo_url_id INT PRIMARY KEY,store_id INT,language_id INT,`query` VARCHAR(255),keyword VARCHAR(255)) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 try {
     $db->pdo->exec("INSERT INTO diag_seo_url VALUES (1,0,1,'common/home',''),(2,0,1,'product_id=1',''),(3,0,1,'product_id=2','  '),(4,0,1,'product_id=3','good-slug'),(5,0,1,'product_id=4','bad slug'),(6,0,1,'product_id=5','bad/path'),(7,0,1,'product_id=6','товар'),(8,0,1,'product_id=7','..'),(9,0,1,'product_id=8','bad?slug'),(10,0,1,'product_id=9','bad#slug')");
+    $db->pdo->exec("CREATE TABLE diag_product (product_id INT PRIMARY KEY)");
+    $db->pdo->exec("INSERT INTO diag_product VALUES (1)");
+    try {
+        check(false,$model->deleteOrphan(2,'product_id=1',''),'Existing entity protected');
+        check(false,$model->deleteOrphan(4,'product_id=3','wrong'),'Changed keyword protected');
+        check(true,$model->deleteOrphan(4,'product_id=3','good-slug'),'Delete orphan');
+    } finally { $db->pdo->exec("DROP TABLE diag_product"); }
     check(2,$model->countKeywords('empty'),'Empty keywords except homepage');
     check(5,$model->countKeywords('invalid'),'Invalid characters, Unicode allowed');
     check(array(5,6,8,9,10),array_map('intval',array_column($model->getKeywords('invalid',0,50),'seo_url_id')),'Invalid keyword IDs');
