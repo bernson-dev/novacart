@@ -31,6 +31,13 @@ class ControllerCommonHeader extends Controller {
 		$data['description'] = $this->document->getDescription();
 		$data['keywords'] = $this->document->getKeywords();
 		$data['links'] = $this->document->getLinks();
+		if ($this->config->get('seo_noindex_rules')) {
+			require_once DIR_SYSTEM . 'library/novacart/seo_noindex.php';
+			if (\Novacart\SeoNoindex::matches($this->config,(int)$this->config->get('config_store_id'),$this->request->get['route'] ?? '',$this->request->get)) {
+				$this->document->setRobots(\Novacart\SeoNoindex::robots($this->document->getRobots()));
+				$this->response->addHeader('X-Robots-Tag: noindex');
+			}
+		}
 		$data['robots'] = $this->document->getRobots();
 		$data['styles'] = $this->document->getStyles();
 		$data['scripts'] = $this->document->getScripts('header');

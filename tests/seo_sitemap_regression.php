@@ -53,6 +53,10 @@ class SitemapTestDb {
             $rows=array_values(array_filter($this->products,function($p) use ($store) {
                 return $p['store']===$store && $p['status']===1 && $p['date_available'] <= date('Y-m-d');
             }));
+            if (preg_match('/e\.product_id NOT IN \(([0-9,]+)\)/',$sql,$excluded)) {
+                $ids=array_map('intval',explode(',',$excluded[1]));
+                $rows=array_values(array_filter($rows,function($p) use ($ids){return !in_array($p['product_id'],$ids,true);}));
+            }
             if (strpos($sql,'COUNT(*)')!==false) $rows=array(array('total'=>count($rows)));
             elseif (preg_match('/LIMIT (\d+),(\d+)$/',$sql,$m)) $rows=array_slice($rows,(int)$m[1],(int)$m[2]);
             else throw new RuntimeException('Missing SQL pagination');
@@ -161,5 +165,12 @@ same(1,Sitemap::clearCache(true),'Expired cache removed');
 same(1,count(glob(DIR_CACHE.'novacart-sitemap-*.xml')),'Fresh cache retained');
 same(1,Sitemap::clearCache(),'Manual cache clear');
 same(true,is_file(DIR_CACHE.'unrelated.xml'),'Other cache untouched');
+$config->set('seo_noindex_rules',array(0=>array('product'=>array(2))));
+$seo->enabled=true;
+$service=new Sitemap($registry);
+same(array('https://store.test/sitemap-home.xml','https://store.test/sitemap-products-1.xml'),locs(document($service->serve(array()))),'Noindex affects partition count');
+same(array('https://store.test/product-1','https://store.test/ua/product-1','https://store.test/product-3','https://store.test/ua/product-3'),locs(document($service->serve(array('sitemap_type'=>'products','sitemap_part'=>1)))),'Noindex excludes all translations');
+$config->set('config_store_id',1);
+same(array('https://store.test/product-5','https://store.test/ua/product-5'),locs(document((new Sitemap($registry))->serve(array('sitemap_type'=>'products','sitemap_part'=>1)))),'Noindex store isolation');
 echo "Sitemap PRO regression: OK\n";
 
