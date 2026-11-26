@@ -502,9 +502,7 @@ class ControllerDesignSeoUrl extends Controller {
 		$operation=$this->request->post['operation'] ?? '';
 		if ($method==='GET' && $data['available'] && ($this->request->get['download'] ?? '')==='1') {
 			try {
-				$total=$model->getTotalRules('');
-				if ($total>\Novacart\SeoRedirectCsv::MAX_ROWS) throw new InvalidArgumentException('error_csv_limit');
-				$csv=\Novacart\SeoRedirectCsv::encode($total?$model->getRules('',0,$total):array());
+				$csv=\Novacart\SeoRedirectCsv::encode($model->exportRules());
 				$this->response->addHeader('Content-Type: text/csv; charset=UTF-8');
 				$this->response->addHeader('Content-Disposition: attachment; filename="seo-redirects.csv"');
 				$this->response->setOutput($csv);

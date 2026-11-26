@@ -82,7 +82,7 @@ class SeoRedirectCsv {
         unset($row);
         return array('rows'=>$rows,'report'=>$report);
     }
-    public static function encode(array $rows) {
+    public static function encode(iterable $rows) {
         $stream=fopen('php://temp','w+');
         try {
             fwrite($stream,"\xEF\xBB\xBF");
