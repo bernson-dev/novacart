@@ -94,6 +94,7 @@ class ControllerDesignSeoUrl extends Controller {
 			$data['can_fix']=$this->user->hasPermission('modify','design/seo_url') && $this->user->hasPermission('modify',$route);
 			foreach ($data['rows'] as &$row) {
 				$row['old']=$data['issue']==='missing_description'?$row['meta_description']:$row['meta_title'];
+				$row['old_hash']=hash('sha256',(string)$row['old']);
 				$row['proposal']=$data['can_fix']?$model->previewMeta($data['type'],$data['store_id'],$data['language_id'],$data['issue'],$row):'';
 			}
 			unset($row);
@@ -116,7 +117,9 @@ class ControllerDesignSeoUrl extends Controller {
 			unset($row);
 		}
 		if ($data['can_fix']) {
-			$data['fix_action']=$this->url->link('design/seo_url/diagnostics',$base.'&type='.$data['type'].'&issue='.$data['issue'].'&page='.$page,true);
+			// Root .htaccess canonicalizes URLs ending in page=1 with a 301,
+			// which discards POST data. Never include page=1 in a form action.
+			$data['fix_action']=html_entity_decode($this->url->link('design/seo_url/diagnostics',$base.'&type='.$data['type'].'&issue='.$data['issue'].($page>1?'&page='.$page:''),true),ENT_QUOTES,'UTF-8');
 		}
 		if (($this->request->server['REQUEST_METHOD'] ?? '')==='POST') {
 			$report=array('updated'=>0,'skipped'=>0,'errors'=>0);
@@ -139,7 +142,11 @@ class ControllerDesignSeoUrl extends Controller {
 							$fingerprint=hash('sha256',serialize(array($row['query'],$row['keyword'],$row['store_id'],$row['language_id'])));
 							if (is_string($old_values[$id] ?? null) && hash_equals($fingerprint,$old_values[$id])) $saved=$model->deleteOrphan($id,$row['query'],$row['keyword']);
 						} elseif (is_string($proposals[$id] ?? null) && is_string($old_values[$id] ?? null)) {
-							$saved=$model->applyMeta($data['type'],$data['store_id'],$data['language_id'],$data['issue'],$id,html_entity_decode($old_values[$id],ENT_QUOTES,'UTF-8'),html_entity_decode($proposals[$id],ENT_QUOTES,'UTF-8'));
+							// Request::clean trims POST values, including hidden inputs.
+							// An exact hash preserves whitespace and encoded entities in the old value.
+							if (hash_equals($row['old_hash'],$old_values[$id])) {
+								$saved=$model->applyMeta($data['type'],$data['store_id'],$data['language_id'],$data['issue'],$id,$row['old'],html_entity_decode($proposals[$id],ENT_QUOTES,'UTF-8'));
+							}
 						}
 						$report[$saved?'updated':'skipped']++;
 					} catch (Throwable $e) {
