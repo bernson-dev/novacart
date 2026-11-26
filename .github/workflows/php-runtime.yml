@@ -279,3 +279,6 @@ jobs:
 
       - name: Sitemap PRO regression
         run: php tests/seo_sitemap_regression.php
+
+      - name: SEO diagnostics regression
+        run: php tests/seo_diagnostics_regression.php

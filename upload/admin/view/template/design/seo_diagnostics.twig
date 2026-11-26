@@ -1,0 +1,53 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header"><div class="container-fluid">
+    <div class="pull-right"><a href="{{ back }}" class="btn btn-default" title="{{ button_back }}"><i class="fa fa-reply"></i></a></div>
+    <h1>{{ heading_title }}</h1>
+    <ul class="breadcrumb">{% for breadcrumb in breadcrumbs %}<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>{% endfor %}</ul>
+  </div></div>
+  <div class="container-fluid">
+    <div class="alert alert-info">{{ text_diag_readonly }}</div>
+    <div class="panel panel-default">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-link"></i> {{ text_diag_urls }}</h3></div>
+      <div class="panel-body">
+        <p>{{ text_diag_global }}</p>
+        <div class="table-responsive"><table class="table table-bordered table-hover"><tbody>
+        {% for row in url_checks %}<tr><td>{{ row.label }}</td><td class="text-right"><a href="{{ row.href }}">{{ row.count }}</a></td></tr>{% endfor %}
+        <tr><td>{{ text_diag_redirect }}</td><td class="text-right">{% if redirect_count is null %}{{ text_diag_unavailable }}{% else %}<a href="{{ redirect_link }}">{{ redirect_count }}</a>{% endif %}</td></tr>
+        </tbody></table></div>
+        <a href="{{ missing_link }}" class="btn btn-default"><i class="fa fa-magic"></i> {{ text_missing_keywords }}</a>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-tags"></i> {{ text_diag_meta }}</h3></div>
+      <div class="panel-body">
+        <form action="index.php" method="get" class="form-inline">
+          <input type="hidden" name="route" value="design/seo_url/diagnostics"><input type="hidden" name="user_token" value="{{ user_token|e('html_attr') }}">
+          <div class="form-group"><label for="diag-store">{{ entry_store }}</label> <select id="diag-store" name="store_id" class="form-control">{% for store in stores %}<option value="{{ store.store_id }}"{% if store.store_id == store_id %} selected{% endif %}>{{ store.name|e }}</option>{% endfor %}</select></div>
+          <div class="form-group"><label for="diag-language">{{ entry_language }}</label> <select id="diag-language" name="language_id" class="form-control">{% for language in languages %}<option value="{{ language.language_id }}"{% if language.language_id == language_id %} selected{% endif %}>{{ language.name|e }}</option>{% endfor %}</select></div>
+          <button type="submit" class="btn btn-primary">{{ button_filter }}</button>
+        </form>
+        <p class="help-block">{{ text_diag_meta_help }}</p>
+        <div class="table-responsive"><table class="table table-bordered table-hover">
+          <thead><tr><td>{{ text_missing_name }}</td>{% for issue in meta_issues %}<td class="text-right">{{ meta_labels[issue] }}</td>{% endfor %}</tr></thead>
+          <tbody>{% for row in meta_summary %}<tr><td>{{ row.label }}</td>{% for check in row.checks %}<td class="text-right"><a href="{{ check.href }}">{{ check.count }}</a></td>{% endfor %}</tr>{% else %}<tr><td colspan="4">{{ text_no_results }}</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </div>
+    </div>
+    {% if detail_kind %}
+    <div class="panel panel-default" id="diag-details">
+      <div class="panel-heading"><h3 class="panel-title">{{ detail_title }}</h3></div>
+      <div class="panel-body"><div class="table-responsive"><table class="table table-bordered table-hover">
+        <thead><tr><td>ID</td>{% if detail_kind == 'meta' %}<td>{{ text_missing_name }}</td><td>Meta Title</td><td>Meta Description</td>{% elseif detail_kind == 'keyword' %}<td>{{ column_query }}</td><td>{{ column_keyword }}</td><td>{{ entry_store }}</td><td>{{ entry_language }}</td>{% else %}<td>{{ text_diag_source }}</td><td>{{ text_diag_target }}</td><td>{{ entry_store }}</td><td>{{ entry_language }}</td>{% endif %}<td class="text-right">{{ column_action }}</td></tr></thead>
+        <tbody>{% for row in rows %}<tr>
+        {% if detail_kind == 'meta' %}<td>{{ row.entity_id }}</td><td>{{ row.name|e }}</td><td>{{ row.meta_title|e }}</td><td>{{ row.meta_description|e }}</td>
+        {% elseif detail_kind == 'keyword' %}<td>{{ row.seo_url_id }}</td><td>{{ row.query|e }}</td><td>{{ row.keyword|e }}</td><td>{{ row.store_id }}</td><td>{{ row.language_id }}</td>
+        {% else %}<td>{{ row.seo_redirect_id }}</td><td>{{ row.source_path|e }}</td><td>{{ row.target_path|e }}</td><td>{{ row.store_id }}</td><td>{{ row.language_id }}</td>{% endif %}
+        <td class="text-right">{% if row.edit %}<a href="{{ row.edit }}" class="btn btn-primary" title="{{ button_edit }}"><i class="fa fa-pencil"></i></a>{% endif %}</td>
+        </tr>{% else %}<tr><td colspan="{{ detail_kind == 'meta' ? 5 : 6 }}" class="text-center">{{ text_no_results }}</td></tr>{% endfor %}</tbody>
+      </table></div><div class="row"><div class="col-sm-6">{{ pagination }}</div><div class="col-sm-6 text-right">{{ results }}</div></div></div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{{ footer }}
