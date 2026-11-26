@@ -120,7 +120,7 @@ class ControllerDesignSeoUrl extends Controller {
 				return;
 			}
 		}
-		$data['batch_url'] = $this->url->link('design/seo_url/missingBatch', $token, true);
+		$data['batch_url'] = html_entity_decode($this->url->link('design/seo_url/missingBatch', $token, true), ENT_QUOTES, 'UTF-8');
 		$data['summary_links'] = array();
 		foreach ($data['types'] as $type) {
 			foreach ($data['languages'] as $language) {

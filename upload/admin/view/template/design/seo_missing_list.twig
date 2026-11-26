@@ -64,14 +64,18 @@
         var totals = {created:0, skipped:0, errors:0};
         var controls = $('#seo-missing-filter :input, #seo-missing-save :input, #button-missing-all').filter(':enabled');
         controls.prop('disabled', true);
-        report.removeClass('hidden');
+        report.removeClass('hidden alert-danger alert-success').addClass('alert-info');
+        $('#missing-batch-message').text('');
+        $('#missing-batch-refresh').addClass('hidden');
         stop.removeClass('hidden').prop('disabled', false);
         function render() {
             Object.keys(totals).forEach(function (key) { report.find('[data-count="' + key + '"]').text(totals[key]); });
         }
         function finish(error) {
             running = false;
+            controls.prop('disabled', false);
             stop.addClass('hidden');
+            report.removeClass('alert-info alert-danger alert-success').addClass(error ? 'alert-danger' : (stopped || totals.errors || totals.skipped ? 'alert-info' : 'alert-success'));
             $('#missing-batch-refresh').removeClass('hidden');
             if (error) $('#missing-batch-message').text(error);
             render();
@@ -90,7 +94,9 @@
                 render();
                 if (result.done) { index++; cursor = 0; } else { cursor = Number(result.cursor); }
                 next();
-            }).fail(function () { finish(button.attr('data-error')); });
+            }).fail(function (xhr, status) {
+                finish(button.attr('data-error') + ' (HTTP ' + xhr.status + ', ' + status + ')');
+            });
         }
         render(); next();
     });
