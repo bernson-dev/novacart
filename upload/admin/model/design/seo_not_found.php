@@ -25,7 +25,8 @@ class ModelDesignSeoNotFound extends Model {
 		$this->db->query("DELETE FROM " . DB_PREFIX . "seo_not_found WHERE seo_not_found_id = '" . (int)$id . "'");
 	}
 
-	public function prune() {
-		$this->db->query("DELETE FROM " . DB_PREFIX . "seo_not_found WHERE date_last < DATE_SUB(NOW(), INTERVAL 90 DAY)");
+	public function prune($days) {
+		require_once DIR_SYSTEM . 'library/novacart/seo_not_found.php';
+		return (new \Novacart\SeoNotFound($this->db))->prune($days);
 	}
 }

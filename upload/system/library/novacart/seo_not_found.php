@@ -20,6 +20,23 @@ class SeoNotFound {
 		return $this->available;
 	}
 
+	public static function retentionDays($value) {
+		return is_scalar($value) && ctype_digit((string)$value) && (int)$value >= 1 && (int)$value <= 3650 ? (int)$value : 90;
+	}
+
+	public static function loggingEnabled($value) {
+		return $value === null || $value === '' || (string)$value === '1';
+	}
+
+	public function prune($days) {
+		if (!$this->isAvailable()) {
+			return 0;
+		}
+		$days = self::retentionDays($days);
+		$this->db->query("DELETE FROM " . DB_PREFIX . "seo_not_found WHERE date_last < DATE_SUB(NOW(), INTERVAL " . $days . " DAY)");
+		return (int)$this->db->countAffected();
+	}
+
 	public static function requestPath($uri, $base = '/') {
 		if (!is_string($uri) || $uri === '' || $uri[0] !== '/' || strpos($uri, '//') === 0) {
 			return '';
@@ -51,7 +68,7 @@ class SeoNotFound {
 		}
 		$request = $registry->get('request');
 		$config = $registry->get('config');
-		if (!$config->get('config_seo_url') || !isset($request->get['_route_']) || !in_array(strtoupper((string)($request->server['REQUEST_METHOD'] ?? 'GET')), array('GET', 'HEAD'), true)
+		if (!self::loggingEnabled($config->get('seo_not_found_status')) || !$config->get('config_seo_url') || !isset($request->get['_route_']) || !in_array(strtoupper((string)($request->server['REQUEST_METHOD'] ?? 'GET')), array('GET', 'HEAD'), true)
 			|| !empty($request->post) || strtolower((string)($request->server['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest') {
 			return;
 		}

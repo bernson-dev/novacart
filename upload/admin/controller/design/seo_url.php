@@ -16,6 +16,11 @@ class ControllerDesignSeoUrl extends Controller {
 		$this->load->language('design/seo_url');
 		$this->load->model('design/seo_not_found');
 		$this->load->model('design/seo_redirect');
+		$this->load->model('setting/setting');
+		require_once DIR_SYSTEM . 'library/novacart/seo_not_found.php';
+		$settings = $this->model_setting_setting->getSetting('seo_not_found', 0);
+		$data['log_status'] = \Novacart\SeoNotFound::loggingEnabled($settings['seo_not_found_status'] ?? null) ? 1 : 0;
+		$data['retention_days'] = \Novacart\SeoNotFound::retentionDays($settings['seo_not_found_retention_days'] ?? null);
 		$model = $this->model_design_seo_not_found;
 		$data['available'] = $model->isAvailable();
 		$data['can_modify'] = $this->user->hasPermission('modify', 'design/seo_url');
@@ -39,7 +44,18 @@ class ControllerDesignSeoUrl extends Controller {
 						}
 					}
 				} elseif ($operation === 'prune') {
-					$model->prune();
+					$model->prune($data['retention_days']);
+				} elseif ($operation === 'settings') {
+					$status = $this->request->post['log_status'] ?? '';
+					$days = $this->request->post['retention_days'] ?? '';
+					if (!is_scalar($status) || !in_array((string)$status, array('0', '1'), true) || !is_scalar($days) || !ctype_digit((string)$days) || (int)$days < 1 || (int)$days > 3650) {
+						$data['error_warning'] = $this->language->get('error_not_found_settings');
+					} else {
+						$this->model_setting_setting->editSetting('seo_not_found', array(
+							'seo_not_found_status' => (string)$status,
+							'seo_not_found_retention_days' => (string)(int)$days
+						), 0);
+					}
 				} else {
 					$data['error_warning'] = $this->language->get('error_request_method');
 				}
@@ -63,6 +79,8 @@ class ControllerDesignSeoUrl extends Controller {
 		$data['back'] = $this->url->link('design/seo_url', $token, true);
 		$data['redirects'] = $this->url->link('design/seo_url/redirects', $token, true);
 		$data['user_token'] = $this->session->data['user_token'];
+		$data['button_not_found_prune'] = sprintf($this->language->get('button_not_found_prune'), $data['retention_days']);
+		$data['text_not_found_prune_confirm'] = sprintf($this->language->get('text_not_found_prune_confirm'), $data['retention_days']);
 		$data['heading_title'] = $this->language->get('text_not_found_log');
 		$this->document->setTitle($data['heading_title']);
 		$data['breadcrumbs'] = array(

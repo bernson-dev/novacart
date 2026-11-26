@@ -18,6 +18,7 @@ foreach (array('/index.php?route=product/product', '/image/missing.png', '/a.js'
 class JournalTestDb {
 	public $available = true;
 	public $writes = array();
+	public function countAffected() { return 7; }
 	public function escape($value) { return addslashes($value); }
 	public function query($sql) {
 		if (strpos($sql, 'information_schema.TABLES') !== false) {
@@ -38,4 +39,17 @@ check404(true, strpos($db->writes[0], 'ON DUPLICATE KEY UPDATE hits = hits + 1, 
 $db->available = false;
 (new SeoNotFound($db))->record('/missing', 0, 1);
 check404(2, count($db->writes), 'Missing table no-op');
+check404(90, SeoNotFound::retentionDays(null), 'Default retention');
+check404(30, SeoNotFound::retentionDays('30'), 'Configured retention');
+foreach (array(0, -1, 3651, 'abc', array(), '1.5') as $invalid) {
+	check404(90, SeoNotFound::retentionDays($invalid), 'Invalid retention fallback');
+}
+check404(true, SeoNotFound::loggingEnabled(null), 'Default enabled');
+check404(false, SeoNotFound::loggingEnabled('0'), 'Disabled logging');
+check404(true, SeoNotFound::loggingEnabled('1'), 'Enabled logging');
+$db->available = true;
+check404(7, (new SeoNotFound($db))->prune(30), 'Deleted count');
+check404(true, strpos(end($db->writes), 'INTERVAL 30 DAY') !== false, 'Configured cleanup period');
+$db->available = false;
+check404(0, (new SeoNotFound($db))->prune(30), 'Missing journal cleanup no-op');
 echo "SEO 404 journal regression: OK\n";

@@ -19,6 +19,17 @@
             <div class="panel-heading"><h3 class="panel-title"><i class="fa fa-exclamation-triangle"></i> {{ heading_title }}</h3></div>
             <div class="panel-body">
                 <p>{{ text_not_found_help }}</p>
+                {% if can_modify %}
+                <form method="post" action="{{ action }}" id="seo-not-found-settings" class="well">
+                    <input type="hidden" name="operation" value="settings">
+                    <div class="row">
+                        <div class="col-sm-4 form-group"><label for="not-found-status">{{ entry_not_found_status }}</label><select name="log_status" id="not-found-status" class="form-control"><option value="1"{% if log_status == 1 %} selected{% endif %}>{{ text_enabled }}</option><option value="0"{% if log_status == 0 %} selected{% endif %}>{{ text_disabled }}</option></select></div>
+                        <div class="col-sm-4 form-group"><label for="not-found-retention">{{ entry_not_found_retention }}</label><input type="number" min="1" max="3650" step="1" required name="retention_days" id="not-found-retention" value="{{ retention_days }}" class="form-control"></div>
+                        <div class="col-sm-4 form-group"><label>&nbsp;</label><div><button type="button" id="button-not-found-settings" class="btn btn-primary"><i class="fa fa-save"></i> {{ button_save }}</button></div></div>
+                    </div>
+                    <p class="help-block">{{ text_not_found_settings_help }}</p>
+                </form>
+                {% endif %}
                 <form method="get" action="index.php" id="seo-not-found-filter" class="well">
                     <input type="hidden" name="route" value="design/seo_url/notFoundLog"><input type="hidden" name="user_token" value="{{ user_token }}">
                     <div class="input-group"><input name="filter_search" class="form-control" value="{{ filter_search|e('html_attr') }}" placeholder="{{ entry_search }}"><span class="input-group-btn"><button type="button" id="button-not-found-filter" class="btn btn-primary"><i class="fa fa-filter"></i></button><a href="{{ reset }}" class="btn btn-default"><i class="fa fa-times"></i></a></span></div>
@@ -42,6 +53,9 @@
     </div>
 </div>
 <script>
+$('#button-not-found-settings').on('click', function () {
+    document.getElementById('seo-not-found-settings').requestSubmit();
+});
 $('#button-not-found-filter').on('click', function () {
     document.getElementById('seo-not-found-filter').requestSubmit();
 });
