@@ -107,10 +107,28 @@ $index=document($service->serve(array()));
 same('sitemapindex',$index->documentElement->localName,'Index root');
 $children=locs($index);
 same(3,count($children),'Home and two product parts');
-same(true,strpos($children[2],'sitemap_part=2')!==false,'Second part in index');
+same(array('https://store.test/sitemap-home.xml','https://store.test/sitemap-products-1.xml','https://store.test/sitemap-products-2.xml'),$children,'Readable index URLs');
+same(array('sitemap_type'=>'home','sitemap_part'=>1),Sitemap::routeParams('sitemap-home.xml'),'Home route');
+same(array('sitemap_type'=>'products','sitemap_part'=>2),Sitemap::routeParams('sitemap-products-2.xml'),'Product route');
+same(array('sitemap_type'=>'blog-categories','sitemap_part'=>1),Sitemap::routeParams('sitemap-blog-categories-1.xml'),'Blog route');
+foreach (array('sitemap-products-0.xml','sitemap-products-1000001.xml','sitemap-unknown-1.xml','../sitemap-home.xml','sitemap-home.xml/','sitemap-products-01.xml') as $bad) {
+    same(null,Sitemap::routeParams($bad),'Invalid filename: '.$bad);
+}
+same(true,strpos($service->serve(array()),'<?xml-stylesheet type="text/xsl" href="sitemap.xsl"?>')!==false,'Index stylesheet');
+$stylesheet=new DOMDocument();
+same(true,$stylesheet->load(dirname(__DIR__).'/upload/sitemap.xsl', LIBXML_NONET),'Valid XSL file');
 $first=document($service->serve(array('sitemap_type'=>'products','sitemap_part'=>1)));
 $second=document($service->serve(array('sitemap_type'=>'products','sitemap_part'=>2)));
 same('urlset',$first->documentElement->localName,'Child root');
+same(true,strpos($first->saveXML(),'<?xml-stylesheet type="text/xsl" href="sitemap.xsl"?>')!==false,'Child stylesheet');
+if (class_exists('XSLTProcessor')) {
+    $processor=new XSLTProcessor();
+    same(true,$processor->importStylesheet($stylesheet),'Compile XSL');
+    $html=$processor->transformToXML($first);
+    same(true,strpos($html,'href="https://store.test/product-1"')!==false,'Clickable page URL');
+    same(true,strpos($html,'href="sitemap.xml"')!==false,'Back to index');
+    same(true,strpos($processor->transformToXML($index),'href="https://store.test/sitemap-products-2.xml"')!==false,'Clickable child map');
+}
 $all=array_merge(locs($first),locs($second));
 same(array('https://store.test/product-1','https://store.test/ua/product-1','https://store.test/product-2','https://store.test/ua/product-2','https://store.test/product-3','https://store.test/ua/product-3'),$all,'Store/status/date and partition coverage');
 same($all,array_values(array_unique($all)),'No duplicate locations');

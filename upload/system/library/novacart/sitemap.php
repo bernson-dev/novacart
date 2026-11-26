@@ -82,7 +82,7 @@ class Sitemap {
 	private function cached($key, $build) {
 		if (!$this->ttl) return $build();
 		// Include URL/settings that affect the XML, and never vary by cookie.
-		$hash = hash('sha256', serialize(array($key, $this->store, $this->base, $this->size, $this->ttl, $this->languages, $this->default,
+		$hash = hash('sha256', serialize(array('presentation-v2', $key, $this->store, $this->base, $this->size, $this->ttl, $this->languages, $this->default,
 			$this->shared, $this->config->get('config_seo_url'), $this->config->get('config_seo_pro'),
 			$this->config->get('config_seo_language_prefix'), $this->config->get('config_page_postfix'),
 			$this->config->get('config_seopro_addslash'), $this->config->get('config_seopro_lowercase'))));
@@ -108,8 +108,25 @@ class Sitemap {
 	}
 
 	private function childUrl($type, $part) {
-		// Explicit route works on Apache and nginx without new rewrite rules.
-		return $this->base . 'index.php?route=extension/feed/google_sitemap&sitemap_type=' . $type . '&sitemap_part=' . $part;
+		return $this->base . ($type === 'home' ? 'sitemap-home.xml' : 'sitemap-' . $type . '-' . $part . '.xml');
+	}
+
+	/** Recognize only reserved sitemap filenames, not arbitrary SEO keywords. */
+	public static function routeParams($path) {
+		if ($path === 'sitemap-home.xml') {
+			return array('sitemap_type' => 'home', 'sitemap_part' => 1);
+		}
+		if (is_string($path) && preg_match('/^sitemap-(products|categories|manufacturers|information|articles|blog-categories)-([1-9][0-9]{0,6})\.xml$/D', $path, $match)) {
+			if ((int)$match[2] <= 1000000) {
+				return array('sitemap_type' => $match[1], 'sitemap_part' => (int)$match[2]);
+			}
+		}
+		return null;
+	}
+
+	private function xmlHeader() {
+		return '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+			. '<?xml-stylesheet type="text/xsl" href="sitemap.xsl"?>' . "\n";
 	}
 
 	private function where($type) {
@@ -146,7 +163,7 @@ class Sitemap {
 	}
 
 	private function indexXml() {
-		$xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+		$xml = $this->xmlHeader() . '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 		$xml .= '<sitemap><loc>' . self::xml($this->childUrl('home', 1)) . "</loc></sitemap>\n";
 		foreach ($this->types as $type => $definition) {
 			$parts = (int)ceil($this->count($type) / $this->size);
@@ -179,7 +196,7 @@ class Sitemap {
 	}
 
 	private function partXml($type, $part) {
-		$xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
+		$xml = $this->xmlHeader() . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
 		$seen = array();
 		if ($type === 'home') {
 			$xml .= $this->render('common/home', array(), '', '', $seen);
